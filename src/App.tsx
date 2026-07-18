@@ -1,7 +1,9 @@
 import { useEffect } from 'react'
 import './App.css'
 import { IngredientList } from './components/Ingredients/IngredientList'
+import { Scene } from './components/Scene/Scene'
 import { useWorldStore } from './store/worldStore'
+import { ingredients as exampleIngredients } from './data/ingredients';   
 
 function App() {
   const addEntity = useWorldStore((state) => state.addEntity)
@@ -35,8 +37,14 @@ function App() {
       <div className="comments">
         <p>Here is a list</p>
 
-        <IngredientList ingredients={ingredients} />
+        <IngredientList
+          ingredients={ingredients.length > 0 ? ingredients : exampleIngredients}
+          listId="app"
+          title="Ingredients"
+        />
       </div>
+
+      <Scene />
     </>
   )
 }

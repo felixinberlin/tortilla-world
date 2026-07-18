@@ -1,3 +1,30 @@
+.ingredient-list-panel {
+  background: linear-gradient(135deg, #fffdf8 0%, #f7efe7 100%);
+  border: 1px solid #e7d8c3;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(82, 55, 24, 0.08);
+  min-width: 240px;
+  padding: 16px;
+}
+
+.ingredient-list-header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.ingredient-list-header h3 {
+  color: #6b4226;
+  font-size: 1rem;
+  margin: 0;
+}
+
+.ingredient-list-header span {
+  color: #8b6a45;
+  font-size: 0.85rem;
+}
+
 .ingredient-list,
 .recipe-ingredient-list {
   display: grid;
@@ -10,13 +37,36 @@
 .ingredient-list-item,
 .recipe-ingredient-item {
   align-items: center;
+  background: #ffffff;
+  border: 1px solid #e6d5bf;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+  cursor: grab;
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+  padding: 10px 12px;
+  user-select: none;
+}
+
+.ingredient-list-item:active,
+.recipe-ingredient-item:active {
+  cursor: grabbing;
+}
+
+.ingredient-list-item span {
+  font-size: 1rem;
 }
 
 .recipe-ingredient-amount {
   margin-left: auto;
+}
+
+.scene-panel {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
+  flex-wrap: wrap;
 }
 
 @media (max-width: 30rem) {
