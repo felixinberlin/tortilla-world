@@ -1,0 +1,27 @@
+.ingredient-list,
+.recipe-ingredient-list {
+  display: grid;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ingredient-list-item,
+.recipe-ingredient-item {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.recipe-ingredient-amount {
+  margin-left: auto;
+}
+
+@media (max-width: 30rem) {
+  .recipe-ingredient-amount {
+    margin-left: 0;
+    width: 100%;
+  }
+}
