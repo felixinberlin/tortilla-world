@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { Entity, EntityRelationship, Position } from '../types/Entity'
+import { ingredients as ingredientCatalog } from '../data/ingredients'
 
 interface WorldState {
   entities: Record<string, Entity>
@@ -13,7 +14,18 @@ interface WorldState {
 }
 
 export const useWorldStore = create<WorldState>((set) => ({
-  entities: {},
+  entities: Object.fromEntries(
+    ingredientCatalog.map((ingredient, index) => [
+      ingredient.id,
+      {
+        id: ingredient.id,
+        type: 'ingredient' as const,
+        position: { x: 0, y: index },
+        size: { width: 1, height: 1 },
+        state: 'full',
+      },
+    ]),
+  ),
   relationships: [],
 
   addEntity: (entity) =>

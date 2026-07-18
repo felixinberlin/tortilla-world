@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import {
   DndContext,
   closestCenter,
@@ -7,27 +7,78 @@ import {
   useSensors,
   type DragEndEvent,
 } from '@dnd-kit/core'
-import type { Ingredient } from '../../types/Ingredient'
 import { IngredientList } from '../Ingredients/IngredientList'
-import { ingredients as initialFullIngredients } from '../../data/ingredients';
+import { useWorldStore } from '../../store/worldStore'
+import { ingredients as ingredientCatalog } from '../../data/ingredients'
+import type { Entity } from '../../types/Entity'
+import type { Ingredient } from '../../types/Ingredient'
 
-function reorderItems(items: Ingredient[], activeId: string, overId: string) {
-  const oldIndex = items.findIndex((item) => activeId.endsWith(item.id))
-  const newIndex = items.findIndex((item) => overId.endsWith(item.id))
+type IngredientListState = 'full' | 'empty'
 
-  if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) {
-    return items
+interface IngredientView extends Ingredient {}
+
+function toIngredientView(entity: Entity): IngredientView {
+  const catalogEntry = ingredientCatalog.find((ingredient) => ingredient.id === entity.id)
+
+  return {
+    id: entity.id,
+    name: catalogEntry?.name ?? entity.id,
+    icon: catalogEntry?.icon ?? '🥔',
+  }
+}
+
+function getIngredientsForList(
+  entities: Record<string, Entity>,
+  listState: IngredientListState,
+  fallbackCatalog: Ingredient[] = [],
+) {
+  const matchingEntities = Object.values(entities).filter(
+    (entity) => entity.type === 'ingredient' && entity.state === listState,
+  )
+
+  if (matchingEntities.length > 0) {
+    return matchingEntities
+      .slice()
+      .sort((left, right) => left.position.y - right.position.y)
+      .map((entity) => toIngredientView(entity))
   }
 
-  const reordered = [...items]
-  const [moved] = reordered.splice(oldIndex, 1)
-  reordered.splice(newIndex, 0, moved)
-  return reordered
+  // The initial “full” list is seeded from the ingredient catalog when the store has not
+  // created any entity rows yet. The “empty” list starts empty until an item is moved there.
+  if (listState === 'full') {
+    return fallbackCatalog.map((ingredient) => ({
+      id: ingredient.id,
+      name: ingredient.name,
+      icon: ingredient.icon,
+    }))
+  }
+
+  return []
+}
+
+function applyListOrder(
+  updateEntity: (entityId: string, changes: Partial<Omit<Entity, 'id'>>) => void,
+  itemIds: string[],
+  listState: IngredientListState,
+) {
+  itemIds.forEach((itemId, index) => {
+    updateEntity(itemId, {
+      state: listState,
+      position: { x: 0, y: index },
+    })
+  })
 }
 
 export function Scene() {
-  const [fullIngredients, setFullIngredients] = useState<Ingredient[]>(initialFullIngredients)
-  const [emptyIngredients, setEmptyIngredients] = useState<Ingredient[]>([])
+  const entities = useWorldStore((state) => state.entities)
+  const updateEntity = useWorldStore((state) => state.updateEntity)
+
+  const fullIngredients = useMemo(
+    () => getIngredientsForList(entities, 'full', ingredientCatalog),
+    [entities],
+  )
+
+  const emptyIngredients = useMemo(() => getIngredientsForList(entities, 'empty'), [entities])
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -51,40 +102,44 @@ export function Scene() {
       return
     }
 
-    if (sourceListId === targetListId) {
-      if (sourceListId === 'full') {
-        setFullIngredients((current) => reorderItems(current, activeId, overId))
-      } else {
-        setEmptyIngredients((current) => reorderItems(current, activeId, overId))
-      }
+    const sourceState = sourceListId as IngredientListState
+    const targetState = targetListId as IngredientListState
+    const sourceItems = sourceState === 'full' ? fullIngredients : emptyIngredients
+    const targetItems = targetState === 'full' ? fullIngredients : emptyIngredients
+
+    if (!sourceItems.some((item) => item.id === ingredientId)) {
       return
     }
 
-    const sourceItems = sourceListId === 'full' ? fullIngredients : emptyIngredients
-    const targetItems = targetListId === 'full' ? fullIngredients : emptyIngredients
-    const ingredient = sourceItems.find((item) => item.id === ingredientId)
+    const sourceIds = sourceItems.map((item) => item.id)
+    const targetIds = targetItems.map((item) => item.id)
+    const currentFullIds = fullIngredients.map((item) => item.id)
+    const currentEmptyIds = emptyIngredients.map((item) => item.id)
+    const targetIndex = targetIds.findIndex((itemId) => overId.endsWith(itemId))
+    const insertAt = targetIndex === -1 ? targetIds.length : targetIndex
 
-    if (!ingredient) {
-      return
-    }
+    let nextFullIds = currentFullIds
+    let nextEmptyIds = currentEmptyIds
 
-    const updatedSource = sourceItems.filter((item) => item.id !== ingredient.id)
-    const updatedTarget = [...targetItems]
-    const targetIndex = updatedTarget.findIndex((item) => overId.endsWith(item.id))
-    const insertAt = targetIndex === -1 ? updatedTarget.length : targetIndex
-    updatedTarget.splice(insertAt, 0, ingredient)
+    if (sourceState === targetState) {
+      const reorderedIds = sourceIds.filter((itemId) => itemId !== ingredientId)
+      reorderedIds.splice(insertAt, 0, ingredientId)
 
-    if (sourceListId === 'full') {
-      setFullIngredients(updatedSource)
+      nextFullIds = sourceState === 'full' ? reorderedIds : currentFullIds
+      nextEmptyIds = sourceState === 'empty' ? reorderedIds : currentEmptyIds
     } else {
-      setEmptyIngredients(updatedSource)
+      const reorderedSourceIds = sourceIds.filter((itemId) => itemId !== ingredientId)
+      const reorderedTargetIds = [...targetIds]
+      reorderedTargetIds.splice(insertAt, 0, ingredientId)
+
+      nextFullIds = sourceState === 'full' ? reorderedSourceIds : targetState === 'full' ? reorderedTargetIds : currentFullIds
+      nextEmptyIds = sourceState === 'empty' ? reorderedSourceIds : targetState === 'empty' ? reorderedTargetIds : currentEmptyIds
     }
 
-    if (targetListId === 'full') {
-      setFullIngredients(updatedTarget)
-    } else {
-      setEmptyIngredients(updatedTarget)
-    }
+    // Update both lists from a single, consistent snapshot so the dragged item does not
+    // briefly disappear while the store rerenders.
+    applyListOrder(updateEntity, nextFullIds, 'full')
+    applyListOrder(updateEntity, nextEmptyIds, 'empty')
   }
 
   const panels = useMemo(
