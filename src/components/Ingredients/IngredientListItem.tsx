@@ -1,14 +1,14 @@
-import type { Ingredient } from '../../types/Ingredient'
+import type { Ingredient as IngredientModel } from '../../types/Ingredient'
+import { Ingredient } from './Ingredient'
 
 interface IngredientListItemProps {
-  ingredient: Ingredient
+  ingredient: IngredientModel
 }
 
 export function IngredientListItem({ ingredient }: IngredientListItemProps) {
   return (
     <li className="ingredient-list-item">
-      <span aria-hidden="true">{ingredient.icon}</span>
-      <span>{ingredient.name}</span>
+      <Ingredient ingredient={ingredient} />
     </li>
   )
 }

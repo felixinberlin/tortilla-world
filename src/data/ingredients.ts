@@ -1,7 +1,88 @@
-import type { Ingredient } from '../types/Ingredient'
+import type { Ingredient } from "../types/Ingredient";
+
 
 export const ingredients: Ingredient[] = [
-  { id: 'potato', name: 'Potato', icon: '🥔' },
-  { id: 'egg', name: 'Egg', icon: '🥚' },
-  { id: 'onion', name: 'Onion', icon: '🧅' },
-]
+
+  {
+    id: "potato",
+    icon: "🥔",
+    name: "Potatoes",
+  },
+
+
+  {
+    id: "egg",
+    icon: "🥚",
+    name: "Eggs",
+  },
+
+
+  {
+    id: "oil",
+    icon: "🫒",
+    name: "Olive Oil",
+  },
+
+
+  {
+    id: "onion",
+    icon: "🧅",
+    name: "Onion",
+  },
+
+
+  {
+    id: "chorizo",
+    icon: "🌭",
+    name: "Chorizo",
+  },
+
+  {
+    id: "salt",
+    icon: "🧂",
+    name: "Salt",
+  },
+
+  {
+    id: "pepper",
+    icon: "🫑",
+    name: "Bell Pepper",
+  },
+
+  {
+    id: "garlic",
+    icon: "🧄",
+    name: "Garlic",
+  },
+
+  {
+    id: "tomato",
+    icon: "🍅",
+    name: "Tomato",
+  },
+
+  {
+    id: "cheese",
+    icon: "🧀",
+    name: "Cheese",
+  },
+
+  {
+    id: "bread",
+    icon: "🍞",
+    name: "Bread",
+  },
+
+  {
+    id: "milk",
+    icon: "🥛",
+    name: "Milk",
+  },
+
+  {
+    id: "butter",
+    icon: "🧈",
+    name: "Butter",
+  },
+
+];
