@@ -1,19 +1,10 @@
-/*
- * Ingredient catalogue
- *
- * This is the complete list of ingredients
- * available in the application.
- *
- * Later this could come from:
- * - TYPO3 API
- * - database
- * - JSON file
- * - AI generated recipe
- */
-
-
-import type { Ingredient } from "../types/ingredient";
-
+// Local Ingredient type (fallback) to avoid import errors when
+// ../types/Ingredient is missing or has incorrect path.
+export type Ingredient = {
+  id: string;
+  icon?: string;
+  name: string;
+};
 
 export const ingredients: Ingredient[] = [
 
