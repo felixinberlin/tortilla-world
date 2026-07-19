@@ -1,4 +1,4 @@
-import type { Ingredient } from "../types/Ingredient";
+import type { Ingredient } from "../../types/Ingredient";
 
 
 export const ingredients: Ingredient[] = [

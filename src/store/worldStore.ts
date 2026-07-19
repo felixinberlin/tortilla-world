@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import type { Entity, EntityRelationship, Position } from '../types/Entity'
-import { ingredients as ingredientCatalog } from '../data/ingredients'
+import { ingredients as ingredientCatalog } from '../data/catalog/ingredients'
 
 interface WorldState {
   entities: Record<string, Entity>
