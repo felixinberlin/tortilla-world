@@ -15,7 +15,8 @@ export interface Entity {
   type: EntityType
   position: Position
   size: Size
-  state: string
+  state: string        // behavior state: 'idle' | 'walking' | 'carrying' etc
+  lists: string[]      // which lists this entity currently belongs to
 }
 
 export interface EntityRelationship {

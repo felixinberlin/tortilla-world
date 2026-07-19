@@ -10,30 +10,18 @@ export interface ReorderResult {
   changedListId: string
 }
 
-/** The item being dragged — always composite, e.g. "despensa::potato". */
 function parseDraggedItem(compositeId: string) {
   const [listId, itemId] = compositeId.split('::')
   if (!listId || !itemId) return null
   return { listId, itemId }
 }
 
-/**
- * The drop target — either a specific item ("kitchen::egg") or a bare
- * list container id ("kitchen") when dropping into an empty/blank area.
- */
 function parseDropTarget(compositeId: string) {
   const [listId, itemId] = compositeId.split('::')
   if (!listId) return null
   return { listId, itemId: itemId ?? null }
 }
 
-/**
- * Pure: given the current id order of every list and a drag event,
- * returns the next order plus which list changed. Two rules:
- *   - Cross-list: COPY semantics — source list is never modified.
- *     Blocked if the item is already in the target list.
- *   - Same-list: MOVE semantics — reorder only, no duplicate created.
- */
 export function resolveListReorder(
   event: DragMoveEvent,
   lists: Record<string, string[]>,
@@ -66,17 +54,25 @@ export function resolveListReorder(
 }
 
 /**
- * Commit step: writes only the changed list into the store.
- * Intentionally takes a single list at a time — applying all lists would
- * overwrite entity.state for items that exist in multiple lists via copy semantics.
+ * Adds an entity to a list by appending the listId to entity.lists.
+ * Does not remove from other lists — copy semantics are preserved.
  */
 export function applyListOrders(
   updateEntity: (entityId: string, changes: Partial<Omit<Entity, 'id'>>) => void,
+  getEntity: (entityId: string) => Entity | undefined,
   lists: Record<string, string[]>,
 ) {
   for (const [listId, itemIds] of Object.entries(lists)) {
     itemIds.forEach((itemId, index) => {
-      updateEntity(itemId, { state: listId, position: { x: 0, y: index } })
+      const entity = getEntity(itemId)
+      const currentLists = entity?.lists ?? []
+      const updatedLists = currentLists.includes(listId)
+        ? currentLists
+        : [...currentLists, listId]
+      updateEntity(itemId, {
+        lists: updatedLists,
+        position: { x: 0, y: index },
+      })
     })
   }
 }

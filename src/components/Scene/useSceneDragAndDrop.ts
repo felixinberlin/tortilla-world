@@ -38,10 +38,11 @@ export function useSceneDragAndDrop() {
 
     if (!result) return
 
-    // Only write the list that actually changed.
-    // Writing all lists would overwrite entity.state for items that exist
-    // in multiple lists simultaneously via copy semantics.
-    applyListOrders(updateEntity, { [result.changedListId]: result.lists[result.changedListId] })
+    applyListOrders(
+      updateEntity,
+      (id) => entities[id],
+      { [result.changedListId]: result.lists[result.changedListId] },
+    )
   }
 
   const panels = useMemo(

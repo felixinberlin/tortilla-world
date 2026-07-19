@@ -17,7 +17,7 @@ export function getIngredientsForList(
   list: List,
 ): Ingredient[] {
   const matching = Object.values(entities)
-    .filter((entity) => entity.type === 'ingredient' && entity.state === list.id)
+    .filter((entity) => entity.type === 'ingredient' && entity.lists.includes(list.id))
     .sort((left, right) => left.position.y - right.position.y)
     .map(toIngredientView)
 

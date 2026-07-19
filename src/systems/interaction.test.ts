@@ -111,28 +111,49 @@ describe('resolveListReorder', () => {
 })
 
 describe('applyListOrders', () => {
-  it('only writes the list passed in, not others', () => {
+  it('adds the entity to the target list without removing it from others', () => {
     const calls: Array<[string, Partial<Omit<Entity, 'id'>>]> = []
-    const updateEntity = (id: string, changes: Partial<Omit<Entity, 'id'>>) => {
-      calls.push([id, changes])
-    }
+    const updateEntity = (id: string, changes: Partial<Omit<Entity, 'id'>>) => calls.push([id, changes])
+    const getEntity = (id: string): Entity => ({
+      id,
+      type: 'ingredient',
+      position: { x: 0, y: 0 },
+      size: { width: 1, height: 1 },
+      state: 'idle',
+      lists: ['despensa', 'kitchen'],
+    })
 
-    applyListOrders(updateEntity, { fire: ['potato'] })
+    applyListOrders(updateEntity, getEntity, { fire: ['potato'] })
 
-    expect(calls).toEqual([
-      ['potato', { state: 'fire', position: { x: 0, y: 0 } }],
-    ])
-    expect(calls.find(([id]) => id === 'egg')).toBeUndefined()
-    expect(calls.find(([id]) => id === 'onion')).toBeUndefined()
+    expect(calls[0][1].lists).toEqual(['despensa', 'kitchen', 'fire'])
+  })
+
+  it('does not duplicate the list if already present', () => {
+    const calls: Array<[string, Partial<Omit<Entity, 'id'>>]> = []
+    const updateEntity = (id: string, changes: Partial<Omit<Entity, 'id'>>) => calls.push([id, changes])
+    const getEntity = (id: string): Entity => ({
+      id,
+      type: 'ingredient',
+      position: { x: 0, y: 0 },
+      size: { width: 1, height: 1 },
+      state: 'idle',
+      lists: ['fire'],
+    })
+
+    applyListOrders(updateEntity, getEntity, { fire: ['potato'] })
+
+    expect(calls[0][1].lists).toEqual(['fire'])
   })
 
   it('writes position.y as insertion order', () => {
     const calls: Array<[string, Partial<Omit<Entity, 'id'>>]> = []
-    const updateEntity = (id: string, changes: Partial<Omit<Entity, 'id'>>) => {
-      calls.push([id, changes])
-    }
+    const updateEntity = (id: string, changes: Partial<Omit<Entity, 'id'>>) => calls.push([id, changes])
+    const getEntity = (): Entity => ({
+      id: 'x', type: 'ingredient', position: { x: 0, y: 0 },
+      size: { width: 1, height: 1 }, state: 'idle', lists: [],
+    })
 
-    applyListOrders(updateEntity, { kitchen: ['egg', 'potato', 'onion'] })
+    applyListOrders(updateEntity, getEntity, { kitchen: ['egg', 'potato', 'onion'] })
 
     expect(calls[0][1].position).toEqual({ x: 0, y: 0 })
     expect(calls[1][1].position).toEqual({ x: 0, y: 1 })
