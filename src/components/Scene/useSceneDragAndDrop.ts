@@ -31,9 +31,14 @@ export function useSceneDragAndDrop() {
       Object.values(lists).map((list) => [list.id, listsById[list.id].map((item) => item.id)]),
     )
 
+    const listFlags = Object.fromEntries(
+      Object.values(lists).map((list) => [list.id, { consumesOnDrag: list.consumesOnDrag ?? false }]),
+    )
+
     const result = resolveListReorder(
       { activeId: String(event.active.id), overId: String(event.over.id) },
       currentLists,
+      listFlags,
     )
 
     if (!result) return
@@ -42,6 +47,7 @@ export function useSceneDragAndDrop() {
       updateEntity,
       (id) => entities[id],
       { [result.changedListId]: result.lists[result.changedListId] },
+      result.removedFromListId,
     )
   }
 

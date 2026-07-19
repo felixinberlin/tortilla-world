@@ -11,4 +11,5 @@ export interface List {
   title: string
   seedFromCatalog?: boolean
   seedIngredients?: string[]
+  consumesOnDrag?: boolean   // true = item is removed from this list when dragged out
 }

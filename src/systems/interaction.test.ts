@@ -2,7 +2,54 @@ import { describe, it, expect } from 'vitest'
 import { resolveListReorder, applyListOrders } from './interaction'
 import type { Entity } from '../types/Entity'
 
+
+// ── consumesOnDrag: move vs copy semantics ─────────────────────────────────
+
+it('dragging from a consuming list removes the item from the source', () => {
+  const result = resolveListReorder(
+    { activeId: 'kitchen::potato', overId: 'fire' },
+    { kitchen: ['potato', 'egg'], fire: [] },
+    { kitchen: { consumesOnDrag: true }, fire: { consumesOnDrag: true } },
+  )
+  expect(result?.lists).toEqual({
+    kitchen: ['egg'],   // potato removed
+    fire: ['potato'],
+  })
+  expect(result?.changedListId).toBe('fire')
+  expect(result?.removedFromListId).toBe('kitchen')
+})
+
+it('dragging from a non-consuming list keeps the item in the source', () => {
+  const result = resolveListReorder(
+    { activeId: 'despensa::potato', overId: 'kitchen' },
+    { despensa: ['potato', 'onion'], kitchen: [] },
+    { despensa: {}, kitchen: { consumesOnDrag: true } },
+  )
+  expect(result?.lists).toEqual({
+    despensa: ['potato', 'onion'],  // potato stays
+    kitchen: ['potato'],
+  })
+  expect(result?.removedFromListId).toBeNull()
+})
+
+it('applyListOrders removes the item from entity.lists when source consumes', () => {
+  const calls: Array<[string, Partial<Omit<Entity, 'id'>>]> = []
+  const updateEntity = (id: string, changes: Partial<Omit<Entity, 'id'>>) => calls.push([id, changes])
+  const getEntity = (): Entity => ({
+    id: 'potato', type: 'ingredient', position: { x: 0, y: 0 },
+    size: { width: 1, height: 1 }, state: 'idle',
+    lists: ['despensa', 'kitchen'],
+  })
+
+  applyListOrders(updateEntity, getEntity, { fire: ['potato'] }, 'kitchen')
+
+  const potatoCall = calls.find(([id]) => id === 'potato')
+  expect(potatoCall?.[1].lists).toEqual(['despensa', 'fire'])  // kitchen removed, fire added
+})
+
 describe('resolveListReorder', () => {
+
+    
 
   // ── cross-list: copy semantics ─────────────────────────────────────────────
 
@@ -160,3 +207,4 @@ describe('applyListOrders', () => {
     expect(calls[2][1].position).toEqual({ x: 0, y: 2 })
   })
 })
+

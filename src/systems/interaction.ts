@@ -5,9 +5,14 @@ interface DragMoveEvent {
   overId: string
 }
 
+interface ListFlags {
+  consumesOnDrag?: boolean
+}
+
 export interface ReorderResult {
   lists: Record<string, string[]>
   changedListId: string
+  removedFromListId: string | null
 }
 
 function parseDraggedItem(compositeId: string) {
@@ -22,9 +27,21 @@ function parseDropTarget(compositeId: string) {
   return { listId, itemId: itemId ?? null }
 }
 
+/**
+ * Pure: resolves a drag event into the next list state.
+ *
+ * listFlags tells us which lists consume on drag (move semantics)
+ * vs which copy. A list not present in listFlags defaults to copy.
+ *
+ * Same-list reorder: always move, never creates a duplicate.
+ * Cross-list from consuming source: item removed from source, added to target.
+ * Cross-list from non-consuming source: item stays in source, added to target.
+ *   Blocked if item already in target.
+ */
 export function resolveListReorder(
   event: DragMoveEvent,
   lists: Record<string, string[]>,
+  listFlags: Record<string, ListFlags> = {},
 ): ReorderResult | null {
   const source = parseDraggedItem(event.activeId)
   const target = parseDropTarget(event.overId)
@@ -38,37 +55,58 @@ export function resolveListReorder(
   const insertAt = targetIndex === -1 ? targetIds.length : targetIndex
 
   const next = { ...lists }
+  const sourceConsumes = listFlags[source.listId]?.consumesOnDrag ?? false
 
   if (source.listId === target.listId) {
+    // Same list: always reorder, never block, never duplicate.
     const reordered = sourceIds.filter((itemId) => itemId !== source.itemId)
     reordered.splice(insertAt, 0, source.itemId)
     next[source.listId] = reordered
-    return { lists: next, changedListId: source.listId }
-  } else {
-    if (targetIds.includes(source.itemId)) return null
+    return { lists: next, changedListId: source.listId, removedFromListId: null }
+  }
+
+  if (sourceConsumes) {
+    // Move: remove from source, add to target.
+    // No duplicate check needed — item is leaving the source.
+    next[source.listId] = sourceIds.filter((itemId) => itemId !== source.itemId)
     const reorderedTarget = [...targetIds]
     reorderedTarget.splice(insertAt, 0, source.itemId)
     next[target.listId] = reorderedTarget
-    return { lists: next, changedListId: target.listId }
+    return { lists: next, changedListId: target.listId, removedFromListId: source.listId }
   }
+
+  // Copy: source stays, item added to target.
+  // Blocked if already in target.
+  if (targetIds.includes(source.itemId)) return null
+  const reorderedTarget = [...targetIds]
+  reorderedTarget.splice(insertAt, 0, source.itemId)
+  next[target.listId] = reorderedTarget
+  return { lists: next, changedListId: target.listId, removedFromListId: null }
 }
 
 /**
- * Adds an entity to a list by appending the listId to entity.lists.
- * Does not remove from other lists — copy semantics are preserved.
+ * Commit step: writes the changed list into the store via updateEntity.
+ * When removedFromListId is set, also strips that list from entity.lists.
  */
 export function applyListOrders(
   updateEntity: (entityId: string, changes: Partial<Omit<Entity, 'id'>>) => void,
   getEntity: (entityId: string) => Entity | undefined,
   lists: Record<string, string[]>,
+  removedFromListId: string | null = null,
 ) {
   for (const [listId, itemIds] of Object.entries(lists)) {
     itemIds.forEach((itemId, index) => {
       const entity = getEntity(itemId)
       const currentLists = entity?.lists ?? []
-      const updatedLists = currentLists.includes(listId)
+
+      let updatedLists = currentLists.includes(listId)
         ? currentLists
         : [...currentLists, listId]
+
+      if (removedFromListId) {
+        updatedLists = updatedLists.filter((id) => id !== removedFromListId)
+      }
+
       updateEntity(itemId, {
         lists: updatedLists,
         position: { x: 0, y: index },

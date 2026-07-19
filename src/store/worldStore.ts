@@ -27,9 +27,9 @@ const kitchenIngredients = concebolla.ingredients
 
 const initialLists: Record<string, List> = {
   despensa: { id: 'despensa', title: 'Despensa', seedFromCatalog: true },
-  kitchen: { id: 'kitchen', title: 'Kitchen', seedIngredients: kitchenIngredients },
-  fire: { id: 'fire', title: 'Fire', seedIngredients: ['oil'] },
-  trash: { id: 'trash', title: 'Basura' },
+  kitchen: { id: 'kitchen', title: 'Kitchen', seedIngredients: kitchenIngredients, consumesOnDrag: true },
+  fire: { id: 'fire', title: 'Fire', seedIngredients: ['oil'], consumesOnDrag: true },
+  trash: { id: 'trash', title: 'Basura', consumesOnDrag: true },
 }
 
 export const useWorldStore = create<WorldState>((set) => ({
