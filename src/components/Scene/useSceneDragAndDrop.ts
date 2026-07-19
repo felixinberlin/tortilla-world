@@ -33,13 +33,20 @@ export function useSceneDragAndDrop() {
   const handleDragEnd = (event: DragEndEvent) => {
     if (!event.over) return
 
+    //const toListId = event.over.id; // this will be the list when empty
+    //const toIndex = event.over.data?.current?.index ?? 0;
+
+
     const currentLists = Object.fromEntries(
       Object.values(lists).map((list) => [list.id, listsById[list.id].map((item) => item.id)]),
     )
 
+    const isUniquePerList = (itemId: string) => entities[itemId]?.type === 'ingredient'
+
     const result = resolveListReorder(
       { activeId: String(event.active.id), overId: String(event.over.id) },
       currentLists,
+      isUniquePerList,
     )
 
     if (result) {

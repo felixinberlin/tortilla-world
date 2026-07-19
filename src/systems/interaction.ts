@@ -25,6 +25,7 @@ function parseDropTarget(compositeId: string) {
 export function resolveListReorder(
   event: DragMoveEvent,
   lists: Record<string, string[]>,
+  isUniquePerList: (itemId: string) => boolean = () => true,
 ): Record<string, string[]> | null {
   const source = parseDraggedItem(event.activeId)
   const target = parseDropTarget(event.overId)
@@ -33,6 +34,14 @@ export function resolveListReorder(
   const sourceIds = lists[source.listId]
   const targetIds = lists[target.listId]
   if (!sourceIds || !targetIds || !sourceIds.includes(source.itemId)) return null
+
+  const movingBetweenLists = source.listId !== target.listId
+
+  // Ingredients can't appear twice in the same list (one potato per bowl).
+  // Other entity types can opt out via isUniquePerList.
+  if (movingBetweenLists && isUniquePerList(source.itemId) && targetIds.includes(source.itemId)) {
+    return null
+  }
 
   const targetIndex = target.itemId ? targetIds.indexOf(target.itemId) : -1
   const insertAt = targetIndex === -1 ? targetIds.length : targetIndex

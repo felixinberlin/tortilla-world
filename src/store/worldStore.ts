@@ -22,9 +22,9 @@ interface WorldState {
 
 const initialLists: Record<string, List> = {
   full: { id: 'full', title: 'Full list', seedFromCatalog: true },
-  empty: { id: 'empty', title: 'Empty list' },
-  empty2: { id: 'empty2', title: 'Empty list 2' },
-  empty3: { id: 'empty3', title: 'Empty list 3' },
+  kitchen: { id: 'kitchen', title: 'kitchen list' },
+  despensa: { id: 'despensa', title: 'despensa list 2', seedFromCatalog: true },
+  trash: { id: 'trash', title: 'basura list 3' },
 }
 
 export const useWorldStore = create<WorldState>((set) => ({

@@ -46,4 +46,39 @@ describe('resolveListReorder', () => {
         )
         expect(result).toEqual({ full: [], empty: [], empty2: [], empty3: ['potato'] })
     })
+
+    it('blocks moving an item into a list that already has it', () => {
+        const result = resolveListReorder(
+            { activeId: 'full::potato', overId: 'empty::potato' },
+            { full: ['potato'], empty: ['potato'] },
+        )
+        expect(result).toBeNull()
+    })
+
+    it('blocks moving into an empty-looking target that already contains the item', () => {
+        // Dropping on blank space in a list still resolves to that list's container id,
+        // so the duplicate check must apply even without a specific item to land on.
+        const result = resolveListReorder(
+            { activeId: 'full::potato', overId: 'empty' },
+            { full: ['potato'], empty: ['potato'] },
+        )
+        expect(result).toBeNull()
+    })
+
+    it('allows a duplicate when the item opts out of the uniqueness rule', () => {
+        const result = resolveListReorder(
+            { activeId: 'full::pan', overId: 'empty::pan' },
+            { full: ['pan'], empty: ['pan'] },
+            () => false, // e.g. a kitchen object, not an ingredient
+        )
+        expect(result).toEqual({ full: [], empty: ['pan', 'pan'] })
+    })
+
+    it('does not block reordering an item within its own list', () => {
+        const result = resolveListReorder(
+            { activeId: 'full::potato', overId: 'full::onion' },
+            { full: ['potato', 'onion'] },
+        )
+        expect(result?.full).toEqual(['onion', 'potato'])
+    })
 })
