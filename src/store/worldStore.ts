@@ -21,27 +21,47 @@ interface WorldState {
 }
 
 const initialLists: Record<string, List> = {
-  full: { id: 'full', title: 'Full list', seedFromCatalog: true },
-  kitchen: { id: 'kitchen', title: 'kitchen list' },
-  despensa: { id: 'despensa', title: 'despensa list 2', seedFromCatalog: true },
-  trash: { id: 'trash', title: 'basura list 3' },
+  full: { id: 'full', title: 'All ingredients', seedFromCatalog: true },
+  despensa: { id: 'despensa', title: 'Despensa' },
+  kitchen: { id: 'kitchen', title: 'Kitchen' },
+  trash: { id: 'trash', title: 'Basura' },
 }
+
+const despensaIngredients = ['onion', 'potato', 'oil', 'egg']
+
+const fullIngredients = ingredientCatalog.filter(
+  (ingredient) => !despensaIngredients.includes(ingredient.id)
+)
 
 export const useWorldStore = create<WorldState>((set) => ({
   lists: initialLists,
 
-  entities: Object.fromEntries(
-    ingredientCatalog.map((ingredient, index) => [
-      ingredient.id,
-      {
-        id: ingredient.id,
-        type: 'ingredient' as const,
-        position: { x: 0, y: index },
-        size: { width: 1, height: 1 },
-        state: 'full',
-      },
-    ]),
-  ),
+  entities: {
+    ...Object.fromEntries(
+      fullIngredients.map((ingredient, index) => [
+        ingredient.id,
+        {
+          id: ingredient.id,
+          type: 'ingredient' as const,
+          position: { x: 0, y: index },
+          size: { width: 1, height: 1 },
+          state: 'full',
+        },
+      ]),
+    ),
+    ...Object.fromEntries(
+      despensaIngredients.map((id, index) => [
+        id,
+        {
+          id,
+          type: 'ingredient' as const,
+          position: { x: 0, y: index },
+          size: { width: 1, height: 1 },
+          state: 'despensa',
+        },
+      ]),
+    ),
+  },
 
   relationships: [],
 
@@ -50,10 +70,6 @@ export const useWorldStore = create<WorldState>((set) => ({
       lists: { ...world.lists, [list.id]: list },
     })),
 
-  // Note: removing a list does not touch entities currently sitting in it.
-  // Their `state` still points at the removed list id, so they'd stop
-  // appearing in any panel until moved. Revisit this once there's a real
-  // "delete a list" UI action and we know what should happen to its contents.
   removeList: (listId) =>
     set((world) => {
       const { [listId]: _removedList, ...lists } = world.lists
@@ -68,7 +84,6 @@ export const useWorldStore = create<WorldState>((set) => ({
   removeEntity: (entityId) =>
     set((world) => {
       const { [entityId]: _removedEntity, ...entities } = world.entities
-
       return {
         entities,
         relationships: world.relationships.filter(
@@ -81,11 +96,7 @@ export const useWorldStore = create<WorldState>((set) => ({
   updateEntity: (entityId, changes) =>
     set((world) => {
       const entity = world.entities[entityId]
-
-      if (!entity) {
-        return world
-      }
-
+      if (!entity) return world
       return {
         entities: {
           ...world.entities,
@@ -97,11 +108,7 @@ export const useWorldStore = create<WorldState>((set) => ({
   setEntityPosition: (entityId, position) =>
     set((world) => {
       const entity = world.entities[entityId]
-
-      if (!entity) {
-        return world
-      }
-
+      if (!entity) return world
       return {
         entities: {
           ...world.entities,

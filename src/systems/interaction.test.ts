@@ -2,83 +2,93 @@ import { describe, it, expect } from 'vitest'
 import { resolveListReorder } from './interaction'
 
 describe('resolveListReorder', () => {
-    it('moves an item from full to empty', () => {
-        const result = resolveListReorder(
-            { activeId: 'full::potato', overId: 'empty::egg' },
-            { full: ['potato', 'egg'], empty: ['egg'] },
-        )
-        expect(result).toEqual({ full: ['egg'], empty: ['potato', 'egg'] })
-    })
 
-    it('reorders within the same list', () => {
-        const result = resolveListReorder(
-            { activeId: 'full::egg', overId: 'full::potato' },
-            { full: ['potato', 'egg'], empty: [] },
-        )
-        expect(result?.full).toEqual(['egg', 'potato'])
-    })
+  // ── cross-list: copy semantics ─────────────────────────────────────────────
 
-    it('returns null when the item is not in the source list', () => {
-        const result = resolveListReorder(
-            { activeId: 'full::onion', overId: 'empty::egg' },
-            { full: ['potato'], empty: ['egg'] },
-        )
-        expect(result).toBeNull()
+  it('copies an item to another list, source stays untouched', () => {
+    const result = resolveListReorder(
+      { activeId: 'full::potato', overId: 'despensa::egg' },
+      { full: ['potato', 'onion'], despensa: ['egg'] },
+    )
+    expect(result).toEqual({
+      full: ['potato', 'onion'],   // source unchanged
+      despensa: ['potato', 'egg'], // potato inserted before egg
     })
+  })
 
-    it('moves an item between two arbitrary non-full/empty lists', () => {
-        const result = resolveListReorder(
-            { activeId: 'empty2::onion', overId: 'empty3::garlic' },
-            { full: [], empty: [], empty2: ['onion'], empty3: ['garlic'] },
-        )
-        expect(result).toEqual({
-            full: [],
-            empty: [],
-            empty2: [],
-            empty3: ['onion', 'garlic'],
-        })
+  it('copies into an empty list', () => {
+    const result = resolveListReorder(
+      { activeId: 'full::potato', overId: 'kitchen' },
+      { full: ['potato', 'onion'], kitchen: [] },
+    )
+    expect(result).toEqual({
+      full: ['potato', 'onion'],
+      kitchen: ['potato'],
     })
+  })
 
-    it('drops into an empty list with no items to land on', () => {
-        const result = resolveListReorder(
-            { activeId: 'full::potato', overId: 'empty3' },
-            { full: ['potato'], empty: [], empty2: [], empty3: [] },
-        )
-        expect(result).toEqual({ full: [], empty: [], empty2: [], empty3: ['potato'] })
+  it('copies between two arbitrary lists', () => {
+    const result = resolveListReorder(
+      { activeId: 'despensa::onion', overId: 'kitchen::garlic' },
+      { despensa: ['onion'], kitchen: ['garlic'] },
+    )
+    expect(result).toEqual({
+      despensa: ['onion'],
+      kitchen: ['onion', 'garlic'],
     })
+  })
 
-    it('blocks moving an item into a list that already has it', () => {
-        const result = resolveListReorder(
-            { activeId: 'full::potato', overId: 'empty::potato' },
-            { full: ['potato'], empty: ['potato'] },
-        )
-        expect(result).toBeNull()
-    })
+  it('blocks copying an item that is already in the target list', () => {
+    const result = resolveListReorder(
+      { activeId: 'full::potato', overId: 'despensa' },
+      { full: ['potato', 'onion'], despensa: ['potato', 'egg'] },
+    )
+    expect(result).toBeNull()
+  })
 
-    it('blocks moving into an empty-looking target that already contains the item', () => {
-        // Dropping on blank space in a list still resolves to that list's container id,
-        // so the duplicate check must apply even without a specific item to land on.
-        const result = resolveListReorder(
-            { activeId: 'full::potato', overId: 'empty' },
-            { full: ['potato'], empty: ['potato'] },
-        )
-        expect(result).toBeNull()
-    })
+  it('blocks copying even when dropping on blank space in a list that already has the item', () => {
+    const result = resolveListReorder(
+      { activeId: 'full::potato', overId: 'despensa' },
+      { full: ['potato'], despensa: ['potato'] },
+    )
+    expect(result).toBeNull()
+  })
 
-    it('allows a duplicate when the item opts out of the uniqueness rule', () => {
-        const result = resolveListReorder(
-            { activeId: 'full::pan', overId: 'empty::pan' },
-            { full: ['pan'], empty: ['pan'] },
-            () => false, // e.g. a kitchen object, not an ingredient
-        )
-        expect(result).toEqual({ full: [], empty: ['pan', 'pan'] })
-    })
+  // ── same-list: reorder semantics ───────────────────────────────────────────
 
-    it('does not block reordering an item within its own list', () => {
-        const result = resolveListReorder(
-            { activeId: 'full::potato', overId: 'full::onion' },
-            { full: ['potato', 'onion'] },
-        )
-        expect(result?.full).toEqual(['onion', 'potato'])
-    })
+  it('reorders within the same list', () => {
+    const result = resolveListReorder(
+      { activeId: 'full::egg', overId: 'full::potato' },
+      { full: ['potato', 'egg'], despensa: [] },
+    )
+    expect(result?.full).toEqual(['egg', 'potato'])
+    expect(result?.despensa).toEqual([]) // untouched
+  })
+
+  it('reorders even when the item also exists in another list', () => {
+    const result = resolveListReorder(
+      { activeId: 'full::onion', overId: 'full::potato' },
+      { full: ['potato', 'onion'], despensa: ['onion'] },
+    )
+    expect(result?.full).toEqual(['onion', 'potato'])
+    expect(result?.despensa).toEqual(['onion']) // untouched
+  })
+
+  // ── guard: invalid drags ───────────────────────────────────────────────────
+
+  it('returns null when the item is not in the source list', () => {
+    const result = resolveListReorder(
+      { activeId: 'full::garlic', overId: 'despensa' },
+      { full: ['potato'], despensa: [] },
+    )
+    expect(result).toBeNull()
+  })
+
+  it('returns null when source list does not exist', () => {
+    const result = resolveListReorder(
+      { activeId: 'ghost::potato', overId: 'kitchen' },
+      { full: ['potato'], kitchen: [] },
+    )
+    expect(result).toBeNull()
+  })
 })
