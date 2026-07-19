@@ -25,11 +25,26 @@ const kitchenIngredients = concebolla.ingredients
   .filter((i): i is NonNullable<typeof i> => i !== undefined)
   .map((i) => i.id)
 
+const fireIngredients = ['oil']
+
 const initialLists: Record<string, List> = {
   despensa: { id: 'despensa', title: 'Despensa', seedFromCatalog: true },
   kitchen: { id: 'kitchen', title: 'Kitchen', seedIngredients: kitchenIngredients, consumesOnDrag: true },
-  fire: { id: 'fire', title: 'Fire', seedIngredients: ['oil'], consumesOnDrag: true },
+  fire: { id: 'fire', title: 'Fire', seedIngredients: fireIngredients, consumesOnDrag: true },
   trash: { id: 'trash', title: 'Basura', consumesOnDrag: true },
+}
+
+/** Build the initial list memberships from the list config — no runtime fallback needed. */
+function buildInitialLists(ingredientId: string): string[] {
+  const memberships: string[] = ['despensa']
+
+  for (const list of Object.values(initialLists)) {
+    if (list.seedIngredients?.includes(ingredientId)) {
+      memberships.push(list.id)
+    }
+  }
+
+  return memberships
 }
 
 export const useWorldStore = create<WorldState>((set) => ({
@@ -44,7 +59,7 @@ export const useWorldStore = create<WorldState>((set) => ({
         position: { x: 0, y: index },
         size: { width: 1, height: 1 },
         state: 'idle',
-        lists: [],
+        lists: buildInitialLists(ingredient.id),
       },
     ]),
   ),

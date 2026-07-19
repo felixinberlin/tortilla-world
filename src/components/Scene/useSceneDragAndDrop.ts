@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
 import { useWorldStore } from '../../store/worldStore'
+import { useShallow } from 'zustand/react/shallow'
 import { getIngredientsForList } from '../../systems/queries'
 import { resolveListReorder, applyListOrders } from '../../systems/interaction'
 import type { Ingredient } from '../../types/Ingredient'
@@ -10,13 +11,21 @@ export function useSceneDragAndDrop() {
   const entities = useWorldStore((state) => state.entities)
   const updateEntity = useWorldStore((state) => state.updateEntity)
 
+  const entityMemberships = useWorldStore(
+    useShallow((state) =>
+      Object.fromEntries(
+        Object.values(state.entities).map((e) => [e.id, e.lists])
+      )
+    )
+  )
+
   const listsById = useMemo(() => {
     const result: Record<string, Ingredient[]> = {}
     for (const list of Object.values(lists)) {
       result[list.id] = getIngredientsForList(entities, list)
     }
     return result
-  }, [entities, lists])
+  }, [entityMemberships, lists])
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
