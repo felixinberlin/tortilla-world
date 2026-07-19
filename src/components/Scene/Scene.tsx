@@ -14,14 +14,6 @@ import { resolveListReorder, applyListOrders } from '../../systems/interaction'
 import type { Entity } from '../../types/Entity'
 import type { Ingredient } from '../../types/Ingredient'
 
-/** The single source of truth for which lists exist. Add a row, get a list. */
-const PANEL_CONFIG = [
-  { id: 'full', title: 'Full list', seedFromCatalog: true },
-  { id: 'empty', title: 'Empty list', seedFromCatalog: false },
-  { id: 'empty2', title: 'Empty list 2', seedFromCatalog: false },
-  { id: 'empty3', title: 'Empty list 3', seedFromCatalog: false },
-]
-
 function toIngredientView(entity: Entity): Ingredient {
   const catalogEntry = ingredientCatalog.find((ingredient) => ingredient.id === entity.id)
   return {
@@ -31,6 +23,11 @@ function toIngredientView(entity: Entity): Ingredient {
   }
 }
 
+/**
+ * Reads entities for one list out of the store. When the store has no
+ * entities yet for a "seedFromCatalog" list (i.e. on first load), falls
+ * back to the static catalog so the UI isn't empty before anything moves.
+ */
 function getIngredientsForList(
   entities: Record<string, Entity>,
   listId: string,
@@ -45,20 +42,21 @@ function getIngredientsForList(
 }
 
 export function Scene() {
+  const lists = useWorldStore((state) => state.lists)
   const entities = useWorldStore((state) => state.entities)
   const updateEntity = useWorldStore((state) => state.updateEntity)
 
   const listsById = useMemo(() => {
     const result: Record<string, Ingredient[]> = {}
-    for (const panel of PANEL_CONFIG) {
-      result[panel.id] = getIngredientsForList(
+    for (const list of Object.values(lists)) {
+      result[list.id] = getIngredientsForList(
         entities,
-        panel.id,
-        panel.seedFromCatalog ? ingredientCatalog : [],
+        list.id,
+        list.seedFromCatalog ? ingredientCatalog : [],
       )
     }
     return result
-  }, [entities])
+  }, [entities, lists])
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -70,7 +68,7 @@ export function Scene() {
     if (!event.over) return
 
     const currentLists = Object.fromEntries(
-      PANEL_CONFIG.map((panel) => [panel.id, listsById[panel.id].map((item) => item.id)]),
+      Object.values(lists).map((list) => [list.id, listsById[list.id].map((item) => item.id)]),
     )
 
     const result = resolveListReorder(
@@ -84,8 +82,13 @@ export function Scene() {
   }
 
   const panels = useMemo(
-    () => PANEL_CONFIG.map((panel) => ({ ...panel, ingredients: listsById[panel.id] })),
-    [listsById],
+    () =>
+      Object.values(lists).map((list) => ({
+        id: list.id,
+        title: list.title,
+        ingredients: listsById[list.id],
+      })),
+    [lists, listsById],
   )
 
   return (

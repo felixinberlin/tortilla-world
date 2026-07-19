@@ -5,3 +5,9 @@ export interface IngredientList {
   name: string
   ingredients: Ingredient[]
 }
+
+export interface List {
+  id: string
+  title: string
+  seedFromCatalog?: boolean
+}

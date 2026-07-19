@@ -1,19 +1,35 @@
 import { create } from 'zustand'
 import type { Entity, EntityRelationship, Position } from '../types/Entity'
+import type { List } from '../types/IngredientList'
 import { ingredients as ingredientCatalog } from '../data/catalog/ingredients'
 
 interface WorldState {
+  lists: Record<string, List>
   entities: Record<string, Entity>
   relationships: EntityRelationship[]
+
+  addList: (list: List) => void
+  removeList: (listId: string) => void
+
   addEntity: (entity: Entity) => void
   removeEntity: (entityId: string) => void
   updateEntity: (entityId: string, changes: Partial<Omit<Entity, 'id'>>) => void
   setEntityPosition: (entityId: string, position: Position) => void
+
   addRelationship: (relationship: EntityRelationship) => void
   removeRelationship: (relationship: EntityRelationship) => void
 }
 
+const initialLists: Record<string, List> = {
+  full: { id: 'full', title: 'Full list', seedFromCatalog: true },
+  empty: { id: 'empty', title: 'Empty list' },
+  empty2: { id: 'empty2', title: 'Empty list 2' },
+  empty3: { id: 'empty3', title: 'Empty list 3' },
+}
+
 export const useWorldStore = create<WorldState>((set) => ({
+  lists: initialLists,
+
   entities: Object.fromEntries(
     ingredientCatalog.map((ingredient, index) => [
       ingredient.id,
@@ -26,7 +42,23 @@ export const useWorldStore = create<WorldState>((set) => ({
       },
     ]),
   ),
+
   relationships: [],
+
+  addList: (list) =>
+    set((world) => ({
+      lists: { ...world.lists, [list.id]: list },
+    })),
+
+  // Note: removing a list does not touch entities currently sitting in it.
+  // Their `state` still points at the removed list id, so they'd stop
+  // appearing in any panel until moved. Revisit this once there's a real
+  // "delete a list" UI action and we know what should happen to its contents.
+  removeList: (listId) =>
+    set((world) => {
+      const { [listId]: _removedList, ...lists } = world.lists
+      return { lists }
+    }),
 
   addEntity: (entity) =>
     set((world) => ({
