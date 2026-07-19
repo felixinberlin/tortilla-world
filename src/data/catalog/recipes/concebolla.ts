@@ -1,15 +1,14 @@
-import { ingredients } from "../ingredients";
+import { ingredients } from '../ingredients'
 
 export const recipe = {
-  id: "sincebolla",
-  name: "Sincebolla",
+  id: 'concebolla',
+  name: 'Con Cebolla',
   ingredients: [
-    ingredients.find(i => i.id === "potato"),
-    ingredients.find(i => i.id === "egg"),
-    ingredients.find(i => i.id === "oil"),
-    ingredients.find(i => i.id === "salt"),
-    ingredients.find(i => i.id === "pepper"),
-    ingredients.find(i => i.id === "onion"),
-
-  ]
-};
+    ingredients.find((i) => i.id === 'potato'),
+    ingredients.find((i) => i.id === 'egg'),
+    ingredients.find((i) => i.id === 'oil'),
+    ingredients.find((i) => i.id === 'salt'),
+    ingredients.find((i) => i.id === 'pepper'),
+    ingredients.find((i) => i.id === 'onion'),
+  ],
+}

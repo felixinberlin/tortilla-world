@@ -3,10 +3,8 @@ import { PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-ki
 import { useWorldStore } from '../../store/worldStore'
 import { getIngredientsForList } from '../../systems/queries'
 import { resolveListReorder, applyListOrders } from '../../systems/interaction'
-import { ingredients as ingredientCatalog } from '../../data/catalog/ingredients'
 import type { Ingredient } from '../../types/Ingredient'
 
-/** Owns everything Scene needs to display and drag ingredients between lists. */
 export function useSceneDragAndDrop() {
   const lists = useWorldStore((state) => state.lists)
   const entities = useWorldStore((state) => state.entities)
@@ -15,11 +13,7 @@ export function useSceneDragAndDrop() {
   const listsById = useMemo(() => {
     const result: Record<string, Ingredient[]> = {}
     for (const list of Object.values(lists)) {
-      result[list.id] = getIngredientsForList(
-        entities,
-        list.id,
-        list.seedFromCatalog ? ingredientCatalog : [],
-      )
+      result[list.id] = getIngredientsForList(entities, list)
     }
     return result
   }, [entities, lists])
@@ -33,7 +27,6 @@ export function useSceneDragAndDrop() {
   const handleDragEnd = (event: DragEndEvent) => {
     if (!event.over) return
 
-
     const currentLists = Object.fromEntries(
       Object.values(lists).map((list) => [list.id, listsById[list.id].map((item) => item.id)]),
     )
@@ -43,9 +36,12 @@ export function useSceneDragAndDrop() {
       currentLists,
     )
 
-    if (result) {
-      applyListOrders(updateEntity, result)
-    }
+    if (!result) return
+
+    // Only write the list that actually changed.
+    // Writing all lists would overwrite entity.state for items that exist
+    // in multiple lists simultaneously via copy semantics.
+    applyListOrders(updateEntity, { [result.changedListId]: result.lists[result.changedListId] })
   }
 
   const panels = useMemo(

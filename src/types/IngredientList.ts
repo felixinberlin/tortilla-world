@@ -10,4 +10,5 @@ export interface List {
   id: string
   title: string
   seedFromCatalog?: boolean
+  seedIngredients?: string[]
 }

@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import type { Entity, EntityRelationship, Position } from '../types/Entity'
 import type { List } from '../types/IngredientList'
 import { ingredients as ingredientCatalog } from '../data/catalog/ingredients'
+import { recipe as concebolla } from '../data/catalog/recipes/concebolla'
 
 interface WorldState {
   lists: Record<string, List>
@@ -20,48 +21,32 @@ interface WorldState {
   removeRelationship: (relationship: EntityRelationship) => void
 }
 
+const kitchenIngredients = concebolla.ingredients
+  .filter((i): i is NonNullable<typeof i> => i !== undefined)
+  .map((i) => i.id)
+
 const initialLists: Record<string, List> = {
-  full: { id: 'full', title: 'All ingredients', seedFromCatalog: true },
-  despensa: { id: 'despensa', title: 'Despensa' },
-  kitchen: { id: 'kitchen', title: 'Kitchen' },
+  despensa: { id: 'despensa', title: 'Despensa', seedFromCatalog: true },
+  kitchen: { id: 'kitchen', title: 'Kitchen', seedIngredients: kitchenIngredients },
+  fire: { id: 'fire', title: 'Fire', seedIngredients: ['oil'] },
   trash: { id: 'trash', title: 'Basura' },
 }
-
-const despensaIngredients = ['onion', 'potato', 'oil', 'egg']
-
-const fullIngredients = ingredientCatalog.filter(
-  (ingredient) => !despensaIngredients.includes(ingredient.id)
-)
 
 export const useWorldStore = create<WorldState>((set) => ({
   lists: initialLists,
 
-  entities: {
-    ...Object.fromEntries(
-      fullIngredients.map((ingredient, index) => [
-        ingredient.id,
-        {
-          id: ingredient.id,
-          type: 'ingredient' as const,
-          position: { x: 0, y: index },
-          size: { width: 1, height: 1 },
-          state: 'full',
-        },
-      ]),
-    ),
-    ...Object.fromEntries(
-      despensaIngredients.map((id, index) => [
-        id,
-        {
-          id,
-          type: 'ingredient' as const,
-          position: { x: 0, y: index },
-          size: { width: 1, height: 1 },
-          state: 'despensa',
-        },
-      ]),
-    ),
-  },
+  entities: Object.fromEntries(
+    ingredientCatalog.map((ingredient, index) => [
+      ingredient.id,
+      {
+        id: ingredient.id,
+        type: 'ingredient' as const,
+        position: { x: 0, y: index },
+        size: { width: 1, height: 1 },
+        state: 'despensa',
+      },
+    ]),
+  ),
 
   relationships: [],
 
@@ -87,8 +72,7 @@ export const useWorldStore = create<WorldState>((set) => ({
       return {
         entities,
         relationships: world.relationships.filter(
-          (relationship) =>
-            relationship.sourceId !== entityId && relationship.targetId !== entityId,
+          (r) => r.sourceId !== entityId && r.targetId !== entityId,
         ),
       }
     }),
@@ -97,24 +81,14 @@ export const useWorldStore = create<WorldState>((set) => ({
     set((world) => {
       const entity = world.entities[entityId]
       if (!entity) return world
-      return {
-        entities: {
-          ...world.entities,
-          [entityId]: { ...entity, ...changes },
-        },
-      }
+      return { entities: { ...world.entities, [entityId]: { ...entity, ...changes } } }
     }),
 
   setEntityPosition: (entityId, position) =>
     set((world) => {
       const entity = world.entities[entityId]
       if (!entity) return world
-      return {
-        entities: {
-          ...world.entities,
-          [entityId]: { ...entity, position },
-        },
-      }
+      return { entities: { ...world.entities, [entityId]: { ...entity, position } } }
     }),
 
   addRelationship: (relationship) =>
@@ -125,10 +99,10 @@ export const useWorldStore = create<WorldState>((set) => ({
   removeRelationship: (relationship) =>
     set((world) => ({
       relationships: world.relationships.filter(
-        (candidate) =>
-          candidate.sourceId !== relationship.sourceId ||
-          candidate.targetId !== relationship.targetId ||
-          candidate.type !== relationship.type,
+        (c) =>
+          c.sourceId !== relationship.sourceId ||
+          c.targetId !== relationship.targetId ||
+          c.type !== relationship.type,
       ),
     })),
 }))

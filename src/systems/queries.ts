@@ -1,8 +1,8 @@
 import type { Entity } from '../types/Entity'
 import type { Ingredient } from '../types/Ingredient'
+import type { List } from '../types/IngredientList'
 import { ingredients as ingredientCatalog } from '../data/catalog/ingredients'
 
-/** Combines a world entity with its static catalog metadata (name, icon) for rendering. */
 export function toIngredientView(entity: Entity): Ingredient {
   const catalogEntry = ingredientCatalog.find((ingredient) => ingredient.id === entity.id)
   return {
@@ -12,20 +12,24 @@ export function toIngredientView(entity: Entity): Ingredient {
   }
 }
 
-/**
- * Reads entities for one list out of the store. When the store has no
- * entities yet for a "seedFromCatalog" list (i.e. on first load), falls
- * back to the static catalog so the UI isn't empty before anything moves.
- */
 export function getIngredientsForList(
   entities: Record<string, Entity>,
-  listId: string,
-  fallbackCatalog: Ingredient[] = [],
-) {
+  list: List,
+): Ingredient[] {
   const matching = Object.values(entities)
-    .filter((entity) => entity.type === 'ingredient' && entity.state === listId)
+    .filter((entity) => entity.type === 'ingredient' && entity.state === list.id)
     .sort((left, right) => left.position.y - right.position.y)
     .map(toIngredientView)
 
-  return matching.length > 0 ? matching : fallbackCatalog
+  if (matching.length > 0) return matching
+
+  if (list.seedFromCatalog) return [...ingredientCatalog]
+
+  if (list.seedIngredients) {
+    return list.seedIngredients
+      .map((id) => ingredientCatalog.find((i) => i.id === id))
+      .filter((i): i is Ingredient => i !== undefined)
+  }
+
+  return []
 }

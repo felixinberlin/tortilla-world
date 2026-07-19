@@ -5,7 +5,12 @@ interface DragMoveEvent {
   overId: string
 }
 
-/** The item being dragged — always composite, e.g. "full::tomato". */
+export interface ReorderResult {
+  lists: Record<string, string[]>
+  changedListId: string
+}
+
+/** The item being dragged — always composite, e.g. "despensa::potato". */
 function parseDraggedItem(compositeId: string) {
   const [listId, itemId] = compositeId.split('::')
   if (!listId || !itemId) return null
@@ -13,7 +18,7 @@ function parseDraggedItem(compositeId: string) {
 }
 
 /**
- * The drop target — either a specific item ("despensa::onion") or a bare
+ * The drop target — either a specific item ("kitchen::egg") or a bare
  * list container id ("kitchen") when dropping into an empty/blank area.
  */
 function parseDropTarget(compositeId: string) {
@@ -24,7 +29,7 @@ function parseDropTarget(compositeId: string) {
 
 /**
  * Pure: given the current id order of every list and a drag event,
- * returns the next order. Two rules:
+ * returns the next order plus which list changed. Two rules:
  *   - Cross-list: COPY semantics — source list is never modified.
  *     Blocked if the item is already in the target list.
  *   - Same-list: MOVE semantics — reorder only, no duplicate created.
@@ -32,7 +37,7 @@ function parseDropTarget(compositeId: string) {
 export function resolveListReorder(
   event: DragMoveEvent,
   lists: Record<string, string[]>,
-): Record<string, string[]> | null {
+): ReorderResult | null {
   const source = parseDraggedItem(event.activeId)
   const target = parseDropTarget(event.overId)
   if (!source || !target) return null
@@ -47,21 +52,24 @@ export function resolveListReorder(
   const next = { ...lists }
 
   if (source.listId === target.listId) {
-    // Same list: reorder. No duplicate possible.
     const reordered = sourceIds.filter((itemId) => itemId !== source.itemId)
     reordered.splice(insertAt, 0, source.itemId)
     next[source.listId] = reordered
+    return { lists: next, changedListId: source.listId }
   } else {
-    // Cross list: copy. Block if already present in target.
     if (targetIds.includes(source.itemId)) return null
     const reorderedTarget = [...targetIds]
     reorderedTarget.splice(insertAt, 0, source.itemId)
     next[target.listId] = reorderedTarget
+    return { lists: next, changedListId: target.listId }
   }
-
-  return next
 }
 
+/**
+ * Commit step: writes only the changed list into the store.
+ * Intentionally takes a single list at a time — applying all lists would
+ * overwrite entity.state for items that exist in multiple lists via copy semantics.
+ */
 export function applyListOrders(
   updateEntity: (entityId: string, changes: Partial<Omit<Entity, 'id'>>) => void,
   lists: Record<string, string[]>,
