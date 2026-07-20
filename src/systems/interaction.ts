@@ -37,6 +37,10 @@ function parseDropTarget(compositeId: string) {
  * Cross-list from consuming source: item removed from source, added to target.
  * Cross-list from non-consuming source: item stays in source, added to target.
  *   Blocked if item already in target.
+ * 
+ * FIX: If the TARGET list consumes on drag, we ALWAYS perform a move,
+ * regardless of the source's consumption flag. This fixes the bug where
+ * items dragged to 'fire' (which consumes) were being copied instead of moved.
  */
 export function resolveListReorder(
   event: DragMoveEvent,
@@ -56,6 +60,7 @@ export function resolveListReorder(
 
   const next = { ...lists }
   const sourceConsumes = listFlags[source.listId]?.consumesOnDrag ?? false
+  const targetConsumes = listFlags[target.listId]?.consumesOnDrag ?? false
 
   if (source.listId === target.listId) {
     // Same list: always reorder, never block, never duplicate.
@@ -65,9 +70,18 @@ export function resolveListReorder(
     return { lists: next, changedListId: source.listId, removedFromListId: null }
   }
 
+  // FIX: If target consumes on drag, treat it as a move (remove from source)
+  if (targetConsumes) {
+    // Move: remove from source, add to target.
+    next[source.listId] = sourceIds.filter((itemId) => itemId !== source.itemId)
+    const reorderedTarget = [...targetIds]
+    reorderedTarget.splice(insertAt, 0, source.itemId)
+    next[target.listId] = reorderedTarget
+    return { lists: next, changedListId: target.listId, removedFromListId: source.listId }
+  }
+
   if (sourceConsumes) {
     // Move: remove from source, add to target.
-    // No duplicate check needed — item is leaving the source.
     next[source.listId] = sourceIds.filter((itemId) => itemId !== source.itemId)
     const reorderedTarget = [...targetIds]
     reorderedTarget.splice(insertAt, 0, source.itemId)
