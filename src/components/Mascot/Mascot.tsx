@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { motion } from 'framer-motion'
 
 import { useWorldStore } from '../../store/worldStore'
@@ -99,6 +99,28 @@ export function Mascot() {
     useRef<SVGEllipseElement>(null)
 
 
+  /**
+   * Click-to-scale state.
+   *
+   * When the user clicks anywhere on the tortilla,
+   * it scales up briefly.
+   */
+  const [isClicked, setIsClicked] =
+    useState(false)
+
+
+  /**
+   * Handle click anywhere on the tortilla.
+   */
+  const handleClick = useCallback(
+    () => {
+      setIsClicked(true)
+      setTimeout(() => setIsClicked(false), 250)
+    },
+    []
+  )
+
+
 
   if (!entity)
     return null
@@ -116,7 +138,8 @@ export function Mascot() {
 
 
 
-  const radius = Math.max((entity.size.width / 2 - 4) || 0, 10);
+  const radius =
+    entity.size.width / 2 - 4
 
 
 
@@ -256,17 +279,20 @@ export function Mascot() {
       animate={{
         left: entity.position.x,
         top: entity.position.y,
+        scale: isClicked ? 1.2 : 1,
       }}
 
       transition={{
-        type: 'spring',
-        stiffness: 120,
-        damping: 16,
+        left: { type: 'spring', stiffness: 120, damping: 16 },
+        top: { type: 'spring', stiffness: 120, damping: 16 },
+        scale: { type: 'spring', stiffness: 500, damping: 12 },
       }}
 
       onAnimationComplete={() =>
         tortilla.arrived()
       }
+
+      onClick={handleClick}
 
     >
 

@@ -23,3 +23,14 @@
     transform: scaleY(1);
   }
 }
+
+.mascot:hover {
+  cursor: pointer;
+}
+.mascot {
+  position: absolute;
+  z-index: 100;
+  pointer-events: auto;   /* ← DAS ist der wichtige Teil! */
+  will-change: transform;
+  cursor: pointer;
+}
