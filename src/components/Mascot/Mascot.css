@@ -1,0 +1,6 @@
+.mascot {
+  position: fixed;
+  z-index: 50;
+  pointer-events: none;
+  filter: drop-shadow(0 6px 10px rgba(82, 55, 24, 0.25));
+}

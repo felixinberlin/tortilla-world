@@ -47,22 +47,34 @@ function buildInitialLists(ingredientId: string): string[] {
   return memberships
 }
 
+const mascot: Entity = {
+  id: 'tortilla',
+  type: 'character',
+  position: { x: 40, y: 40 },
+  size: { width: 72, height: 72 },
+  state: 'idle',
+  lists: [],
+}
+
 export const useWorldStore = create<WorldState>((set) => ({
   lists: initialLists,
 
-  entities: Object.fromEntries(
-    ingredientCatalog.map((ingredient, index) => [
-      ingredient.id,
-      {
-        id: ingredient.id,
-        type: 'ingredient' as const,
-        position: { x: 0, y: index },
-        size: { width: 1, height: 1 },
-        state: 'idle',
-        lists: buildInitialLists(ingredient.id),
-      },
-    ]),
-  ),
+  entities: {
+    ...Object.fromEntries(
+      ingredientCatalog.map((ingredient, index) => [
+        ingredient.id,
+        {
+          id: ingredient.id,
+          type: 'ingredient' as const,
+          position: { x: 0, y: index },
+          size: { width: 1, height: 1 },
+          state: 'idle',
+          lists: buildInitialLists(ingredient.id),
+        },
+      ]),
+    ),
+    [mascot.id]: mascot,
+  },
 
   relationships: [],
 
