@@ -12,7 +12,6 @@ import type { GazePoint } from '../../systems/gaze'
 
 import { TortillaSvg } from "./TortillaSvg"
 
-
 import './Mascot.css'
 
 
@@ -93,11 +92,11 @@ export function Mascot() {
 
 
   const leftEyeRef =
-    useRef<SVGCircleElement>(null)
+    useRef<SVGEllipseElement>(null)
 
 
   const rightEyeRef =
-    useRef<SVGCircleElement>(null)
+    useRef<SVGEllipseElement>(null)
 
 
 
@@ -117,8 +116,7 @@ export function Mascot() {
 
 
 
-  const radius =
-    entity.size.width / 2 - 4
+  const radius = Math.max((entity.size.width / 2 - 4) || 0, 10);
 
 
 
