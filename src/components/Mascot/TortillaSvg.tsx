@@ -2,6 +2,22 @@ import { motion } from "framer-motion";
 import type { GazePoint } from "../../systems/gaze";
 import type { MascotState } from "../../systems/mascot";
 
+interface Potato {
+  x: number;
+  y: number;
+  rx: number;
+  ry: number;
+  rotate: number;
+}
+
+interface ToastMark {
+  x: number;
+  y: number;
+  rx: number;
+  ry: number;
+  rotate: number;
+}
+
 interface Props {
   state: MascotState;
   radius: number;
@@ -11,6 +27,8 @@ interface Props {
   rightEyeRef: React.RefObject<SVGEllipseElement | null>;
   width: number;
   height: number;
+  potatoes: Potato[];
+  toastMarks: ToastMark[];
 }
 
 export function TortillaSvg({
@@ -22,6 +40,8 @@ export function TortillaSvg({
   rightEyeRef,
   width,
   height,
+  potatoes,
+  toastMarks,
 }: Props) {
   const r = radius ?? 28;
 
@@ -145,16 +165,8 @@ export function TortillaSvg({
         opacity="0.6"
       />
 
-      {/* === KARTOFFEL-STÜCKE (organisch, mit Schatten) === */}
-      {[
-        { x: -16, y: -12, rx: 7, ry: 5, rotate: -25 },
-        { x: 14, y: -14, rx: 6, ry: 4.5, rotate: 35 },
-        { x: -19, y: 10, rx: 5.5, ry: 4, rotate: 45 },
-        { x: 16, y: 12, rx: 7, ry: 5, rotate: -40 },
-        { x: 0, y: 18, rx: 5, ry: 3.5, rotate: 15 },
-        { x: -8, y: -20, rx: 6, ry: 4, rotate: -10 },
-        { x: 22, y: -2, rx: 4, ry: 3, rotate: 60 },
-      ].map((potato, i) => (
+      {/* === KARTOFFEL-STÜCKE (aus Props) === */}
+      {potatoes.map((potato, i) => (
         <g key={`potato-${i}`} transform={`rotate(${potato.rotate} ${potato.x} ${potato.y})`}>
           {/* Schatten */}
           <ellipse
@@ -216,16 +228,8 @@ export function TortillaSvg({
         </g>
       ))}
 
-      {/* === GEBRÄUNTE STELLEN (Toast-Marks) === */}
-      {[
-        { x: -20, y: -18, rx: 3, ry: 2, rotate: 30 },
-        { x: -6, y: -24, rx: 2.5, ry: 1.5, rotate: -15 },
-        { x: 16, y: -19, rx: 3, ry: 2, rotate: 45 },
-        { x: 23, y: 3, rx: 2, ry: 1.5, rotate: -20 },
-        { x: -22, y: 6, rx: 2.5, ry: 2, rotate: 60 },
-        { x: 6, y: 22, rx: 2, ry: 1.5, rotate: 10 },
-        { x: 0, y: -26, rx: 2.5, ry: 1.5, rotate: 0 },
-      ].map((mark, i) => (
+      {/* === GEBRÄUNTE STELLEN (aus Props) === */}
+      {toastMarks.map((mark, i) => (
         <ellipse
           key={`toast-${i}`}
           cx={mark.x}
@@ -320,7 +324,6 @@ export function TortillaSvg({
       <ellipse ref={leftEyeRef} cx="-11" cy="-6" rx="8" ry="9" fill="#fff" />
       <ellipse ref={rightEyeRef} cx="11" cy="-6" rx="8" ry="9" fill="#fff" />
 
-
       {/* Augenlider (Blinzeln via CSS) */}
       <ellipse
         cx="-11"
@@ -332,13 +335,13 @@ export function TortillaSvg({
         style={{ transformOrigin: "-11px -6px" }}
       />
       <ellipse
-        cx="11"        // ← war -11, muss 11 sein!
+        cx="11"
         cy="-6"
         rx="8"
         ry="9"
         fill="#e8b84a"
         className="tortilla-blink"
-        style={{ transformOrigin: "11px -6px" }}  // ← auch hier!
+        style={{ transformOrigin: "11px -6px" }}
       />
 
       {/* Pupillen */}
@@ -374,15 +377,15 @@ export function TortillaSvg({
           state === "celebrating"
             ? { scale: [1, 1.1, 1] }
             : state === "cooking"
-              ? { d: ["M -14 4 Q 0 18 14 4", "M -14 5 Q 0 16 14 5", "M -14 4 Q 0 18 14 4"] }
-              : {}
+            ? { d: ["M -14 4 Q 0 18 14 4", "M -14 5 Q 0 16 14 5", "M -14 4 Q 0 18 14 4"] }
+            : {}
         }
         transition={
           state === "celebrating"
             ? { duration: 0.5, repeat: Infinity }
             : state === "cooking"
-              ? { duration: 1.5, repeat: Infinity }
-              : { duration: 0.2 }
+            ? { duration: 1.5, repeat: Infinity }
+            : { duration: 0.2 }
         }
       />
 

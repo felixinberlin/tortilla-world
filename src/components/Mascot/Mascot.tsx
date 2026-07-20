@@ -158,11 +158,13 @@ export function Mascot() {
    */
   const potatoes = useMemo(() => [
 
-    { x: -15, y: -10, r: 5, rotate: -20 },
-    { x: 14, y: -12, r: 4, rotate: 20 },
-    { x: -18, y: 12, r: 4, rotate: 40 },
-    { x: 12, y: 13, r: 5, rotate: -30 },
-    { x: 2, y: 18, r: 3, rotate: 10 },
+    { x: -16, y: -12, rx: 7, ry: 5, rotate: -25 },
+    { x: 14, y: -14, rx: 6, ry: 4.5, rotate: 35 },
+    { x: -19, y: 10, rx: 5.5, ry: 4, rotate: 45 },
+    { x: 16, y: 12, rx: 7, ry: 5, rotate: -40 },
+    { x: 0, y: 18, rx: 5, ry: 3.5, rotate: 15 },
+    { x: -8, y: -20, rx: 6, ry: 4, rotate: -10 },
+    { x: 22, y: -2, rx: 4, ry: 3, rotate: 60 },
 
   ], [])
 
@@ -173,12 +175,13 @@ export function Mascot() {
    */
   const toastMarks = useMemo(() => [
 
-    [-18, -18, 2],
-    [-5, -22, 1.5],
-    [15, -17, 2],
-    [21, 4, 1.5],
-    [-20, 8, 2],
-    [5, 20, 1.5],
+    { x: -20, y: -18, rx: 3, ry: 2, rotate: 30 },
+    { x: -6, y: -24, rx: 2.5, ry: 1.5, rotate: -15 },
+    { x: 16, y: -19, rx: 3, ry: 2, rotate: 45 },
+    { x: 23, y: 3, rx: 2, ry: 1.5, rotate: -20 },
+    { x: -22, y: 6, rx: 2.5, ry: 2, rotate: 60 },
+    { x: 6, y: 22, rx: 2, ry: 1.5, rotate: 10 },
+    { x: 0, y: -26, rx: 2.5, ry: 1.5, rotate: 0 },
 
   ], [])
 
@@ -305,6 +308,8 @@ export function Mascot() {
         rightEyeRef={rightEyeRef}
         width={entity.size.width}
         height={entity.size.height}
+        potatoes={potatoes}
+        toastMarks={toastMarks}
       />
 
 
