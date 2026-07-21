@@ -1,10 +1,21 @@
-import { useWorldStore } from '../store/worldStore'
-import type { Entity, Position } from '../types/Entity'
+// src/systems/movement.ts
 
-export function calculateDistance(first: Position, second: Position) {
-  return Math.hypot(second.x - first.x, second.y - first.y)
-}
+import { worldStore } from '../store/worldStore';
 
-export function moveTo(entity: Entity, target: Position) {
-  useWorldStore.getState().setEntityPosition(entity.id, target)
-}
+export const moveEntityToContainer = (
+  entityId: string,
+  fromContainerId: string | null,
+  toContainerId: string,
+  targetIndex?: number
+) => {
+  return worldStore.getState().dispatch({
+    type: 'MOVE_ENTITY',
+    timestamp: Date.now(),
+    payload: {
+      entityId,
+      fromContainerId,
+      toContainerId,
+      targetIndex
+    }
+  });
+};

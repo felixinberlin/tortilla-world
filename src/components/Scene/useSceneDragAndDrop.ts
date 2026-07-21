@@ -1,77 +1,57 @@
-import { useMemo, useRef } from 'react'
-import { PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
-import { useWorldStore } from '../../store/worldStore'
-import { useShallow } from 'zustand/react/shallow'
-import { getIngredientsForList, getListMembership } from '../../systems/queries'
-import { parseDrag, evaluateDrop } from '../../systems/dropRules'
-import { resolveListReorder, applyListReorder } from '../../systems/interaction'
-import type { Ingredient } from '../../types/Ingredient'
+// src/components/Scene/useSceneDragAndDrop.ts
 
-export function useSceneDragAndDrop() {
-  const lists = useWorldStore((state) => state.lists)
-  const entities = useWorldStore((state) => state.entities)
-  const updateEntity = useWorldStore((state) => state.updateEntity)
-  const addEntity = useWorldStore((state) => state.addEntity)
+import { useSensor, useSensors, PointerSensor, KeyboardSensor, type DragEndEvent } from '@dnd-kit/core';
+import { useWorldStore, type WorldState } from '../../store/worldStore';
+import type { Container, Entity } from '../../types/world';
 
-  // Used only to react to membership changes — the id -> listId mapping
-  // itself is read fresh from `entities` inside handleDragEnd.
-  const entityMemberships = useWorldStore(
-    useShallow((state) =>
-      Object.fromEntries(Object.values(state.entities).map((e) => [e.id, e.listId]))
-    )
-  )
-
-  const listsById = useMemo(() => {
-    const result: Record<string, Ingredient[]> = {}
-    for (const list of Object.values(lists)) {
-      result[list.id] = getIngredientsForList(entities, list)
-    }
-    return result
-  }, [entityMemberships, lists])
-
-  const copyCounter = useRef(0)
+export const useSceneDragAndDrop = () => {
+  const containers = useWorldStore((state: WorldState) => state.containers);
+  const entities = useWorldStore((state: WorldState) => state.entities);
+  const dispatch = useWorldStore((state: WorldState) => state.dispatch);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: { distance: 8 },
+      activationConstraint: {
+        distance: 5
+      }
     }),
-  )
+    useSensor(KeyboardSensor)
+  );
+
+  const getEntitiesForContainer = (containerId: string): Entity[] => {
+    const container = containers[containerId];
+    if (!container) return [];
+    return container.entityIds
+      .map((id) => entities[id])
+      .filter((e): e is Entity => Boolean(e));
+  };
 
   const handleDragEnd = (event: DragEndEvent) => {
-    if (!event.over) return
+    const { active, over } = event;
+    if (!over) return;
 
-    const listIds = Object.keys(lists)
-    const membership = getListMembership(entities, listIds)
+    const entityId = String(active.id);
+    const targetContainerId = String(over.id);
+    const entity = entities[entityId];
 
-    const listFlags = Object.fromEntries(
-      Object.values(lists).map((list) => [list.id, { consumesOnDrag: list.consumesOnDrag ?? false }]),
-    )
+    if (!entity) return;
 
-    const drag = parseDrag(String(event.active.id), String(event.over.id))
-    if (!drag) return
+    dispatch({
+      type: 'MOVE_ENTITY',
+      timestamp: Date.now(),
+      payload: {
+        entityId,
+        fromContainerId: entity.containerId,
+        toContainerId: targetContainerId
+      }
+    });
+  };
 
-    const drop = evaluateDrop(drag, membership, listFlags, {
-      groupOf: (itemId) => entities[itemId]?.ingredientId ?? itemId,
-    })
-    if (!drop) return
-
-    const result = resolveListReorder(drop, membership, {
-      createCopyId: (itemId) => `${itemId}--copy-${Date.now()}-${copyCounter.current++}`,
-    })
-    if (!result) return
-
-    applyListReorder(updateEntity, addEntity, (id) => entities[id], result)
-  }
-
-  const panels = useMemo(
-    () =>
-      Object.values(lists).map((list) => ({
-        id: list.id,
-        title: list.title,
-        ingredients: listsById[list.id],
-      })),
-    [lists, listsById],
-  )
-
-  return { panels, sensors, handleDragEnd }
-}
+  return {
+    containers: Object.values(containers) as Container[],
+    entities,
+    sensors,
+    getEntitiesForContainer,
+    handleDragEnd
+  };
+};

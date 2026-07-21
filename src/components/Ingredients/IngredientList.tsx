@@ -1,32 +1,30 @@
-import { useDroppable } from '@dnd-kit/core'
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import type { Ingredient } from '../../types/Ingredient'
-import './Ingredients.css'
-import { IngredientListItem } from './IngredientListItem'
+// src/components/Ingredients/IngredientList.tsx
 
-interface IngredientListProps {
-  ingredients: Ingredient[]
-  listId: string
-  title: string
+import React from 'react';
+import { IngredientListItem } from './IngredientListItem';
+import { useWorldStore } from '../../store/worldStore';
+import type { WorldState } from '../../store/worldStore';
+
+interface Props {
+  containerId: string;
 }
 
-export function IngredientList({ ingredients, listId, title }: IngredientListProps) {
-  const { setNodeRef } = useDroppable({ id: listId })
+export const IngredientList: React.FC<Props> = ({ containerId }) => {
+  const container = useWorldStore((state: WorldState) => state.containers[containerId]);
+  const entities = useWorldStore((state: WorldState) => state.entities);
+
+  if (!container) return null;
+
+  const containerEntities = container.entityIds
+    .map((id) => entities[id])
+    .filter((e) => Boolean(e));
 
   return (
-    <div className="ingredient-list-panel" ref={setNodeRef}>
-      <div className="ingredient-list-header">
-        <h3>{title}</h3>
-        <span>{ingredients.length} items</span>
-      </div>
-
-      <SortableContext items={ingredients.map((ingredient) => `${listId}::${ingredient.id}`)} strategy={verticalListSortingStrategy}>
-        <ul className="ingredient-list">
-          {ingredients.map((ingredient) => (
-            <IngredientListItem key={`${listId}::${ingredient.id}`} ingredient={ingredient} listId={listId} />
-          ))}
-        </ul>
-      </SortableContext>
+    <div className="ingredient-list">
+      <h3>{container.name}</h3>
+      {containerEntities.map((entity) => (
+        <IngredientListItem key={entity.id} entity={entity} />
+      ))}
     </div>
-  )
-}
+  );
+};

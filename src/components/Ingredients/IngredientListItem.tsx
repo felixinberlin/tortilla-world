@@ -1,57 +1,33 @@
-import { useSortable } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
-import type { Ingredient as IngredientModel } from '../../types/Ingredient'
-import { useWorldStore } from '../../store/worldStore'
-import { Ingredient } from './Ingredient'
+// src/components/Ingredients/IngredientListItem.tsx
 
-interface IngredientListItemProps {
-  ingredient: IngredientModel
-  listId: string
+import React from 'react';
+import { useWorldStore } from '../../store/worldStore';
+import type { WorldState } from '../../store/worldStore';
+import type { Entity } from '../../types/world';
+
+interface Props {
+  entity: Entity;
 }
 
-export function IngredientListItem({ ingredient, listId }: IngredientListItemProps) {
-  const removeEntity = useWorldStore((state) => state.removeEntity)
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: `${listId}::${ingredient.id}` })
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.7 : 1,
-  }
-
-  const showRemove = listId !== 'despensa'
+export const IngredientListItem: React.FC<Props> = ({ entity }) => {
+  const dispatch = useWorldStore((state: WorldState) => state.dispatch);
 
   const handleRemove = () => {
-    removeEntity(ingredient.id)
-  }
+    dispatch({
+      type: 'MOVE_ENTITY',
+      timestamp: Date.now(),
+      payload: {
+        entityId: entity.id,
+        fromContainerId: entity.containerId,
+        toContainerId: 'trash'
+      }
+    });
+  };
 
   return (
-    <li
-      ref={setNodeRef}
-      style={style}
-      className="ingredient-list-item"
-    >
-      <div className="ingredient-list-item-body" {...attributes} {...listeners}>
-        <Ingredient ingredient={ingredient} />
-      </div>
-      {showRemove && (
-        <button
-          type="button"
-          className="ingredient-remove"
-          aria-label={`Remove ${ingredient.name}`}
-          onPointerDown={(event) => event.stopPropagation()}
-          onClick={handleRemove}
-        >
-          ×
-        </button>
-      )}
-    </li>
-  )
-}
+    <div className="ingredient-item">
+      <span>{entity.name}</span>
+      <button onClick={handleRemove}>Discard</button>
+    </div>
+  );
+};
