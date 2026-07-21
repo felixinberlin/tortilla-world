@@ -41,12 +41,51 @@
   border: 1px solid #e6d5bf;
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
-  cursor: grab;
   display: flex;
-  flex-wrap: wrap;
   gap: 0.5rem;
   padding: 10px 12px;
   user-select: none;
+}
+
+.ingredient-list-item-body {
+  align-items: center;
+  cursor: grab;
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.ingredient-list-item-body:active {
+  cursor: grabbing;
+}
+
+.ingredient-remove {
+  align-items: center;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: #8b6a45;
+  cursor: pointer;
+  display: inline-flex;
+  flex-shrink: 0;
+  font-size: 1.25rem;
+  height: 1.75rem;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  width: 1.75rem;
+}
+
+.ingredient-remove:hover {
+  background: #f5e8d8;
+  color: #6b4226;
+}
+
+.ingredient-remove:focus-visible {
+  outline: 2px solid #c9956a;
+  outline-offset: 2px;
 }
 
 .ingredient-list-item:active,
