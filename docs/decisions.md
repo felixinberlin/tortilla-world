@@ -1,75 +1,473 @@
-# Architecture Decisions
+# Architectural Decisions
 
+This document records the important architectural decisions made during the development of Tortilla World.
 
-## Layered drag-and-drop pipeline
+The goal is to keep the world model predictable, extensible, and suitable for future systems such as AI-controlled actions, cooking processes, animations, and simulations.
 
-Decision:
-Split drag-and-drop into four read/write layers:
+---
+
+# Decision: Use Entities and Containers as the World Model
+
+## Context
+
+The initial concept used "lists" to represent groups of objects:
+
+* pantry list
+* recipe list
+* fire list
+
+This worked for simple drag and drop, but became insufficient when objects started having different behaviours.
+
+Requirements:
+
+* objects need ownership
+* objects need movement between locations
+* some collections allow changes
+* some collections represent predefined world content
+* some objects can exist multiple times
+* some objects must be unique
+
+A simple list cannot express these rules.
+
+---
+
+## Decision
+
+Replace the concept of **Lists** with **Containers**.
+
+A Container is a first-class world entity that:
+
+* owns other entities
+* defines what it can contain
+* validates actions
+* preserves ordering
+* controls movement rules
+
+The world is modelled as:
 
 ```
+Entities
+   |
+   v
+Containers
+```
+
+---
+
+## Consequences
+
+Positive:
+
+* clear ownership model
+* easier drag and drop logic
+* easier AI action validation
+* supports future gameplay systems
+* containers can have different behaviours
+
+Negative:
+
+* more complex than arrays
+* requires validation before actions
+* requires explicit ownership handling
+
+---
+
+# Decision: Entities Are Never Duplicated During Movement
+
+## Context
+
+A drag and drop action can visually look like moving an object.
+
+The implementation must decide whether the object itself changes or whether a copy is created.
+
+---
+
+## Decision
+
+Entities keep their identity.
+
+A move changes ownership.
+
+Example:
+
+Before:
+
+```
+Kitchen
+ └── potato
+
+
+Pan
+```
+
+After:
+
+```
+Kitchen
+
+
+Pan
+ └── potato
+```
+
+The potato entity is the same entity.
+
+---
+
+## Consequences
+
+Benefits:
+
+* animations can track objects
+* AI can reference objects by ID
+* history and debugging become easier
+* no duplicated world state
+
+---
+
+# Decision: Containers Own Rules, Not Entities
+
+## Context
+
+An ingredient does not know where it can exist.
+
+A potato can exist in:
+
+* kitchen
+* recipe
+* pan
+* plate
+* trash
+
+Each location has different rules.
+
+---
+
+## Decision
+
+Rules belong to containers.
+
+Example:
+
+```
+Potato
+ |
+ +-- Kitchen: allowed
+ |
+ +-- Recipe: allowed
+ |
+ +-- Trash: allowed
+ |
+ +-- Knife: forbidden
+```
+
+The container decides.
+
+---
+
+## Consequences
+
+New containers can be added without modifying every entity.
+
+Example:
+
+Adding:
+
+```
+Fridge
+```
+
+only requires defining fridge rules.
+
+Ingredients do not change.
+
+---
+
+# Decision: Container Contents Are Ordered
+
+## Context
+
+A programming Set solves uniqueness, but loses order.
+
+The world requires:
+
+* visual ordering
+* animations
+* predictable rendering
+* drag and drop positions
+
+---
+
+## Decision
+
+Containers use ordered collections.
+
+Example:
+
+```ts
+[
+ "potato",
+ "egg",
+ "onion"
+]
+```
+
+Ordering is part of the world state.
+
+---
+
+## Consequences
+
+Uniqueness is handled separately from ordering.
+
+The system validates whether an item can be inserted.
+
+---
+
+# Decision: Ingredient Uniqueness Is Enforced Per Container
+
+## Context
+
+Cooking containers should not contain duplicate ingredients.
+
+Example:
+
+Invalid:
+
+```
+Recipe
+ ├ potato
+ └ potato
+```
+
+However, duplicate tools are valid.
+
+Example:
+
+Valid:
+
+```
+Kitchen
+ ├ pan-001
+ └ pan-002
+```
+
+---
+
+## Decision
+
+Uniqueness rules depend on entity type.
+
+Default rules:
+
+Ingredients:
+
+```
+unique inside container
+```
+
+Tools:
+
+```
+duplicates allowed
+```
+
+---
+
+## Consequences
+
+The model supports realistic kitchens.
+
+A kitchen can have:
+
+* many pans
+* many knives
+* one potato entry
+
+---
+
+# Decision: Moving Between Containers Uses Transfer Rules
+
+## Context
+
+Not every move behaves the same.
+
+Examples:
+
+Kitchen → Recipe:
+
+* ingredient remains in kitchen inventory conceptually
+* recipe receives a reference/copy
+
+Recipe → Pan:
+
+* recipe loses ingredient
+* pan receives ingredient
+
+---
+
+## Decision
+
+Movement is not a simple array operation.
+
+Every move goes through a transfer system:
+
+```
+Request Move
+      |
+      v
+Validate source
+      |
+      v
+Validate destination
+      |
+      v
+Apply transfer rule
+      |
+      v
+Update ownership
+```
+
+---
+
+# Decision: Immutable and Mutable Containers
+
+## Context
+
+Some containers represent world definitions.
+
+Example:
+
+Kitchen starting ingredients.
+
+Others represent changing gameplay state.
+
+Example:
+
+Recipe.
+
+---
+
+## Decision
+
+Containers have ownership behaviour.
+
+## Static Containers
+
+Represent predefined world resources.
+
+Examples:
+
+* kitchen inventory
+* starting objects
+
+They can provide items without necessarily losing the original definition.
+
+---
+
+## Dynamic Containers
+
+Represent changing state.
+
+Examples:
+
+* recipe
+* pan
+* plate
+
+They gain and lose ownership.
+
+---
+
+# Decision: Systems Modify State, Components Display State
+
+## Context
+
+React components should not contain world logic.
+
+A drag component should not decide:
+
+* if a move is valid
+* if duplicates are allowed
+* if an item disappears
+
+---
+
+## Decision
+
+Components display the world.
+
+Systems modify the world.
+
+Example:
+
+```
+Drag Component
+       |
+       v
+Interaction System
+       |
+       v
+Container Rules
+       |
+       v
 World Store
-    │
-    ▼
-queries.ts        (read-only views of store data)
-    │
-    ▼
-dropRules.ts      (can this drop happen?)
-    │
-    ▼
-interaction.ts    (how to reorder / commit to store)
-    │
-    ▼
-React
 ```
 
-Reason:
-Each layer has one job. UI reads through queries, asks dropRules for permission,
-then interaction applies the approved change. Rules stay testable without
-touching reorder mechanics or React.
+---
 
+# Decision: AI Uses Actions, Not Direct State Modification
 
-## Zustand instead of Redux
+## Context
 
-Decision:
-Use Zustand.
+Future AI behaviour requires predictable actions.
 
-Reason:
-The world state is small and interactive.
-Redux would add unnecessary complexity.
+The AI should not directly modify Zustand state.
 
+---
 
-## Framer Motion instead of game engine
+## Decision
 
-Decision:
-Use Framer Motion initially.
+AI produces actions.
 
-Reason:
-The first version is UI-based.
-A full game engine is unnecessary.
+Example:
 
+```ts
+{
+ type:"MOVE_ENTITY",
+ entity:"potato",
+ from:"kitchen",
+ to:"pan"
+}
+```
 
-Decision:
-On a cross-list move: if the target list already contains that item's id, and this item type is "unique per list," reject the whole move (return null, same as any other invalid drag).
-On a same-list reorder: never blocked — you're not creating a duplicate, you're repositioning the one copy that's already there.
+The world validates and executes the action.
 
-Reason:
-A list can contain potato, onion and a pan, but not 2 times potatos.
+---
 
+## Consequences
 
-## Lists
+Benefits:
 
-There are 2 types of lists:
-Inmutable and mutable.
+* AI cannot break world rules
+* actions can be logged
+* actions can be replayed
+* debugging becomes easier
 
-Inmutable: 
-are defined at creation.
-Elements canot be added or deleted.
-A "move" to a mutable list creates a copy of the list element.
+---
 
-Mutable:
-Elements can be added, moved and deleted.
-Can be empty.
-A "move" action removes the element of the list and creates a copy in another list.
+# Summary
 
+The core architecture decisions are:
 
-Ingredients are unique for list. same ingredient cannot appear 2 times in any list.
+1. The world contains entities.
+2. Containers own entities.
+3. Containers enforce rules.
+4. Movement changes ownership, not identity.
+5. Contents are ordered.
+6. Ingredients are unique per container.
+7. Tools may have duplicates.
+8. Systems modify state.
+9. AI produces validated actions.
+
+This creates a foundation for a simulation-style cooking world rather than a simple drag-and-drop application.
