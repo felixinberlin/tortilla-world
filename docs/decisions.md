@@ -1,6 +1,33 @@
 # Architecture Decisions
 
 
+## Layered drag-and-drop pipeline
+
+Decision:
+Split drag-and-drop into four read/write layers:
+
+```
+World Store
+    │
+    ▼
+queries.ts        (read-only views of store data)
+    │
+    ▼
+dropRules.ts      (can this drop happen?)
+    │
+    ▼
+interaction.ts    (how to reorder / commit to store)
+    │
+    ▼
+React
+```
+
+Reason:
+Each layer has one job. UI reads through queries, asks dropRules for permission,
+then interaction applies the approved change. Rules stay testable without
+touching reorder mechanics or React.
+
+
 ## Zustand instead of Redux
 
 Decision:

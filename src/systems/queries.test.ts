@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { getIngredientsForList } from './queries'
+import { getIngredientsForList, getListMembership } from './queries'
 import { ingredients as catalog } from '../data/catalog/ingredients'
 import { recipe as concebolla } from '../data/catalog/recipes/concebolla'
 import type { Entity } from '../types/Entity'
@@ -24,6 +24,37 @@ function allInDespensa(): Record<string, Entity> {
     ]),
   )
 }
+
+describe('getListMembership', () => {
+  it('returns entity ids grouped by listId, sorted by position.y', () => {
+    const entities: Record<string, Entity> = {
+      onion: makeEntity('onion', 'onion', 'despensa', 1),
+      potato: makeEntity('potato', 'potato', 'despensa', 0),
+      oil: makeEntity('oil', 'oil', 'fire', 0),
+    }
+    expect(getListMembership(entities, ['despensa', 'fire', 'kitchen'])).toEqual({
+      despensa: ['potato', 'onion'],
+      fire: ['oil'],
+      kitchen: [],
+    })
+  })
+
+  it('ignores non-ingredient entities and entities with no listId', () => {
+    const entities: Record<string, Entity> = {
+      potato: makeEntity('potato', 'potato', 'despensa', 0),
+      tortilla: {
+        id: 'tortilla',
+        type: 'character',
+        ingredientId: 'tortilla',
+        position: { x: 0, y: 0 },
+        size: { width: 1, height: 1 },
+        state: 'idle',
+        listId: null,
+      },
+    }
+    expect(getListMembership(entities, ['despensa'])).toEqual({ despensa: ['potato'] })
+  })
+})
 
 describe('getIngredientsForList', () => {
 

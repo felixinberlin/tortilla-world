@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { evaluateDrop, parseDrag } from './dropRules'
 import { resolveListReorder, applyListReorder } from './interaction'
 import type { Entity } from '../types/Entity'
 
@@ -14,16 +15,33 @@ function makeEntity(id: string, ingredientId: string, listId: string | null): En
   }
 }
 
+function resolveDrag(
+  activeId: string,
+  overId: string,
+  lists: Record<string, string[]>,
+  listFlags: Record<string, { consumesOnDrag?: boolean }> = {},
+  options: { groupOf?: (itemId: string) => string; createCopyId?: (itemId: string) => string } = {},
+) {
+  const drag = parseDrag(activeId, overId)
+  if (!drag) return null
+  const drop = evaluateDrop(drag, lists, listFlags, { groupOf: options.groupOf })
+  if (!drop) return null
+  return resolveListReorder(drop, lists, { createCopyId: options.createCopyId })
+}
+
+const kitchenConsumes = { kitchen: { consumesOnDrag: true }, fire: { consumesOnDrag: true } }
+
 // ── consumesOnDrag: move vs copy semantics ─────────────────────────────────
 
 it('dragging from a consuming list removes the item from the source', () => {
-  const result = resolveListReorder(
-    { activeId: 'kitchen::potato', overId: 'fire' },
+  const result = resolveDrag(
+    'kitchen::potato',
+    'fire',
     { kitchen: ['potato', 'egg'], fire: [] },
-    { kitchen: { consumesOnDrag: true }, fire: { consumesOnDrag: true } },
+    kitchenConsumes,
   )
   expect(result?.lists).toEqual({
-    kitchen: ['egg'],   // potato removed
+    kitchen: ['egg'],
     fire: ['potato'],
   })
   expect(result?.changedListId).toBe('fire')
@@ -32,31 +50,31 @@ it('dragging from a consuming list removes the item from the source', () => {
 })
 
 it('dragging from a non-consuming list keeps the item in the source', () => {
-  const result = resolveListReorder(
-    { activeId: 'despensa::potato', overId: 'kitchen' },
+  const result = resolveDrag(
+    'despensa::potato',
+    'kitchen',
     { despensa: ['potato', 'onion'], kitchen: [] },
     { despensa: {}, kitchen: { consumesOnDrag: true } },
     { createCopyId: () => 'potato-copy' },
   )
   expect(result?.lists).toEqual({
-    despensa: ['potato', 'onion'],  // original untouched
-    kitchen: ['potato-copy'],       // a NEW instance, not "potato" again
+    despensa: ['potato', 'onion'],
+    kitchen: ['potato-copy'],
   })
   expect(result?.removedFromListId).toBeNull()
   expect(result?.copy).toEqual({ sourceItemId: 'potato', newItemId: 'potato-copy' })
 })
 
 it('a consuming target never overrides a non-consuming source, even dragging onto fire', () => {
-  // Regression test: the target's own consumesOnDrag flag must never force
-  // a move. Only the source's flag decides move vs copy.
-  const result = resolveListReorder(
-    { activeId: 'despensa::potato', overId: 'fire' },
+  const result = resolveDrag(
+    'despensa::potato',
+    'fire',
     { despensa: ['potato', 'onion'], fire: [] },
     { despensa: {}, fire: { consumesOnDrag: true } },
     { createCopyId: () => 'potato-copy' },
   )
   expect(result?.lists).toEqual({
-    despensa: ['potato', 'onion'],  // stays: source doesn't consume
+    despensa: ['potato', 'onion'],
     fire: ['potato-copy'],
   })
   expect(result?.changedListId).toBe('fire')
@@ -64,53 +82,36 @@ it('a consuming target never overrides a non-consuming source, even dragging ont
 })
 
 it('BUG regression: a copy is a distinct instance, so moving it later never touches the original', () => {
-  // This is the exact scenario reported: salt sits in both despensa (pantry)
-  // and kitchen (prepped) — but as two separate entities, not one shared
-  // one. Moving the kitchen instance into fire must leave despensa's
-  // instance completely alone.
-  const copyStep = resolveListReorder(
-    { activeId: 'despensa::salt#despensa', overId: 'kitchen' },
+  const copyStep = resolveDrag(
+    'despensa::salt#despensa',
+    'kitchen',
     { despensa: ['salt#despensa'], kitchen: [], fire: [] },
     { despensa: {}, kitchen: { consumesOnDrag: true }, fire: { consumesOnDrag: true } },
     { createCopyId: () => 'salt#kitchen' },
   )
   expect(copyStep?.copy).toEqual({ sourceItemId: 'salt#despensa', newItemId: 'salt#kitchen' })
 
-  // Now move the kitchen instance (the copy) into fire.
-  const moveStep = resolveListReorder(
-    { activeId: 'kitchen::salt#kitchen', overId: 'fire' },
+  const moveStep = resolveDrag(
+    'kitchen::salt#kitchen',
+    'fire',
     { despensa: ['salt#despensa'], kitchen: ['salt#kitchen'], fire: [] },
     { despensa: {}, kitchen: { consumesOnDrag: true }, fire: { consumesOnDrag: true } },
   )
   expect(moveStep?.lists).toEqual({
-    despensa: ['salt#despensa'],  // untouched — this is the whole point
+    despensa: ['salt#despensa'],
     kitchen: [],
     fire: ['salt#kitchen'],
   })
   expect(moveStep?.removedFromListId).toBe('kitchen')
 })
 
-it('blocks copying when the target already holds an instance of the same ingredient group', () => {
-  const result = resolveListReorder(
-    { activeId: 'despensa::potato#despensa', overId: 'kitchen' },
-    { despensa: ['potato#despensa'], kitchen: ['potato#kitchen'] },
-    {},
-    { groupOf: (id) => id.split('#')[0] },
-  )
-  expect(result).toBeNull()
-})
-
 describe('resolveListReorder', () => {
-
-  // ── cross-list: copy semantics ─────────────────────────────────────────────
-
   it('copies an item to another list, source stays untouched, target gets a new id', () => {
-    const result = resolveListReorder(
-      { activeId: 'despensa::potato', overId: 'kitchen::egg' },
-      { despensa: ['potato', 'onion'], kitchen: ['egg'] },
-      {},
-      { createCopyId: () => 'potato-copy' },
-    )
+    const drag = parseDrag('despensa::potato', 'kitchen::egg')!
+    const drop = evaluateDrop(drag, { despensa: ['potato', 'onion'], kitchen: ['egg'] })!
+    const result = resolveListReorder(drop, { despensa: ['potato', 'onion'], kitchen: ['egg'] }, {
+      createCopyId: () => 'potato-copy',
+    })
     expect(result?.lists).toEqual({
       despensa: ['potato', 'onion'],
       kitchen: ['potato-copy', 'egg'],
@@ -120,12 +121,11 @@ describe('resolveListReorder', () => {
   })
 
   it('copies into an empty list', () => {
-    const result = resolveListReorder(
-      { activeId: 'despensa::potato', overId: 'kitchen' },
-      { despensa: ['potato', 'onion'], kitchen: [] },
-      {},
-      { createCopyId: () => 'potato-copy' },
-    )
+    const drag = parseDrag('despensa::potato', 'kitchen')!
+    const drop = evaluateDrop(drag, { despensa: ['potato', 'onion'], kitchen: [] })!
+    const result = resolveListReorder(drop, { despensa: ['potato', 'onion'], kitchen: [] }, {
+      createCopyId: () => 'potato-copy',
+    })
     expect(result?.lists).toEqual({
       despensa: ['potato', 'onion'],
       kitchen: ['potato-copy'],
@@ -133,59 +133,21 @@ describe('resolveListReorder', () => {
   })
 
   it('default createCopyId still produces an id different from the source', () => {
-    const result = resolveListReorder(
-      { activeId: 'despensa::potato', overId: 'kitchen' },
-      { despensa: ['potato'], kitchen: [] },
-    )
+    const drag = parseDrag('despensa::potato', 'kitchen')!
+    const drop = evaluateDrop(drag, { despensa: ['potato'], kitchen: [] })!
+    const result = resolveListReorder(drop, { despensa: ['potato'], kitchen: [] })
     expect(result?.copy?.newItemId).not.toBe('potato')
     expect(result?.lists.kitchen[0]).not.toBe('potato')
   })
 
-  it('blocks copying an item already in the target list (default identity grouping)', () => {
-    const result = resolveListReorder(
-      { activeId: 'despensa::potato', overId: 'kitchen' },
-      { despensa: ['potato', 'onion'], kitchen: ['potato', 'egg'] },
-    )
-    expect(result).toBeNull()
-  })
-
-  it('blocks copying even when dropping on blank space in a list that already has the item', () => {
-    const result = resolveListReorder(
-      { activeId: 'despensa::potato', overId: 'kitchen' },
-      { despensa: ['potato'], kitchen: ['potato'] },
-    )
-    expect(result).toBeNull()
-  })
-
-  // ── same-list: reorder semantics ───────────────────────────────────────────
-
   it('reorders within the same list', () => {
-    const result = resolveListReorder(
-      { activeId: 'despensa::egg', overId: 'despensa::potato' },
-      { despensa: ['potato', 'egg'], kitchen: [] },
-    )
+    const drag = parseDrag('despensa::egg', 'despensa::potato')!
+    const drop = evaluateDrop(drag, { despensa: ['potato', 'egg'], kitchen: [] })!
+    const result = resolveListReorder(drop, { despensa: ['potato', 'egg'], kitchen: [] })
     expect(result?.lists.despensa).toEqual(['egg', 'potato'])
     expect(result?.lists.kitchen).toEqual([])
     expect(result?.changedListId).toBe('despensa')
     expect(result?.copy).toBeNull()
-  })
-
-  // ── guard: invalid drags ───────────────────────────────────────────────────
-
-  it('returns null when the item is not in the source list', () => {
-    const result = resolveListReorder(
-      { activeId: 'despensa::garlic', overId: 'kitchen' },
-      { despensa: ['potato'], kitchen: [] },
-    )
-    expect(result).toBeNull()
-  })
-
-  it('returns null when source list does not exist', () => {
-    const result = resolveListReorder(
-      { activeId: 'ghost::potato', overId: 'kitchen' },
-      { despensa: ['potato'], kitchen: [] },
-    )
-    expect(result).toBeNull()
   })
 })
 
@@ -221,7 +183,7 @@ describe('applyListReorder', () => {
       copy: { sourceItemId: 'salt#despensa', newItemId: 'salt#kitchen' },
     })
 
-    expect(updateCalls).toEqual([])  // original entity never touched
+    expect(updateCalls).toEqual([])
     expect(addCalls).toEqual([{
       id: 'salt#kitchen',
       type: 'ingredient',
