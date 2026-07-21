@@ -2,7 +2,8 @@ import { useMemo, useRef } from 'react'
 import { PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
 import { useWorldStore } from '../../store/worldStore'
 import { useShallow } from 'zustand/react/shallow'
-import { getIngredientsForList } from '../../systems/queries'
+import { getIngredientsForList, getListMembership } from '../../systems/queries'
+import { parseDrag, evaluateDrop } from '../../systems/dropRules'
 import { resolveListReorder, applyListReorder } from '../../systems/interaction'
 import type { Ingredient } from '../../types/Ingredient'
 
@@ -39,27 +40,24 @@ export function useSceneDragAndDrop() {
   const handleDragEnd = (event: DragEndEvent) => {
     if (!event.over) return
 
-    const currentLists = Object.fromEntries(
-      Object.values(lists).map((list) => [list.id, listsById[list.id].map((item) => item.id)]),
-    )
+    const listIds = Object.keys(lists)
+    const membership = getListMembership(entities, listIds)
 
     const listFlags = Object.fromEntries(
       Object.values(lists).map((list) => [list.id, { consumesOnDrag: list.consumesOnDrag ?? false }]),
     )
 
-    const result = resolveListReorder(
-      { activeId: String(event.active.id), overId: String(event.over.id) },
-      currentLists,
-      listFlags,
-      {
-        // Two entities of the same ingredient type should block each other
-        // from stacking in one list, even though they're different instances.
-        groupOf: (itemId) => entities[itemId]?.ingredientId ?? itemId,
-        // Unique, deterministic-enough id for a freshly copied instance.
-        createCopyId: (itemId) => `${itemId}--copy-${Date.now()}-${copyCounter.current++}`,
-      },
-    )
+    const drag = parseDrag(String(event.active.id), String(event.over.id))
+    if (!drag) return
 
+    const drop = evaluateDrop(drag, membership, listFlags, {
+      groupOf: (itemId) => entities[itemId]?.ingredientId ?? itemId,
+    })
+    if (!drop) return
+
+    const result = resolveListReorder(drop, membership, {
+      createCopyId: (itemId) => `${itemId}--copy-${Date.now()}-${copyCounter.current++}`,
+    })
     if (!result) return
 
     applyListReorder(updateEntity, addEntity, (id) => entities[id], result)

@@ -1,6 +1,7 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import type { Ingredient as IngredientModel } from '../../types/Ingredient'
+import { useWorldStore } from '../../store/worldStore'
 import { Ingredient } from './Ingredient'
 
 interface IngredientListItemProps {
@@ -9,6 +10,7 @@ interface IngredientListItemProps {
 }
 
 export function IngredientListItem({ ingredient, listId }: IngredientListItemProps) {
+  const removeEntity = useWorldStore((state) => state.removeEntity)
   const {
     attributes,
     listeners,
@@ -24,15 +26,32 @@ export function IngredientListItem({ ingredient, listId }: IngredientListItemPro
     opacity: isDragging ? 0.7 : 1,
   }
 
+  const showRemove = listId !== 'despensa'
+
+  const handleRemove = () => {
+    removeEntity(ingredient.id)
+  }
+
   return (
     <li
       ref={setNodeRef}
       style={style}
       className="ingredient-list-item"
-      {...attributes}
-      {...listeners}
     >
-      <Ingredient ingredient={ingredient} />
+      <div className="ingredient-list-item-body" {...attributes} {...listeners}>
+        <Ingredient ingredient={ingredient} />
+      </div>
+      {showRemove && (
+        <button
+          type="button"
+          className="ingredient-remove"
+          aria-label={`Remove ${ingredient.name}`}
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={handleRemove}
+        >
+          ×
+        </button>
+      )}
     </li>
   )
 }
