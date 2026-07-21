@@ -1,51 +1,64 @@
-export interface GazePoint {
-  x: number
-  y: number
-}
+// src/systems/gaze.ts
 
-/** Anything with a measurable screen position can be a gaze target: a point, or a DOM-ish element. */
-export interface BoundsSource {
-  getBoundingClientRect: () => { left: number; top: number; width: number; height: number }
-}
+import { worldStore } from '../store/worldStore';
 
-export type GazeTarget = GazePoint | BoundsSource
+export const MASCOT_ID = 'mascot';
 
-function hasBounds(target: GazeTarget): target is BoundsSource {
-  return typeof (target as BoundsSource).getBoundingClientRect === 'function'
+export type GazeTarget = string | null;
+
+export interface MascotState {
+  gazingAt?: string | null;
+  expression?: string;
 }
 
 /**
- * Resolves any gaze target down to a screen-space point.
- * - a point -> itself
- * - an element (or anything with getBoundingClientRect, real DOM node or
- *   fake) -> the center of its bounding rect
- *
- * This is what lets the mascot look at the mouse, a dragged ingredient,
- * or the pan interchangeably — they're all just "things with a position."
+ * Calculates the primary target container or entity that the mascot should gaze towards.
+ * Queries current world state from worldStore.
  */
-export function eyesFollowElement(target: GazeTarget): GazePoint {
-  if (hasBounds(target)) {
-    const rect = target.getBoundingClientRect()
-    return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
+export const calculateGazeTarget = (
+  hoveredContainerId?: string | null,
+  activeEntityId?: string | null
+): GazeTarget => {
+  const { entities, containers } = worldStore.getState();
+
+  // If an entity is actively being dragged, prioritize its target container or current location
+  if (activeEntityId) {
+    const activeEntity = entities[activeEntityId];
+    if (activeEntity) {
+      return hoveredContainerId ?? activeEntity.containerId;
+    }
   }
-  return target
-}
+
+  // If hovering over a valid container, gaze at that container
+  if (hoveredContainerId && containers[hoveredContainerId]) {
+    return hoveredContainerId;
+  }
+
+  return null;
+};
 
 /**
- * Pure: how far a pupil should shift toward a target, given the eye's
- * own screen position. Direction is preserved, magnitude is clamped to
- * maxOffset so the pupil never leaves the eye socket.
+ * Updates the mascot entity's gaze state by dispatching an UPDATE_ENTITY_STATE world action.
  */
-export function resolveGaze(eyeCenter: GazePoint, target: GazePoint, maxOffset: number): GazePoint {
-  const dx = target.x - eyeCenter.x
-  const dy = target.y - eyeCenter.y
-  const distance = Math.hypot(dx, dy)
+export const updateMascotGaze = (targetId: string | null): void => {
+  const store = worldStore.getState();
+  const mascot = store.entities[MASCOT_ID];
 
-  if (distance === 0) return { x: 0, y: 0 }
+  if (!mascot) return;
 
-  const clamped = Math.min(distance, maxOffset)
-  return {
-    x: (dx / distance) * clamped,
-    y: (dy / distance) * clamped,
-  }
-}
+  const currentGaze = (mascot.state as MascotState | undefined)?.gazingAt;
+
+  // No-op if mascot is already gazing at this target
+  if (currentGaze === targetId) return;
+
+  store.dispatch({
+    type: 'UPDATE_ENTITY_STATE',
+    timestamp: Date.now(),
+    payload: {
+      entityId: MASCOT_ID,
+      statePatch: {
+        gazingAt: targetId
+      }
+    }
+  });
+};

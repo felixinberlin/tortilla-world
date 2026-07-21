@@ -14,7 +14,7 @@ export interface Entity {
   state: Record<string, unknown>; // e.g. { chopped: true, temperature: 180 }
 }
 
-export type ContainerType = 'inventory' | 'cutting_board' | 'pan' | 'plate' | 'trash';
+export type ContainerType = 'inventory' | 'cutting_board' | 'pan' | 'plate' | 'trash' | 'surface';
 
 /**
  * Container-specific validation constraints enforced by the Container Authority.
