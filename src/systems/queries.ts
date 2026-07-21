@@ -4,10 +4,10 @@ import type { List } from '../types/IngredientList'
 import { ingredients as ingredientCatalog } from '../data/catalog/ingredients'
 
 export function toIngredientView(entity: Entity): Ingredient {
-  const catalogEntry = ingredientCatalog.find((ingredient) => ingredient.id === entity.id)
+  const catalogEntry = ingredientCatalog.find((ingredient) => ingredient.id === entity.ingredientId)
   return {
     id: entity.id,
-    name: catalogEntry?.name ?? entity.id,
+    name: catalogEntry?.name ?? entity.ingredientId,
     icon: catalogEntry?.icon ?? '🥔',
   }
 }
@@ -17,7 +17,7 @@ export function getIngredientsForList(
   list: List,
 ): Ingredient[] {
   const matching = Object.values(entities)
-    .filter((entity) => entity.type === 'ingredient' && entity.lists.includes(list.id))
+    .filter((entity) => entity.type === 'ingredient' && entity.listId === list.id)
     .sort((left, right) => left.position.y - right.position.y)
     .map(toIngredientView)
 

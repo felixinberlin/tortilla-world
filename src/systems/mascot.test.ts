@@ -3,36 +3,32 @@ import { resolveCarry, Tortilla, MASCOT_ID } from './mascot'
 import { useWorldStore } from '../store/worldStore'
 import type { Entity } from '../types/Entity'
 
-function makeEntity(id: string, lists: string[]): Entity {
+function makeEntity(id: string, listId: string | null): Entity {
   return {
     id,
     type: 'ingredient',
+    ingredientId: id,
     position: { x: 0, y: 0 },
     size: { width: 1, height: 1 },
     state: 'idle',
-    lists,
+    listId,
   }
 }
 
 describe('resolveCarry', () => {
   it('moves the ingredient from the source list to the target list', () => {
-    const entity = makeEntity('onion', ['kitchen'])
-    expect(resolveCarry(entity, 'kitchen', 'fire')).toEqual(['fire'])
+    const entity = makeEntity('onion', 'kitchen')
+    expect(resolveCarry(entity, 'kitchen', 'fire')).toBe('fire')
   })
 
   it('returns null when the ingredient is not in the source list', () => {
-    const entity = makeEntity('onion', ['despensa'])
+    const entity = makeEntity('onion', 'despensa')
     expect(resolveCarry(entity, 'kitchen', 'fire')).toBeNull()
   })
 
-  it('does not duplicate the target list if the ingredient is already in it', () => {
-    const entity = makeEntity('onion', ['kitchen', 'fire'])
-    expect(resolveCarry(entity, 'kitchen', 'fire')).toEqual(['fire'])
-  })
-
-  it('preserves list memberships unrelated to the move', () => {
-    const entity = makeEntity('onion', ['despensa', 'kitchen'])
-    expect(resolveCarry(entity, 'kitchen', 'fire')).toEqual(['despensa', 'fire'])
+  it('is a no-op move when already in the target list', () => {
+    const entity = makeEntity('onion', 'fire')
+    expect(resolveCarry(entity, 'fire', 'fire')).toBe('fire')
   })
 })
 
@@ -40,8 +36,8 @@ describe('Tortilla.banish', () => {
   beforeEach(() => {
     useWorldStore.setState({
       entities: {
-        [MASCOT_ID]: makeEntity(MASCOT_ID, []),
-        onion: makeEntity('onion', ['despensa', 'kitchen']),
+        [MASCOT_ID]: { ...makeEntity(MASCOT_ID, null), type: 'character' },
+        onion: makeEntity('onion', 'despensa'),
       },
       relationships: [],
     })

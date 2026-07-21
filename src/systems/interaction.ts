@@ -9,10 +9,35 @@ interface ListFlags {
   consumesOnDrag?: boolean
 }
 
+export interface ReorderOptions {
+  /**
+   * Groups items for the "already in target" duplicate check — e.g. two
+   * different physical instances of "potato" should still be treated as
+   * the same ingredient for blocking purposes. Defaults to identity, which
+   * treats every raw item id as its own group.
+   */
+  groupOf?: (itemId: string) => string
+  /**
+   * Produces the id for a brand-new instance created by a copy (dragging
+   * out of a non-consuming source). MUST be unique per call in real usage,
+   * or the copy will collide with another item. Defaults to a random
+   * suffix so callers who don't care can ignore this entirely.
+   */
+  createCopyId?: (itemId: string) => string
+}
+
 export interface ReorderResult {
   lists: Record<string, string[]>
   changedListId: string
   removedFromListId: string | null
+  /**
+   * Set only when this resolution created a brand-new instance (i.e. a
+   * copy out of a non-consuming source). `sourceItemId` is the original,
+   * untouched instance; `newItemId` is the id inserted into the target
+   * list. The two are intentionally different entities from this point
+   * on — moving one must never affect the other.
+   */
+  copy: { sourceItemId: string; newItemId: string } | null
 }
 
 function parseDraggedItem(compositeId: string) {
@@ -27,6 +52,10 @@ function parseDropTarget(compositeId: string) {
   return { listId, itemId: itemId ?? null }
 }
 
+function defaultCreateCopyId(itemId: string): string {
+  return `${itemId}--copy--${Math.random().toString(36).slice(2, 8)}`
+}
+
 /**
  * Pure: resolves a drag event into the next list state.
  *
@@ -34,18 +63,26 @@ function parseDropTarget(compositeId: string) {
  * vs which copy. A list not present in listFlags defaults to copy.
  *
  * Same-list reorder: always move, never creates a duplicate.
- * Cross-list from consuming source: item removed from source, added to target.
- * Cross-list from non-consuming source: item stays in source, added to target.
- *   Blocked if item already in target.
- * 
- * FIX: If the TARGET list consumes on drag, we ALWAYS perform a move,
- * regardless of the source's consumption flag. This fixes the bug where
- * items dragged to 'fire' (which consumes) were being copied instead of moved.
+ * Any cross-list transfer is blocked if the target already contains an
+ *   instance of the same group — this applies to moves as much as copies,
+ *   so an ingredient moved back into a list it already occupies (e.g. a
+ *   pantry item that was copied out and later dragged back) doesn't pile
+ *   up as a second instance next to the one already there.
+ * Cross-list from consuming source: the SAME instance moves — removed
+ *   from source, added to target. Only the source's flag decides this;
+ *   the target's own consumesOnDrag flag is irrelevant here.
+ * Cross-list from non-consuming source: the source instance is left
+ *   completely untouched, and a brand-new instance is created in the
+ *   target. This is what keeps two ingredients of the same type from
+ *   becoming secretly the same entity — dragging one out of the pantry
+ *   must never let a later move of the copy drag the pantry item along
+ *   with it.
  */
 export function resolveListReorder(
   event: DragMoveEvent,
   lists: Record<string, string[]>,
   listFlags: Record<string, ListFlags> = {},
+  options: ReorderOptions = {},
 ): ReorderResult | null {
   const source = parseDraggedItem(event.activeId)
   const target = parseDropTarget(event.overId)
@@ -55,76 +92,86 @@ export function resolveListReorder(
   const targetIds = lists[target.listId]
   if (!sourceIds || !targetIds || !sourceIds.includes(source.itemId)) return null
 
+  const groupOf = options.groupOf ?? ((itemId: string) => itemId)
+  const createCopyId = options.createCopyId ?? defaultCreateCopyId
+
   const targetIndex = target.itemId ? targetIds.indexOf(target.itemId) : -1
   const insertAt = targetIndex === -1 ? targetIds.length : targetIndex
 
   const next = { ...lists }
   const sourceConsumes = listFlags[source.listId]?.consumesOnDrag ?? false
-  const targetConsumes = listFlags[target.listId]?.consumesOnDrag ?? false
 
   if (source.listId === target.listId) {
     // Same list: always reorder, never block, never duplicate.
     const reordered = sourceIds.filter((itemId) => itemId !== source.itemId)
     reordered.splice(insertAt, 0, source.itemId)
     next[source.listId] = reordered
-    return { lists: next, changedListId: source.listId, removedFromListId: null }
+    return { lists: next, changedListId: source.listId, removedFromListId: null, copy: null }
   }
 
-  // FIX: If target consumes on drag, treat it as a move (remove from source)
-  if (targetConsumes) {
-    // Move: remove from source, add to target.
-    next[source.listId] = sourceIds.filter((itemId) => itemId !== source.itemId)
-    const reorderedTarget = [...targetIds]
-    reorderedTarget.splice(insertAt, 0, source.itemId)
-    next[target.listId] = reorderedTarget
-    return { lists: next, changedListId: target.listId, removedFromListId: source.listId }
-  }
+  // Cross-list: block if the target already holds an instance of the same
+  // group, whether this ends up being a move or a copy.
+  const sourceGroup = groupOf(source.itemId)
+  if (targetIds.some((itemId) => groupOf(itemId) === sourceGroup)) return null
 
   if (sourceConsumes) {
-    // Move: remove from source, add to target.
+    // Move: the same instance leaves the source and enters the target.
     next[source.listId] = sourceIds.filter((itemId) => itemId !== source.itemId)
     const reorderedTarget = [...targetIds]
     reorderedTarget.splice(insertAt, 0, source.itemId)
     next[target.listId] = reorderedTarget
-    return { lists: next, changedListId: target.listId, removedFromListId: source.listId }
+    return { lists: next, changedListId: target.listId, removedFromListId: source.listId, copy: null }
   }
 
-  // Copy: source stays, item added to target.
-  // Blocked if already in target.
-  if (targetIds.includes(source.itemId)) return null
+  // Copy: source instance is left alone. A new instance is created for
+  // the target so the two can never become entangled.
+  const newItemId = createCopyId(source.itemId)
   const reorderedTarget = [...targetIds]
-  reorderedTarget.splice(insertAt, 0, source.itemId)
+  reorderedTarget.splice(insertAt, 0, newItemId)
   next[target.listId] = reorderedTarget
-  return { lists: next, changedListId: target.listId, removedFromListId: null }
+  return {
+    lists: next,
+    changedListId: target.listId,
+    removedFromListId: null,
+    copy: { sourceItemId: source.itemId, newItemId },
+  }
 }
 
 /**
- * Commit step: writes the changed list into the store via updateEntity.
- * When removedFromListId is set, also strips that list from entity.lists.
+ * Commit step: writes the changed list's ordering into the store.
+ *
+ * Each entity belongs to exactly one list at a time (`entity.listId`), so
+ * there's nothing to clean up on the source side — reassigning listId (or,
+ * for a copy, creating a new entity) is the entire move. The source list's
+ * contents are derived live from entity.listId elsewhere (queries.ts), so
+ * they update automatically once this runs.
  */
-export function applyListOrders(
+export function applyListReorder(
   updateEntity: (entityId: string, changes: Partial<Omit<Entity, 'id'>>) => void,
+  addEntity: (entity: Entity) => void,
   getEntity: (entityId: string) => Entity | undefined,
-  lists: Record<string, string[]>,
-  removedFromListId: string | null = null,
+  result: ReorderResult,
 ) {
-  for (const [listId, itemIds] of Object.entries(lists)) {
-    itemIds.forEach((itemId, index) => {
-      const entity = getEntity(itemId)
-      const currentLists = entity?.lists ?? []
+  const itemIds = result.lists[result.changedListId]
 
-      let updatedLists = currentLists.includes(listId)
-        ? currentLists
-        : [...currentLists, listId]
+  itemIds.forEach((itemId, index) => {
+    const position = { x: 0, y: index }
 
-      if (removedFromListId) {
-        updatedLists = updatedLists.filter((id) => id !== removedFromListId)
-      }
-
-      updateEntity(itemId, {
-        lists: updatedLists,
-        position: { x: 0, y: index },
+    if (result.copy && itemId === result.copy.newItemId) {
+      const original = getEntity(result.copy.sourceItemId)
+      if (!original) return
+      addEntity({
+        id: itemId,
+        type: original.type,
+        ingredientId: original.ingredientId,
+        position,
+        size: original.size,
+        state: 'idle',
+        listId: result.changedListId,
       })
-    })
-  }
+      return
+    }
+
+    updateEntity(itemId, { position, listId: result.changedListId })
+  })
 }

@@ -4,14 +4,15 @@ import { ingredients as catalog } from '../data/catalog/ingredients'
 import { recipe as concebolla } from '../data/catalog/recipes/concebolla'
 import type { Entity } from '../types/Entity'
 
-function makeEntity(id: string, lists: string[], y = 0): Entity {
+function makeEntity(id: string, ingredientId: string, listId: string | null, y = 0): Entity {
   return {
     id,
     type: 'ingredient',
+    ingredientId,
     position: { x: 0, y },
     size: { width: 1, height: 1 },
     state: 'idle',
-    lists,
+    listId,
   }
 }
 
@@ -19,7 +20,7 @@ function allInDespensa(): Record<string, Entity> {
   return Object.fromEntries(
     catalog.map((ingredient, index) => [
       ingredient.id,
-      makeEntity(ingredient.id, ['despensa'], index),
+      makeEntity(ingredient.id, ingredient.id, 'despensa', index),
     ]),
   )
 }
@@ -30,8 +31,8 @@ describe('getIngredientsForList', () => {
 
   it('returns entities belonging to the list, sorted by position.y', () => {
     const entities: Record<string, Entity> = {
-      onion: makeEntity('onion', ['despensa'], 1),
-      potato: makeEntity('potato', ['despensa'], 0),
+      onion: makeEntity('onion', 'onion', 'despensa', 1),
+      potato: makeEntity('potato', 'potato', 'despensa', 0),
     }
     const result = getIngredientsForList(entities, { id: 'despensa', title: 'Despensa' })
     expect(result.map((i) => i.id)).toEqual(['potato', 'onion'])
@@ -39,48 +40,50 @@ describe('getIngredientsForList', () => {
 
   it('ignores entities that do not belong to this list', () => {
     const entities: Record<string, Entity> = {
-      potato: makeEntity('potato', ['despensa'], 0),
-      onion: makeEntity('onion', ['kitchen'], 0),
+      potato: makeEntity('potato', 'potato', 'despensa', 0),
+      onion: makeEntity('onion', 'onion', 'kitchen', 0),
     }
     const result = getIngredientsForList(entities, { id: 'despensa', title: 'Despensa' })
     expect(result.map((i) => i.id)).toEqual(['potato'])
   })
 
-  it('returns an entity that belongs to multiple lists in each of those lists', () => {
+  it('two instances of the same ingredient in different lists are independent', () => {
+    // Regression guard: an ingredient existing in two lists must be two
+    // separate entities (separate ids), each pinned to exactly one list —
+    // never one entity shared across both.
     const entities: Record<string, Entity> = {
-      potato: makeEntity('potato', ['despensa', 'kitchen'], 0),
-      onion: makeEntity('onion', ['despensa'], 1),
+      'potato#despensa': makeEntity('potato#despensa', 'potato', 'despensa', 0),
+      'potato#kitchen': makeEntity('potato#kitchen', 'potato', 'kitchen', 0),
     }
     const inDespensa = getIngredientsForList(entities, { id: 'despensa', title: 'Despensa' })
     const inKitchen = getIngredientsForList(entities, { id: 'kitchen', title: 'Kitchen' })
 
-    expect(inDespensa.map((i) => i.id)).toContain('potato')
-    expect(inKitchen.map((i) => i.id)).toContain('potato')
+    expect(inDespensa.map((i) => i.id)).toEqual(['potato#despensa'])
+    expect(inKitchen.map((i) => i.id)).toEqual(['potato#kitchen'])
   })
 
-  it('moving to a third list does not remove the item from the other two', () => {
+  it('an entity belongs to exactly one list — it never appears in a second one', () => {
     const entities: Record<string, Entity> = {
-      potato: makeEntity('potato', ['despensa', 'kitchen', 'fire'], 0),
+      potato: makeEntity('potato', 'potato', 'kitchen', 0),
     }
     const inDespensa = getIngredientsForList(entities, { id: 'despensa', title: 'Despensa' })
     const inKitchen = getIngredientsForList(entities, { id: 'kitchen', title: 'Kitchen' })
-    const inFire = getIngredientsForList(entities, { id: 'fire', title: 'Fire' })
 
-    expect(inDespensa.map((i) => i.id)).toContain('potato')
+    expect(inDespensa.map((i) => i.id)).not.toContain('potato')
     expect(inKitchen.map((i) => i.id)).toContain('potato')
-    expect(inFire.map((i) => i.id)).toContain('potato')
   })
 
   it('ignores non-ingredient entities in the same list', () => {
     const entities: Record<string, Entity> = {
-      potato: makeEntity('potato', ['despensa'], 0),
+      potato: makeEntity('potato', 'potato', 'despensa', 0),
       tortilla: {
         id: 'tortilla',
         type: 'character',
+        ingredientId: 'tortilla',
         position: { x: 0, y: 0 },
         size: { width: 1, height: 1 },
         state: 'idle',
-        lists: ['despensa'],
+        listId: 'despensa',
       },
     }
     const result = getIngredientsForList(entities, { id: 'despensa', title: 'Despensa' })
@@ -111,7 +114,7 @@ describe('getIngredientsForList', () => {
 
   it('real entity membership takes priority over seedFromCatalog', () => {
     const entities: Record<string, Entity> = {
-      potato: makeEntity('potato', ['despensa'], 0),
+      potato: makeEntity('potato', 'potato', 'despensa', 0),
     }
     const result = getIngredientsForList(entities, {
       id: 'despensa',
@@ -161,7 +164,7 @@ describe('getIngredientsForList', () => {
 
   it('real entity membership takes priority over seedIngredients', () => {
     const entities: Record<string, Entity> = {
-      oil: makeEntity('oil', ['fire'], 0),
+      oil: makeEntity('oil', 'oil', 'fire', 0),
     }
     const result = getIngredientsForList(entities, {
       id: 'fire',
@@ -173,25 +176,26 @@ describe('getIngredientsForList', () => {
 
   // ── view model correctness ─────────────────────────────────────────────────
 
-  it('enriches entities with name and icon from the catalog', () => {
-    const entities = { potato: makeEntity('potato', ['despensa'], 0) }
+  it('enriches entities with name and icon from the catalog, keyed by ingredientId', () => {
+    const entities = { 'potato#despensa': makeEntity('potato#despensa', 'potato', 'despensa', 0) }
     const result = getIngredientsForList(entities, { id: 'despensa', title: 'Despensa' })
-    expect(result[0]).toMatchObject({ id: 'potato', name: 'Potatoes', icon: '🥔' })
+    expect(result[0]).toMatchObject({ id: 'potato#despensa', name: 'Potatoes', icon: '🥔' })
   })
 
-  it('falls back to id as name and 🥔 icon for unknown entity ids', () => {
+  it('falls back to ingredientId as name and 🥔 icon for unknown ingredient ids', () => {
     const entities: Record<string, Entity> = {
-      mystery: {
-        id: 'mystery',
+      'mystery#despensa': {
+        id: 'mystery#despensa',
         type: 'ingredient',
+        ingredientId: 'mystery',
         position: { x: 0, y: 0 },
         size: { width: 1, height: 1 },
         state: 'idle',
-        lists: ['despensa'],
+        listId: 'despensa',
       },
     }
     const result = getIngredientsForList(entities, { id: 'despensa', title: 'Despensa' })
-    expect(result[0]).toMatchObject({ id: 'mystery', name: 'mystery', icon: '🥔' })
+    expect(result[0]).toMatchObject({ id: 'mystery#despensa', name: 'mystery', icon: '🥔' })
   })
 
 })

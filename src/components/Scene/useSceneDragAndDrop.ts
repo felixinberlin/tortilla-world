@@ -1,21 +1,22 @@
-import { useMemo } from 'react'
+import { useMemo, useRef } from 'react'
 import { PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
 import { useWorldStore } from '../../store/worldStore'
 import { useShallow } from 'zustand/react/shallow'
 import { getIngredientsForList } from '../../systems/queries'
-import { resolveListReorder, applyListOrders } from '../../systems/interaction'
+import { resolveListReorder, applyListReorder } from '../../systems/interaction'
 import type { Ingredient } from '../../types/Ingredient'
 
 export function useSceneDragAndDrop() {
   const lists = useWorldStore((state) => state.lists)
   const entities = useWorldStore((state) => state.entities)
   const updateEntity = useWorldStore((state) => state.updateEntity)
+  const addEntity = useWorldStore((state) => state.addEntity)
 
+  // Used only to react to membership changes — the id -> listId mapping
+  // itself is read fresh from `entities` inside handleDragEnd.
   const entityMemberships = useWorldStore(
     useShallow((state) =>
-      Object.fromEntries(
-        Object.values(state.entities).map((e) => [e.id, e.lists])
-      )
+      Object.fromEntries(Object.values(state.entities).map((e) => [e.id, e.listId]))
     )
   )
 
@@ -26,6 +27,8 @@ export function useSceneDragAndDrop() {
     }
     return result
   }, [entityMemberships, lists])
+
+  const copyCounter = useRef(0)
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -48,16 +51,18 @@ export function useSceneDragAndDrop() {
       { activeId: String(event.active.id), overId: String(event.over.id) },
       currentLists,
       listFlags,
+      {
+        // Two entities of the same ingredient type should block each other
+        // from stacking in one list, even though they're different instances.
+        groupOf: (itemId) => entities[itemId]?.ingredientId ?? itemId,
+        // Unique, deterministic-enough id for a freshly copied instance.
+        createCopyId: (itemId) => `${itemId}--copy-${Date.now()}-${copyCounter.current++}`,
+      },
     )
 
     if (!result) return
 
-    applyListOrders(
-      updateEntity,
-      (id) => entities[id],
-      { [result.changedListId]: result.lists[result.changedListId] },
-      result.removedFromListId,
-    )
+    applyListReorder(updateEntity, addEntity, (id) => entities[id], result)
   }
 
   const panels = useMemo(

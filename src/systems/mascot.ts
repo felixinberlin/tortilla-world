@@ -6,23 +6,21 @@ export const MASCOT_ID = 'tortilla'
 export type MascotState = 'idle' | 'walking' | 'carrying' | 'cooking' | 'celebrating'
 
 /**
- * Pure: where an ingredient's list memberships should end up after the
- * mascot carries it from one list to another.
- * Returns null if the ingredient isn't actually in fromListId — same
- * "invalid move" contract as resolveListReorder in interaction.ts.
+ * Pure: where an ingredient ends up after the mascot carries it from one
+ * list to another. Returns null if the ingredient isn't actually in
+ * fromListId — same "invalid move" contract as resolveListReorder in
+ * interaction.ts.
  */
-export function resolveCarry(entity: Entity, fromListId: string, toListId: string): string[] | null {
-  if (!entity.lists.includes(fromListId)) return null
-
-  const withoutSource = entity.lists.filter((id) => id !== fromListId)
-  return withoutSource.includes(toListId) ? withoutSource : [...withoutSource, toListId]
+export function resolveCarry(entity: Entity, fromListId: string, toListId: string): string | null {
+  if (entity.listId !== fromListId) return null
+  return toListId
 }
 
 /**
  * Thin, stateful wrapper around the world store for mascot behavior.
  * The rules above stay pure and testable; this class just sequences
  * store reads/writes and state transitions, the same "commit step"
- * role applyListOrders plays for drag-and-drop.
+ * role applyListReorder plays for drag-and-drop.
  *
  * Renders independently of Scene (see components/Mascot) but writes
  * straight into worldStore, so any change it makes shows up in the
@@ -66,11 +64,11 @@ export class Tortilla {
     const ingredient = world.entities[ingredientId]
     if (!ingredient) return false
 
-    const nextLists = resolveCarry(ingredient, fromListId, toListId)
-    if (!nextLists) return false
+    const nextListId = resolveCarry(ingredient, fromListId, toListId)
+    if (!nextListId) return false
 
     this.setState('carrying')
-    world.updateEntity(ingredientId, { lists: nextLists })
+    world.updateEntity(ingredientId, { listId: nextListId })
     this.setState('idle')
     return true
   }

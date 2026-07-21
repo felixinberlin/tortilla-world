@@ -34,26 +34,51 @@ const initialLists: Record<string, List> = {
   trash: { id: 'trash', title: 'Basura', consumesOnDrag: true },
 }
 
-/** Build the initial list memberships from the list config — no runtime fallback needed. */
-function buildInitialLists(ingredientId: string): string[] {
-  const memberships: string[] = ['despensa']
+/**
+ * Build the initial entity instances for one ingredient. An ingredient
+ * always has a pantry instance in despensa. If the same ingredient is also
+ * pre-placed in another list (e.g. it's part of the starter kitchen recipe),
+ * that's a SEPARATE physical instance with its own id — the two must never
+ * share identity, or moving one would drag the other along with it.
+ */
+function buildInitialInstances(ingredientId: string, index: number): Entity[] {
+  const instances: Entity[] = [
+    {
+      id: `${ingredientId}#despensa`,
+      type: 'ingredient',
+      ingredientId,
+      position: { x: 0, y: index },
+      size: { width: 1, height: 1 },
+      state: 'idle',
+      listId: 'despensa',
+    },
+  ]
 
   for (const list of Object.values(initialLists)) {
-    if (list.seedIngredients?.includes(ingredientId)) {
-      memberships.push(list.id)
+    if (list.id !== 'despensa' && list.seedIngredients?.includes(ingredientId)) {
+      instances.push({
+        id: `${ingredientId}#${list.id}`,
+        type: 'ingredient',
+        ingredientId,
+        position: { x: 0, y: index },
+        size: { width: 1, height: 1 },
+        state: 'idle',
+        listId: list.id,
+      })
     }
   }
 
-  return memberships
+  return instances
 }
 
 const mascot: Entity = {
   id: 'tortilla',
   type: 'character',
+  ingredientId: 'tortilla',
   position: { x: 40, y: 40 },
   size: { width: 72, height: 72 },
   state: 'idle',
-  lists: [],
+  listId: null,
 }
 
 export const useWorldStore = create<WorldState>((set) => ({
@@ -61,17 +86,9 @@ export const useWorldStore = create<WorldState>((set) => ({
 
   entities: {
     ...Object.fromEntries(
-      ingredientCatalog.map((ingredient, index) => [
-        ingredient.id,
-        {
-          id: ingredient.id,
-          type: 'ingredient' as const,
-          position: { x: 0, y: index },
-          size: { width: 1, height: 1 },
-          state: 'idle',
-          lists: buildInitialLists(ingredient.id),
-        },
-      ]),
+      ingredientCatalog
+        .flatMap((ingredient, index) => buildInitialInstances(ingredient.id, index))
+        .map((entity) => [entity.id, entity]),
     ),
     [mascot.id]: mascot,
   },

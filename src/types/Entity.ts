@@ -11,12 +11,14 @@ export interface Size {
 }
 
 export interface Entity {
-  id: string
+  id: string            // unique per physical instance — NOT the same as ingredientId
   type: EntityType
+  ingredientId: string  // catalog id used to look up name/icon; for non-ingredient
+                         // entities (mascot, kitchen-objects) this equals `id`
   position: Position
   size: Size
-  state: string        // behavior state: 'idle' | 'walking' | 'carrying' etc
-  lists: string[]      // which lists this entity currently belongs to
+  state: string          // behavior state: 'idle' | 'walking' | 'carrying' etc
+  listId: string | null  // the single list this entity currently lives in (null = unplaced)
 }
 
 export interface EntityRelationship {
