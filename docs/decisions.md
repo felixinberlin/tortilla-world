@@ -54,3 +54,22 @@ On a same-list reorder: never blocked — you're not creating a duplicate, you'r
 
 Reason:
 A list can contain potato, onion and a pan, but not 2 times potatos.
+
+
+## Lists
+
+There are 2 types of lists:
+Inmutable and mutable.
+
+Inmutable: 
+are defined at creation.
+Elements canot be added or deleted.
+A "move" to a mutable list creates a copy of the list element.
+
+Mutable:
+Elements can be added, moved and deleted.
+Can be empty.
+A "move" action removes the element of the list and creates a copy in another list.
+
+
+Ingredients are unique for list. same ingredient cannot appear 2 times in any list.
