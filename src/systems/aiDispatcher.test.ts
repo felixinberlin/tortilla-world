@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { worldStore } from '../store/worldStore';
-import { AIActionPlan, executeAIPlan, createTortillaAIPlan } from './aiDispatcher';
+import { executeAIPlan, createTortillaAIPlan } from './aiDispatcher';
+import type { AIActionPlan } from './aiDispatcher';
 
 describe('AI Action Dispatcher & Execution Queue', () => {
   beforeEach(() => {
