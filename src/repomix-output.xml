@@ -1,0 +1,2688 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: .
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+assets/
+  hero.png
+components/
+  Ingredients/
+    Ingredient.tsx
+    IngredientList.tsx
+    IngredientListItem.tsx
+    Ingredients.css
+    RecipeIngredientItem.tsx
+    RecipeIngredientList.tsx
+  Mascot/
+    Mascot.tsx
+    TortillaSvg.tsx
+  Scene/
+    Scene.tsx
+    useSceneDragAndDrop.ts
+data/
+  catalog/
+    recipes/
+      concebolla.ts
+      sincebolla.ts
+    ingredients.ts
+engine/
+  containerRules.ts
+store/
+  middleware/
+    actionLog.test.ts
+    actionLog.ts
+  gazeStore.ts
+  worldStore.test.ts
+  worldStore.ts
+systems/
+  dropRules.test.ts
+  dropRules.ts
+  gaze.test.ts
+  gaze.ts
+  interaction.test.ts
+  interaction.ts
+  movement.ts
+  queries.test.ts
+  queries.ts
+types/
+  actions.ts
+  Entity.ts
+  Ingredient.ts
+  IngredientList.ts
+  RecipeIngredient.ts
+  world.ts
+App.tsx
+index.css
+main.tsx
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="components/Ingredients/Ingredient.tsx">
+/**
+ * FILE: Ingredient.tsx
+ *
+ * PURPOSE:
+ * Visual representation of one ingredient.
+ *
+ * RESPONSIBILITY:
+ * - Displays ingredient information.
+ * - Handles ingredient presentation only.
+ *
+ * SHOULD NOT:
+ * - Manage inventory.
+ * - Apply game rules.
+ * - Modify world state.
+ */
+
+import type { Ingredient as IngredientModel } from '../../types/Ingredient'
+
+interface IngredientProps {
+  ingredient: IngredientModel
+}
+
+export function Ingredient({ ingredient }: IngredientProps) {
+  return (
+    <>
+      <span aria-hidden="true">{ingredient.icon}</span>
+      <span>{ingredient.name}</span>
+    </>
+  )
+}
+</file>
+
+<file path="components/Ingredients/IngredientList.tsx">
+/**
+ * FILE: IngredientList.tsx
+ *
+ * PURPOSE:
+ * Displays a collection/container of ingredients.
+ *
+ * RESPONSIBILITY:
+ * - Renders ingredients belonging to a specific list.
+ * - Delegates individual rendering to IngredientListItem.
+ *
+ * DOMAIN:
+ * Represents UI for containers like pantry, kitchen, recipe.
+ */
+
+import { useStore } from 'zustand';
+import { worldStore } from '../../store/worldStore';
+import type { Entity } from '../../types/world';
+
+export function IngredientList({ containerEntityIds }: { containerEntityIds: string[] }) {
+  const entities = useStore(worldStore, (state) => state.entities);
+
+  const containerEntities = containerEntityIds
+    .map((id: string) => entities[id])
+    .filter((e: Entity | undefined): e is Entity => Boolean(e));
+
+  return (
+    <div>
+      {containerEntities.map((entity: Entity) => (
+        <div key={entity.id}>{entity.name}</div>
+      ))}
+    </div>
+  );
+}
+</file>
+
+<file path="components/Ingredients/IngredientListItem.tsx">
+/**
+ * FILE: IngredientListItem.tsx
+ *
+ * PURPOSE:
+ * UI wrapper for an ingredient inside a list.
+ *
+ * RESPONSIBILITY:
+ * - Connects ingredient rendering with list interactions.
+ * - Provides drag/drop related UI behavior.
+ */
+
+import React from 'react';
+import { worldStore } from '../../store/worldStore';
+import type { Entity } from '../../types/world';
+
+interface IngredientListItemProps {
+  entity: Entity;
+}
+
+export const IngredientListItem: React.FC<IngredientListItemProps> = ({ entity }) => {
+  const handleRemove = () => {
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: {
+        entityId: entity.id,
+        targetContainerId: 'storage',
+      },
+    });
+  };
+
+  return (
+    <div className="ingredient-list-item">
+      <span>{entity.name}</span>
+      <button onClick={handleRemove}>Remove</button>
+    </div>
+  );
+};
+</file>
+
+<file path="components/Ingredients/Ingredients.css">
+.ingredient-list-panel {
+  background: linear-gradient(135deg, #fffdf8 0%, #f7efe7 100%);
+  border: 1px solid #e7d8c3;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(82, 55, 24, 0.08);
+  min-width: 240px;
+  padding: 16px;
+}
+
+.ingredient-list-header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.ingredient-list-header h3 {
+  color: #6b4226;
+  font-size: 1rem;
+  margin: 0;
+}
+
+.ingredient-list-header span {
+  color: #8b6a45;
+  font-size: 0.85rem;
+}
+
+.ingredient-list,
+.recipe-ingredient-list {
+  display: grid;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ingredient-list-item,
+.recipe-ingredient-item {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #e6d5bf;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+  display: flex;
+  gap: 0.5rem;
+  padding: 10px 12px;
+  user-select: none;
+}
+
+.ingredient-list-item-body {
+  align-items: center;
+  cursor: grab;
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.ingredient-list-item-body:active {
+  cursor: grabbing;
+}
+
+.ingredient-remove {
+  align-items: center;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: #8b6a45;
+  cursor: pointer;
+  display: inline-flex;
+  flex-shrink: 0;
+  font-size: 1.25rem;
+  height: 1.75rem;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  width: 1.75rem;
+}
+
+.ingredient-remove:hover {
+  background: #f5e8d8;
+  color: #6b4226;
+}
+
+.ingredient-remove:focus-visible {
+  outline: 2px solid #c9956a;
+  outline-offset: 2px;
+}
+
+.ingredient-list-item:active,
+.recipe-ingredient-item:active {
+  cursor: grabbing;
+}
+
+.ingredient-list-item span {
+  font-size: 1rem;
+}
+
+.recipe-ingredient-amount {
+  margin-left: auto;
+}
+
+.scene-panel {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 30rem) {
+  .recipe-ingredient-amount {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+</file>
+
+<file path="components/Ingredients/RecipeIngredientItem.tsx">
+/**
+ * FILE: RecipeIngredientItem.tsx
+ *
+ * PURPOSE:
+ * Displays an ingredient used in a recipe.
+ *
+ * RESPONSIBILITY:
+ * - Shows ingredient amount and unit.
+ * - Represents recipe-specific ingredient data.
+ */
+
+import type { Ingredient } from '../../types/Ingredient'
+
+interface RecipeIngredientItemProps {
+  ingredient: Ingredient
+  amount: number
+  unit: string
+}
+
+export function RecipeIngredientItem({
+  ingredient,
+  amount,
+  unit,
+}: RecipeIngredientItemProps) {
+  return (
+    <li className="recipe-ingredient-item">
+      <span aria-hidden="true">{ingredient.icon}</span>
+      <span className="recipe-ingredient-name">{ingredient.name}</span>
+      <span className="recipe-ingredient-amount">
+        {amount} {unit}
+      </span>
+    </li>
+  )
+}
+</file>
+
+<file path="components/Ingredients/RecipeIngredientList.tsx">
+/**
+ * FILE: RecipeIngredientList.tsx
+ *
+ * PURPOSE:
+ * Displays the ingredients required by a recipe.
+ *
+ * RESPONSIBILITY:
+ * - Renders recipe ingredient collection.
+ * - Provides recipe-oriented presentation.
+ */
+
+import type { Ingredient } from '../../types/Ingredient'
+import type { RecipeIngredient } from '../../types/RecipeIngredient'
+import './Ingredients.css'
+import { RecipeIngredientItem } from './RecipeIngredientItem'
+
+interface RecipeIngredientListProps {
+  ingredients: RecipeIngredient[]
+  ingredientCatalog: Ingredient[]
+}
+
+export function RecipeIngredientList({
+  ingredients,
+  ingredientCatalog,
+}: RecipeIngredientListProps) {
+  const ingredientsById = new Map(
+    ingredientCatalog.map((ingredient) => [ingredient.id, ingredient]),
+  )
+
+  return (
+    <ul className="recipe-ingredient-list">
+      {ingredients.map((recipeIngredient) => {
+        const ingredient = ingredientsById.get(recipeIngredient.ingredientId)
+
+        if (!ingredient) {
+          return null
+        }
+
+        return (
+          <RecipeIngredientItem
+            key={recipeIngredient.id}
+            amount={recipeIngredient.amount}
+            ingredient={ingredient}
+            unit={recipeIngredient.unit}
+          />
+        )
+      })}
+    </ul>
+  )
+}
+</file>
+
+<file path="components/Mascot/Mascot.tsx">
+/**
+ * FILE: Mascot.tsx
+ *
+ * PURPOSE:
+ * Main Tortilla mascot component.
+ *
+ * RESPONSIBILITY:
+ * - Controls mascot visual representation.
+ * - Displays mascot state and animations.
+ *
+ * SHOULD NOT:
+ * - Own world state.
+ * - Contain gameplay rules.
+ */
+
+import React from 'react';
+import { useStore } from 'zustand';
+import { worldStore } from '../../store/worldStore';
+
+interface MascotProps {
+  mascotId?: string;
+}
+
+export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
+  const mascotEntity = useStore(worldStore, (state) => state.entities[mascotId]);
+
+  if (!mascotEntity) return null;
+
+  return (
+    <div className="mascot">
+      <h3>{mascotEntity.name}</h3>
+      Gazing at: {mascotEntity.state?.gazingAt ? String(mascotEntity.state.gazingAt) : 'Nothing'}
+    </div>
+  );
+};
+</file>
+
+<file path="components/Mascot/TortillaSvg.tsx">
+/**
+ * FILE: TortillaSvg.tsx
+ *
+ * PURPOSE:
+ * SVG graphics definition for the Tortilla mascot.
+ *
+ * RESPONSIBILITY:
+ * - Contains visual SVG structure only.
+ * - Provides reusable mascot artwork.
+ */
+
+import React from 'react';
+import type { GazeTarget } from '../../systems/gaze';
+
+interface TortillaSvgProps {
+  gazingAt?: GazeTarget;
+}
+
+export const TortillaSvg: React.FC<TortillaSvgProps> = ({ gazingAt }) => {
+  return (
+    <svg width="100" height="100" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="40" fill="#f4d03f" />
+      {/* Visual representation of mascot gaze direction */}
+      <circle cx={gazingAt ? 60 : 50} cy="40" r="5" fill="#000" />
+    </svg>
+  );
+};
+</file>
+
+<file path="components/Scene/Scene.tsx">
+/**
+ * FILE: Scene.tsx
+ *
+ * PURPOSE:
+ * Main game scene renderer.
+ *
+ * RESPONSIBILITY:
+ * - Displays entities in the world.
+ * - Connects world state with visual components.
+ *
+ * DOMAIN:
+ * The bridge between game world and React UI.
+ */
+
+import React from 'react';
+import { useStore } from 'zustand';
+import { worldStore } from '../../store/worldStore';
+import { IngredientList } from '../Ingredients/IngredientList';
+
+export const Scene: React.FC = () => {
+  const containers = useStore(
+    worldStore,
+    (state) => state.containers
+  );
+
+  const containerList = Object.values(containers);
+
+  return (
+    <div className="scene">
+      {containerList.map((container) => (
+        <IngredientList
+          key={container.id}
+          containerEntityIds={container.entityIds}
+        />
+      ))}
+    </div>
+  );
+};
+</file>
+
+<file path="components/Scene/useSceneDragAndDrop.ts">
+/**
+ * FILE: useSceneDragAndDrop.ts
+ *
+ * PURPOSE:
+ * React hook connecting drag/drop events with the game world.
+ *
+ * RESPONSIBILITY:
+ * - Handles DnD lifecycle.
+ * - Translates UI interactions into world actions.
+ *
+ * SHOULD NOT:
+ * - Decide game rules.
+ * - Directly manipulate entity collections.
+ */
+
+import { useStore } from 'zustand';
+import { worldStore } from '../../store/worldStore';
+
+export function useSceneDragAndDrop() {
+  const containers = useStore(worldStore, (state) => Object.values(state.containers));
+
+  return {
+    containers,
+  };
+}
+</file>
+
+<file path="data/catalog/recipes/concebolla.ts">
+import { ingredients } from '../ingredients'
+
+export const recipe = {
+  id: 'concebolla',
+  name: 'Con Cebolla',
+  ingredients: [
+    ingredients.find((i) => i.id === 'potato'),
+    ingredients.find((i) => i.id === 'egg'),
+    ingredients.find((i) => i.id === 'oil'),
+    ingredients.find((i) => i.id === 'salt'),
+    ingredients.find((i) => i.id === 'pepper'),
+    ingredients.find((i) => i.id === 'onion'),
+  ],
+}
+</file>
+
+<file path="data/catalog/recipes/sincebolla.ts">
+import { ingredients } from "../ingredients";
+
+export const recipe = {
+  id: "sincebolla",
+  name: "Sincebolla",
+  ingredients: [
+    ingredients.find(i => i.id === "potato"),
+    ingredients.find(i => i.id === "egg"),
+    ingredients.find(i => i.id === "oil"),
+    ingredients.find(i => i.id === "salt"),
+    ingredients.find(i => i.id === "pepper"),
+  ]
+};
+</file>
+
+<file path="data/catalog/ingredients.ts">
+import type { Ingredient } from "../../types/Ingredient";
+
+
+export const ingredients: Ingredient[] = [
+
+  {
+    id: "potato",
+    icon: "🥔",
+    name: "Potatoes",
+  },
+
+
+  {
+    id: "egg",
+    icon: "🥚",
+    name: "Eggs",
+  },
+
+
+  {
+    id: "oil",
+    icon: "🫒",
+    name: "Olive Oil",
+  },
+
+
+  {
+    id: "onion",
+    icon: "🧅",
+    name: "Onion",
+  },
+
+
+  {
+    id: "chorizo",
+    icon: "🌭",
+    name: "Chorizo",
+  },
+
+  {
+    id: "salt",
+    icon: "🧂",
+    name: "Salt",
+  },
+
+  {
+    id: "pepper",
+    icon: "🫑",
+    name: "Bell Pepper",
+  },
+
+  {
+    id: "garlic",
+    icon: "🧄",
+    name: "Garlic",
+  },
+
+  {
+    id: "tomato",
+    icon: "🍅",
+    name: "Tomato",
+  },
+
+  {
+    id: "cheese",
+    icon: "🧀",
+    name: "Cheese",
+  },
+
+  {
+    id: "bread",
+    icon: "🍞",
+    name: "Bread",
+  },
+
+  {
+    id: "milk",
+    icon: "🥛",
+    name: "Milk",
+  },
+
+  {
+    id: "butter",
+    icon: "🧈",
+    name: "Butter",
+  },
+
+];
+</file>
+
+<file path="engine/containerRules.ts">
+/**
+ * FILE: containerRules.ts
+ *
+ * PURPOSE:
+ * Generic container behavior rules.
+ *
+ * RESPONSIBILITY:
+ * - Defines reusable rules for lists/containers.
+ * - Determines allowed contents and constraints.
+ *
+ * DOMAIN:
+ * Game engine logic independent from React.
+ */
+
+import type { Container, Entity } from '../types/world';
+
+export interface ValidationResult {
+  allowed: boolean;
+  reason?: string;
+}
+
+export function validateContainerRules(
+  container: Container,
+  entity: Entity,
+  currentEntitiesInContainer: Entity[]
+): ValidationResult {
+  const rules = container.rules;
+
+  if (!rules) {
+    return { allowed: true };
+  }
+
+  // 1. Capacity Check
+  if (
+    rules.maxCapacity !== undefined &&
+    container.entityIds.length >= rules.maxCapacity
+  ) {
+    return {
+      allowed: false,
+      reason: `Container '${container.name}' capacity reached (${rules.maxCapacity} items max).`,
+    };
+  }
+
+  // 2. Allowed Types Check
+  if (rules.allowedTypes && !rules.allowedTypes.includes(entity.type)) {
+    return {
+      allowed: false,
+      reason: `Container '${container.name}' does not accept entity type '${entity.type}'.`,
+    };
+  }
+
+  // 3. Unique Types Check
+  if (rules.uniqueTypesOnly) {
+    const hasTypeAlready = currentEntitiesInContainer.some(
+      (e) => e.type === entity.type
+    );
+    if (hasTypeAlready) {
+      return {
+        allowed: false,
+        reason: `Container '${container.name}' already contains an entity of type '${entity.type}'.`,
+      };
+    }
+  }
+
+  // 4. Custom Validator Check
+  if (rules.customValidator) {
+    const passesCustom = rules.customValidator(
+      container,
+      entity,
+      currentEntitiesInContainer
+    );
+    if (!passesCustom) {
+      return {
+        allowed: false,
+        reason: `Entity '${entity.name}' failed custom container rules for '${container.name}'.`,
+      };
+    }
+  }
+
+  return { allowed: true };
+}
+</file>
+
+<file path="store/middleware/actionLog.test.ts">
+import { describe, it, expect, beforeEach } from 'vitest';
+import { createStore } from 'zustand/vanilla';
+import { devtools } from 'zustand/middleware';
+import { actionLog, clearActionLog, getActionLog } from './actionLog';
+
+interface CounterState {
+  count: number;
+  incrementLabelled: () => void;
+  incrementUnlabelled: () => void;
+}
+
+function makeStore() {
+  return createStore<CounterState>()(
+    devtools(
+      actionLog((set) => ({
+        count: 0,
+        incrementLabelled: () =>
+          set((state) => ({ count: state.count + 1 }), false, 'INCREMENT'),
+        incrementUnlabelled: () => set((state) => ({ count: state.count + 1 })),
+      })),
+      { enabled: false }
+    )
+  );
+}
+
+describe('actionLog middleware', () => {
+  beforeEach(() => {
+    clearActionLog();
+  });
+
+  it('records a labelled set call', () => {
+    const store = makeStore();
+    store.getState().incrementLabelled();
+
+    const log = getActionLog();
+    expect(log).toHaveLength(1);
+    expect(log[0].action).toBe('INCREMENT');
+    expect(store.getState().count).toBe(1);
+  });
+
+  it('does not record an unlabelled set call', () => {
+    const store = makeStore();
+    store.getState().incrementUnlabelled();
+
+    expect(getActionLog()).toHaveLength(0);
+    expect(store.getState().count).toBe(1);
+  });
+
+  it('caps the log at 200 entries, dropping the oldest first', () => {
+    const store = makeStore();
+    for (let i = 0; i < 205; i++) {
+      store.getState().incrementLabelled();
+    }
+
+    const log = getActionLog();
+    expect(log).toHaveLength(200);
+    expect(store.getState().count).toBe(205);
+  });
+
+  it('clearActionLog empties the log', () => {
+    const store = makeStore();
+    store.getState().incrementLabelled();
+    clearActionLog();
+
+    expect(getActionLog()).toHaveLength(0);
+  });
+});
+</file>
+
+<file path="store/middleware/actionLog.ts">
+/**
+ * FILE: actionLog.ts
+ *
+ * PURPOSE:
+ * Zustand middleware for recording world actions.
+ *
+ * RESPONSIBILITY:
+ * - Observes store mutations.
+ * - Creates an action history/debug log.
+ *
+ * USED FOR:
+ * - Debugging.
+ * - Future replay systems.
+ */
+
+import type { StateCreator, StoreMutatorIdentifier } from 'zustand/vanilla';
+
+export interface ActionLogEntry {
+  /** The action's label, e.g. "MOVE_ENTITY". */
+  action: string;
+  timestamp: number;
+}
+
+const MAX_ENTRIES = 200;
+
+let entries: ActionLogEntry[] = [];
+
+/** Read-only snapshot of recorded world actions, oldest first. */
+export function getActionLog(): ActionLogEntry[] {
+  return [...entries];
+}
+
+/** Clears the recorded history. Mainly useful between tests. */
+export function clearActionLog(): void {
+  entries = [];
+}
+
+type ActionLogMiddleware = <
+  T,
+  Mps extends [StoreMutatorIdentifier, unknown][] = [],
+  Mcs extends [StoreMutatorIdentifier, unknown][] = [],
+>(
+  initializer: StateCreator<T, Mps, Mcs>,
+) => StateCreator<T, Mps, Mcs>;
+
+/**
+ * Records every labelled `set` call into an in-memory action log — the
+ * "Action Queue" docs/systems.md describes for debugging, replay, and
+ * future AI compatibility.
+ *
+ * A reducer opts a state change into the log by passing a label as the
+ * third argument to `set`, the same convention the `devtools` middleware
+ * uses for naming actions in Redux DevTools:
+ *
+ *   set(nextState, false, 'MOVE_ENTITY')
+ *
+ * Intended to sit directly beneath `devtools` in the middleware stack
+ * (`devtools(actionLog(initializer))`), so it observes the same labelled
+ * `set` calls devtools does. Calls without a string label are forwarded
+ * unlogged.
+ */
+export const actionLog: ActionLogMiddleware = (initializer) => (set, get, api) => {
+  const loggedSet = ((partial: unknown, replace?: unknown, label?: unknown) => {
+    if (typeof label === 'string') {
+      entries.push({ action: label, timestamp: Date.now() });
+      if (entries.length > MAX_ENTRIES) entries.shift();
+    }
+    return (set as (...args: unknown[]) => void)(partial, replace, label);
+  }) as typeof set;
+
+  return initializer(loggedSet, get, api);
+};
+</file>
+
+<file path="store/gazeStore.ts">
+/**
+ * FILE: gazeStore.ts
+ *
+ * PURPOSE:
+ * Stores mascot gaze/attention state.
+ *
+ * RESPONSIBILITY:
+ * - Tracks what the mascot is looking at.
+ * - Provides gaze information to UI components.
+ */
+
+import { create } from 'zustand'
+import type { GazeTarget } from '../systems/gaze'
+
+interface GazeState {
+  /** Whatever the mascot should be looking at right now, or null to fall back to the mouse. */
+  target: GazeTarget | null
+  setTarget: (target: GazeTarget | null) => void
+  clearTarget: () => void
+}
+
+export const useGazeStore = create<GazeState>((set) => ({
+  target: null,
+  setTarget: (target) => set({ target }),
+  clearTarget: () => set({ target: null }),
+}))
+</file>
+
+<file path="store/worldStore.test.ts">
+import { describe, it, expect, beforeEach } from 'vitest';
+import { worldStore } from './worldStore';
+import { clearActionLog, getActionLog } from './middleware/actionLog';
+
+function seed() {
+  worldStore.setState({
+    entities: {
+      potato: { id: 'potato', name: 'Potato', type: 'ingredient' },
+      onion: { id: 'onion', name: 'Onion', type: 'ingredient' },
+      knife: { id: 'knife', name: 'Knife', type: 'tool' },
+      chef: { id: 'chef', name: 'Chef', type: 'mascot' },
+    },
+    containers: {
+      kitchen: {
+        id: 'kitchen',
+        name: 'Kitchen',
+        type: 'storage',
+        entityIds: ['potato', 'onion', 'knife'],
+      },
+      pan: {
+        id: 'pan',
+        name: 'Pan',
+        type: 'pan',
+        entityIds: [],
+        rules: { maxCapacity: 1 },
+      },
+      board: {
+        id: 'board',
+        name: 'Cutting Board',
+        type: 'board',
+        entityIds: [],
+        rules: { allowedTypes: ['ingredient'] },
+      },
+      recipe: {
+        id: 'recipe',
+        name: 'Recipe',
+        type: 'plate',
+        entityIds: [],
+        rules: { allowedTypes: ['ingredient'], uniqueTypesOnly: true },
+      },
+    },
+  });
+}
+
+describe('worldStore container rule enforcement', () => {
+  beforeEach(() => {
+    seed();
+    clearActionLog();
+  });
+
+  it('allows a move that satisfies the target container rules', () => {
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'potato', targetContainerId: 'pan' },
+    });
+
+    const state = worldStore.getState();
+    expect(state.containers.pan.entityIds).toEqual(['potato']);
+    expect(state.containers.kitchen.entityIds).not.toContain('potato');
+  });
+
+  it('blocks a move once the target container is at capacity', () => {
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'potato', targetContainerId: 'pan' },
+    });
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'onion', targetContainerId: 'pan' },
+    });
+
+    const state = worldStore.getState();
+    expect(state.containers.pan.entityIds).toEqual(['potato']);
+    expect(state.containers.kitchen.entityIds).toContain('onion');
+  });
+
+  it('blocks a move that violates allowedTypes', () => {
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'knife', targetContainerId: 'board' },
+    });
+
+    // knife is a tool; board only allows ingredients
+    const state = worldStore.getState();
+    expect(state.containers.board.entityIds).toEqual([]);
+    expect(state.containers.kitchen.entityIds).toContain('knife');
+  });
+
+  it('blocks a move that would duplicate a type in a uniqueTypesOnly container', () => {
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'potato', targetContainerId: 'recipe' },
+    });
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'onion', targetContainerId: 'recipe' },
+    });
+
+    // both are 'ingredient' type; uniqueTypesOnly blocks the second
+    const state = worldStore.getState();
+    expect(state.containers.recipe.entityIds).toEqual(['potato']);
+    expect(state.containers.kitchen.entityIds).toContain('onion');
+  });
+
+  it('never re-validates a same-container reorder', () => {
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'potato', targetContainerId: 'kitchen', positionIndex: 0 },
+    });
+
+    // would fail uniqueTypesOnly-style self-comparison if the entity
+    // weren't excluded from its own container's current entities
+    const state = worldStore.getState();
+    expect(state.containers.kitchen.entityIds[0]).toBe('potato');
+  });
+
+  it('is a no-op when the entity does not exist', () => {
+    const before = worldStore.getState().containers.pan.entityIds;
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'ghost', targetContainerId: 'pan' },
+    });
+    expect(worldStore.getState().containers.pan.entityIds).toEqual(before);
+  });
+
+  it('enforces the same rules on ADD_ENTITY', () => {
+    worldStore.getState().dispatch({
+      type: 'ADD_ENTITY',
+      payload: {
+        entity: { id: 'spoon', name: 'Spoon', type: 'tool' },
+        containerId: 'board',
+      },
+    });
+
+    const state = worldStore.getState();
+    expect(state.containers.board.entityIds).toEqual([]);
+    expect(state.entities.spoon).toBeUndefined();
+  });
+
+  it('logs a labelled entry into the action log for each dispatch', () => {
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'potato', targetContainerId: 'pan' },
+    });
+
+    const log = getActionLog();
+    expect(log).toHaveLength(1);
+    expect(log[0].action).toBe('MOVE_ENTITY');
+    expect(typeof log[0].timestamp).toBe('number');
+  });
+});
+</file>
+
+<file path="store/worldStore.ts">
+/**
+ * FILE: worldStore.ts
+ *
+ * PURPOSE:
+ * Central Zustand store for the game world.
+ *
+ * RESPONSIBILITY:
+ * - Owns world state.
+ * - Stores entities, containers and relationships.
+ * - Executes state transitions.
+ *
+ * ARCHITECTURE:
+ * Systems request changes.
+ * Store applies valid state mutations.
+ */
+
+import { createStore } from 'zustand/vanilla';
+import { devtools } from 'zustand/middleware';
+import type { Container, Entity, WorldAction, WorldState } from '../types/world';
+import { validateContainerRules } from '../engine/containerRules';
+import { actionLog } from './middleware/actionLog';
+
+function entitiesIn(container: Container, entities: Record<string, Entity>): Entity[] {
+  return container.entityIds
+    .map((id) => entities[id])
+    .filter((entity): entity is Entity => Boolean(entity));
+}
+
+export const worldStore = createStore<WorldState>()(
+  devtools(
+    actionLog((set) => ({
+      entities: {},
+      containers: {},
+      dispatch: (action: WorldAction) => {
+        switch (action.type) {
+          case 'MOVE_ENTITY': {
+            const { entityId, targetContainerId, positionIndex } = action.payload;
+            set(
+              (state: WorldState) => {
+                const entity = state.entities[entityId];
+                const targetContainer = state.containers[targetContainerId];
+                if (!entity || !targetContainer) return state;
+
+                const sourceContainer = Object.values(state.containers).find((c) =>
+                  c.entityIds.includes(entityId)
+                );
+
+                // Reordering within the same container never re-checks
+                // rules — capacity/uniqueness only guard entities newly
+                // arriving from elsewhere.
+                if (sourceContainer?.id !== targetContainerId) {
+                  const currentEntities = entitiesIn(targetContainer, state.entities).filter(
+                    (e) => e.id !== entityId
+                  );
+                  const result = validateContainerRules(targetContainer, entity, currentEntities);
+                  if (!result.allowed) return state;
+                }
+
+                const newContainers = { ...state.containers };
+
+                if (sourceContainer) {
+                  newContainers[sourceContainer.id] = {
+                    ...sourceContainer,
+                    entityIds: sourceContainer.entityIds.filter((id) => id !== entityId),
+                  };
+                }
+
+                const targetIds = [...(newContainers[targetContainerId]?.entityIds || [])];
+                if (typeof positionIndex === 'number') {
+                  targetIds.splice(positionIndex, 0, entityId);
+                } else {
+                  targetIds.push(entityId);
+                }
+
+                newContainers[targetContainerId] = {
+                  ...targetContainer,
+                  entityIds: targetIds,
+                };
+
+                return { ...state, containers: newContainers };
+              },
+              false,
+              'MOVE_ENTITY'
+            );
+            break;
+          }
+
+          case 'ADD_ENTITY': {
+            const { entity, containerId } = action.payload;
+            set(
+              (state: WorldState) => {
+                const targetContainer = state.containers[containerId];
+                if (!targetContainer) return state;
+
+                const currentEntities = entitiesIn(targetContainer, state.entities);
+                const result = validateContainerRules(
+                  targetContainer,
+                  entity as Entity,
+                  currentEntities
+                );
+                if (!result.allowed) return state;
+
+                return {
+                  ...state,
+                  entities: {
+                    ...state.entities,
+                    [entity.id]: entity as Entity,
+                  },
+                  containers: {
+                    ...state.containers,
+                    [containerId]: {
+                      ...targetContainer,
+                      entityIds: [...targetContainer.entityIds, entity.id],
+                    },
+                  },
+                };
+              },
+              false,
+              'ADD_ENTITY'
+            );
+            break;
+          }
+
+          case 'REMOVE_ENTITY': {
+            const { entityId } = action.payload;
+            set(
+              (state: WorldState) => {
+                const newEntities = { ...state.entities };
+                delete newEntities[entityId];
+
+                const newContainers = { ...state.containers };
+                for (const cId in newContainers) {
+                  newContainers[cId] = {
+                    ...newContainers[cId],
+                    entityIds: newContainers[cId].entityIds.filter((id) => id !== entityId),
+                  };
+                }
+
+                return {
+                  ...state,
+                  entities: newEntities,
+                  containers: newContainers,
+                };
+              },
+              false,
+              'REMOVE_ENTITY'
+            );
+            break;
+          }
+
+          case 'UPDATE_ENTITY_STATE': {
+            const { entityId, changes } = action.payload;
+            set(
+              (state: WorldState) => {
+                const targetEntity = state.entities[entityId];
+                if (!targetEntity) return state;
+
+                return {
+                  ...state,
+                  entities: {
+                    ...state.entities,
+                    [entityId]: {
+                      ...targetEntity,
+                      state: {
+                        ...targetEntity.state,
+                        ...changes,
+                      },
+                    },
+                  },
+                };
+              },
+              false,
+              'UPDATE_ENTITY_STATE'
+            );
+            break;
+          }
+        }
+      },
+    })),
+    { name: 'tortilla-world' }
+  )
+);
+</file>
+
+<file path="systems/dropRules.test.ts">
+import { describe, it, expect } from 'vitest'
+import { parseDrag, evaluateDrop } from './dropRules'
+
+const kitchenConsumes = { kitchen: { consumesOnDrag: true }, fire: { consumesOnDrag: true } }
+
+describe('parseDrag', () => {
+  it('parses a dragged item and a list drop target', () => {
+    expect(parseDrag('despensa::potato', 'kitchen')).toEqual({
+      source: { listId: 'despensa', itemId: 'potato' },
+      target: { listId: 'kitchen', itemId: null },
+    })
+  })
+
+  it('parses a dragged item and an item drop target', () => {
+    expect(parseDrag('despensa::egg', 'despensa::potato')).toEqual({
+      source: { listId: 'despensa', itemId: 'egg' },
+      target: { listId: 'despensa', itemId: 'potato' },
+    })
+  })
+
+  it('returns null for malformed ids', () => {
+    expect(parseDrag('potato', 'kitchen')).toBeNull()
+    expect(parseDrag('despensa::potato', '')).toBeNull()
+  })
+})
+
+describe('evaluateDrop', () => {
+  it('approves same-list reorder without duplicate checks', () => {
+    const drag = parseDrag('despensa::egg', 'despensa::potato')!
+    const drop = evaluateDrop(drag, { despensa: ['potato', 'egg'], kitchen: [] })
+    expect(drop).toMatchObject({
+      kind: 'same-list-reorder',
+      insertAt: 0,
+    })
+  })
+
+  it('approves a move from a consuming source', () => {
+    const drag = parseDrag('kitchen::potato', 'fire')!
+    const drop = evaluateDrop(
+      drag,
+      { kitchen: ['potato', 'egg'], fire: [] },
+      kitchenConsumes,
+    )
+    expect(drop?.kind).toBe('cross-list-move')
+  })
+
+  it('approves a copy from a non-consuming source', () => {
+    const drag = parseDrag('despensa::potato', 'kitchen')!
+    const drop = evaluateDrop(
+      drag,
+      { despensa: ['potato', 'onion'], kitchen: [] },
+      { despensa: {}, kitchen: { consumesOnDrag: true } },
+    )
+    expect(drop?.kind).toBe('cross-list-copy')
+  })
+
+  it('never lets a consuming target override a non-consuming source', () => {
+    const drag = parseDrag('despensa::potato', 'fire')!
+    const drop = evaluateDrop(
+      drag,
+      { despensa: ['potato', 'onion'], fire: [] },
+      { despensa: {}, fire: { consumesOnDrag: true } },
+    )
+    expect(drop?.kind).toBe('cross-list-copy')
+  })
+
+  it('blocks copying when the target already holds the same ingredient group', () => {
+    const drag = parseDrag('despensa::potato#despensa', 'kitchen')!
+    const drop = evaluateDrop(
+      drag,
+      { despensa: ['potato#despensa'], kitchen: ['potato#kitchen'] },
+      {},
+      { groupOf: (id) => id.split('#')[0] },
+    )
+    expect(drop).toBeNull()
+  })
+
+  it('blocks copying an item already in the target list (default identity grouping)', () => {
+    const drag = parseDrag('despensa::potato', 'kitchen')!
+    const drop = evaluateDrop(
+      drag,
+      { despensa: ['potato', 'onion'], kitchen: ['potato', 'egg'] },
+    )
+    expect(drop).toBeNull()
+  })
+
+  it('blocks copying even when dropping on blank space in a list that already has the item', () => {
+    const drag = parseDrag('despensa::potato', 'kitchen')!
+    const drop = evaluateDrop(
+      drag,
+      { despensa: ['potato'], kitchen: ['potato'] },
+    )
+    expect(drop).toBeNull()
+  })
+
+  it('returns null when the item is not in the source list', () => {
+    const drag = parseDrag('despensa::garlic', 'kitchen')!
+    const drop = evaluateDrop(drag, { despensa: ['potato'], kitchen: [] })
+    expect(drop).toBeNull()
+  })
+
+  it('returns null when source list does not exist', () => {
+    const drag = parseDrag('ghost::potato', 'kitchen')!
+    const drop = evaluateDrop(drag, { despensa: ['potato'], kitchen: [] })
+    expect(drop).toBeNull()
+  })
+})
+</file>
+
+<file path="systems/dropRules.ts">
+/**
+ * FILE: dropRules.ts
+ *
+ * PURPOSE:
+ * Defines rules for drag and drop interactions.
+ *
+ * RESPONSIBILITY:
+ * - Determines whether an entity can enter a container.
+ * - Validates possible world transitions.
+ *
+ * SHOULD NOT:
+ * - Modify state.
+ */
+
+export interface DragEndpoint {
+  listId: string
+  itemId: string
+}
+
+export interface DropTarget {
+  listId: string
+  itemId: string | null
+}
+
+export interface ParsedDrag {
+  source: DragEndpoint
+  target: DropTarget
+}
+
+export type DropKind = 'same-list-reorder' | 'cross-list-move' | 'cross-list-copy'
+
+export interface ApprovedDrop {
+  kind: DropKind
+  source: DragEndpoint
+  target: DropTarget
+  insertAt: number
+}
+
+export interface ListFlags {
+  consumesOnDrag?: boolean
+}
+
+export interface DropRuleOptions {
+  /**
+   * Groups items for the "already in target" duplicate check — e.g. two
+   * different physical instances of "potato" should still be treated as
+   * the same ingredient for blocking purposes.
+   */
+  groupOf?: (itemId: string) => string
+}
+
+export function parseDrag(activeId: string, overId: string): ParsedDrag | null {
+  const sourceParts = activeId.split('::')
+  const targetParts = overId.split('::')
+
+  const sourceListId = sourceParts[0]
+  const sourceItemId = sourceParts[1]
+  const targetListId = targetParts[0]
+
+  if (!sourceListId || !sourceItemId || !targetListId) return null
+
+  return {
+    source: { listId: sourceListId, itemId: sourceItemId },
+    target: { listId: targetListId, itemId: targetParts[1] ?? null },
+  }
+}
+
+/**
+ * Read-only gate: can this drag-and-drop happen?
+ *
+ * Same-list reorder: always allowed.
+ * Cross-list: blocked when the target already holds an instance of the
+ * same group. Otherwise allowed as a move (consuming source) or copy
+ * (non-consuming source) — the kind is decided here so interaction.ts
+ * only has to apply it.
+ */
+export function evaluateDrop(
+  drag: ParsedDrag,
+  lists: Record<string, string[]>,
+  listFlags: Record<string, ListFlags> = {},
+  options: DropRuleOptions = {},
+): ApprovedDrop | null {
+  const sourceIds = lists[drag.source.listId]
+  const targetIds = lists[drag.target.listId]
+  if (!sourceIds || !targetIds || !sourceIds.includes(drag.source.itemId)) return null
+
+  const targetIndex = drag.target.itemId ? targetIds.indexOf(drag.target.itemId) : -1
+  const insertAt = targetIndex === -1 ? targetIds.length : targetIndex
+
+  if (drag.source.listId === drag.target.listId) {
+    return {
+      kind: 'same-list-reorder',
+      source: drag.source,
+      target: drag.target,
+      insertAt,
+    }
+  }
+
+  const groupOf = options.groupOf ?? ((itemId: string) => itemId)
+  const sourceGroup = groupOf(drag.source.itemId)
+  if (targetIds.some((itemId) => groupOf(itemId) === sourceGroup)) return null
+
+  const sourceConsumes = listFlags[drag.source.listId]?.consumesOnDrag ?? false
+
+  return {
+    kind: sourceConsumes ? 'cross-list-move' : 'cross-list-copy',
+    source: drag.source,
+    target: drag.target,
+    insertAt,
+  }
+}
+</file>
+
+<file path="systems/gaze.test.ts">
+import { describe, it, expect, beforeEach } from 'vitest';
+import { worldStore } from '../store/worldStore';
+import { updateMascotGaze, getMascotGazeTarget } from './gaze';
+
+describe('Gaze System', () => {
+  beforeEach(() => {
+    worldStore.setState({
+      entities: {
+        chef: {
+          id: 'chef',
+          name: 'Chef',
+          type: 'mascot',
+          state: {
+            gazingAt: undefined,
+          },
+        },
+      },
+      containers: {
+        bench: {
+          id: 'bench',
+          name: 'Workbench',
+          type: 'board',
+          rules: { maxCapacity: 1 },
+          entityIds: [],
+        },
+        pan: {
+          id: 'pan',
+          name: 'Pan',
+          type: 'pan',
+          rules: { maxCapacity: Infinity },
+          entityIds: [],
+        },
+        plate: {
+          id: 'plate',
+          name: 'Plate',
+          type: 'storage',
+          rules: { maxCapacity: Infinity },
+          entityIds: [],
+        },
+      },
+    });
+  });
+
+  it('updates mascot gaze target correctly', () => {
+    updateMascotGaze('chef', 'pan');
+    expect(getMascotGazeTarget('chef')).toBe('pan');
+  });
+
+  it('is idempotent when gazing at the same target', () => {
+    updateMascotGaze('chef', 'pan');
+    const firstState = worldStore.getState();
+
+    updateMascotGaze('chef', 'pan');
+    const secondState = worldStore.getState();
+
+    expect(firstState).toBe(secondState);
+  });
+});
+</file>
+
+<file path="systems/gaze.ts">
+/**
+ * FILE: gaze.ts
+ *
+ * PURPOSE:
+ * Calculates gaze behavior.
+ *
+ * RESPONSIBILITY:
+ * - Determines what objects attract attention.
+ * - Updates gaze-related state.
+ */
+
+import { worldStore } from '../store/worldStore';
+
+export type GazeTarget = string | null;
+
+interface GazeState {
+  gazingAt?: GazeTarget;
+}
+
+/**
+ * Updates what target a mascot is looking at.
+ */
+export function updateMascotGaze(
+  mascotId: string,
+  targetId: GazeTarget
+): void {
+  const currentTarget = getMascotGazeTarget(mascotId);
+
+  if (currentTarget === targetId) {
+    return;
+  }
+
+  worldStore.getState().dispatch({
+    type: 'UPDATE_ENTITY_STATE',
+    payload: {
+      entityId: mascotId,
+      changes: {
+        gazingAt: targetId,
+      },
+    },
+  });
+}
+
+/**
+ * Returns the current gaze target.
+ */
+export function getMascotGazeTarget(
+  mascotId: string
+): GazeTarget {
+  const entity = worldStore.getState().entities[mascotId];
+
+  if (!entity) {
+    return null;
+  }
+
+  const state = entity.state as GazeState | undefined;
+
+  return state?.gazingAt ?? null;
+}
+</file>
+
+<file path="systems/interaction.test.ts">
+import { describe, it, expect } from 'vitest'
+import { evaluateDrop, parseDrag } from './dropRules'
+import { resolveListReorder, applyListReorder } from './interaction'
+import type { Entity } from '../types/Entity'
+
+function makeEntity(id: string, ingredientId: string, listId: string | null): Entity {
+  return {
+    id,
+    type: 'ingredient',
+    ingredientId,
+    position: { x: 0, y: 0 },
+    size: { width: 1, height: 1 },
+    state: 'idle',
+    listId,
+  }
+}
+
+function resolveDrag(
+  activeId: string,
+  overId: string,
+  lists: Record<string, string[]>,
+  listFlags: Record<string, { consumesOnDrag?: boolean }> = {},
+  options: { groupOf?: (itemId: string) => string; createCopyId?: (itemId: string) => string } = {},
+) {
+  const drag = parseDrag(activeId, overId)
+  if (!drag) return null
+  const drop = evaluateDrop(drag, lists, listFlags, { groupOf: options.groupOf })
+  if (!drop) return null
+  return resolveListReorder(drop, lists, { createCopyId: options.createCopyId })
+}
+
+const kitchenConsumes = { kitchen: { consumesOnDrag: true }, fire: { consumesOnDrag: true } }
+
+// ── consumesOnDrag: move vs copy semantics ─────────────────────────────────
+
+it('dragging from a consuming list removes the item from the source', () => {
+  const result = resolveDrag(
+    'kitchen::potato',
+    'fire',
+    { kitchen: ['potato', 'egg'], fire: [] },
+    kitchenConsumes,
+  )
+  expect(result?.lists).toEqual({
+    kitchen: ['egg'],
+    fire: ['potato'],
+  })
+  expect(result?.changedListId).toBe('fire')
+  expect(result?.removedFromListId).toBe('kitchen')
+  expect(result?.copy).toBeNull()
+})
+
+it('dragging from a non-consuming list keeps the item in the source', () => {
+  const result = resolveDrag(
+    'despensa::potato',
+    'kitchen',
+    { despensa: ['potato', 'onion'], kitchen: [] },
+    { despensa: {}, kitchen: { consumesOnDrag: true } },
+    { createCopyId: () => 'potato-copy' },
+  )
+  expect(result?.lists).toEqual({
+    despensa: ['potato', 'onion'],
+    kitchen: ['potato-copy'],
+  })
+  expect(result?.removedFromListId).toBeNull()
+  expect(result?.copy).toEqual({ sourceItemId: 'potato', newItemId: 'potato-copy' })
+})
+
+it('a consuming target never overrides a non-consuming source, even dragging onto fire', () => {
+  const result = resolveDrag(
+    'despensa::potato',
+    'fire',
+    { despensa: ['potato', 'onion'], fire: [] },
+    { despensa: {}, fire: { consumesOnDrag: true } },
+    { createCopyId: () => 'potato-copy' },
+  )
+  expect(result?.lists).toEqual({
+    despensa: ['potato', 'onion'],
+    fire: ['potato-copy'],
+  })
+  expect(result?.changedListId).toBe('fire')
+  expect(result?.removedFromListId).toBeNull()
+})
+
+it('BUG regression: a copy is a distinct instance, so moving it later never touches the original', () => {
+  const copyStep = resolveDrag(
+    'despensa::salt#despensa',
+    'kitchen',
+    { despensa: ['salt#despensa'], kitchen: [], fire: [] },
+    { despensa: {}, kitchen: { consumesOnDrag: true }, fire: { consumesOnDrag: true } },
+    { createCopyId: () => 'salt#kitchen' },
+  )
+  expect(copyStep?.copy).toEqual({ sourceItemId: 'salt#despensa', newItemId: 'salt#kitchen' })
+
+  const moveStep = resolveDrag(
+    'kitchen::salt#kitchen',
+    'fire',
+    { despensa: ['salt#despensa'], kitchen: ['salt#kitchen'], fire: [] },
+    { despensa: {}, kitchen: { consumesOnDrag: true }, fire: { consumesOnDrag: true } },
+  )
+  expect(moveStep?.lists).toEqual({
+    despensa: ['salt#despensa'],
+    kitchen: [],
+    fire: ['salt#kitchen'],
+  })
+  expect(moveStep?.removedFromListId).toBe('kitchen')
+})
+
+describe('resolveListReorder', () => {
+  it('copies an item to another list, source stays untouched, target gets a new id', () => {
+    const drag = parseDrag('despensa::potato', 'kitchen::egg')!
+    const drop = evaluateDrop(drag, { despensa: ['potato', 'onion'], kitchen: ['egg'] })!
+    const result = resolveListReorder(drop, { despensa: ['potato', 'onion'], kitchen: ['egg'] }, {
+      createCopyId: () => 'potato-copy',
+    })
+    expect(result?.lists).toEqual({
+      despensa: ['potato', 'onion'],
+      kitchen: ['potato-copy', 'egg'],
+    })
+    expect(result?.changedListId).toBe('kitchen')
+    expect(result?.copy).toEqual({ sourceItemId: 'potato', newItemId: 'potato-copy' })
+  })
+
+  it('copies into an empty list', () => {
+    const drag = parseDrag('despensa::potato', 'kitchen')!
+    const drop = evaluateDrop(drag, { despensa: ['potato', 'onion'], kitchen: [] })!
+    const result = resolveListReorder(drop, { despensa: ['potato', 'onion'], kitchen: [] }, {
+      createCopyId: () => 'potato-copy',
+    })
+    expect(result?.lists).toEqual({
+      despensa: ['potato', 'onion'],
+      kitchen: ['potato-copy'],
+    })
+  })
+
+  it('default createCopyId still produces an id different from the source', () => {
+    const drag = parseDrag('despensa::potato', 'kitchen')!
+    const drop = evaluateDrop(drag, { despensa: ['potato'], kitchen: [] })!
+    const result = resolveListReorder(drop, { despensa: ['potato'], kitchen: [] })
+    expect(result?.copy?.newItemId).not.toBe('potato')
+    expect(result?.lists.kitchen[0]).not.toBe('potato')
+  })
+
+  it('reorders within the same list', () => {
+    const drag = parseDrag('despensa::egg', 'despensa::potato')!
+    const drop = evaluateDrop(drag, { despensa: ['potato', 'egg'], kitchen: [] })!
+    const result = resolveListReorder(drop, { despensa: ['potato', 'egg'], kitchen: [] })
+    expect(result?.lists.despensa).toEqual(['egg', 'potato'])
+    expect(result?.lists.kitchen).toEqual([])
+    expect(result?.changedListId).toBe('despensa')
+    expect(result?.copy).toBeNull()
+  })
+})
+
+describe('applyListReorder', () => {
+  it('moves an existing entity by updating its listId and position', () => {
+    const calls: Array<[string, Partial<Omit<Entity, 'id'>>]> = []
+    const updateEntity = (id: string, changes: Partial<Omit<Entity, 'id'>>) => calls.push([id, changes])
+    const addEntity = () => { throw new Error('should not create a new entity for a plain move') }
+    const getEntity = (id: string) => makeEntity(id, id, 'kitchen')
+
+    applyListReorder(updateEntity, addEntity, getEntity, {
+      lists: { fire: ['potato'] },
+      changedListId: 'fire',
+      removedFromListId: 'kitchen',
+      copy: null,
+    })
+
+    expect(calls).toEqual([['potato', { position: { x: 0, y: 0 }, listId: 'fire' }]])
+  })
+
+  it('creates a brand-new entity for a copy, leaving the original alone', () => {
+    const updateCalls: Array<[string, unknown]> = []
+    const addCalls: Entity[] = []
+    const updateEntity = (id: string, changes: Partial<Omit<Entity, 'id'>>) => updateCalls.push([id, changes])
+    const addEntity = (entity: Entity) => addCalls.push(entity)
+    const original = makeEntity('salt#despensa', 'salt', 'despensa')
+    const getEntity = (id: string) => (id === 'salt#despensa' ? original : undefined)
+
+    applyListReorder(updateEntity, addEntity, getEntity, {
+      lists: { kitchen: ['salt#kitchen'] },
+      changedListId: 'kitchen',
+      removedFromListId: null,
+      copy: { sourceItemId: 'salt#despensa', newItemId: 'salt#kitchen' },
+    })
+
+    expect(updateCalls).toEqual([])
+    expect(addCalls).toEqual([{
+      id: 'salt#kitchen',
+      type: 'ingredient',
+      ingredientId: 'salt',
+      position: { x: 0, y: 0 },
+      size: { width: 1, height: 1 },
+      state: 'idle',
+      listId: 'kitchen',
+    }])
+  })
+
+  it('writes position.y as insertion order', () => {
+    const calls: Array<[string, Partial<Omit<Entity, 'id'>>]> = []
+    const updateEntity = (id: string, changes: Partial<Omit<Entity, 'id'>>) => calls.push([id, changes])
+    const addEntity = () => { throw new Error('unexpected addEntity') }
+    const getEntity = (id: string) => makeEntity(id, id, 'kitchen')
+
+    applyListReorder(updateEntity, addEntity, getEntity, {
+      lists: { kitchen: ['egg', 'potato', 'onion'] },
+      changedListId: 'kitchen',
+      removedFromListId: null,
+      copy: null,
+    })
+
+    expect(calls[0][1].position).toEqual({ x: 0, y: 0 })
+    expect(calls[1][1].position).toEqual({ x: 0, y: 1 })
+    expect(calls[2][1].position).toEqual({ x: 0, y: 2 })
+  })
+})
+</file>
+
+<file path="systems/interaction.ts">
+/**
+ * FILE: interaction.ts
+ *
+ * PURPOSE:
+ * Handles player interaction logic.
+ *
+ * RESPONSIBILITY:
+ * - Converts user actions into world actions.
+ * - Coordinates interaction flow.
+ */
+
+import type { Entity } from '../types/Entity'
+import type { ApprovedDrop } from './dropRules'
+
+export interface ReorderOptions {
+  /**
+   * Produces the id for a brand-new instance created by a copy (dragging
+   * out of a non-consuming source). MUST be unique per call in real usage,
+   * or the copy will collide with another item.
+   */
+  createCopyId?: (itemId: string) => string
+}
+
+export interface ReorderResult {
+  lists: Record<string, string[]>
+  changedListId: string
+  removedFromListId: string | null
+  /**
+   * Set only when this resolution created a brand-new instance (i.e. a
+   * copy out of a non-consuming source). `sourceItemId` is the original,
+   * untouched instance; `newItemId` is the id inserted into the target
+   * list. The two are intentionally different entities from this point
+   * on — moving one must never affect the other.
+   */
+  copy: { sourceItemId: string; newItemId: string } | null
+}
+
+function defaultCreateCopyId(itemId: string): string {
+  return `${itemId}--copy--${Math.random().toString(36).slice(2, 8)}`
+}
+
+/**
+ * Pure: given an already-approved drop, compute the next list ordering.
+ * Validation lives in dropRules.ts — this function only rearranges ids.
+ */
+export function resolveListReorder(
+  drop: ApprovedDrop,
+  lists: Record<string, string[]>,
+  options: ReorderOptions = {},
+): ReorderResult | null {
+  const sourceIds = lists[drop.source.listId]
+  const targetIds = lists[drop.target.listId]
+  if (!sourceIds || !targetIds) return null
+
+  const createCopyId = options.createCopyId ?? defaultCreateCopyId
+  const next = { ...lists }
+
+  if (drop.kind === 'same-list-reorder') {
+    const reordered = sourceIds.filter((itemId) => itemId !== drop.source.itemId)
+    reordered.splice(drop.insertAt, 0, drop.source.itemId)
+    next[drop.source.listId] = reordered
+    return { lists: next, changedListId: drop.source.listId, removedFromListId: null, copy: null }
+  }
+
+  if (drop.kind === 'cross-list-move') {
+    next[drop.source.listId] = sourceIds.filter((itemId) => itemId !== drop.source.itemId)
+    const reorderedTarget = [...targetIds]
+    reorderedTarget.splice(drop.insertAt, 0, drop.source.itemId)
+    next[drop.target.listId] = reorderedTarget
+    return { lists: next, changedListId: drop.target.listId, removedFromListId: drop.source.listId, copy: null }
+  }
+
+  const newItemId = createCopyId(drop.source.itemId)
+  const reorderedTarget = [...targetIds]
+  reorderedTarget.splice(drop.insertAt, 0, newItemId)
+  next[drop.target.listId] = reorderedTarget
+  return {
+    lists: next,
+    changedListId: drop.target.listId,
+    removedFromListId: null,
+    copy: { sourceItemId: drop.source.itemId, newItemId },
+  }
+}
+
+/**
+ * Commit step: writes the changed list's ordering into the store.
+ *
+ * Each entity belongs to exactly one list at a time (`entity.listId`), so
+ * there's nothing to clean up on the source side — reassigning listId (or,
+ * for a copy, creating a new entity) is the entire move. The source list's
+ * contents are derived live from entity.listId elsewhere (queries.ts), so
+ * they update automatically once this runs.
+ */
+export function applyListReorder(
+  updateEntity: (entityId: string, changes: Partial<Omit<Entity, 'id'>>) => void,
+  addEntity: (entity: Entity) => void,
+  getEntity: (entityId: string) => Entity | undefined,
+  result: ReorderResult,
+) {
+  const itemIds = result.lists[result.changedListId]
+
+  itemIds.forEach((itemId, index) => {
+    const position = { x: 0, y: index }
+
+    if (result.copy && itemId === result.copy.newItemId) {
+      const original = getEntity(result.copy.sourceItemId)
+      if (!original) return
+      addEntity({
+        id: itemId,
+        type: original.type,
+        ingredientId: original.ingredientId,
+        position,
+        size: original.size,
+        state: 'idle',
+        listId: result.changedListId,
+      })
+      return
+    }
+
+    updateEntity(itemId, { position, listId: result.changedListId })
+  })
+}
+</file>
+
+<file path="systems/movement.ts">
+/**
+ * FILE: movement.ts
+ *
+ * PURPOSE:
+ * Handles entity movement calculations.
+ *
+ * RESPONSIBILITY:
+ * - Calculates position changes.
+ * - Provides movement behavior.
+ */
+
+import { worldStore } from '../store/worldStore';
+
+/**
+ * Requests that an entity be moved to another container.
+ * The reducer determines the source container automatically.
+ */
+export function moveEntity(
+  entityId: string,
+  targetContainerId: string,
+  positionIndex?: number
+): void {
+  worldStore.getState().dispatch({
+    type: 'MOVE_ENTITY',
+    payload: {
+      entityId,
+      targetContainerId,
+      positionIndex,
+    },
+  });
+}
+</file>
+
+<file path="systems/queries.test.ts">
+import { describe, it, expect } from 'vitest'
+import { getIngredientsForList, getListMembership } from './queries'
+import { ingredients as catalog } from '../data/catalog/ingredients'
+import { recipe as concebolla } from '../data/catalog/recipes/concebolla'
+import type { Entity } from '../types/Entity'
+
+function makeEntity(id: string, ingredientId: string, listId: string | null, y = 0): Entity {
+  return {
+    id,
+    type: 'ingredient',
+    ingredientId,
+    position: { x: 0, y },
+    size: { width: 1, height: 1 },
+    state: 'idle',
+    listId,
+  }
+}
+
+function allInDespensa(): Record<string, Entity> {
+  return Object.fromEntries(
+    catalog.map((ingredient, index) => [
+      ingredient.id,
+      makeEntity(ingredient.id, ingredient.id, 'despensa', index),
+    ]),
+  )
+}
+
+describe('getListMembership', () => {
+  it('returns entity ids grouped by listId, sorted by position.y', () => {
+    const entities: Record<string, Entity> = {
+      onion: makeEntity('onion', 'onion', 'despensa', 1),
+      potato: makeEntity('potato', 'potato', 'despensa', 0),
+      oil: makeEntity('oil', 'oil', 'fire', 0),
+    }
+    expect(getListMembership(entities, ['despensa', 'fire', 'kitchen'])).toEqual({
+      despensa: ['potato', 'onion'],
+      fire: ['oil'],
+      kitchen: [],
+    })
+  })
+
+  it('ignores non-ingredient entities and entities with no listId', () => {
+    const entities: Record<string, Entity> = {
+      potato: makeEntity('potato', 'potato', 'despensa', 0),
+      tortilla: {
+        id: 'tortilla',
+        type: 'character',
+        ingredientId: 'tortilla',
+        position: { x: 0, y: 0 },
+        size: { width: 1, height: 1 },
+        state: 'idle',
+        listId: null,
+      },
+    }
+    expect(getListMembership(entities, ['despensa'])).toEqual({ despensa: ['potato'] })
+  })
+})
+
+describe('getIngredientsForList', () => {
+
+  // ── real entity membership ─────────────────────────────────────────────────
+
+  it('returns entities belonging to the list, sorted by position.y', () => {
+    const entities: Record<string, Entity> = {
+      onion: makeEntity('onion', 'onion', 'despensa', 1),
+      potato: makeEntity('potato', 'potato', 'despensa', 0),
+    }
+    const result = getIngredientsForList(entities, { id: 'despensa', title: 'Despensa' })
+    expect(result.map((i) => i.id)).toEqual(['potato', 'onion'])
+  })
+
+  it('ignores entities that do not belong to this list', () => {
+    const entities: Record<string, Entity> = {
+      potato: makeEntity('potato', 'potato', 'despensa', 0),
+      onion: makeEntity('onion', 'onion', 'kitchen', 0),
+    }
+    const result = getIngredientsForList(entities, { id: 'despensa', title: 'Despensa' })
+    expect(result.map((i) => i.id)).toEqual(['potato'])
+  })
+
+  it('two instances of the same ingredient in different lists are independent', () => {
+    // Regression guard: an ingredient existing in two lists must be two
+    // separate entities (separate ids), each pinned to exactly one list —
+    // never one entity shared across both.
+    const entities: Record<string, Entity> = {
+      'potato#despensa': makeEntity('potato#despensa', 'potato', 'despensa', 0),
+      'potato#kitchen': makeEntity('potato#kitchen', 'potato', 'kitchen', 0),
+    }
+    const inDespensa = getIngredientsForList(entities, { id: 'despensa', title: 'Despensa' })
+    const inKitchen = getIngredientsForList(entities, { id: 'kitchen', title: 'Kitchen' })
+
+    expect(inDespensa.map((i) => i.id)).toEqual(['potato#despensa'])
+    expect(inKitchen.map((i) => i.id)).toEqual(['potato#kitchen'])
+  })
+
+  it('an entity belongs to exactly one list — it never appears in a second one', () => {
+    const entities: Record<string, Entity> = {
+      potato: makeEntity('potato', 'potato', 'kitchen', 0),
+    }
+    const inDespensa = getIngredientsForList(entities, { id: 'despensa', title: 'Despensa' })
+    const inKitchen = getIngredientsForList(entities, { id: 'kitchen', title: 'Kitchen' })
+
+    expect(inDespensa.map((i) => i.id)).not.toContain('potato')
+    expect(inKitchen.map((i) => i.id)).toContain('potato')
+  })
+
+  it('ignores non-ingredient entities in the same list', () => {
+    const entities: Record<string, Entity> = {
+      potato: makeEntity('potato', 'potato', 'despensa', 0),
+      tortilla: {
+        id: 'tortilla',
+        type: 'character',
+        ingredientId: 'tortilla',
+        position: { x: 0, y: 0 },
+        size: { width: 1, height: 1 },
+        state: 'idle',
+        listId: 'despensa',
+      },
+    }
+    const result = getIngredientsForList(entities, { id: 'despensa', title: 'Despensa' })
+    expect(result.map((i) => i.id)).toEqual(['potato'])
+  })
+
+  it('returns empty when no entities belong to this list and no seed is configured', () => {
+    const result = getIngredientsForList(allInDespensa(), { id: 'trash', title: 'Basura' })
+    expect(result).toEqual([])
+  })
+
+  // ── seedFromCatalog ────────────────────────────────────────────────────────
+
+  it('falls back to full catalog when seedFromCatalog is true and no entities match', () => {
+    const result = getIngredientsForList({}, { id: 'despensa', title: 'Despensa', seedFromCatalog: true })
+    expect(result.map((i) => i.id)).toEqual(catalog.map((i) => i.id))
+  })
+
+  it('despensa shows all ingredients on startup', () => {
+    const result = getIngredientsForList(allInDespensa(), {
+      id: 'despensa',
+      title: 'Despensa',
+      seedFromCatalog: true,
+    })
+    expect(result).toHaveLength(catalog.length)
+    expect(result.map((i) => i.id)).toEqual(catalog.map((i) => i.id))
+  })
+
+  it('real entity membership takes priority over seedFromCatalog', () => {
+    const entities: Record<string, Entity> = {
+      potato: makeEntity('potato', 'potato', 'despensa', 0),
+    }
+    const result = getIngredientsForList(entities, {
+      id: 'despensa',
+      title: 'Despensa',
+      seedFromCatalog: true,
+    })
+    expect(result.map((i) => i.id)).toEqual(['potato'])
+  })
+
+  // ── seedIngredients ────────────────────────────────────────────────────────
+
+  it('kitchen shows concebolla recipe ingredients on startup', () => {
+    const kitchenIngredients = concebolla.ingredients
+      .filter((i): i is NonNullable<typeof i> => i !== undefined)
+      .map((i) => i.id)
+
+    const result = getIngredientsForList(allInDespensa(), {
+      id: 'kitchen',
+      title: 'Kitchen',
+      seedIngredients: kitchenIngredients,
+    })
+    expect(result.map((i) => i.id)).toEqual(kitchenIngredients)
+  })
+
+  it('fire shows only oil on startup', () => {
+    const result = getIngredientsForList(allInDespensa(), {
+      id: 'fire',
+      title: 'Fire',
+      seedIngredients: ['oil'],
+    })
+    expect(result.map((i) => i.id)).toEqual(['oil'])
+  })
+
+  it('trash is empty on startup', () => {
+    const result = getIngredientsForList(allInDespensa(), { id: 'trash', title: 'Basura' })
+    expect(result).toEqual([])
+  })
+
+  it('seedIngredients skips ids not found in the catalog', () => {
+    const result = getIngredientsForList({}, {
+      id: 'kitchen',
+      title: 'Kitchen',
+      seedIngredients: ['potato', 'unicorn-meat', 'egg'],
+    })
+    expect(result.map((i) => i.id)).toEqual(['potato', 'egg'])
+  })
+
+  it('real entity membership takes priority over seedIngredients', () => {
+    const entities: Record<string, Entity> = {
+      oil: makeEntity('oil', 'oil', 'fire', 0),
+    }
+    const result = getIngredientsForList(entities, {
+      id: 'fire',
+      title: 'Fire',
+      seedIngredients: ['oil', 'garlic'],
+    })
+    expect(result.map((i) => i.id)).toEqual(['oil'])
+  })
+
+  // ── view model correctness ─────────────────────────────────────────────────
+
+  it('enriches entities with name and icon from the catalog, keyed by ingredientId', () => {
+    const entities = { 'potato#despensa': makeEntity('potato#despensa', 'potato', 'despensa', 0) }
+    const result = getIngredientsForList(entities, { id: 'despensa', title: 'Despensa' })
+    expect(result[0]).toMatchObject({ id: 'potato#despensa', name: 'Potatoes', icon: '🥔' })
+  })
+
+  it('falls back to ingredientId as name and 🥔 icon for unknown ingredient ids', () => {
+    const entities: Record<string, Entity> = {
+      'mystery#despensa': {
+        id: 'mystery#despensa',
+        type: 'ingredient',
+        ingredientId: 'mystery',
+        position: { x: 0, y: 0 },
+        size: { width: 1, height: 1 },
+        state: 'idle',
+        listId: 'despensa',
+      },
+    }
+    const result = getIngredientsForList(entities, { id: 'despensa', title: 'Despensa' })
+    expect(result[0]).toMatchObject({ id: 'mystery#despensa', name: 'mystery', icon: '🥔' })
+  })
+
+})
+</file>
+
+<file path="systems/queries.ts">
+/**
+ * FILE: queries.ts
+ *
+ * PURPOSE:
+ * Read-only world queries.
+ *
+ * RESPONSIBILITY:
+ * - Finds entities.
+ * - Filters world data.
+ * - Provides reusable selectors.
+ *
+ * SHOULD NOT:
+ * - Modify state.
+ */
+
+import type { Entity } from '../types/Entity'
+import type { Ingredient } from '../types/Ingredient'
+import type { List } from '../types/IngredientList'
+import { ingredients as ingredientCatalog } from '../data/catalog/ingredients'
+
+export function toIngredientView(entity: Entity): Ingredient {
+  const catalogEntry = ingredientCatalog.find((ingredient) => ingredient.id === entity.ingredientId)
+  return {
+    id: entity.id,
+    name: catalogEntry?.name ?? entity.ingredientId,
+    icon: catalogEntry?.icon ?? '🥔',
+  }
+}
+
+/**
+ * Read-only snapshot of which entity ids live in each list, sorted by
+ * position.y. Used by drop rules and interaction — never falls back to
+ * seed data; only reflects what's actually in the store.
+ */
+export function getListMembership(
+  entities: Record<string, Entity>,
+  listIds: string[],
+): Record<string, string[]> {
+  const membership = Object.fromEntries(listIds.map((listId) => [listId, [] as string[]]))
+
+  for (const entity of Object.values(entities)) {
+    if (entity.type !== 'ingredient' || !entity.listId || !(entity.listId in membership)) continue
+    membership[entity.listId].push(entity.id)
+  }
+
+  for (const listId of listIds) {
+    membership[listId].sort((leftId, rightId) => {
+      const leftY = entities[leftId]?.position.y ?? 0
+      const rightY = entities[rightId]?.position.y ?? 0
+      return leftY - rightY
+    })
+  }
+
+  return membership
+}
+
+export function getIngredientsForList(
+  entities: Record<string, Entity>,
+  list: List,
+): Ingredient[] {
+  const matching = Object.values(entities)
+    .filter((entity) => entity.type === 'ingredient' && entity.listId === list.id)
+    .sort((left, right) => left.position.y - right.position.y)
+    .map(toIngredientView)
+
+  if (matching.length > 0) return matching
+
+  if (list.seedFromCatalog) return [...ingredientCatalog]
+
+  if (list.seedIngredients) {
+    return list.seedIngredients
+      .map((id) => ingredientCatalog.find((i) => i.id === id))
+      .filter((i): i is Ingredient => i !== undefined)
+  }
+
+  return []
+}
+</file>
+
+<file path="types/actions.ts">
+/**
+ * FILE: actions.ts
+ *
+ * PURPOSE:
+ * Defines world actions/events.
+ *
+ * RESPONSIBILITY:
+ * - Creates the communication contract between systems and store.
+ */
+
+import type { EntityType } from './world';
+
+export type WorldAction =
+  | {
+      type: 'MOVE_ENTITY';
+      payload: {
+        entityId: string;
+        targetContainerId: string;
+        positionIndex?: number;
+      };
+    }
+  | {
+      type: 'ADD_ENTITY';
+      payload: {
+        entity: {
+          id: string;
+          name: string;
+          type: EntityType;
+          state?: Record<string, unknown>;
+        };
+        containerId: string;
+      };
+    }
+  | {
+      type: 'REMOVE_ENTITY';
+      payload: {
+        entityId: string;
+      };
+    }
+  | {
+      type: 'UPDATE_ENTITY_STATE';
+      payload: {
+        entityId: string;
+        changes: Record<string, unknown>;
+      };
+    };
+</file>
+
+<file path="types/Entity.ts">
+/**
+ * FILE: Entity.ts
+ *
+ * PURPOSE:
+ * Defines the base entity contract.
+ *
+ * RESPONSIBILITY:
+ * - Shared structure for all world objects.
+ */
+
+export type EntityType = 'character' | 'ingredient' | 'kitchen-object'
+
+export interface Position {
+  x: number
+  y: number
+}
+
+export interface Size {
+  width: number
+  height: number
+}
+
+export interface Entity {
+  id: string            // unique per physical instance — NOT the same as ingredientId
+  type: EntityType
+  ingredientId: string  // catalog id used to look up name/icon; for non-ingredient
+                         // entities (mascot, kitchen-objects) this equals `id`
+  position: Position
+  size: Size
+  state: string          // behavior state: 'idle' | 'walking' | 'carrying' etc
+  listId: string | null  // the single list this entity currently lives in (null = unplaced)
+}
+
+export interface EntityRelationship {
+  sourceId: string
+  targetId: string
+  type: string
+}
+</file>
+
+<file path="types/Ingredient.ts">
+/**
+ * FILE: Ingredient.ts
+ *
+ * PURPOSE:
+ * Defines ingredient data structures.
+ *
+ * RESPONSIBILITY:
+ * - Represents ingredient definitions.
+ */
+
+export interface Ingredient {
+  id: string
+  name: string
+  icon: string
+}
+</file>
+
+<file path="types/IngredientList.ts">
+/**
+ * FILE: IngredientList.ts
+ *
+ * PURPOSE:
+ * Defines container/list data structures.
+ *
+ * RESPONSIBILITY:
+ * - Represents collections of entities.
+ */
+
+import type { Ingredient } from './Ingredient'
+
+export interface IngredientList {
+  id: string
+  name: string
+  ingredients: Ingredient[]
+}
+
+export interface List {
+  id: string
+  title: string
+  seedFromCatalog?: boolean
+  seedIngredients?: string[]
+  consumesOnDrag?: boolean   // true = item is removed from this list when dragged out
+}
+</file>
+
+<file path="types/RecipeIngredient.ts">
+/**
+ * FILE: RecipeIngredient.ts
+ *
+ * PURPOSE:
+ * Defines ingredient usage inside recipes.
+ *
+ * RESPONSIBILITY:
+ * - Stores ingredient quantity and unit information.
+ */
+
+export interface RecipeIngredient {
+  id: string
+  ingredientId: string
+  amount: number
+  unit: string
+}
+</file>
+
+<file path="types/world.ts">
+/**
+ * FILE: world.ts
+ *
+ * PURPOSE:
+ * Defines complete world state structures.
+ *
+ * RESPONSIBILITY:
+ * - Describes the game world's data model.
+ */
+
+import type { WorldAction } from './actions';
+
+export type EntityType = 'ingredient' | 'tool' | 'mascot';
+export type ContainerType = 'storage' | 'pan' | 'board' | 'plate' | 'trash';
+
+export interface Entity {
+  id: string;
+  name: string;
+  type: EntityType;
+  state?: Record<string, unknown>;
+}
+
+export interface ContainerRules {
+  maxCapacity?: number;
+  allowedTypes?: EntityType[];
+  uniqueTypesOnly?: boolean;
+  customValidator?: ( 
+    container: Container,
+    entity: Entity,
+    currentEntities: Entity[]
+  ) => boolean;
+}
+
+export interface Container {
+  id: string;
+  name: string;
+  type: ContainerType;
+  entityIds: string[];
+  rules?: ContainerRules;
+}
+
+export interface WorldState {
+  entities: Record<string, Entity>;
+  containers: Record<string, Container>;
+  dispatch: (action: WorldAction) => void;
+}
+
+export type { WorldAction };
+</file>
+
+<file path="App.tsx">
+/**
+ * FILE: App.tsx
+ *
+ * PURPOSE:
+ * Main React application component.
+ *
+ * RESPONSIBILITY:
+ * - Creates the application layout.
+ * - Connects major UI areas together.
+ * - Acts as the entry point for the game world.
+ *
+ * SHOULD NOT:
+ * - Contain game rules.
+ * - Modify world state directly.
+ */
+
+import { Scene } from './components/Scene/Scene';
+
+function App() {
+  return (
+    <Scene />
+  );
+}
+
+export default App;
+</file>
+
+<file path="index.css">
+:root {
+  --text: #6b6375;
+  --text-h: #08060d;
+  --bg: #fff;
+  --border: #e5e4e7;
+  --code-bg: #f4f3ec;
+  --accent: #aa3bff;
+  --accent-bg: rgba(170, 59, 255, 0.1);
+  --accent-border: rgba(170, 59, 255, 0.5);
+  --social-bg: rgba(244, 243, 236, 0.5);
+  --shadow:
+    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+
+  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, Consolas, monospace;
+
+  font: 18px/145% var(--sans);
+  letter-spacing: 0.18px;
+  color-scheme: light dark;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  @media (max-width: 1024px) {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #9ca3af;
+    --text-h: #f3f4f6;
+    --bg: #16171d;
+    --border: #2e303a;
+    --code-bg: #1f2028;
+    --accent: #c084fc;
+    --accent-bg: rgba(192, 132, 252, 0.15);
+    --accent-border: rgba(192, 132, 252, 0.5);
+    --social-bg: rgba(47, 48, 58, 0.5);
+    --shadow:
+      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+  }
+
+  #social .button-icon {
+    filter: invert(1) brightness(2);
+  }
+}
+
+#root {
+  width: 1126px;
+  max-width: 100%;
+  margin: 0 auto;
+  text-align: center;
+  border-inline: 1px solid var(--border);
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+h1,
+h2 {
+  font-family: var(--heading);
+  font-weight: 500;
+  color: var(--text-h);
+}
+
+h1 {
+  font-size: 56px;
+  letter-spacing: -1.68px;
+  margin: 32px 0;
+  @media (max-width: 1024px) {
+    font-size: 36px;
+    margin: 20px 0;
+  }
+}
+h2 {
+  font-size: 24px;
+  line-height: 118%;
+  letter-spacing: -0.24px;
+  margin: 0 0 8px;
+  @media (max-width: 1024px) {
+    font-size: 20px;
+  }
+}
+p {
+  margin: 0;
+}
+
+code,
+.counter {
+  font-family: var(--mono);
+  display: inline-flex;
+  border-radius: 4px;
+  color: var(--text-h);
+}
+
+code {
+  font-size: 15px;
+  line-height: 135%;
+  padding: 4px 8px;
+  background: var(--code-bg);
+}
+</file>
+
+<file path="main.tsx">
+/**
+ * FILE: main.tsx
+ *
+ * PURPOSE:
+ * React application bootstrap file.
+ *
+ * RESPONSIBILITY:
+ * - Creates the React root.
+ * - Loads global styles.
+ * - Starts the application.
+ */
+
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import './index.css'
+import App from './App.tsx'
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+)
+</file>
+
+</files>
