@@ -1,3 +1,17 @@
+/**
+ * FILE: IngredientList.tsx
+ *
+ * PURPOSE:
+ * Displays a collection/container of ingredients.
+ *
+ * RESPONSIBILITY:
+ * - Renders ingredients belonging to a specific list.
+ * - Delegates individual rendering to IngredientListItem.
+ *
+ * DOMAIN:
+ * Represents UI for containers like pantry, kitchen, recipe.
+ */
+
 import { useStore } from 'zustand';
 import { worldStore } from '../../store/worldStore';
 import type { Entity } from '../../types/world';

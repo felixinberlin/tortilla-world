@@ -1,3 +1,18 @@
+/**
+ * FILE: Mascot.tsx
+ *
+ * PURPOSE:
+ * Main Tortilla mascot component.
+ *
+ * RESPONSIBILITY:
+ * - Controls mascot visual representation.
+ * - Displays mascot state and animations.
+ *
+ * SHOULD NOT:
+ * - Own world state.
+ * - Contain gameplay rules.
+ */
+
 import React from 'react';
 import { useStore } from 'zustand';
 import { worldStore } from '../../store/worldStore';

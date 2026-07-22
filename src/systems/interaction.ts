@@ -1,3 +1,14 @@
+/**
+ * FILE: interaction.ts
+ *
+ * PURPOSE:
+ * Handles player interaction logic.
+ *
+ * RESPONSIBILITY:
+ * - Converts user actions into world actions.
+ * - Coordinates interaction flow.
+ */
+
 import type { Entity } from '../types/Entity'
 import type { ApprovedDrop } from './dropRules'
 

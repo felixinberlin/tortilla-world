@@ -1,3 +1,17 @@
+/**
+ * FILE: containerRules.ts
+ *
+ * PURPOSE:
+ * Generic container behavior rules.
+ *
+ * RESPONSIBILITY:
+ * - Defines reusable rules for lists/containers.
+ * - Determines allowed contents and constraints.
+ *
+ * DOMAIN:
+ * Game engine logic independent from React.
+ */
+
 import type { Container, Entity } from '../types/world';
 
 export interface ValidationResult {

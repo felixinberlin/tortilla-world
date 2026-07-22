@@ -1,3 +1,14 @@
+/**
+ * FILE: RecipeIngredientItem.tsx
+ *
+ * PURPOSE:
+ * Displays an ingredient used in a recipe.
+ *
+ * RESPONSIBILITY:
+ * - Shows ingredient amount and unit.
+ * - Represents recipe-specific ingredient data.
+ */
+
 import type { Ingredient } from '../../types/Ingredient'
 
 interface RecipeIngredientItemProps {

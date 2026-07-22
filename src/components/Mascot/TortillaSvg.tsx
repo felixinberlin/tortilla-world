@@ -1,3 +1,14 @@
+/**
+ * FILE: TortillaSvg.tsx
+ *
+ * PURPOSE:
+ * SVG graphics definition for the Tortilla mascot.
+ *
+ * RESPONSIBILITY:
+ * - Contains visual SVG structure only.
+ * - Provides reusable mascot artwork.
+ */
+
 import React from 'react';
 import type { GazeTarget } from '../../systems/gaze';
 

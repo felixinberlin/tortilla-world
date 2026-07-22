@@ -1,4 +1,13 @@
-// src/systems/movement.ts
+/**
+ * FILE: movement.ts
+ *
+ * PURPOSE:
+ * Handles entity movement calculations.
+ *
+ * RESPONSIBILITY:
+ * - Calculates position changes.
+ * - Provides movement behavior.
+ */
 
 import { worldStore } from '../store/worldStore';
 

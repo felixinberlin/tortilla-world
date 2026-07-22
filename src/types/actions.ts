@@ -1,3 +1,13 @@
+/**
+ * FILE: actions.ts
+ *
+ * PURPOSE:
+ * Defines world actions/events.
+ *
+ * RESPONSIBILITY:
+ * - Creates the communication contract between systems and store.
+ */
+
 import type { EntityType } from './world';
 
 export type WorldAction =

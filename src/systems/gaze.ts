@@ -1,4 +1,13 @@
-// src/systems/gaze.ts
+/**
+ * FILE: gaze.ts
+ *
+ * PURPOSE:
+ * Calculates gaze behavior.
+ *
+ * RESPONSIBILITY:
+ * - Determines what objects attract attention.
+ * - Updates gaze-related state.
+ */
 
 import { worldStore } from '../store/worldStore';
 

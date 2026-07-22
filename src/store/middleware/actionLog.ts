@@ -1,3 +1,18 @@
+/**
+ * FILE: actionLog.ts
+ *
+ * PURPOSE:
+ * Zustand middleware for recording world actions.
+ *
+ * RESPONSIBILITY:
+ * - Observes store mutations.
+ * - Creates an action history/debug log.
+ *
+ * USED FOR:
+ * - Debugging.
+ * - Future replay systems.
+ */
+
 import type { StateCreator, StoreMutatorIdentifier } from 'zustand/vanilla';
 
 export interface ActionLogEntry {

@@ -1,3 +1,19 @@
+/**
+ * FILE: worldStore.ts
+ *
+ * PURPOSE:
+ * Central Zustand store for the game world.
+ *
+ * RESPONSIBILITY:
+ * - Owns world state.
+ * - Stores entities, containers and relationships.
+ * - Executes state transitions.
+ *
+ * ARCHITECTURE:
+ * Systems request changes.
+ * Store applies valid state mutations.
+ */
+
 import { createStore } from 'zustand/vanilla';
 import { devtools } from 'zustand/middleware';
 import type { Container, Entity, WorldAction, WorldState } from '../types/world';

@@ -1,3 +1,14 @@
+/**
+ * FILE: gazeStore.ts
+ *
+ * PURPOSE:
+ * Stores mascot gaze/attention state.
+ *
+ * RESPONSIBILITY:
+ * - Tracks what the mascot is looking at.
+ * - Provides gaze information to UI components.
+ */
+
 import { create } from 'zustand'
 import type { GazeTarget } from '../systems/gaze'
 

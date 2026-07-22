@@ -1,3 +1,17 @@
+/**
+ * FILE: dropRules.ts
+ *
+ * PURPOSE:
+ * Defines rules for drag and drop interactions.
+ *
+ * RESPONSIBILITY:
+ * - Determines whether an entity can enter a container.
+ * - Validates possible world transitions.
+ *
+ * SHOULD NOT:
+ * - Modify state.
+ */
+
 export interface DragEndpoint {
   listId: string
   itemId: string

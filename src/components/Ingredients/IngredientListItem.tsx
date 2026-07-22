@@ -1,3 +1,14 @@
+/**
+ * FILE: IngredientListItem.tsx
+ *
+ * PURPOSE:
+ * UI wrapper for an ingredient inside a list.
+ *
+ * RESPONSIBILITY:
+ * - Connects ingredient rendering with list interactions.
+ * - Provides drag/drop related UI behavior.
+ */
+
 import React from 'react';
 import { worldStore } from '../../store/worldStore';
 import type { Entity } from '../../types/world';

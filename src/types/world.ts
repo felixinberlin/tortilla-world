@@ -1,3 +1,13 @@
+/**
+ * FILE: world.ts
+ *
+ * PURPOSE:
+ * Defines complete world state structures.
+ *
+ * RESPONSIBILITY:
+ * - Describes the game world's data model.
+ */
+
 import type { WorldAction } from './actions';
 
 export type EntityType = 'ingredient' | 'tool' | 'mascot';

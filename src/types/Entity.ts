@@ -1,3 +1,13 @@
+/**
+ * FILE: Entity.ts
+ *
+ * PURPOSE:
+ * Defines the base entity contract.
+ *
+ * RESPONSIBILITY:
+ * - Shared structure for all world objects.
+ */
+
 export type EntityType = 'character' | 'ingredient' | 'kitchen-object'
 
 export interface Position {

@@ -1,3 +1,14 @@
+/**
+ * FILE: RecipeIngredientList.tsx
+ *
+ * PURPOSE:
+ * Displays the ingredients required by a recipe.
+ *
+ * RESPONSIBILITY:
+ * - Renders recipe ingredient collection.
+ * - Provides recipe-oriented presentation.
+ */
+
 import type { Ingredient } from '../../types/Ingredient'
 import type { RecipeIngredient } from '../../types/RecipeIngredient'
 import './Ingredients.css'

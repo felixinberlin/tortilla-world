@@ -1,3 +1,13 @@
+/**
+ * FILE: IngredientList.ts
+ *
+ * PURPOSE:
+ * Defines container/list data structures.
+ *
+ * RESPONSIBILITY:
+ * - Represents collections of entities.
+ */
+
 import type { Ingredient } from './Ingredient'
 
 export interface IngredientList {

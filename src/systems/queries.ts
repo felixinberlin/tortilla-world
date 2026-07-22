@@ -1,3 +1,18 @@
+/**
+ * FILE: queries.ts
+ *
+ * PURPOSE:
+ * Read-only world queries.
+ *
+ * RESPONSIBILITY:
+ * - Finds entities.
+ * - Filters world data.
+ * - Provides reusable selectors.
+ *
+ * SHOULD NOT:
+ * - Modify state.
+ */
+
 import type { Entity } from '../types/Entity'
 import type { Ingredient } from '../types/Ingredient'
 import type { List } from '../types/IngredientList'
