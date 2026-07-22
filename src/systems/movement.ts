@@ -2,20 +2,21 @@
 
 import { worldStore } from '../store/worldStore';
 
-export const moveEntityToContainer = (
+/**
+ * Requests that an entity be moved to another container.
+ * The reducer determines the source container automatically.
+ */
+export function moveEntity(
   entityId: string,
-  fromContainerId: string | null,
-  toContainerId: string,
-  targetIndex?: number
-) => {
-  return worldStore.getState().dispatch({
+  targetContainerId: string,
+  positionIndex?: number
+): void {
+  worldStore.getState().dispatch({
     type: 'MOVE_ENTITY',
-    timestamp: Date.now(),
     payload: {
       entityId,
-      fromContainerId,
-      toContainerId,
-      targetIndex
-    }
+      targetContainerId,
+      positionIndex,
+    },
   });
-};
+}

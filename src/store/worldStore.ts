@@ -1,119 +1,116 @@
-// src/store/worldStore.ts
-
 import { createStore } from 'zustand/vanilla';
-import { useStore } from 'zustand';
-import type { Container, Entity, WorldAction } from '../types/world';
-import { ContainerAuthority } from '../engine/containerRules';
+import type { WorldState, WorldAction, Entity } from '../types/world';
 
-export interface WorldState {
-  entities: Record<string, Entity>;
-  containers: Record<string, Container>;
-
-  // Direct State Methods
-  getEntity: (id: string) => Entity | undefined;
-  getContainer: (id: string) => Container | undefined;
-  getEntitiesInContainer: (containerId: string) => Entity[];
-
-  // Central Action Dispatcher
-  dispatch: (action: WorldAction) => { success: boolean; error?: string };
-}
-
-export const worldStore = createStore<WorldState>((set, get) => ({
+export const worldStore = createStore<WorldState>((set) => ({
   entities: {},
   containers: {},
-
-  getEntity: (id) => get().entities[id],
-  getContainer: (id) => get().containers[id],
-  getEntitiesInContainer: (containerId) => {
-    const container = get().containers[containerId];
-    if (!container) return [];
-    return container.entityIds
-      .map((id) => get().entities[id])
-      .filter((e): e is Entity => e !== undefined);
-  },
-
   dispatch: (action: WorldAction) => {
-    const state = get();
-
     switch (action.type) {
       case 'MOVE_ENTITY': {
-        const { entityId, fromContainerId, toContainerId, targetIndex } = action.payload;
-        const entity = state.entities[entityId];
-        const targetContainer = state.containers[toContainerId];
+        const { entityId, targetContainerId, positionIndex } = action.payload;
+        set((state: WorldState) => {
+          const sourceContainer = Object.values(state.containers).find((c) =>
+            c.entityIds.includes(entityId)
+          );
+          const targetContainer = state.containers[targetContainerId];
 
-        if (!entity) return { success: false, error: `Entity '${entityId}' does not exist.` };
-        if (!targetContainer) return { success: false, error: `Container '${toContainerId}' does not exist.` };
+          if (!targetContainer) return state;
 
-        const currentTargetEntities = state.getEntitiesInContainer(toContainerId);
-        const validation = ContainerAuthority.canAccept(targetContainer, entity, currentTargetEntities);
-        if (!validation.valid) {
-          return { success: false, error: validation.reason };
-        }
+          const newContainers = { ...state.containers };
 
-        set((prevState) => {
-          const updatedContainers = { ...prevState.containers };
-          const updatedEntities = { ...prevState.entities };
-
-          if (fromContainerId && updatedContainers[fromContainerId]) {
-            const sourceContainer = updatedContainers[fromContainerId];
-            updatedContainers[fromContainerId] = {
+          if (sourceContainer) {
+            newContainers[sourceContainer.id] = {
               ...sourceContainer,
-              entityIds: sourceContainer.entityIds.filter((id) => id !== entityId)
+              entityIds: sourceContainer.entityIds.filter((id) => id !== entityId),
             };
           }
 
-          updatedEntities[entityId] = {
-            ...entity,
-            containerId: toContainerId
-          };
-
-          const targetEntityIds = [...updatedContainers[toContainerId].entityIds];
-          if (targetIndex !== undefined && targetIndex >= 0 && targetIndex <= targetEntityIds.length) {
-            targetEntityIds.splice(targetIndex, 0, entityId);
+          const targetIds = [...(newContainers[targetContainerId]?.entityIds || [])];
+          if (typeof positionIndex === 'number') {
+            targetIds.splice(positionIndex, 0, entityId);
           } else {
-            targetEntityIds.push(entityId);
+            targetIds.push(entityId);
           }
 
-          updatedContainers[toContainerId] = {
-            ...updatedContainers[toContainerId],
-            entityIds: targetEntityIds
+          newContainers[targetContainerId] = {
+            ...targetContainer,
+            entityIds: targetIds,
           };
+
+          return { ...state, containers: newContainers };
+        });
+        break;
+      }
+
+      case 'ADD_ENTITY': {
+        const { entity, containerId } = action.payload;
+        set((state: WorldState) => {
+          const targetContainer = state.containers[containerId];
+          if (!targetContainer) return state;
 
           return {
-            entities: updatedEntities,
-            containers: updatedContainers
+            ...state,
+            entities: {
+              ...state.entities,
+              [entity.id]: entity as Entity,
+            },
+            containers: {
+              ...state.containers,
+              [containerId]: {
+                ...targetContainer,
+                entityIds: [...targetContainer.entityIds, entity.id],
+              },
+            },
           };
         });
+        break;
+      }
 
-        return { success: true };
+      case 'REMOVE_ENTITY': {
+        const { entityId } = action.payload;
+        set((state: WorldState) => {
+          const newEntities = { ...state.entities };
+          delete newEntities[entityId];
+
+          const newContainers = { ...state.containers };
+          for (const cId in newContainers) {
+            newContainers[cId] = {
+              ...newContainers[cId],
+              entityIds: newContainers[cId].entityIds.filter((id) => id !== entityId),
+            };
+          }
+
+          return {
+            ...state,
+            entities: newEntities,
+            containers: newContainers,
+          };
+        });
+        break;
       }
 
       case 'UPDATE_ENTITY_STATE': {
-        const { entityId, statePatch } = action.payload;
-        const entity = state.entities[entityId];
-        if (!entity) return { success: false, error: `Entity '${entityId}' not found.` };
+        const { entityId, changes } = action.payload;
+        set((state: WorldState) => {
+          const targetEntity = state.entities[entityId];
+          if (!targetEntity) return state;
 
-        set((prevState) => ({
-          entities: {
-            ...prevState.entities,
-            [entityId]: {
-              ...entity,
-              state: { ...entity.state, ...statePatch }
-            }
-          }
-        }));
-
-        return { success: true };
+          return {
+            ...state,
+            entities: {
+              ...state.entities,
+              [entityId]: {
+                ...targetEntity,
+                state: {
+                  ...targetEntity.state,
+                  ...changes,
+                },
+              },
+            },
+          };
+        });
+        break;
       }
-
-      default:
-        return { success: false, error: 'Unhandled action type.' };
     }
-  }
+  },
 }));
-
-/**
- * React Hook helper to read worldStore reactively within components.
- */
-export const useWorldStore = <T>(selector: (state: WorldState) => T): T =>
-  useStore(worldStore, selector);

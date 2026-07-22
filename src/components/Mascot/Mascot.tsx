@@ -1,19 +1,20 @@
-// src/components/Mascot/Mascot.tsx
-
 import React from 'react';
-import { useWorldStore } from '../../store/worldStore';
-import type { WorldState } from '../../store/worldStore';
+import { useStore } from 'zustand';
+import { worldStore } from '../../store/worldStore';
 
-const MASCOT_ID = 'mascot';
+interface MascotProps {
+  mascotId?: string;
+}
 
-export const Mascot: React.FC = () => {
-  const mascotEntity = useWorldStore((state: WorldState) => state.entities[MASCOT_ID]);
+export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
+  const mascotEntity = useStore(worldStore, (state) => state.entities[mascotId]);
 
   if (!mascotEntity) return null;
 
   return (
-    <div className="mascot-container">
-      <span>🌮 {mascotEntity.name}</span>
+    <div className="mascot">
+      <h3>{mascotEntity.name}</h3>
+      Gazing at: {mascotEntity.state?.gazingAt ? String(mascotEntity.state.gazingAt) : 'Nothing'}
     </div>
   );
 };

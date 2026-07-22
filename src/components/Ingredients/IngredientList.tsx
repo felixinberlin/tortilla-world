@@ -1,30 +1,19 @@
-// src/components/Ingredients/IngredientList.tsx
+import { useStore } from 'zustand';
+import { worldStore } from '../../store/worldStore';
+import type { Entity } from '../../types/world';
 
-import React from 'react';
-import { IngredientListItem } from './IngredientListItem';
-import { useWorldStore } from '../../store/worldStore';
-import type { WorldState } from '../../store/worldStore';
+export function IngredientList({ containerEntityIds }: { containerEntityIds: string[] }) {
+  const entities = useStore(worldStore, (state) => state.entities);
 
-interface Props {
-  containerId: string;
-}
-
-export const IngredientList: React.FC<Props> = ({ containerId }) => {
-  const container = useWorldStore((state: WorldState) => state.containers[containerId]);
-  const entities = useWorldStore((state: WorldState) => state.entities);
-
-  if (!container) return null;
-
-  const containerEntities = container.entityIds
-    .map((id) => entities[id])
-    .filter((e) => Boolean(e));
+  const containerEntities = containerEntityIds
+    .map((id: string) => entities[id])
+    .filter((e: Entity | undefined): e is Entity => Boolean(e));
 
   return (
-    <div className="ingredient-list">
-      <h3>{container.name}</h3>
-      {containerEntities.map((entity) => (
-        <IngredientListItem key={entity.id} entity={entity} />
+    <div>
+      {containerEntities.map((entity: Entity) => (
+        <div key={entity.id}>{entity.name}</div>
       ))}
     </div>
   );
-};
+}

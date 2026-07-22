@@ -2,63 +2,49 @@
 
 import { worldStore } from '../store/worldStore';
 
-export const MASCOT_ID = 'mascot';
-
 export type GazeTarget = string | null;
 
-export interface MascotState {
-  gazingAt?: string | null;
-  expression?: string;
+interface GazeState {
+  gazingAt?: GazeTarget;
 }
 
 /**
- * Calculates the primary target container or entity that the mascot should gaze towards.
- * Queries current world state from worldStore.
+ * Updates what target a mascot is looking at.
  */
-export const calculateGazeTarget = (
-  hoveredContainerId?: string | null,
-  activeEntityId?: string | null
-): GazeTarget => {
-  const { entities, containers } = worldStore.getState();
+export function updateMascotGaze(
+  mascotId: string,
+  targetId: GazeTarget
+): void {
+  const currentTarget = getMascotGazeTarget(mascotId);
 
-  // If an entity is actively being dragged, prioritize its target container or current location
-  if (activeEntityId) {
-    const activeEntity = entities[activeEntityId];
-    if (activeEntity) {
-      return hoveredContainerId ?? activeEntity.containerId;
-    }
+  if (currentTarget === targetId) {
+    return;
   }
 
-  // If hovering over a valid container, gaze at that container
-  if (hoveredContainerId && containers[hoveredContainerId]) {
-    return hoveredContainerId;
-  }
-
-  return null;
-};
+  worldStore.getState().dispatch({
+    type: 'UPDATE_ENTITY_STATE',
+    payload: {
+      entityId: mascotId,
+      changes: {
+        gazingAt: targetId,
+      },
+    },
+  });
+}
 
 /**
- * Updates the mascot entity's gaze state by dispatching an UPDATE_ENTITY_STATE world action.
+ * Returns the current gaze target.
  */
-export const updateMascotGaze = (targetId: string | null): void => {
-  const store = worldStore.getState();
-  const mascot = store.entities[MASCOT_ID];
+export function getMascotGazeTarget(
+  mascotId: string
+): GazeTarget {
+  const entity = worldStore.getState().entities[mascotId];
 
-  if (!mascot) return;
+  if (!entity) {
+    return null;
+  }
 
-  const currentGaze = (mascot.state as MascotState | undefined)?.gazingAt;
+  const state = entity.state as GazeState | undefined;
 
-  // No-op if mascot is already gazing at this target
-  if (currentGaze === targetId) return;
-
-  store.dispatch({
-    type: 'UPDATE_ENTITY_STATE',
-    timestamp: Date.now(),
-    payload: {
-      entityId: MASCOT_ID,
-      statePatch: {
-        gazingAt: targetId
-      }
-    }
-  });
-};
+  return state?.gazingAt ?? null;
+}

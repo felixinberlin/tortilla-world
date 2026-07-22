@@ -32,7 +32,7 @@ The content is organized as follows:
 <notes>
 - Some files may have been excluded based on .gitignore rules and Repomix's configuration
 - Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
-- Only files matching these patterns are included: ./*
+- Only files matching these patterns are included: .
 - Files matching patterns in .gitignore are excluded
 - Files matching default ignore patterns are excluded
 - Files are sorted by Git change count (files with more changes are at the bottom)
@@ -41,6 +41,72 @@ The content is organized as follows:
 </file_summary>
 
 <directory_structure>
+docs/
+  architecture.md
+  decisions.md
+  entities.md
+  README.md
+  roadmap.md
+  systems.md
+public/
+  favicon.svg
+  icons.svg
+src/
+  assets/
+    hero.png
+    react.svg
+    vite.svg
+  components/
+    Entity/
+      Entity.tsx
+    Ingredients/
+      Ingredient.tsx
+      IngredientList.tsx
+      IngredientListItem.tsx
+      Ingredients.css
+      RecipeIngredientItem.tsx
+      RecipeIngredientList.tsx
+    Mascot/
+      Mascot.css
+      Mascot.tsx
+      TortillaSvg.tsx
+    Scene/
+      Scene.tsx
+      useSceneDragAndDrop.ts
+  data/
+    catalog/
+      recipes/
+        concebolla.ts
+        sincebolla.ts
+      ingredients.ts
+  engine/
+    containerRules.ts
+  store/
+    gazeStore.ts
+    worldStore.ts
+  systems/
+    collision.ts
+    dropRules.test.ts
+    dropRules.ts
+    gaze.test.ts
+    gaze.ts
+    interaction.test.ts
+    interaction.ts
+    mascot.ts
+    movement.ts
+    queries.test.ts
+    queries.ts
+  types/
+    actions.ts
+    Entity.ts
+    Ingredient.ts
+    IngredientList.ts
+    RecipeIngredient.ts
+    world.ts
+  App.css
+  App.tsx
+  index.css
+  main.tsx
 .gitignore
 AGENTS.md
 eslint.config.js
@@ -55,6 +121,763 @@ vite.config.ts
 
 <files>
 This section contains the contents of the repository's files.
+
+<file path="src/types/actions.ts">
+import type { EntityType } from './world';
+
+export type WorldAction =
+  | {
+      type: 'MOVE_ENTITY';
+      payload: {
+        entityId: string;
+        targetContainerId: string;
+        positionIndex?: number;
+      };
+    }
+  | {
+      type: 'ADD_ENTITY';
+      payload: {
+        entity: {
+          id: string;
+          name: string;
+          type: EntityType;
+          state?: Record<string, unknown>;
+        };
+        containerId: string;
+      };
+    }
+  | {
+      type: 'REMOVE_ENTITY';
+      payload: {
+        entityId: string;
+      };
+    }
+  | {
+      type: 'UPDATE_ENTITY_STATE';
+      payload: {
+        entityId: string;
+        changes: Record<string, unknown>;
+      };
+    };
+</file>
+
+<file path="docs/README.md">
+# Tortilla World
+
+Interactive React application where a tortilla mascot lives in a virtual kitchen.
+
+The user can interact with ingredients, recipes and kitchen objects.
+
+## Stack
+
+- React
+- TypeScript
+- Zustand
+- Framer Motion
+- Vite
+
+## Main concept
+
+The application has a small world-state layer.
+Objects exist independently from the UI.
+
+Components render the world.
+Systems modify the world.
+</file>
+
+<file path="public/favicon.svg">
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="46" fill="none" viewBox="0 0 48 46"><path fill="#863bff" d="M25.946 44.938c-.664.845-2.021.375-2.021-.698V33.937a2.26 2.26 0 0 0-2.262-2.262H10.287c-.92 0-1.456-1.04-.92-1.788l7.48-10.471c1.07-1.497 0-3.578-1.842-3.578H1.237c-.92 0-1.456-1.04-.92-1.788L10.013.474c.214-.297.556-.474.92-.474h28.894c.92 0 1.456 1.04.92 1.788l-7.48 10.471c-1.07 1.498 0 3.579 1.842 3.579h11.377c.943 0 1.473 1.088.89 1.83L25.947 44.94z" style="fill:#863bff;fill:color(display-p3 .5252 .23 1);fill-opacity:1"/><mask id="a" width="48" height="46" x="0" y="0" maskUnits="userSpaceOnUse" style="mask-type:alpha"><path fill="#000" d="M25.842 44.938c-.664.844-2.021.375-2.021-.698V33.937a2.26 2.26 0 0 0-2.262-2.262H10.183c-.92 0-1.456-1.04-.92-1.788l7.48-10.471c1.07-1.498 0-3.579-1.842-3.579H1.133c-.92 0-1.456-1.04-.92-1.787L9.91.473c.214-.297.556-.474.92-.474h28.894c.92 0 1.456 1.04.92 1.788l-7.48 10.471c-1.07 1.498 0 3.578 1.842 3.578h11.377c.943 0 1.473 1.088.89 1.832L25.843 44.94z" style="fill:#000;fill-opacity:1"/></mask><g mask="url(#a)"><g filter="url(#b)"><ellipse cx="5.508" cy="14.704" fill="#ede6ff" rx="5.508" ry="14.704" style="fill:#ede6ff;fill:color(display-p3 .9275 .9033 1);fill-opacity:1" transform="matrix(.00324 1 1 -.00324 -4.47 31.516)"/></g><g filter="url(#c)"><ellipse cx="10.399" cy="29.851" fill="#ede6ff" rx="10.399" ry="29.851" style="fill:#ede6ff;fill:color(display-p3 .9275 .9033 1);fill-opacity:1" transform="matrix(.00324 1 1 -.00324 -39.328 7.883)"/></g><g filter="url(#d)"><ellipse cx="5.508" cy="30.487" fill="#7e14ff" rx="5.508" ry="30.487" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(89.814 -25.913 -14.639)scale(1 -1)"/></g><g filter="url(#e)"><ellipse cx="5.508" cy="30.599" fill="#7e14ff" rx="5.508" ry="30.599" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(89.814 -32.644 -3.334)scale(1 -1)"/></g><g filter="url(#f)"><ellipse cx="5.508" cy="30.599" fill="#7e14ff" rx="5.508" ry="30.599" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="matrix(.00324 1 1 -.00324 -34.34 30.47)"/></g><g filter="url(#g)"><ellipse cx="14.072" cy="22.078" fill="#ede6ff" rx="14.072" ry="22.078" style="fill:#ede6ff;fill:color(display-p3 .9275 .9033 1);fill-opacity:1" transform="rotate(93.35 24.506 48.493)scale(-1 1)"/></g><g filter="url(#h)"><ellipse cx="3.47" cy="21.501" fill="#7e14ff" rx="3.47" ry="21.501" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(89.009 28.708 47.59)scale(-1 1)"/></g><g filter="url(#i)"><ellipse cx="3.47" cy="21.501" fill="#7e14ff" rx="3.47" ry="21.501" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(89.009 28.708 47.59)scale(-1 1)"/></g><g filter="url(#j)"><ellipse cx=".387" cy="8.972" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(39.51 .387 8.972)"/></g><g filter="url(#k)"><ellipse cx="47.523" cy="-6.092" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(37.892 47.523 -6.092)"/></g><g filter="url(#l)"><ellipse cx="41.412" cy="6.333" fill="#47bfff" rx="5.971" ry="9.665" style="fill:#47bfff;fill:color(display-p3 .2799 .748 1);fill-opacity:1" transform="rotate(37.892 41.412 6.333)"/></g><g filter="url(#m)"><ellipse cx="-1.879" cy="38.332" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(37.892 -1.88 38.332)"/></g><g filter="url(#n)"><ellipse cx="-1.879" cy="38.332" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(37.892 -1.88 38.332)"/></g><g filter="url(#o)"><ellipse cx="35.651" cy="29.907" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(37.892 35.651 29.907)"/></g><g filter="url(#p)"><ellipse cx="38.418" cy="32.4" fill="#47bfff" rx="5.971" ry="15.297" style="fill:#47bfff;fill:color(display-p3 .2799 .748 1);fill-opacity:1" transform="rotate(37.892 38.418 32.4)"/></g></g><defs><filter id="b" width="60.045" height="41.654" x="-19.77" y="16.149" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="7.659"/></filter><filter id="c" width="90.34" height="51.437" x="-54.613" y="-7.533" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="7.659"/></filter><filter id="d" width="79.355" height="29.4" x="-49.64" y="2.03" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="e" width="79.579" height="29.4" x="-45.045" y="20.029" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="f" width="79.579" height="29.4" x="-43.513" y="21.178" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="g" width="74.749" height="58.852" x="15.756" y="-17.901" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="7.659"/></filter><filter id="h" width="61.377" height="25.362" x="23.548" y="2.284" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="i" width="61.377" height="25.362" x="23.548" y="2.284" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="j" width="56.045" height="63.649" x="-27.636" y="-22.853" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="k" width="54.814" height="64.646" x="20.116" y="-38.415" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="l" width="33.541" height="35.313" x="24.641" y="-11.323" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="m" width="54.814" height="64.646" x="-29.286" y="6.009" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="n" width="54.814" height="64.646" x="-29.286" y="6.009" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="o" width="54.814" height="64.646" x="8.244" y="-2.416" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="p" width="39.409" height="43.623" x="18.713" y="10.588" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter></defs></svg>
+</file>
+
+<file path="public/icons.svg">
+<svg xmlns="http://www.w3.org/2000/svg">
+  <symbol id="bluesky-icon" viewBox="0 0 16 17">
+    <g clip-path="url(#bluesky-clip)"><path fill="#08060d" d="M7.75 7.735c-.693-1.348-2.58-3.86-4.334-5.097-1.68-1.187-2.32-.981-2.74-.79C.188 2.065.1 2.812.1 3.251s.241 3.602.398 4.13c.52 1.744 2.367 2.333 4.07 2.145-2.495.37-4.71 1.278-1.805 4.512 3.196 3.309 4.38-.71 4.987-2.746.608 2.036 1.307 5.91 4.93 2.746 2.72-2.746.747-4.143-1.747-4.512 1.702.189 3.55-.4 4.07-2.145.156-.528.397-3.691.397-4.13s-.088-1.186-.575-1.406c-.42-.19-1.06-.395-2.741.79-1.755 1.24-3.64 3.752-4.334 5.099"/></g>
+    <defs><clipPath id="bluesky-clip"><path fill="#fff" d="M.1.85h15.3v15.3H.1z"/></clipPath></defs>
+  </symbol>
+  <symbol id="discord-icon" viewBox="0 0 20 19">
+    <path fill="#08060d" d="M16.224 3.768a14.5 14.5 0 0 0-3.67-1.153c-.158.286-.343.67-.47.976a13.5 13.5 0 0 0-4.067 0c-.128-.306-.317-.69-.476-.976A14.4 14.4 0 0 0 3.868 3.77C1.546 7.28.916 10.703 1.231 14.077a14.7 14.7 0 0 0 4.5 2.306q.545-.748.965-1.587a9.5 9.5 0 0 1-1.518-.74q.191-.14.372-.293c2.927 1.369 6.107 1.369 8.999 0q.183.152.372.294-.723.437-1.52.74.418.838.963 1.588a14.6 14.6 0 0 0 4.504-2.308c.37-3.911-.63-7.302-2.644-10.309m-9.13 8.234c-.878 0-1.599-.82-1.599-1.82 0-.998.705-1.82 1.6-1.82.894 0 1.614.82 1.599 1.82.001 1-.705 1.82-1.6 1.82m5.91 0c-.878 0-1.599-.82-1.599-1.82 0-.998.705-1.82 1.6-1.82.893 0 1.614.82 1.599 1.82 0 1-.706 1.82-1.6 1.82"/>
+  </symbol>
+  <symbol id="documentation-icon" viewBox="0 0 21 20">
+    <path fill="none" stroke="#aa3bff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.35" d="m15.5 13.333 1.533 1.322c.645.555.967.833.967 1.178s-.322.623-.967 1.179L15.5 18.333m-3.333-5-1.534 1.322c-.644.555-.966.833-.966 1.178s.322.623.966 1.179l1.534 1.321"/>
+    <path fill="none" stroke="#aa3bff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.35" d="M17.167 10.836v-4.32c0-1.41 0-2.117-.224-2.68-.359-.906-1.118-1.621-2.08-1.96-.599-.21-1.349-.21-2.848-.21-2.623 0-3.935 0-4.983.369-1.684.591-3.013 1.842-3.641 3.428C3 6.449 3 7.684 3 10.154v2.122c0 2.558 0 3.838.706 4.726q.306.383.713.671c.76.536 1.79.64 3.581.66"/>
+    <path fill="none" stroke="#aa3bff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.35" d="M3 10a2.78 2.78 0 0 1 2.778-2.778c.555 0 1.209.097 1.748-.047.48-.129.854-.503.982-.982.145-.54.048-1.194.048-1.749a2.78 2.78 0 0 1 2.777-2.777"/>
+  </symbol>
+  <symbol id="github-icon" viewBox="0 0 19 19">
+    <path fill="#08060d" fill-rule="evenodd" d="M9.356 1.85C5.05 1.85 1.57 5.356 1.57 9.694a7.84 7.84 0 0 0 5.324 7.44c.387.079.528-.168.528-.376 0-.182-.013-.805-.013-1.454-2.165.467-2.616-.935-2.616-.935-.349-.91-.864-1.143-.864-1.143-.71-.48.051-.48.051-.48.787.051 1.2.805 1.2.805.695 1.194 1.817.857 2.268.649.064-.507.27-.857.49-1.052-1.728-.182-3.545-.857-3.545-3.87 0-.857.31-1.558.8-2.104-.078-.195-.349-1 .077-2.078 0 0 .657-.208 2.14.805a7.5 7.5 0 0 1 1.946-.26c.657 0 1.328.092 1.946.26 1.483-1.013 2.14-.805 2.14-.805.426 1.078.155 1.883.078 2.078.502.546.799 1.247.799 2.104 0 3.013-1.818 3.675-3.558 3.87.284.247.528.714.528 1.454 0 1.052-.012 1.896-.012 2.156 0 .208.142.455.528.377a7.84 7.84 0 0 0 5.324-7.441c.013-4.338-3.48-7.844-7.773-7.844" clip-rule="evenodd"/>
+  </symbol>
+  <symbol id="social-icon" viewBox="0 0 20 20">
+    <path fill="none" stroke="#aa3bff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.35" d="M12.5 6.667a4.167 4.167 0 1 0-8.334 0 4.167 4.167 0 0 0 8.334 0"/>
+    <path fill="none" stroke="#aa3bff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.35" d="M2.5 16.667a5.833 5.833 0 0 1 8.75-5.053m3.837.474.513 1.035c.07.144.257.282.414.309l.93.155c.596.1.736.536.307.965l-.723.73a.64.64 0 0 0-.152.531l.207.903c.164.715-.213.991-.84.618l-.872-.52a.63.63 0 0 0-.577 0l-.872.52c-.624.373-1.003.094-.84-.618l.207-.903a.64.64 0 0 0-.152-.532l-.723-.729c-.426-.43-.289-.864.306-.964l.93-.156a.64.64 0 0 0 .412-.31l.513-1.034c.28-.562.735-.562 1.012 0"/>
+  </symbol>
+  <symbol id="x-icon" viewBox="0 0 19 19">
+    <path fill="#08060d" fill-rule="evenodd" d="M1.893 1.98c.052.072 1.245 1.769 2.653 3.77l2.892 4.114c.183.261.333.48.333.486s-.068.089-.152.183l-.522.593-.765.867-3.597 4.087c-.375.426-.734.834-.798.905a1 1 0 0 0-.118.148c0 .01.236.017.664.017h.663l.729-.83c.4-.457.796-.906.879-.999a692 692 0 0 0 1.794-2.038c.034-.037.301-.34.594-.675l.551-.624.345-.392a7 7 0 0 1 .34-.374c.006 0 .93 1.306 2.052 2.903l2.084 2.965.045.063h2.275c1.87 0 2.273-.003 2.266-.021-.008-.02-1.098-1.572-3.894-5.547-2.013-2.862-2.28-3.246-2.273-3.266.008-.019.282-.332 2.085-2.38l2-2.274 1.567-1.782c.022-.028-.016-.03-.65-.03h-.674l-.3.342a871 871 0 0 1-1.782 2.025c-.067.075-.405.458-.75.852a100 100 0 0 1-.803.91c-.148.172-.299.344-.99 1.127-.304.343-.32.358-.345.327-.015-.019-.904-1.282-1.976-2.808L6.365 1.85H1.8zm1.782.91 8.078 11.294c.772 1.08 1.413 1.973 1.425 1.984.016.017.241.02 1.05.017l1.03-.004-2.694-3.766L7.796 5.75 5.722 2.852l-1.039-.004-1.039-.004z" clip-rule="evenodd"/>
+  </symbol>
+</svg>
+</file>
+
+<file path="src/assets/react.svg">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--logos" width="35.93" height="32" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 228"><path fill="#00D8FF" d="M210.483 73.824a171.49 171.49 0 0 0-8.24-2.597c.465-1.9.893-3.777 1.273-5.621c6.238-30.281 2.16-54.676-11.769-62.708c-13.355-7.7-35.196.329-57.254 19.526a171.23 171.23 0 0 0-6.375 5.848a155.866 155.866 0 0 0-4.241-3.917C100.759 3.829 77.587-4.822 63.673 3.233C50.33 10.957 46.379 33.89 51.995 62.588a170.974 170.974 0 0 0 1.892 8.48c-3.28.932-6.445 1.924-9.474 2.98C17.309 83.498 0 98.307 0 113.668c0 15.865 18.582 31.778 46.812 41.427a145.52 145.52 0 0 0 6.921 2.165a167.467 167.467 0 0 0-2.01 9.138c-5.354 28.2-1.173 50.591 12.134 58.266c13.744 7.926 36.812-.22 59.273-19.855a145.567 145.567 0 0 0 5.342-4.923a168.064 168.064 0 0 0 6.92 6.314c21.758 18.722 43.246 26.282 56.54 18.586c13.731-7.949 18.194-32.003 12.4-61.268a145.016 145.016 0 0 0-1.535-6.842c1.62-.48 3.21-.974 4.76-1.488c29.348-9.723 48.443-25.443 48.443-41.52c0-15.417-17.868-30.326-45.517-39.844Zm-6.365 70.984c-1.4.463-2.836.91-4.3 1.345c-3.24-10.257-7.612-21.163-12.963-32.432c5.106-11 9.31-21.767 12.459-31.957c2.619.758 5.16 1.557 7.61 2.4c23.69 8.156 38.14 20.213 38.14 29.504c0 9.896-15.606 22.743-40.946 31.14Zm-10.514 20.834c2.562 12.94 2.927 24.64 1.23 33.787c-1.524 8.219-4.59 13.698-8.382 15.893c-8.067 4.67-25.32-1.4-43.927-17.412a156.726 156.726 0 0 1-6.437-5.87c7.214-7.889 14.423-17.06 21.459-27.246c12.376-1.098 24.068-2.894 34.671-5.345a134.17 134.17 0 0 1 1.386 6.193ZM87.276 214.515c-7.882 2.783-14.16 2.863-17.955.675c-8.075-4.657-11.432-22.636-6.853-46.752a156.923 156.923 0 0 1 1.869-8.499c10.486 2.32 22.093 3.988 34.498 4.994c7.084 9.967 14.501 19.128 21.976 27.15a134.668 134.668 0 0 1-4.877 4.492c-9.933 8.682-19.886 14.842-28.658 17.94ZM50.35 144.747c-12.483-4.267-22.792-9.812-29.858-15.863c-6.35-5.437-9.555-10.836-9.555-15.216c0-9.322 13.897-21.212 37.076-29.293c2.813-.98 5.757-1.905 8.812-2.773c3.204 10.42 7.406 21.315 12.477 32.332c-5.137 11.18-9.399 22.249-12.634 32.792a134.718 134.718 0 0 1-6.318-1.979Zm12.378-84.26c-4.811-24.587-1.616-43.134 6.425-47.789c8.564-4.958 27.502 2.111 47.463 19.835a144.318 144.318 0 0 1 3.841 3.545c-7.438 7.987-14.787 17.08-21.808 26.988c-12.04 1.116-23.565 2.908-34.161 5.309a160.342 160.342 0 0 1-1.76-7.887Zm110.427 27.268a347.8 347.8 0 0 0-7.785-12.803c8.168 1.033 15.994 2.404 23.343 4.08c-2.206 7.072-4.956 14.465-8.193 22.045a381.151 381.151 0 0 0-7.365-13.322Zm-45.032-43.861c5.044 5.465 10.096 11.566 15.065 18.186a322.04 322.04 0 0 0-30.257-.006c4.974-6.559 10.069-12.652 15.192-18.18ZM82.802 87.83a323.167 323.167 0 0 0-7.227 13.238c-3.184-7.553-5.909-14.98-8.134-22.152c7.304-1.634 15.093-2.97 23.209-3.984a321.524 321.524 0 0 0-7.848 12.897Zm8.081 65.352c-8.385-.936-16.291-2.203-23.593-3.793c2.26-7.3 5.045-14.885 8.298-22.6a321.187 321.187 0 0 0 7.257 13.246c2.594 4.48 5.28 8.868 8.038 13.147Zm37.542 31.03c-5.184-5.592-10.354-11.779-15.403-18.433c4.902.192 9.899.29 14.978.29c5.218 0 10.376-.117 15.453-.343c-4.985 6.774-10.018 12.97-15.028 18.486Zm52.198-57.817c3.422 7.8 6.306 15.345 8.596 22.52c-7.422 1.694-15.436 3.058-23.88 4.071a382.417 382.417 0 0 0 7.859-13.026a347.403 347.403 0 0 0 7.425-13.565Zm-16.898 8.101a358.557 358.557 0 0 1-12.281 19.815a329.4 329.4 0 0 1-23.444.823c-7.967 0-15.716-.248-23.178-.732a310.202 310.202 0 0 1-12.513-19.846h.001a307.41 307.41 0 0 1-10.923-20.627a310.278 310.278 0 0 1 10.89-20.637l-.001.001a307.318 307.318 0 0 1 12.413-19.761c7.613-.576 15.42-.876 23.31-.876H128c7.926 0 15.743.303 23.354.883a329.357 329.357 0 0 1 12.335 19.695a358.489 358.489 0 0 1 11.036 20.54a329.472 329.472 0 0 1-11 20.722Zm22.56-122.124c8.572 4.944 11.906 24.881 6.52 51.026c-.344 1.668-.73 3.367-1.15 5.09c-10.622-2.452-22.155-4.275-34.23-5.408c-7.034-10.017-14.323-19.124-21.64-27.008a160.789 160.789 0 0 1 5.888-5.4c18.9-16.447 36.564-22.941 44.612-18.3ZM128 90.808c12.625 0 22.86 10.235 22.86 22.86s-10.235 22.86-22.86 22.86s-22.86-10.235-22.86-22.86s10.235-22.86 22.86-22.86Z"></path></svg>
+</file>
+
+<file path="src/assets/vite.svg">
+<svg xmlns="http://www.w3.org/2000/svg" width="77" height="47" fill="none" aria-labelledby="vite-logo-title" viewBox="0 0 77 47"><title id="vite-logo-title">Vite</title><style>.parenthesis{fill:#000}@media (prefers-color-scheme:dark){.parenthesis{fill:#fff}}</style><path fill="#9135ff" d="M40.151 45.71c-.663.844-2.02.374-2.02-.699V34.708a2.26 2.26 0 0 0-2.262-2.262H24.493c-.92 0-1.457-1.04-.92-1.788l7.479-10.471c1.07-1.498 0-3.578-1.842-3.578H15.443c-.92 0-1.456-1.04-.92-1.788l9.696-13.576c.213-.297.556-.474.92-.474h28.894c.92 0 1.456 1.04.92 1.788l-7.48 10.472c-1.07 1.497 0 3.578 1.842 3.578h11.376c.944 0 1.474 1.087.89 1.83L40.153 45.712z"/><mask id="a" width="48" height="47" x="14" y="0" maskUnits="userSpaceOnUse" style="mask-type:alpha"><path fill="#000" d="M40.047 45.71c-.663.843-2.02.374-2.02-.699V34.708a2.26 2.26 0 0 0-2.262-2.262H24.389c-.92 0-1.457-1.04-.92-1.788l7.479-10.472c1.07-1.497 0-3.578-1.842-3.578H15.34c-.92 0-1.456-1.04-.92-1.788l9.696-13.575c.213-.297.556-.474.92-.474H53.93c.92 0 1.456 1.04.92 1.788L47.37 13.03c-1.07 1.498 0 3.578 1.842 3.578h11.376c.944 0 1.474 1.088.89 1.831L40.049 45.712z"/></mask><g mask="url(#a)"><g filter="url(#b)"><ellipse cx="5.508" cy="14.704" fill="#eee6ff" rx="5.508" ry="14.704" transform="rotate(269.814 20.96 11.29)scale(-1 1)"/></g><g filter="url(#c)"><ellipse cx="10.399" cy="29.851" fill="#eee6ff" rx="10.399" ry="29.851" transform="rotate(89.814 -16.902 -8.275)scale(1 -1)"/></g><g filter="url(#d)"><ellipse cx="5.508" cy="30.487" fill="#8900ff" rx="5.508" ry="30.487" transform="rotate(89.814 -19.197 -7.127)scale(1 -1)"/></g><g filter="url(#e)"><ellipse cx="5.508" cy="30.599" fill="#8900ff" rx="5.508" ry="30.599" transform="rotate(89.814 -25.928 4.177)scale(1 -1)"/></g><g filter="url(#f)"><ellipse cx="5.508" cy="30.599" fill="#8900ff" rx="5.508" ry="30.599" transform="rotate(89.814 -25.738 5.52)scale(1 -1)"/></g><g filter="url(#g)"><ellipse cx="14.072" cy="22.078" fill="#eee6ff" rx="14.072" ry="22.078" transform="rotate(93.35 31.245 55.578)scale(-1 1)"/></g><g filter="url(#h)"><ellipse cx="3.47" cy="21.501" fill="#8900ff" rx="3.47" ry="21.501" transform="rotate(89.009 35.419 55.202)scale(-1 1)"/></g><g filter="url(#i)"><ellipse cx="3.47" cy="21.501" fill="#8900ff" rx="3.47" ry="21.501" transform="rotate(89.009 35.419 55.202)scale(-1 1)"/></g><g filter="url(#j)"><ellipse cx="14.592" cy="9.743" fill="#8900ff" rx="4.407" ry="29.108" transform="rotate(39.51 14.592 9.743)"/></g><g filter="url(#k)"><ellipse cx="61.728" cy="-5.321" fill="#8900ff" rx="4.407" ry="29.108" transform="rotate(37.892 61.728 -5.32)"/></g><g filter="url(#l)"><ellipse cx="55.618" cy="7.104" fill="#00c2ff" rx="5.971" ry="9.665" transform="rotate(37.892 55.618 7.104)"/></g><g filter="url(#m)"><ellipse cx="12.326" cy="39.103" fill="#8900ff" rx="4.407" ry="29.108" transform="rotate(37.892 12.326 39.103)"/></g><g filter="url(#n)"><ellipse cx="12.326" cy="39.103" fill="#8900ff" rx="4.407" ry="29.108" transform="rotate(37.892 12.326 39.103)"/></g><g filter="url(#o)"><ellipse cx="49.857" cy="30.678" fill="#8900ff" rx="4.407" ry="29.108" transform="rotate(37.892 49.857 30.678)"/></g><g filter="url(#p)"><ellipse cx="52.623" cy="33.171" fill="#00c2ff" rx="5.971" ry="15.297" transform="rotate(37.892 52.623 33.17)"/></g></g><path d="M6.919 0c-9.198 13.166-9.252 33.575 0 46.789h6.215c-9.25-13.214-9.196-33.623 0-46.789zm62.424 0h-6.215c9.198 13.166 9.252 33.575 0 46.789h6.215c9.25-13.214 9.196-33.623 0-46.789" class="parenthesis"/><defs><filter id="b" width="60.045" height="41.654" x="-5.564" y="16.92" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="7.659"/></filter><filter id="c" width="90.34" height="51.437" x="-40.407" y="-6.762" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="7.659"/></filter><filter id="d" width="79.355" height="29.4" x="-35.435" y="2.801" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="e" width="79.579" height="29.4" x="-30.84" y="20.8" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="f" width="79.579" height="29.4" x="-29.307" y="21.949" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="g" width="74.749" height="58.852" x="29.961" y="-17.13" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="7.659"/></filter><filter id="h" width="61.377" height="25.362" x="37.754" y="3.055" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="i" width="61.377" height="25.362" x="37.754" y="3.055" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="j" width="56.045" height="63.649" x="-13.43" y="-22.082" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="k" width="54.814" height="64.646" x="34.321" y="-37.644" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="l" width="33.541" height="35.313" x="38.847" y="-10.552" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="m" width="54.814" height="64.646" x="-15.081" y="6.78" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="n" width="54.814" height="64.646" x="-15.081" y="6.78" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="o" width="54.814" height="64.646" x="22.45" y="-1.645" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="p" width="39.409" height="43.623" x="32.919" y="11.36" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter></defs></svg>
+</file>
+
+<file path="src/components/Entity/Entity.tsx">
+import type { Entity as WorldEntity } from '../../types/Entity'
+
+interface EntityProps {
+  entity: WorldEntity
+}
+
+export function Entity({ entity }: EntityProps) {
+  return (
+    <div
+      data-entity-id={entity.id}
+      data-entity-state={entity.state}
+      data-entity-type={entity.type}
+      style={{
+        height: entity.size.height,
+        left: entity.position.x,
+        position: 'absolute',
+        top: entity.position.y,
+        width: entity.size.width,
+      }}
+    />
+  )
+}
+</file>
+
+<file path="src/components/Ingredients/Ingredient.tsx">
+import type { Ingredient as IngredientModel } from '../../types/Ingredient'
+
+interface IngredientProps {
+  ingredient: IngredientModel
+}
+
+export function Ingredient({ ingredient }: IngredientProps) {
+  return (
+    <>
+      <span aria-hidden="true">{ingredient.icon}</span>
+      <span>{ingredient.name}</span>
+    </>
+  )
+}
+</file>
+
+<file path="src/components/Ingredients/RecipeIngredientItem.tsx">
+import type { Ingredient } from '../../types/Ingredient'
+
+interface RecipeIngredientItemProps {
+  ingredient: Ingredient
+  amount: number
+  unit: string
+}
+
+export function RecipeIngredientItem({
+  ingredient,
+  amount,
+  unit,
+}: RecipeIngredientItemProps) {
+  return (
+    <li className="recipe-ingredient-item">
+      <span aria-hidden="true">{ingredient.icon}</span>
+      <span className="recipe-ingredient-name">{ingredient.name}</span>
+      <span className="recipe-ingredient-amount">
+        {amount} {unit}
+      </span>
+    </li>
+  )
+}
+</file>
+
+<file path="src/components/Ingredients/RecipeIngredientList.tsx">
+import type { Ingredient } from '../../types/Ingredient'
+import type { RecipeIngredient } from '../../types/RecipeIngredient'
+import './Ingredients.css'
+import { RecipeIngredientItem } from './RecipeIngredientItem'
+
+interface RecipeIngredientListProps {
+  ingredients: RecipeIngredient[]
+  ingredientCatalog: Ingredient[]
+}
+
+export function RecipeIngredientList({
+  ingredients,
+  ingredientCatalog,
+}: RecipeIngredientListProps) {
+  const ingredientsById = new Map(
+    ingredientCatalog.map((ingredient) => [ingredient.id, ingredient]),
+  )
+
+  return (
+    <ul className="recipe-ingredient-list">
+      {ingredients.map((recipeIngredient) => {
+        const ingredient = ingredientsById.get(recipeIngredient.ingredientId)
+
+        if (!ingredient) {
+          return null
+        }
+
+        return (
+          <RecipeIngredientItem
+            key={recipeIngredient.id}
+            amount={recipeIngredient.amount}
+            ingredient={ingredient}
+            unit={recipeIngredient.unit}
+          />
+        )
+      })}
+    </ul>
+  )
+}
+</file>
+
+<file path="src/data/catalog/recipes/sincebolla.ts">
+import { ingredients } from "../ingredients";
+
+export const recipe = {
+  id: "sincebolla",
+  name: "Sincebolla",
+  ingredients: [
+    ingredients.find(i => i.id === "potato"),
+    ingredients.find(i => i.id === "egg"),
+    ingredients.find(i => i.id === "oil"),
+    ingredients.find(i => i.id === "salt"),
+    ingredients.find(i => i.id === "pepper"),
+  ]
+};
+</file>
+
+<file path="src/data/catalog/ingredients.ts">
+import type { Ingredient } from "../../types/Ingredient";
+
+
+export const ingredients: Ingredient[] = [
+
+  {
+    id: "potato",
+    icon: "🥔",
+    name: "Potatoes",
+  },
+
+
+  {
+    id: "egg",
+    icon: "🥚",
+    name: "Eggs",
+  },
+
+
+  {
+    id: "oil",
+    icon: "🫒",
+    name: "Olive Oil",
+  },
+
+
+  {
+    id: "onion",
+    icon: "🧅",
+    name: "Onion",
+  },
+
+
+  {
+    id: "chorizo",
+    icon: "🌭",
+    name: "Chorizo",
+  },
+
+  {
+    id: "salt",
+    icon: "🧂",
+    name: "Salt",
+  },
+
+  {
+    id: "pepper",
+    icon: "🫑",
+    name: "Bell Pepper",
+  },
+
+  {
+    id: "garlic",
+    icon: "🧄",
+    name: "Garlic",
+  },
+
+  {
+    id: "tomato",
+    icon: "🍅",
+    name: "Tomato",
+  },
+
+  {
+    id: "cheese",
+    icon: "🧀",
+    name: "Cheese",
+  },
+
+  {
+    id: "bread",
+    icon: "🍞",
+    name: "Bread",
+  },
+
+  {
+    id: "milk",
+    icon: "🥛",
+    name: "Milk",
+  },
+
+  {
+    id: "butter",
+    icon: "🧈",
+    name: "Butter",
+  },
+
+];
+</file>
+
+<file path="src/engine/containerRules.ts">
+import type { Container, Entity } from '../types/world';
+
+export interface ValidationResult {
+  allowed: boolean;
+  reason?: string;
+}
+
+export function validateContainerRules(
+  container: Container,
+  entity: Entity,
+  currentEntitiesInContainer: Entity[]
+): ValidationResult {
+  const rules = container.rules;
+
+  if (!rules) {
+    return { allowed: true };
+  }
+
+  // 1. Capacity Check
+  if (
+    rules.maxCapacity !== undefined &&
+    container.entityIds.length >= rules.maxCapacity
+  ) {
+    return {
+      allowed: false,
+      reason: `Container '${container.name}' capacity reached (${rules.maxCapacity} items max).`,
+    };
+  }
+
+  // 2. Allowed Types Check
+  if (rules.allowedTypes && !rules.allowedTypes.includes(entity.type)) {
+    return {
+      allowed: false,
+      reason: `Container '${container.name}' does not accept entity type '${entity.type}'.`,
+    };
+  }
+
+  // 3. Unique Types Check
+  if (rules.uniqueTypesOnly) {
+    const hasTypeAlready = currentEntitiesInContainer.some(
+      (e) => e.type === entity.type
+    );
+    if (hasTypeAlready) {
+      return {
+        allowed: false,
+        reason: `Container '${container.name}' already contains an entity of type '${entity.type}'.`,
+      };
+    }
+  }
+
+  // 4. Custom Validator Check
+  if (rules.customValidator) {
+    const passesCustom = rules.customValidator(
+      container,
+      entity,
+      currentEntitiesInContainer
+    );
+    if (!passesCustom) {
+      return {
+        allowed: false,
+        reason: `Entity '${entity.name}' failed custom container rules for '${container.name}'.`,
+      };
+    }
+  }
+
+  return { allowed: true };
+}
+</file>
+
+<file path="src/store/gazeStore.ts">
+import { create } from 'zustand'
+import type { GazeTarget } from '../systems/gaze'
+
+interface GazeState {
+  /** Whatever the mascot should be looking at right now, or null to fall back to the mouse. */
+  target: GazeTarget | null
+  setTarget: (target: GazeTarget | null) => void
+  clearTarget: () => void
+}
+
+export const useGazeStore = create<GazeState>((set) => ({
+  target: null,
+  setTarget: (target) => set({ target }),
+  clearTarget: () => set({ target: null }),
+}))
+</file>
+
+<file path="src/systems/collision.ts">
+
+</file>
+
+<file path="src/systems/dropRules.test.ts">
+import { describe, it, expect } from 'vitest'
+import { parseDrag, evaluateDrop } from './dropRules'
+
+const kitchenConsumes = { kitchen: { consumesOnDrag: true }, fire: { consumesOnDrag: true } }
+
+describe('parseDrag', () => {
+  it('parses a dragged item and a list drop target', () => {
+    expect(parseDrag('despensa::potato', 'kitchen')).toEqual({
+      source: { listId: 'despensa', itemId: 'potato' },
+      target: { listId: 'kitchen', itemId: null },
+    })
+  })
+
+  it('parses a dragged item and an item drop target', () => {
+    expect(parseDrag('despensa::egg', 'despensa::potato')).toEqual({
+      source: { listId: 'despensa', itemId: 'egg' },
+      target: { listId: 'despensa', itemId: 'potato' },
+    })
+  })
+
+  it('returns null for malformed ids', () => {
+    expect(parseDrag('potato', 'kitchen')).toBeNull()
+    expect(parseDrag('despensa::potato', '')).toBeNull()
+  })
+})
+
+describe('evaluateDrop', () => {
+  it('approves same-list reorder without duplicate checks', () => {
+    const drag = parseDrag('despensa::egg', 'despensa::potato')!
+    const drop = evaluateDrop(drag, { despensa: ['potato', 'egg'], kitchen: [] })
+    expect(drop).toMatchObject({
+      kind: 'same-list-reorder',
+      insertAt: 0,
+    })
+  })
+
+  it('approves a move from a consuming source', () => {
+    const drag = parseDrag('kitchen::potato', 'fire')!
+    const drop = evaluateDrop(
+      drag,
+      { kitchen: ['potato', 'egg'], fire: [] },
+      kitchenConsumes,
+    )
+    expect(drop?.kind).toBe('cross-list-move')
+  })
+
+  it('approves a copy from a non-consuming source', () => {
+    const drag = parseDrag('despensa::potato', 'kitchen')!
+    const drop = evaluateDrop(
+      drag,
+      { despensa: ['potato', 'onion'], kitchen: [] },
+      { despensa: {}, kitchen: { consumesOnDrag: true } },
+    )
+    expect(drop?.kind).toBe('cross-list-copy')
+  })
+
+  it('never lets a consuming target override a non-consuming source', () => {
+    const drag = parseDrag('despensa::potato', 'fire')!
+    const drop = evaluateDrop(
+      drag,
+      { despensa: ['potato', 'onion'], fire: [] },
+      { despensa: {}, fire: { consumesOnDrag: true } },
+    )
+    expect(drop?.kind).toBe('cross-list-copy')
+  })
+
+  it('blocks copying when the target already holds the same ingredient group', () => {
+    const drag = parseDrag('despensa::potato#despensa', 'kitchen')!
+    const drop = evaluateDrop(
+      drag,
+      { despensa: ['potato#despensa'], kitchen: ['potato#kitchen'] },
+      {},
+      { groupOf: (id) => id.split('#')[0] },
+    )
+    expect(drop).toBeNull()
+  })
+
+  it('blocks copying an item already in the target list (default identity grouping)', () => {
+    const drag = parseDrag('despensa::potato', 'kitchen')!
+    const drop = evaluateDrop(
+      drag,
+      { despensa: ['potato', 'onion'], kitchen: ['potato', 'egg'] },
+    )
+    expect(drop).toBeNull()
+  })
+
+  it('blocks copying even when dropping on blank space in a list that already has the item', () => {
+    const drag = parseDrag('despensa::potato', 'kitchen')!
+    const drop = evaluateDrop(
+      drag,
+      { despensa: ['potato'], kitchen: ['potato'] },
+    )
+    expect(drop).toBeNull()
+  })
+
+  it('returns null when the item is not in the source list', () => {
+    const drag = parseDrag('despensa::garlic', 'kitchen')!
+    const drop = evaluateDrop(drag, { despensa: ['potato'], kitchen: [] })
+    expect(drop).toBeNull()
+  })
+
+  it('returns null when source list does not exist', () => {
+    const drag = parseDrag('ghost::potato', 'kitchen')!
+    const drop = evaluateDrop(drag, { despensa: ['potato'], kitchen: [] })
+    expect(drop).toBeNull()
+  })
+})
+</file>
+
+<file path="src/systems/dropRules.ts">
+export interface DragEndpoint {
+  listId: string
+  itemId: string
+}
+
+export interface DropTarget {
+  listId: string
+  itemId: string | null
+}
+
+export interface ParsedDrag {
+  source: DragEndpoint
+  target: DropTarget
+}
+
+export type DropKind = 'same-list-reorder' | 'cross-list-move' | 'cross-list-copy'
+
+export interface ApprovedDrop {
+  kind: DropKind
+  source: DragEndpoint
+  target: DropTarget
+  insertAt: number
+}
+
+export interface ListFlags {
+  consumesOnDrag?: boolean
+}
+
+export interface DropRuleOptions {
+  /**
+   * Groups items for the "already in target" duplicate check — e.g. two
+   * different physical instances of "potato" should still be treated as
+   * the same ingredient for blocking purposes.
+   */
+  groupOf?: (itemId: string) => string
+}
+
+export function parseDrag(activeId: string, overId: string): ParsedDrag | null {
+  const sourceParts = activeId.split('::')
+  const targetParts = overId.split('::')
+
+  const sourceListId = sourceParts[0]
+  const sourceItemId = sourceParts[1]
+  const targetListId = targetParts[0]
+
+  if (!sourceListId || !sourceItemId || !targetListId) return null
+
+  return {
+    source: { listId: sourceListId, itemId: sourceItemId },
+    target: { listId: targetListId, itemId: targetParts[1] ?? null },
+  }
+}
+
+/**
+ * Read-only gate: can this drag-and-drop happen?
+ *
+ * Same-list reorder: always allowed.
+ * Cross-list: blocked when the target already holds an instance of the
+ * same group. Otherwise allowed as a move (consuming source) or copy
+ * (non-consuming source) — the kind is decided here so interaction.ts
+ * only has to apply it.
+ */
+export function evaluateDrop(
+  drag: ParsedDrag,
+  lists: Record<string, string[]>,
+  listFlags: Record<string, ListFlags> = {},
+  options: DropRuleOptions = {},
+): ApprovedDrop | null {
+  const sourceIds = lists[drag.source.listId]
+  const targetIds = lists[drag.target.listId]
+  if (!sourceIds || !targetIds || !sourceIds.includes(drag.source.itemId)) return null
+
+  const targetIndex = drag.target.itemId ? targetIds.indexOf(drag.target.itemId) : -1
+  const insertAt = targetIndex === -1 ? targetIds.length : targetIndex
+
+  if (drag.source.listId === drag.target.listId) {
+    return {
+      kind: 'same-list-reorder',
+      source: drag.source,
+      target: drag.target,
+      insertAt,
+    }
+  }
+
+  const groupOf = options.groupOf ?? ((itemId: string) => itemId)
+  const sourceGroup = groupOf(drag.source.itemId)
+  if (targetIds.some((itemId) => groupOf(itemId) === sourceGroup)) return null
+
+  const sourceConsumes = listFlags[drag.source.listId]?.consumesOnDrag ?? false
+
+  return {
+    kind: sourceConsumes ? 'cross-list-move' : 'cross-list-copy',
+    source: drag.source,
+    target: drag.target,
+    insertAt,
+  }
+}
+</file>
+
+<file path="src/types/RecipeIngredient.ts">
+export interface RecipeIngredient {
+  id: string
+  ingredientId: string
+  amount: number
+  unit: string
+}
+</file>
+
+<file path="src/index.css">
+:root {
+  --text: #6b6375;
+  --text-h: #08060d;
+  --bg: #fff;
+  --border: #e5e4e7;
+  --code-bg: #f4f3ec;
+  --accent: #aa3bff;
+  --accent-bg: rgba(170, 59, 255, 0.1);
+  --accent-border: rgba(170, 59, 255, 0.5);
+  --social-bg: rgba(244, 243, 236, 0.5);
+  --shadow:
+    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+
+  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, Consolas, monospace;
+
+  font: 18px/145% var(--sans);
+  letter-spacing: 0.18px;
+  color-scheme: light dark;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  @media (max-width: 1024px) {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #9ca3af;
+    --text-h: #f3f4f6;
+    --bg: #16171d;
+    --border: #2e303a;
+    --code-bg: #1f2028;
+    --accent: #c084fc;
+    --accent-bg: rgba(192, 132, 252, 0.15);
+    --accent-border: rgba(192, 132, 252, 0.5);
+    --social-bg: rgba(47, 48, 58, 0.5);
+    --shadow:
+      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+  }
+
+  #social .button-icon {
+    filter: invert(1) brightness(2);
+  }
+}
+
+#root {
+  width: 1126px;
+  max-width: 100%;
+  margin: 0 auto;
+  text-align: center;
+  border-inline: 1px solid var(--border);
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+h1,
+h2 {
+  font-family: var(--heading);
+  font-weight: 500;
+  color: var(--text-h);
+}
+
+h1 {
+  font-size: 56px;
+  letter-spacing: -1.68px;
+  margin: 32px 0;
+  @media (max-width: 1024px) {
+    font-size: 36px;
+    margin: 20px 0;
+  }
+}
+h2 {
+  font-size: 24px;
+  line-height: 118%;
+  letter-spacing: -0.24px;
+  margin: 0 0 8px;
+  @media (max-width: 1024px) {
+    font-size: 20px;
+  }
+}
+p {
+  margin: 0;
+}
+
+code,
+.counter {
+  font-family: var(--mono);
+  display: inline-flex;
+  border-radius: 4px;
+  color: var(--text-h);
+}
+
+code {
+  font-size: 15px;
+  line-height: 135%;
+  padding: 4px 8px;
+  background: var(--code-bg);
+}
+</file>
+
+<file path="src/main.tsx">
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import './index.css'
+import App from './App.tsx'
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+)
+</file>
 
 <file path=".gitignore">
 # Logs
@@ -197,6 +1020,2129 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
 })
+</file>
+
+<file path="docs/architecture.md">
+# Architecture
+
+## Overview
+
+Tortilla World is a simulation-driven React application.
+
+The application is not designed as a collection of UI components with local state.
+Instead, it models a small interactive world where entities exist, move, interact, and change state through controlled systems.
+
+The architecture is based on four main concepts:
+
+```text
+              User / AI
+                  |
+                  v
+          Interaction System
+                  |
+                  v
+          Action Validation
+                  |
+                  v
+             World Store
+                  |
+                  v
+       Entities and Containers
+```
+
+---
+
+# Core Concepts
+
+## Entities
+
+Entities are all objects that exist in the world.
+
+Examples:
+
+* ingredients
+* tools
+* containers
+* characters
+* machines
+
+An entity has:
+
+* identity
+* type
+* properties
+* optional state
+
+Example:
+
+```ts
+{
+  id: "potato",
+  type: "ingredient"
+}
+```
+
+Entities do not control their own behaviour.
+
+They are controlled by systems.
+
+---
+
+# Containers
+
+Containers are entities that own other entities.
+
+Examples:
+
+* Kitchen
+* Pantry
+* Recipe
+* Pan
+* Plate
+
+A container defines:
+
+* what it can contain
+* ordering
+* uniqueness rules
+* transfer behaviour
+
+Example:
+
+```text
+Kitchen
+ ├── Potato
+ ├── Onion
+ ├── Knife
+ └── Pan
+```
+
+A container is not a simple array.
+
+It is a world object with rules.
+
+---
+
+# Ownership Model
+
+Every movable entity has an owner.
+
+Example:
+
+Initial:
+
+```text
+Kitchen
+ ├── Potato
+ ├── Egg
+
+
+Pan
+ └── Oil
+```
+
+After moving potato:
+
+```text
+Kitchen
+ └── Egg
+
+
+Pan
+ ├── Oil
+ └── Potato
+```
+
+The potato entity remains the same.
+
+Only the relationship changes:
+
+```text
+Before:
+
+Kitchen owns Potato
+
+
+After:
+
+Pan owns Potato
+```
+
+---
+
+# State Management
+
+The world state is stored centrally.
+
+Current technology:
+
+* React
+* Zustand
+
+The store represents the complete world.
+
+Example:
+
+```ts
+interface WorldState {
+
+ entities:
+   Record<string, Entity>
+
+ containers:
+   Record<string, Container>
+
+ actions:
+   WorldActions
+
+}
+```
+
+---
+
+# Data Flow
+
+## User interaction
+
+Example:
+
+User drags potato into pan.
+
+Flow:
+
+```text
+Drag Event
+    |
+    v
+D&D Layer
+    |
+    v
+Interaction System
+    |
+    v
+Move Action
+    |
+    v
+Container Validation
+    |
+    v
+World Store Update
+    |
+    v
+React Render
+```
+
+---
+
+# Drag and Drop Architecture
+
+Drag and drop is only an input method.
+
+It does not contain business rules.
+
+The DnD system provides:
+
+```ts
+{
+ entityId:"potato",
+ targetContainer:"pan"
+}
+```
+
+The Interaction System decides:
+
+* is the move allowed?
+* what transfer rule applies?
+* what state changes happen?
+
+---
+
+# Systems
+
+Systems contain world behaviour.
+
+Examples:
+
+## Movement System
+
+Responsible for:
+
+* moving entities
+* validating ownership
+* applying transfer rules
+
+---
+
+## Interaction System
+
+Responsible for:
+
+* converting user input into actions
+* handling clicks
+* handling drag operations
+
+---
+
+## Cooking System
+
+Future system.
+
+Responsible for:
+
+* combining ingredients
+* changing states
+* producing results
+
+Example:
+
+```text
+Potato + Egg + Onion
+
+       |
+       v
+
+Tortilla
+```
+
+---
+
+## AI System
+
+Future system.
+
+Responsible for:
+
+* generating actions
+* planning
+* interacting with the world
+
+AI does not modify state directly.
+
+Example:
+
+```ts
+{
+ type:"MOVE_ENTITY",
+ entity:"egg",
+ destination:"recipe"
+}
+```
+
+---
+
+# Actions
+
+All world changes happen through actions.
+
+Example:
+
+```ts
+{
+ type:"MOVE_ENTITY",
+
+ entityId:"potato",
+
+ source:"kitchen",
+
+ target:"pan"
+}
+```
+
+Actions provide:
+
+* traceability
+* debugging
+* replay
+* AI compatibility
+
+---
+
+# Containers and Transfer Rules
+
+Moving an entity is not a simple remove/add operation.
+
+The process is:
+
+```text
+Move Request
+
+      |
+      v
+
+Check source container
+
+      |
+      v
+
+Check destination container
+
+      |
+      v
+
+Apply transfer rules
+
+      |
+      v
+
+Update ownership
+
+      |
+      v
+
+Update world state
+```
+
+---
+
+# Rendering Architecture
+
+React components display world state.
+
+They do not own world logic.
+
+Example:
+
+```text
+World Store
+
+    |
+    v
+
+Scene Component
+
+    |
+    +---- Container Component
+    |
+    +---- Entity Component
+```
+
+---
+
+# Component Responsibilities
+
+## Entity Component
+
+Responsible for:
+
+* rendering an entity
+* animations
+* visual state
+
+Does not:
+
+* move itself
+* validate actions
+
+---
+
+## Container Component
+
+Responsible for:
+
+* rendering contents
+* layout
+* accepting interactions
+
+Does not:
+
+* decide business rules
+
+---
+
+# Future Architecture
+
+The architecture is designed to support:
+
+## More containers
+
+Examples:
+
+* fridge
+* cupboard
+* oven
+* table
+* customer tray
+
+---
+
+## More entities
+
+Examples:
+
+* characters
+* animals
+* machines
+* recipes
+
+---
+
+## More systems
+
+Examples:
+
+* physics
+* time
+* cooking
+* economy
+* AI planning
+
+---
+
+# Design Principles
+
+## 1. Data before UI
+
+The world model exists independently of React.
+
+---
+
+## 2. Rules before actions
+
+Every action must be validated.
+
+---
+
+## 3. Entities keep identity
+
+Movement changes ownership, not objects.
+
+---
+
+## 4. Containers own behaviour
+
+Rules belong to locations, not items.
+
+---
+
+## 5. Systems change the world
+
+Components only represent the world.
+
+---
+
+# Final Architecture Diagram
+
+```text
+
+                 User
+                  |
+                  |
+                  v
+
+          React Interaction Layer
+                  |
+                  |
+                  v
+
+          Interaction System
+                  |
+                  |
+                  v
+
+             Action Queue
+                  |
+                  |
+                  v
+
+          World Simulation
+                  |
+        +---------+---------+
+        |                   |
+        v                   v
+
+    Containers          Entities
+
+        |
+        |
+        v
+
+     Zustand Store
+
+        |
+        |
+        v
+
+      React UI
+
+```
+
+Tortilla World is therefore structured as a small simulation engine with a React interface, rather than a traditional CRUD application.
+</file>
+
+<file path="docs/entities.md">
+# Entities
+
+## Overview
+
+Tortilla World is built around a world model composed of **entities** and **containers**.
+
+Everything that exists in the world is an entity:
+
+* ingredients
+* tools
+* containers
+* future objects such as plates, machines, characters, or decorations
+
+Entities do not decide where they can exist.
+Containers own entities and enforce the rules of what they can contain.
+
+The world state is therefore based on:
+
+```
+Entity
+   |
+   | owned by
+   v
+Container
+```
+
+---
+
+# Entity
+
+An entity is a unique object inside the world.
+
+Example:
+
+```ts
+{
+  id: "potato",
+  type: "ingredient"
+}
+```
+
+or:
+
+```ts
+{
+  id: "pan-small",
+  type: "tool"
+}
+```
+
+Entities have identity.
+
+Moving an entity does not create a new entity.
+A move changes the ownership relationship between containers.
+
+---
+
+# Entity Types
+
+## Ingredient
+
+Ingredients are cooking resources.
+
+Examples:
+
+* potato
+* egg
+* onion
+* oil
+
+Ingredients have special rules:
+
+* an ingredient can only appear once inside the same container
+* ingredients can move between containers
+* ingredients can be consumed by actions
+* ingredients can be transformed by cooking systems
+
+Example:
+
+```ts
+{
+  id: "potato",
+  type: "ingredient",
+  name: "Potato",
+  icon: "🥔"
+}
+```
+
+---
+
+## Tool
+
+Tools are reusable objects used by actions.
+
+Examples:
+
+* pan
+* knife
+* spoon
+* bowl
+
+Tools have different rules from ingredients:
+
+* duplicate tools are allowed
+* tools can exist multiple times inside a container
+* tools are normally not consumed
+
+Example:
+
+```ts
+{
+  id: "pan-001",
+  type: "tool",
+  name: "Pan",
+  icon: "🍳"
+}
+```
+
+A kitchen can contain:
+
+```
+Kitchen
+ ├── pan-001
+ └── pan-002
+```
+
+Both are valid.
+
+---
+
+# Container
+
+A container is an entity that can own other entities.
+
+Examples:
+
+* kitchen
+* pantry
+* recipe
+* pan
+* plate
+* fridge
+
+A container is not a simple programming list.
+
+It is a world object with:
+
+* ordered contents
+* ownership
+* validation rules
+* capabilities
+
+Example:
+
+```ts
+{
+  id: "kitchen",
+  type: "container",
+  children:[
+    "potato",
+    "egg",
+    "pan-001"
+  ]
+}
+```
+
+---
+
+# Container Rules
+
+Containers define what they allow.
+
+Rules are not stored in the entity itself.
+
+The same entity type can behave differently depending on the container.
+
+Example:
+
+A potato can exist in:
+
+```
+Kitchen
+Recipe
+Pan
+Plate
+```
+
+but each container decides what happens.
+
+---
+
+## Content ordering
+
+Container contents are ordered.
+
+The order matters for:
+
+* visual rendering
+* drag and drop
+* animations
+* UI positioning
+
+Therefore container contents use an ordered collection.
+
+Example:
+
+```ts
+children:[
+  "potato",
+  "egg",
+  "onion"
+]
+```
+
+---
+
+# Ingredient uniqueness
+
+A container cannot contain two identical ingredients.
+
+Valid:
+
+```
+Recipe
+ ├── potato
+ ├── onion
+ └── egg
+```
+
+Invalid:
+
+```
+Recipe
+ ├── potato
+ ├── potato
+```
+
+This rule applies only to ingredients.
+
+---
+
+# Duplicate entities
+
+Duplicate rules depend on entity type.
+
+Example:
+
+Kitchen:
+
+Valid:
+
+```
+Kitchen
+ ├── potato
+ ├── onion
+ ├── pan-001
+ └── pan-002
+```
+
+Invalid:
+
+```
+Kitchen
+ ├── potato
+ └── potato
+```
+
+---
+
+# Ownership
+
+Every movable entity has an owner.
+
+Example:
+
+Initial state:
+
+```
+Kitchen
+ ├── potato
+ ├── egg
+
+
+Pan
+ └── oil
+```
+
+After moving potato:
+
+```
+Kitchen
+ └── egg
+
+
+Pan
+ ├── oil
+ └── potato
+```
+
+The potato entity did not change.
+
+Only the ownership relation changed.
+
+---
+
+# Static and Dynamic Containers
+
+Containers can have different ownership behaviour.
+
+## Static Container
+
+A static container represents predefined world content.
+
+Examples:
+
+* kitchen ingredients
+* initial inventory
+* environment objects
+
+Characteristics:
+
+* content is defined by the world
+* removing an item does not necessarily delete it
+* moving an item out can create a new reference/copy depending on rules
+
+Example:
+
+```
+Kitchen
+ ├── potato
+ ├── onion
+ └── egg
+```
+
+---
+
+## Dynamic Container
+
+A dynamic container represents changing ownership.
+
+Examples:
+
+* recipe
+* pan
+* plate
+* trash
+
+Characteristics:
+
+* items can be added
+* items can be removed
+* items can be transferred
+
+Example:
+
+```
+Recipe
+ ├── potato
+ └── egg
+```
+
+---
+
+# Container Capabilities
+
+Containers expose capabilities that systems can check.
+
+Example:
+
+```ts
+{
+  canAdd: true,
+  canRemove: true,
+  allowsDuplicateIngredients: false,
+  acceptedTypes:[
+    "ingredient",
+    "tool"
+  ]
+}
+```
+
+Before performing an action, systems validate these capabilities.
+
+---
+
+# Relationships
+
+The world is composed of relationships:
+
+```
+Kitchen
+   owns
+      Potato
+
+
+Pan
+   owns
+      Oil
+```
+
+The Entity itself does not know:
+
+* where it is
+* what contains it
+* what actions are possible
+
+The world systems decide this.
+
+---
+
+# Future Extensions
+
+This model allows adding:
+
+## Characters
+
+```
+Tortilla
+  owns
+    Knife
+```
+
+## Machines
+
+```
+Oven
+  owns
+    Tray
+```
+
+## Recipes
+
+```
+Recipe
+  owns
+    Potato
+    Egg
+```
+
+## Cooking states
+
+```
+Pan
+  owns
+    Raw Potato
+```
+
+becomes:
+
+```
+Pan
+  owns
+    Fried Potato
+```
+
+without changing the fundamental entity/container model.
+</file>
+
+<file path="docs/systems.md">
+# Systems
+
+## Overview
+
+Systems contain the behaviour of Tortilla World.
+
+Components display the world.
+Systems modify the world.
+
+A system receives actions, validates them, and updates the world state.
+
+The general flow is:
+
+```text
+Input
+  |
+  v
+Action
+  |
+  v
+System
+  |
+  v
+Validation
+  |
+  v
+World State Update
+  |
+  v
+UI Update
+```
+
+---
+
+# System Architecture
+
+Tortilla World is based on independent systems.
+
+Current and planned systems:
+
+```text
+Systems
+
+├── Interaction System
+├── Movement System
+├── Container System
+├── Animation System
+├── Cooking System
+└── AI System
+```
+
+Each system has a clear responsibility.
+
+---
+
+# Interaction System
+
+## Responsibility
+
+The Interaction System converts external events into world actions.
+
+External events:
+
+* mouse clicks
+* drag and drop
+* AI requests
+* future keyboard/gamepad input
+
+The Interaction System does not modify the world directly.
+
+---
+
+## Example
+
+User drags potato into pan.
+
+The Interaction System creates:
+
+```ts
+{
+  type:"MOVE_ENTITY",
+  entityId:"potato",
+  targetContainer:"pan"
+}
+```
+
+The action is passed to the Movement System.
+
+---
+
+# Movement System
+
+## Responsibility
+
+The Movement System controls ownership changes.
+
+It handles:
+
+* moving entities
+* validating source ownership
+* validating destination rules
+* applying transfer behaviour
+
+---
+
+## Move Flow
+
+```text
+Move Request
+
+      |
+      v
+
+Find Entity
+
+      |
+      v
+
+Find Current Container
+
+      |
+      v
+
+Find Target Container
+
+      |
+      v
+
+Validate Move
+
+      |
+      v
+
+Apply Transfer Rule
+
+      |
+      v
+
+Update Ownership
+
+```
+
+---
+
+# Move Validation
+
+Before moving an entity, the system checks:
+
+## Entity existence
+
+Does the entity exist?
+
+Example:
+
+```text
+potato
+```
+
+must exist in the world.
+
+---
+
+## Source ownership
+
+Does the source container own the entity?
+
+Example:
+
+Valid:
+
+```text
+Kitchen owns potato
+```
+
+Invalid:
+
+```text
+Pan owns potato
+```
+
+when moving from Kitchen.
+
+---
+
+## Destination capability
+
+Can the target container accept this entity?
+
+Example:
+
+A pan may accept:
+
+```text
+ingredient
+```
+
+but reject:
+
+```text
+container
+```
+
+---
+
+## Duplicate rules
+
+The container checks uniqueness.
+
+Example:
+
+Valid:
+
+```text
+Recipe
+
+potato
+egg
+```
+
+Invalid:
+
+```text
+Recipe
+
+potato
+potato
+```
+
+---
+
+# Transfer Rules
+
+A move is not always the same operation.
+
+Containers define transfer behaviour.
+
+---
+
+# Static Container To Dynamic Container
+
+Example:
+
+```text
+Kitchen
+ |
+ potato
+
+
+Recipe
+```
+
+Move potato:
+
+Result:
+
+```text
+Kitchen
+ |
+ potato
+
+
+Recipe
+ |
+ potato
+```
+
+The destination receives the ingredient.
+
+The source remains unchanged.
+
+This represents a world resource.
+
+---
+
+# Dynamic Container To Dynamic Container
+
+Example:
+
+```text
+Recipe
+ |
+ potato
+
+
+Pan
+```
+
+Move potato:
+
+Result:
+
+```text
+Recipe
+
+
+Pan
+ |
+ potato
+```
+
+Ownership transfers.
+
+---
+
+# Dynamic Container To Static Container
+
+Example:
+
+```text
+Recipe
+ |
+ potato
+
+
+Kitchen
+```
+
+Move potato back.
+
+Result:
+
+```text
+Recipe
+
+
+Kitchen
+ |
+ potato
+```
+
+The dynamic container loses ownership.
+
+The static container provides the original world resource.
+
+---
+
+# Container System
+
+## Responsibility
+
+The Container System manages container rules.
+
+It answers questions:
+
+* Can this entity be added?
+* Can this entity be removed?
+* Are duplicates allowed?
+* Is the container full?
+* Does ordering matter?
+
+---
+
+## Example API
+
+```ts
+canAccept(
+  container,
+  entity
+)
+```
+
+returns:
+
+```ts
+true
+```
+
+or:
+
+```ts
+false
+```
+
+---
+
+# Action Queue
+
+## Responsibility
+
+All world changes should pass through an action queue.
+
+Example:
+
+```text
+AI
+ |
+User
+ |
+System
+ |
+Action Queue
+ |
+World Update
+```
+
+---
+
+## Example Action
+
+```ts
+{
+ type:"MOVE_ENTITY",
+
+ entityId:"egg",
+
+ source:"kitchen",
+
+ target:"recipe"
+}
+```
+
+---
+
+## Benefits
+
+Action queues provide:
+
+* debugging
+* replay
+* logging
+* AI control
+* animations
+* delayed actions
+
+---
+
+# Animation System
+
+## Responsibility
+
+The Animation System reacts to world changes.
+
+It does not decide what happens.
+
+Example:
+
+Movement System:
+
+```text
+Potato moved to Pan
+```
+
+Animation System:
+
+```text
+Play potato movement animation
+```
+
+---
+
+## Separation
+
+Bad:
+
+```text
+Drag component:
+move object
+animate object
+change state
+```
+
+Good:
+
+```text
+Drag component:
+create action
+
+
+Movement System:
+change state
+
+
+Animation System:
+animate change
+```
+
+---
+
+# Cooking System
+
+## Responsibility
+
+Future system for transforming entities.
+
+Examples:
+
+```text
+Potato
++
+Oil
++
+Heat
+
+    |
+    v
+
+Fried Potato
+```
+
+---
+
+The cooking system changes entity state.
+
+Example:
+
+Before:
+
+```ts
+{
+ type:"ingredient",
+ state:"raw"
+}
+```
+
+After:
+
+```ts
+{
+ type:"ingredient",
+ state:"cooked"
+}
+```
+
+---
+
+# AI System
+
+## Responsibility
+
+The AI System creates actions.
+
+The AI does not directly manipulate Zustand state.
+
+---
+
+Example:
+
+AI decides:
+
+```text
+Prepare tortilla
+```
+
+Creates:
+
+```ts
+[
+ {
+  type:"MOVE_ENTITY",
+  entityId:"potato",
+  target:"pan"
+ },
+
+ {
+  type:"ADD_HEAT",
+  target:"pan"
+ }
+]
+```
+
+The normal systems execute them.
+
+---
+
+# System Communication
+
+Systems communicate through actions and world state.
+
+Example:
+
+```text
+Interaction System
+
+        |
+        v
+
+Move Action
+
+        |
+        v
+
+Movement System
+
+        |
+        v
+
+World Store
+
+        |
+        v
+
+Animation System
+
+```
+
+---
+
+# Zustand Responsibility
+
+Zustand is the storage layer.
+
+It stores:
+
+* entities
+* containers
+* relationships
+* world state
+
+It should not contain UI logic.
+
+---
+
+Example:
+
+Good:
+
+```ts
+moveEntity(
+ entityId,
+ from,
+ to
+)
+```
+
+Bad:
+
+```ts
+onDropIngredient(
+ mouseEvent
+)
+```
+
+---
+
+# Testing Strategy
+
+Systems should be testable without React.
+
+Example:
+
+```ts
+moveEntity(
+ "potato",
+ "kitchen",
+ "pan"
+)
+```
+
+Expected:
+
+```text
+Kitchen:
+empty
+
+Pan:
+potato
+```
+
+---
+
+# Future Systems
+
+Possible additions:
+
+## Time System
+
+Controls:
+
+* cooking duration
+* day/night
+* events
+
+---
+
+## Physics System
+
+Controls:
+
+* collisions
+* falling objects
+* movement
+
+---
+
+## Economy System
+
+Controls:
+
+* ingredients cost
+* customers
+* money
+
+---
+
+## Character System
+
+Controls:
+
+* NPCs
+* player actions
+* behaviours
+
+---
+
+# Final Principle
+
+The rule of Tortilla World:
+
+```text
+Components show the world.
+
+Systems change the world.
+
+Containers define the rules.
+
+Actions describe intentions.
+
+The Store remembers the result.
+```
+</file>
+
+<file path="src/data/catalog/recipes/concebolla.ts">
+import { ingredients } from '../ingredients'
+
+export const recipe = {
+  id: 'concebolla',
+  name: 'Con Cebolla',
+  ingredients: [
+    ingredients.find((i) => i.id === 'potato'),
+    ingredients.find((i) => i.id === 'egg'),
+    ingredients.find((i) => i.id === 'oil'),
+    ingredients.find((i) => i.id === 'salt'),
+    ingredients.find((i) => i.id === 'pepper'),
+    ingredients.find((i) => i.id === 'onion'),
+  ],
+}
+</file>
+
+<file path="src/systems/gaze.test.ts">
+import { describe, it, expect, beforeEach } from 'vitest';
+import { worldStore } from '../store/worldStore';
+import { updateMascotGaze, getMascotGazeTarget } from './gaze';
+
+describe('Gaze System', () => {
+  beforeEach(() => {
+    worldStore.setState({
+      entities: {
+        chef: {
+          id: 'chef',
+          name: 'Chef',
+          type: 'mascot',
+          state: {
+            gazingAt: undefined,
+          },
+        },
+      },
+      containers: {
+        bench: {
+          id: 'bench',
+          name: 'Workbench',
+          type: 'board',
+          rules: { maxCapacity: 1 },
+          entityIds: [],
+        },
+        pan: {
+          id: 'pan',
+          name: 'Pan',
+          type: 'pan',
+          rules: { maxCapacity: Infinity },
+          entityIds: [],
+        },
+        plate: {
+          id: 'plate',
+          name: 'Plate',
+          type: 'storage',
+          rules: { maxCapacity: Infinity },
+          entityIds: [],
+        },
+      },
+    });
+  });
+
+  it('updates mascot gaze target correctly', () => {
+    updateMascotGaze('chef', 'pan');
+    expect(getMascotGazeTarget('chef')).toBe('pan');
+  });
+
+  it('is idempotent when gazing at the same target', () => {
+    updateMascotGaze('chef', 'pan');
+    const firstState = worldStore.getState();
+
+    updateMascotGaze('chef', 'pan');
+    const secondState = worldStore.getState();
+
+    expect(firstState).toBe(secondState);
+  });
+});
+</file>
+
+<file path="src/systems/gaze.ts">
+// src/systems/gaze.ts
+
+import { worldStore } from '../store/worldStore';
+
+export type GazeTarget = string | null;
+
+interface GazeState {
+  gazingAt?: GazeTarget;
+}
+
+/**
+ * Updates what target a mascot is looking at.
+ */
+export function updateMascotGaze(
+  mascotId: string,
+  targetId: GazeTarget
+): void {
+  const currentTarget = getMascotGazeTarget(mascotId);
+
+  if (currentTarget === targetId) {
+    return;
+  }
+
+  worldStore.getState().dispatch({
+    type: 'UPDATE_ENTITY_STATE',
+    payload: {
+      entityId: mascotId,
+      changes: {
+        gazingAt: targetId,
+      },
+    },
+  });
+}
+
+/**
+ * Returns the current gaze target.
+ */
+export function getMascotGazeTarget(
+  mascotId: string
+): GazeTarget {
+  const entity = worldStore.getState().entities[mascotId];
+
+  if (!entity) {
+    return null;
+  }
+
+  const state = entity.state as GazeState | undefined;
+
+  return state?.gazingAt ?? null;
+}
+</file>
+
+<file path="src/systems/movement.ts">
+// src/systems/movement.ts
+
+import { worldStore } from '../store/worldStore';
+
+/**
+ * Requests that an entity be moved to another container.
+ * The reducer determines the source container automatically.
+ */
+export function moveEntity(
+  entityId: string,
+  targetContainerId: string,
+  positionIndex?: number
+): void {
+  worldStore.getState().dispatch({
+    type: 'MOVE_ENTITY',
+    payload: {
+      entityId,
+      targetContainerId,
+      positionIndex,
+    },
+  });
+}
+</file>
+
+<file path="src/types/Ingredient.ts">
+export interface Ingredient {
+  id: string
+  name: string
+  icon: string
+}
+</file>
+
+<file path="src/types/world.ts">
+import type { WorldAction } from './actions';
+
+export type EntityType = 'ingredient' | 'tool' | 'mascot';
+export type ContainerType = 'storage' | 'pan' | 'board' | 'plate' | 'trash';
+
+export interface Entity {
+  id: string;
+  name: string;
+  type: EntityType;
+  state?: Record<string, unknown>;
+}
+
+export interface ContainerRules {
+  maxCapacity?: number;
+  allowedTypes?: EntityType[];
+  uniqueTypesOnly?: boolean;
+  customValidator?: ( 
+    container: Container,
+    entity: Entity,
+    currentEntities: Entity[]
+  ) => boolean;
+}
+
+export interface Container {
+  id: string;
+  name: string;
+  type: ContainerType;
+  entityIds: string[];
+  rules?: ContainerRules;
+}
+
+export interface WorldState {
+  entities: Record<string, Entity>;
+  containers: Record<string, Container>;
+  dispatch: (action: WorldAction) => void;
+}
+
+export type { WorldAction };
+</file>
+
+<file path="src/App.css">
+.counter {
+  font-size: 16px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 2px solid transparent;
+  transition: border-color 0.3s;
+  margin-bottom: 24px;
+
+  &:hover {
+    border-color: var(--accent-border);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+.hero {
+  position: relative;
+
+  .base,
+  .framework,
+  .vite {
+    inset-inline: 0;
+    margin: 0 auto;
+  }
+
+  .base {
+    width: 170px;
+    position: relative;
+    z-index: 0;
+  }
+
+  .framework,
+  .vite {
+    position: absolute;
+  }
+
+  .framework {
+    z-index: 1;
+    top: 34px;
+    height: 28px;
+    transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg)
+      scale(1.4);
+  }
+
+  .vite {
+    z-index: 0;
+    top: 107px;
+    height: 26px;
+    width: auto;
+    transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg)
+      scale(0.8);
+  }
+}
+
+#center {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  place-content: center;
+  place-items: center;
+  flex-grow: 1;
+
+  @media (max-width: 1024px) {
+    padding: 32px 20px 24px;
+    gap: 18px;
+  }
+}
+
+#next-steps {
+  display: flex;
+  border-top: 1px solid var(--border);
+  text-align: left;
+
+  & > div {
+    flex: 1 1 0;
+    padding: 32px;
+    @media (max-width: 1024px) {
+      padding: 24px 20px;
+    }
+  }
+
+  .icon {
+    margin-bottom: 16px;
+    width: 22px;
+    height: 22px;
+  }
+
+  @media (max-width: 1024px) {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+#docs {
+  border-right: 1px solid var(--border);
+
+  @media (max-width: 1024px) {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+}
+
+#next-steps ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  gap: 8px;
+  margin: 32px 0 0;
+
+  .logo {
+    height: 18px;
+  }
+
+  a {
+    color: var(--text-h);
+    font-size: 16px;
+    border-radius: 6px;
+    background: var(--social-bg);
+    display: flex;
+    padding: 6px 12px;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    transition: box-shadow 0.3s;
+
+    &:hover {
+      box-shadow: var(--shadow);
+    }
+    .button-icon {
+      height: 18px;
+      width: 18px;
+    }
+  }
+
+  @media (max-width: 1024px) {
+    margin-top: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+
+    li {
+      flex: 1 1 calc(50% - 8px);
+    }
+
+    a {
+      width: 100%;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+  }
+}
+
+#spacer {
+  height: 88px;
+  border-top: 1px solid var(--border);
+  @media (max-width: 1024px) {
+    height: 48px;
+  }
+}
+
+.ticks {
+  position: relative;
+  width: 100%;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    top: -4.5px;
+    border: 5px solid transparent;
+  }
+
+  &::before {
+    left: 0;
+    border-left-color: var(--border);
+  }
+  &::after {
+    right: 0;
+    border-right-color: var(--border);
+  }
+}
+
+
+[data-drop-id] { outline: 2px dashed rgba(0,128,0,0.4); }
 </file>
 
 <file path="AGENTS.md">
@@ -1218,6 +4164,1494 @@ docs/
 ````
 </file>
 
+<file path="docs/roadmap.md">
+# Tortilla World Roadmap
+
+## Vision
+
+Tortilla World is an interactive cooking simulation built around a living world model.
+
+The goal is not only to create a recipe application, but to create a small simulated environment where:
+
+* objects exist as entities
+* containers define relationships
+* actions modify the world
+* characters and AI can interact with the environment
+
+The long-term vision is a "living kitchen" where the user can interact with objects naturally and where autonomous agents can understand and manipulate the world.
+
+---
+
+# Current Status
+
+## Phase: World Foundation
+
+Status:
+
+🟡 In development
+
+Current focus:
+
+* stable world model
+* entity system
+* container system
+* drag and drop interactions
+* predictable state management
+
+Completed foundations:
+
+✅ React + TypeScript application
+✅ Zustand world store
+✅ Entity-based architecture
+✅ Container concept
+✅ Drag and drop foundation
+✅ Ingredient data model
+✅ Documentation structure
+
+---
+
+# Roadmap Overview
+
+```text
+Foundation
+    |
+    v
+World Interaction
+    |
+    v
+Cooking Simulation
+    |
+    v
+Living Kitchen
+    |
+    v
+AI Assisted World
+```
+
+---
+
+# Phase 1 — World Foundation
+
+## Goal
+
+Create a reliable simulation core.
+
+## Features
+
+### Entity System
+
+Implement:
+
+* ingredients
+* tools
+* containers
+* entity identity
+
+Example:
+
+```text
+Potato
+Knife
+Pan
+Kitchen
+```
+
+---
+
+### Container System
+
+Implement:
+
+* ownership
+* ordered contents
+* container rules
+* validation
+
+Examples:
+
+```text
+Kitchen
+Recipe
+Pan
+Plate
+```
+
+---
+
+### Movement System
+
+Implement:
+
+* moving entities
+* validating moves
+* transfer rules
+* ownership changes
+
+Example:
+
+```text
+Kitchen
+
+ potato
+
+    |
+    v
+
+Pan
+
+ potato
+```
+
+---
+
+# Phase 2 — Interaction Layer
+
+## Goal
+
+Make the world feel alive.
+
+## Features
+
+### Improved Drag and Drop
+
+Support:
+
+* visual feedback
+* invalid drop states
+* animations
+* multi-container interactions
+
+---
+
+### Entity Animations
+
+Entities should:
+
+* move naturally
+* react to interactions
+* have visual states
+
+Examples:
+
+* potato jumps into pan
+* knife moves to cutting board
+* ingredients combine
+
+---
+
+### Action System
+
+Introduce:
+
+```ts
+Action
+{
+ type
+ payload
+ timestamp
+}
+```
+
+Benefits:
+
+* replay
+* debugging
+* AI compatibility
+
+---
+
+# Phase 3 — Cooking Simulation
+
+## Goal
+
+Create actual cooking behaviour.
+
+## Features
+
+## Recipe System
+
+Support:
+
+* recipes
+* ingredient requirements
+* preparation steps
+
+Example:
+
+```text
+Potato
+Egg
+Onion
+
+    +
+    
+Cooking
+
+    =
+
+Tortilla
+```
+
+---
+
+## Cooking States
+
+Entities gain states:
+
+Example:
+
+```text
+Potato
+
+raw
+ |
+ v
+cut
+ |
+ v
+fried
+```
+
+---
+
+## Tools Become Functional
+
+Examples:
+
+Knife:
+
+```text
+ingredient
+      |
+      v
+cut ingredient
+```
+
+Pan:
+
+```text
+ingredient
+      |
+      v
+cook ingredient
+```
+
+---
+
+# Phase 4 — Living Kitchen
+
+## Goal
+
+Create a world that behaves independently.
+
+## Features
+
+### Characters
+
+Introduce:
+
+* player character
+* helpers
+* customers
+* NPCs
+
+---
+
+### Time System
+
+Add:
+
+* cooking duration
+* events
+* schedules
+
+Example:
+
+```text
+Egg on pan
+
+0s
+ |
+30s
+ |
+Cooked
+```
+
+---
+
+### Environment
+
+Add:
+
+* fridge
+* cupboards
+* tables
+* oven
+* restaurant area
+
+---
+
+# Phase 5 — AI Kitchen Assistant
+
+## Goal
+
+Allow AI agents to understand and interact with the world.
+
+The AI does not directly change state.
+
+The AI creates actions.
+
+Example:
+
+```json
+{
+"type":"MOVE_ENTITY",
+"entity":"egg",
+"target":"pan"
+}
+```
+
+The world validates and executes the action.
+
+---
+
+## AI Features
+
+Possible future capabilities:
+
+* recipe planning
+* cooking assistance
+* autonomous helpers
+* explanations
+* suggestions
+* learning user preferences
+
+---
+
+# Phase 6 — Multiplayer / Shared World (Future)
+
+Possible future direction:
+
+* shared kitchens
+* collaborative cooking
+* synchronized worlds
+* multiple AI agents
+
+---
+
+# Development Principles
+
+## Keep the World Model Independent
+
+The simulation should not depend on React.
+
+---
+
+## Prefer Systems Over Component Logic
+
+Components display.
+
+Systems decide.
+
+---
+
+## Preserve Entity Identity
+
+Objects are moved, not recreated.
+
+---
+
+## Document Decisions
+
+Important architecture changes should be recorded in:
+
+```text
+docs/decisions.md
+```
+
+---
+
+# Current Priority
+
+The immediate goal is:
+
+> Build a stable interactive kitchen world where every object follows predictable rules.
+
+Everything else depends on this foundation.
+</file>
+
+<file path="src/components/Ingredients/IngredientList.tsx">
+import { useStore } from 'zustand';
+import { worldStore } from '../../store/worldStore';
+import type { Entity } from '../../types/world';
+
+export function IngredientList({ containerEntityIds }: { containerEntityIds: string[] }) {
+  const entities = useStore(worldStore, (state) => state.entities);
+
+  const containerEntities = containerEntityIds
+    .map((id: string) => entities[id])
+    .filter((e: Entity | undefined): e is Entity => Boolean(e));
+
+  return (
+    <div>
+      {containerEntities.map((entity: Entity) => (
+        <div key={entity.id}>{entity.name}</div>
+      ))}
+    </div>
+  );
+}
+</file>
+
+<file path="src/components/Ingredients/Ingredients.css">
+.ingredient-list-panel {
+  background: linear-gradient(135deg, #fffdf8 0%, #f7efe7 100%);
+  border: 1px solid #e7d8c3;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(82, 55, 24, 0.08);
+  min-width: 240px;
+  padding: 16px;
+}
+
+.ingredient-list-header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.ingredient-list-header h3 {
+  color: #6b4226;
+  font-size: 1rem;
+  margin: 0;
+}
+
+.ingredient-list-header span {
+  color: #8b6a45;
+  font-size: 0.85rem;
+}
+
+.ingredient-list,
+.recipe-ingredient-list {
+  display: grid;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ingredient-list-item,
+.recipe-ingredient-item {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #e6d5bf;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+  display: flex;
+  gap: 0.5rem;
+  padding: 10px 12px;
+  user-select: none;
+}
+
+.ingredient-list-item-body {
+  align-items: center;
+  cursor: grab;
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.ingredient-list-item-body:active {
+  cursor: grabbing;
+}
+
+.ingredient-remove {
+  align-items: center;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: #8b6a45;
+  cursor: pointer;
+  display: inline-flex;
+  flex-shrink: 0;
+  font-size: 1.25rem;
+  height: 1.75rem;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  width: 1.75rem;
+}
+
+.ingredient-remove:hover {
+  background: #f5e8d8;
+  color: #6b4226;
+}
+
+.ingredient-remove:focus-visible {
+  outline: 2px solid #c9956a;
+  outline-offset: 2px;
+}
+
+.ingredient-list-item:active,
+.recipe-ingredient-item:active {
+  cursor: grabbing;
+}
+
+.ingredient-list-item span {
+  font-size: 1rem;
+}
+
+.recipe-ingredient-amount {
+  margin-left: auto;
+}
+
+.scene-panel {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 30rem) {
+  .recipe-ingredient-amount {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+</file>
+
+<file path="src/components/Mascot/Mascot.css">
+.mascot {
+  position: fixed;
+  z-index: 50;
+  pointer-events: none;
+  filter: drop-shadow(0 6px 10px rgba(82, 55, 24, 0.25));
+}
+
+/* ============================================
+   BLINK ANIMATION
+   ============================================ */
+
+.tortilla-blink {
+  animation: blink 4s infinite;
+  transform: scaleY(0);
+  pointer-events: none;
+}
+
+@keyframes blink {
+  0%, 45%, 55%, 100% {
+    transform: scaleY(0);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+.mascot:hover {
+  cursor: pointer;
+}
+.mascot {
+  position: absolute;
+  z-index: 100;
+  pointer-events: auto;   /* ← DAS ist der wichtige Teil! */
+  will-change: transform;
+  cursor: pointer;
+}
+</file>
+
+<file path="src/systems/mascot.ts">
+import { worldStore } from '../store/worldStore';
+
+export interface MascotState {
+  id: string;
+  gazingAt: string | null;
+}
+
+export function updateMascotTarget(mascotId: string, targetContainerId: string | null): void {
+  worldStore.getState().dispatch({
+    type: 'UPDATE_ENTITY_STATE',
+    payload: {
+      entityId: mascotId,
+      changes: { gazingAt: targetContainerId },
+    },
+  });
+}
+</file>
+
+<file path="src/types/Entity.ts">
+export type EntityType = 'character' | 'ingredient' | 'kitchen-object'
+
+export interface Position {
+  x: number
+  y: number
+}
+
+export interface Size {
+  width: number
+  height: number
+}
+
+export interface Entity {
+  id: string            // unique per physical instance — NOT the same as ingredientId
+  type: EntityType
+  ingredientId: string  // catalog id used to look up name/icon; for non-ingredient
+                         // entities (mascot, kitchen-objects) this equals `id`
+  position: Position
+  size: Size
+  state: string          // behavior state: 'idle' | 'walking' | 'carrying' etc
+  listId: string | null  // the single list this entity currently lives in (null = unplaced)
+}
+
+export interface EntityRelationship {
+  sourceId: string
+  targetId: string
+  type: string
+}
+</file>
+
+<file path="src/components/Mascot/TortillaSvg.tsx">
+import React from 'react';
+import type { MascotState } from '../../systems/mascot';
+
+interface TortillaSvgProps {
+  state?: MascotState;
+}
+
+export const TortillaSvg: React.FC<TortillaSvgProps> = ({ state }) => {
+  return (
+    <svg width="100" height="100" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="40" fill="#f4d03f" />
+      {/* Visual representation of mascot gaze direction */}
+      <circle cx={state?.gazingAt ? 60 : 50} cy="40" r="5" fill="#000" />
+    </svg>
+  );
+};
+</file>
+
+<file path="src/types/IngredientList.ts">
+import type { Ingredient } from './Ingredient'
+
+export interface IngredientList {
+  id: string
+  name: string
+  ingredients: Ingredient[]
+}
+
+export interface List {
+  id: string
+  title: string
+  seedFromCatalog?: boolean
+  seedIngredients?: string[]
+  consumesOnDrag?: boolean   // true = item is removed from this list when dragged out
+}
+</file>
+
+<file path="docs/decisions.md">
+# Architectural Decisions
+
+This document records the important architectural decisions made during the development of Tortilla World.
+
+The goal is to keep the world model predictable, extensible, and suitable for future systems such as AI-controlled actions, cooking processes, animations, and simulations.
+
+---
+
+# Decision: Use Entities and Containers as the World Model
+
+## Context
+
+The initial concept used "lists" to represent groups of objects:
+
+* pantry list
+* recipe list
+* fire list
+
+This worked for simple drag and drop, but became insufficient when objects started having different behaviours.
+
+Requirements:
+
+* objects need ownership
+* objects need movement between locations
+* some collections allow changes
+* some collections represent predefined world content
+* some objects can exist multiple times
+* some objects must be unique
+
+A simple list cannot express these rules.
+
+---
+
+## Decision
+
+Replace the concept of **Lists** with **Containers**.
+
+A Container is a first-class world entity that:
+
+* owns other entities
+* defines what it can contain
+* validates actions
+* preserves ordering
+* controls movement rules
+
+The world is modelled as:
+
+```
+Entities
+   |
+   v
+Containers
+```
+
+---
+
+## Consequences
+
+Positive:
+
+* clear ownership model
+* easier drag and drop logic
+* easier AI action validation
+* supports future gameplay systems
+* containers can have different behaviours
+
+Negative:
+
+* more complex than arrays
+* requires validation before actions
+* requires explicit ownership handling
+
+---
+
+# Decision: Entities Are Never Duplicated During Movement
+
+## Context
+
+A drag and drop action can visually look like moving an object.
+
+The implementation must decide whether the object itself changes or whether a copy is created.
+
+---
+
+## Decision
+
+Entities keep their identity.
+
+A move changes ownership.
+
+Example:
+
+Before:
+
+```
+Kitchen
+ └── potato
+
+
+Pan
+```
+
+After:
+
+```
+Kitchen
+
+
+Pan
+ └── potato
+```
+
+The potato entity is the same entity.
+
+---
+
+## Consequences
+
+Benefits:
+
+* animations can track objects
+* AI can reference objects by ID
+* history and debugging become easier
+* no duplicated world state
+
+---
+
+# Decision: Containers Own Rules, Not Entities
+
+## Context
+
+An ingredient does not know where it can exist.
+
+A potato can exist in:
+
+* kitchen
+* recipe
+* pan
+* plate
+* trash
+
+Each location has different rules.
+
+---
+
+## Decision
+
+Rules belong to containers.
+
+Example:
+
+```
+Potato
+ |
+ +-- Kitchen: allowed
+ |
+ +-- Recipe: allowed
+ |
+ +-- Trash: allowed
+ |
+ +-- Knife: forbidden
+```
+
+The container decides.
+
+---
+
+## Consequences
+
+New containers can be added without modifying every entity.
+
+Example:
+
+Adding:
+
+```
+Fridge
+```
+
+only requires defining fridge rules.
+
+Ingredients do not change.
+
+---
+
+# Decision: Container Contents Are Ordered
+
+## Context
+
+A programming Set solves uniqueness, but loses order.
+
+The world requires:
+
+* visual ordering
+* animations
+* predictable rendering
+* drag and drop positions
+
+---
+
+## Decision
+
+Containers use ordered collections.
+
+Example:
+
+```ts
+[
+ "potato",
+ "egg",
+ "onion"
+]
+```
+
+Ordering is part of the world state.
+
+---
+
+## Consequences
+
+Uniqueness is handled separately from ordering.
+
+The system validates whether an item can be inserted.
+
+---
+
+# Decision: Ingredient Uniqueness Is Enforced Per Container
+
+## Context
+
+Cooking containers should not contain duplicate ingredients.
+
+Example:
+
+Invalid:
+
+```
+Recipe
+ ├ potato
+ └ potato
+```
+
+However, duplicate tools are valid.
+
+Example:
+
+Valid:
+
+```
+Kitchen
+ ├ pan-001
+ └ pan-002
+```
+
+---
+
+## Decision
+
+Uniqueness rules depend on entity type.
+
+Default rules:
+
+Ingredients:
+
+```
+unique inside container
+```
+
+Tools:
+
+```
+duplicates allowed
+```
+
+---
+
+## Consequences
+
+The model supports realistic kitchens.
+
+A kitchen can have:
+
+* many pans
+* many knives
+* one potato entry
+
+---
+
+# Decision: Moving Between Containers Uses Transfer Rules
+
+## Context
+
+Not every move behaves the same.
+
+Examples:
+
+Kitchen → Recipe:
+
+* ingredient remains in kitchen inventory conceptually
+* recipe receives a reference/copy
+
+Recipe → Pan:
+
+* recipe loses ingredient
+* pan receives ingredient
+
+---
+
+## Decision
+
+Movement is not a simple array operation.
+
+Every move goes through a transfer system:
+
+```
+Request Move
+      |
+      v
+Validate source
+      |
+      v
+Validate destination
+      |
+      v
+Apply transfer rule
+      |
+      v
+Update ownership
+```
+
+---
+
+# Decision: Immutable and Mutable Containers
+
+## Context
+
+Some containers represent world definitions.
+
+Example:
+
+Kitchen starting ingredients.
+
+Others represent changing gameplay state.
+
+Example:
+
+Recipe.
+
+---
+
+## Decision
+
+Containers have ownership behaviour.
+
+## Static Containers
+
+Represent predefined world resources.
+
+Examples:
+
+* kitchen inventory
+* starting objects
+
+They can provide items without necessarily losing the original definition.
+
+---
+
+## Dynamic Containers
+
+Represent changing state.
+
+Examples:
+
+* recipe
+* pan
+* plate
+
+They gain and lose ownership.
+
+---
+
+# Decision: Systems Modify State, Components Display State
+
+## Context
+
+React components should not contain world logic.
+
+A drag component should not decide:
+
+* if a move is valid
+* if duplicates are allowed
+* if an item disappears
+
+---
+
+## Decision
+
+Components display the world.
+
+Systems modify the world.
+
+Example:
+
+```
+Drag Component
+       |
+       v
+Interaction System
+       |
+       v
+Container Rules
+       |
+       v
+World Store
+```
+
+---
+
+# Decision: AI Uses Actions, Not Direct State Modification
+
+## Context
+
+Future AI behaviour requires predictable actions.
+
+The AI should not directly modify Zustand state.
+
+---
+
+## Decision
+
+AI produces actions.
+
+Example:
+
+```ts
+{
+ type:"MOVE_ENTITY",
+ entity:"potato",
+ from:"kitchen",
+ to:"pan"
+}
+```
+
+The world validates and executes the action.
+
+---
+
+## Consequences
+
+Benefits:
+
+* AI cannot break world rules
+* actions can be logged
+* actions can be replayed
+* debugging becomes easier
+
+---
+
+# Summary
+
+The core architecture decisions are:
+
+1. The world contains entities.
+2. Containers own entities.
+3. Containers enforce rules.
+4. Movement changes ownership, not identity.
+5. Contents are ordered.
+6. Ingredients are unique per container.
+7. Tools may have duplicates.
+8. Systems modify state.
+9. AI produces validated actions.
+
+This creates a foundation for a simulation-style cooking world rather than a simple drag-and-drop application.
+</file>
+
+<file path="src/components/Ingredients/IngredientListItem.tsx">
+import React from 'react';
+import { worldStore } from '../../store/worldStore';
+import type { Entity } from '../../types/world';
+
+interface IngredientListItemProps {
+  entity: Entity;
+}
+
+export const IngredientListItem: React.FC<IngredientListItemProps> = ({ entity }) => {
+  const handleRemove = () => {
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: {
+        entityId: entity.id,
+        targetContainerId: 'storage',
+      },
+    });
+  };
+
+  return (
+    <div className="ingredient-list-item">
+      <span>{entity.name}</span>
+      <button onClick={handleRemove}>Remove</button>
+    </div>
+  );
+};
+</file>
+
+<file path="src/systems/queries.test.ts">
+import { describe, it, expect } from 'vitest'
+import { getIngredientsForList, getListMembership } from './queries'
+import { ingredients as catalog } from '../data/catalog/ingredients'
+import { recipe as concebolla } from '../data/catalog/recipes/concebolla'
+import type { Entity } from '../types/Entity'
+
+function makeEntity(id: string, ingredientId: string, listId: string | null, y = 0): Entity {
+  return {
+    id,
+    type: 'ingredient',
+    ingredientId,
+    position: { x: 0, y },
+    size: { width: 1, height: 1 },
+    state: 'idle',
+    listId,
+  }
+}
+
+function allInDespensa(): Record<string, Entity> {
+  return Object.fromEntries(
+    catalog.map((ingredient, index) => [
+      ingredient.id,
+      makeEntity(ingredient.id, ingredient.id, 'despensa', index),
+    ]),
+  )
+}
+
+describe('getListMembership', () => {
+  it('returns entity ids grouped by listId, sorted by position.y', () => {
+    const entities: Record<string, Entity> = {
+      onion: makeEntity('onion', 'onion', 'despensa', 1),
+      potato: makeEntity('potato', 'potato', 'despensa', 0),
+      oil: makeEntity('oil', 'oil', 'fire', 0),
+    }
+    expect(getListMembership(entities, ['despensa', 'fire', 'kitchen'])).toEqual({
+      despensa: ['potato', 'onion'],
+      fire: ['oil'],
+      kitchen: [],
+    })
+  })
+
+  it('ignores non-ingredient entities and entities with no listId', () => {
+    const entities: Record<string, Entity> = {
+      potato: makeEntity('potato', 'potato', 'despensa', 0),
+      tortilla: {
+        id: 'tortilla',
+        type: 'character',
+        ingredientId: 'tortilla',
+        position: { x: 0, y: 0 },
+        size: { width: 1, height: 1 },
+        state: 'idle',
+        listId: null,
+      },
+    }
+    expect(getListMembership(entities, ['despensa'])).toEqual({ despensa: ['potato'] })
+  })
+})
+
+describe('getIngredientsForList', () => {
+
+  // ── real entity membership ─────────────────────────────────────────────────
+
+  it('returns entities belonging to the list, sorted by position.y', () => {
+    const entities: Record<string, Entity> = {
+      onion: makeEntity('onion', 'onion', 'despensa', 1),
+      potato: makeEntity('potato', 'potato', 'despensa', 0),
+    }
+    const result = getIngredientsForList(entities, { id: 'despensa', title: 'Despensa' })
+    expect(result.map((i) => i.id)).toEqual(['potato', 'onion'])
+  })
+
+  it('ignores entities that do not belong to this list', () => {
+    const entities: Record<string, Entity> = {
+      potato: makeEntity('potato', 'potato', 'despensa', 0),
+      onion: makeEntity('onion', 'onion', 'kitchen', 0),
+    }
+    const result = getIngredientsForList(entities, { id: 'despensa', title: 'Despensa' })
+    expect(result.map((i) => i.id)).toEqual(['potato'])
+  })
+
+  it('two instances of the same ingredient in different lists are independent', () => {
+    // Regression guard: an ingredient existing in two lists must be two
+    // separate entities (separate ids), each pinned to exactly one list —
+    // never one entity shared across both.
+    const entities: Record<string, Entity> = {
+      'potato#despensa': makeEntity('potato#despensa', 'potato', 'despensa', 0),
+      'potato#kitchen': makeEntity('potato#kitchen', 'potato', 'kitchen', 0),
+    }
+    const inDespensa = getIngredientsForList(entities, { id: 'despensa', title: 'Despensa' })
+    const inKitchen = getIngredientsForList(entities, { id: 'kitchen', title: 'Kitchen' })
+
+    expect(inDespensa.map((i) => i.id)).toEqual(['potato#despensa'])
+    expect(inKitchen.map((i) => i.id)).toEqual(['potato#kitchen'])
+  })
+
+  it('an entity belongs to exactly one list — it never appears in a second one', () => {
+    const entities: Record<string, Entity> = {
+      potato: makeEntity('potato', 'potato', 'kitchen', 0),
+    }
+    const inDespensa = getIngredientsForList(entities, { id: 'despensa', title: 'Despensa' })
+    const inKitchen = getIngredientsForList(entities, { id: 'kitchen', title: 'Kitchen' })
+
+    expect(inDespensa.map((i) => i.id)).not.toContain('potato')
+    expect(inKitchen.map((i) => i.id)).toContain('potato')
+  })
+
+  it('ignores non-ingredient entities in the same list', () => {
+    const entities: Record<string, Entity> = {
+      potato: makeEntity('potato', 'potato', 'despensa', 0),
+      tortilla: {
+        id: 'tortilla',
+        type: 'character',
+        ingredientId: 'tortilla',
+        position: { x: 0, y: 0 },
+        size: { width: 1, height: 1 },
+        state: 'idle',
+        listId: 'despensa',
+      },
+    }
+    const result = getIngredientsForList(entities, { id: 'despensa', title: 'Despensa' })
+    expect(result.map((i) => i.id)).toEqual(['potato'])
+  })
+
+  it('returns empty when no entities belong to this list and no seed is configured', () => {
+    const result = getIngredientsForList(allInDespensa(), { id: 'trash', title: 'Basura' })
+    expect(result).toEqual([])
+  })
+
+  // ── seedFromCatalog ────────────────────────────────────────────────────────
+
+  it('falls back to full catalog when seedFromCatalog is true and no entities match', () => {
+    const result = getIngredientsForList({}, { id: 'despensa', title: 'Despensa', seedFromCatalog: true })
+    expect(result.map((i) => i.id)).toEqual(catalog.map((i) => i.id))
+  })
+
+  it('despensa shows all ingredients on startup', () => {
+    const result = getIngredientsForList(allInDespensa(), {
+      id: 'despensa',
+      title: 'Despensa',
+      seedFromCatalog: true,
+    })
+    expect(result).toHaveLength(catalog.length)
+    expect(result.map((i) => i.id)).toEqual(catalog.map((i) => i.id))
+  })
+
+  it('real entity membership takes priority over seedFromCatalog', () => {
+    const entities: Record<string, Entity> = {
+      potato: makeEntity('potato', 'potato', 'despensa', 0),
+    }
+    const result = getIngredientsForList(entities, {
+      id: 'despensa',
+      title: 'Despensa',
+      seedFromCatalog: true,
+    })
+    expect(result.map((i) => i.id)).toEqual(['potato'])
+  })
+
+  // ── seedIngredients ────────────────────────────────────────────────────────
+
+  it('kitchen shows concebolla recipe ingredients on startup', () => {
+    const kitchenIngredients = concebolla.ingredients
+      .filter((i): i is NonNullable<typeof i> => i !== undefined)
+      .map((i) => i.id)
+
+    const result = getIngredientsForList(allInDespensa(), {
+      id: 'kitchen',
+      title: 'Kitchen',
+      seedIngredients: kitchenIngredients,
+    })
+    expect(result.map((i) => i.id)).toEqual(kitchenIngredients)
+  })
+
+  it('fire shows only oil on startup', () => {
+    const result = getIngredientsForList(allInDespensa(), {
+      id: 'fire',
+      title: 'Fire',
+      seedIngredients: ['oil'],
+    })
+    expect(result.map((i) => i.id)).toEqual(['oil'])
+  })
+
+  it('trash is empty on startup', () => {
+    const result = getIngredientsForList(allInDespensa(), { id: 'trash', title: 'Basura' })
+    expect(result).toEqual([])
+  })
+
+  it('seedIngredients skips ids not found in the catalog', () => {
+    const result = getIngredientsForList({}, {
+      id: 'kitchen',
+      title: 'Kitchen',
+      seedIngredients: ['potato', 'unicorn-meat', 'egg'],
+    })
+    expect(result.map((i) => i.id)).toEqual(['potato', 'egg'])
+  })
+
+  it('real entity membership takes priority over seedIngredients', () => {
+    const entities: Record<string, Entity> = {
+      oil: makeEntity('oil', 'oil', 'fire', 0),
+    }
+    const result = getIngredientsForList(entities, {
+      id: 'fire',
+      title: 'Fire',
+      seedIngredients: ['oil', 'garlic'],
+    })
+    expect(result.map((i) => i.id)).toEqual(['oil'])
+  })
+
+  // ── view model correctness ─────────────────────────────────────────────────
+
+  it('enriches entities with name and icon from the catalog, keyed by ingredientId', () => {
+    const entities = { 'potato#despensa': makeEntity('potato#despensa', 'potato', 'despensa', 0) }
+    const result = getIngredientsForList(entities, { id: 'despensa', title: 'Despensa' })
+    expect(result[0]).toMatchObject({ id: 'potato#despensa', name: 'Potatoes', icon: '🥔' })
+  })
+
+  it('falls back to ingredientId as name and 🥔 icon for unknown ingredient ids', () => {
+    const entities: Record<string, Entity> = {
+      'mystery#despensa': {
+        id: 'mystery#despensa',
+        type: 'ingredient',
+        ingredientId: 'mystery',
+        position: { x: 0, y: 0 },
+        size: { width: 1, height: 1 },
+        state: 'idle',
+        listId: 'despensa',
+      },
+    }
+    const result = getIngredientsForList(entities, { id: 'despensa', title: 'Despensa' })
+    expect(result[0]).toMatchObject({ id: 'mystery#despensa', name: 'mystery', icon: '🥔' })
+  })
+
+})
+</file>
+
+<file path="src/systems/queries.ts">
+import type { Entity } from '../types/Entity'
+import type { Ingredient } from '../types/Ingredient'
+import type { List } from '../types/IngredientList'
+import { ingredients as ingredientCatalog } from '../data/catalog/ingredients'
+
+export function toIngredientView(entity: Entity): Ingredient {
+  const catalogEntry = ingredientCatalog.find((ingredient) => ingredient.id === entity.ingredientId)
+  return {
+    id: entity.id,
+    name: catalogEntry?.name ?? entity.ingredientId,
+    icon: catalogEntry?.icon ?? '🥔',
+  }
+}
+
+/**
+ * Read-only snapshot of which entity ids live in each list, sorted by
+ * position.y. Used by drop rules and interaction — never falls back to
+ * seed data; only reflects what's actually in the store.
+ */
+export function getListMembership(
+  entities: Record<string, Entity>,
+  listIds: string[],
+): Record<string, string[]> {
+  const membership = Object.fromEntries(listIds.map((listId) => [listId, [] as string[]]))
+
+  for (const entity of Object.values(entities)) {
+    if (entity.type !== 'ingredient' || !entity.listId || !(entity.listId in membership)) continue
+    membership[entity.listId].push(entity.id)
+  }
+
+  for (const listId of listIds) {
+    membership[listId].sort((leftId, rightId) => {
+      const leftY = entities[leftId]?.position.y ?? 0
+      const rightY = entities[rightId]?.position.y ?? 0
+      return leftY - rightY
+    })
+  }
+
+  return membership
+}
+
+export function getIngredientsForList(
+  entities: Record<string, Entity>,
+  list: List,
+): Ingredient[] {
+  const matching = Object.values(entities)
+    .filter((entity) => entity.type === 'ingredient' && entity.listId === list.id)
+    .sort((left, right) => left.position.y - right.position.y)
+    .map(toIngredientView)
+
+  if (matching.length > 0) return matching
+
+  if (list.seedFromCatalog) return [...ingredientCatalog]
+
+  if (list.seedIngredients) {
+    return list.seedIngredients
+      .map((id) => ingredientCatalog.find((i) => i.id === id))
+      .filter((i): i is Ingredient => i !== undefined)
+  }
+
+  return []
+}
+</file>
+
 <file path="package.json">
 {
   "name": "tortilla-world",
@@ -1257,6 +5691,532 @@ docs/
     "vitest": "^4.1.10"
   }
 }
+</file>
+
+<file path="src/components/Mascot/Mascot.tsx">
+import React from 'react';
+import { useStore } from 'zustand';
+import { worldStore } from '../../store/worldStore';
+
+interface MascotProps {
+  mascotId?: string;
+}
+
+export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
+  const mascotEntity = useStore(worldStore, (state) => state.entities[mascotId]);
+
+  if (!mascotEntity) return null;
+
+  return (
+    <div className="mascot">
+      <h3>{mascotEntity.name}</h3>
+      Gazing at: {mascotEntity.state?.gazingAt ? String(mascotEntity.state.gazingAt) : 'Nothing'}
+    </div>
+  );
+};
+</file>
+
+<file path="src/App.tsx">
+import { Scene } from './components/Scene/Scene';
+
+function App() {
+  return (
+    <Scene />
+  );
+}
+
+export default App;
+</file>
+
+<file path="src/components/Scene/Scene.tsx">
+import React from 'react';
+import { useStore } from 'zustand';
+import { worldStore } from '../../store/worldStore';
+import { IngredientList } from '../Ingredients/IngredientList';
+
+export const Scene: React.FC = () => {
+  const containers = useStore(
+    worldStore,
+    (state) => state.containers
+  );
+
+  const containerList = Object.values(containers);
+
+  return (
+    <div className="scene">
+      {containerList.map((container) => (
+        <IngredientList
+          key={container.id}
+          containerEntityIds={container.entityIds}
+        />
+      ))}
+    </div>
+  );
+};
+</file>
+
+<file path="src/components/Scene/useSceneDragAndDrop.ts">
+import { useStore } from 'zustand';
+import { worldStore } from '../../store/worldStore';
+
+export function useSceneDragAndDrop() {
+  const containers = useStore(worldStore, (state) => Object.values(state.containers));
+
+  return {
+    containers,
+  };
+}
+</file>
+
+<file path="src/systems/interaction.test.ts">
+import { describe, it, expect } from 'vitest'
+import { evaluateDrop, parseDrag } from './dropRules'
+import { resolveListReorder, applyListReorder } from './interaction'
+import type { Entity } from '../types/Entity'
+
+function makeEntity(id: string, ingredientId: string, listId: string | null): Entity {
+  return {
+    id,
+    type: 'ingredient',
+    ingredientId,
+    position: { x: 0, y: 0 },
+    size: { width: 1, height: 1 },
+    state: 'idle',
+    listId,
+  }
+}
+
+function resolveDrag(
+  activeId: string,
+  overId: string,
+  lists: Record<string, string[]>,
+  listFlags: Record<string, { consumesOnDrag?: boolean }> = {},
+  options: { groupOf?: (itemId: string) => string; createCopyId?: (itemId: string) => string } = {},
+) {
+  const drag = parseDrag(activeId, overId)
+  if (!drag) return null
+  const drop = evaluateDrop(drag, lists, listFlags, { groupOf: options.groupOf })
+  if (!drop) return null
+  return resolveListReorder(drop, lists, { createCopyId: options.createCopyId })
+}
+
+const kitchenConsumes = { kitchen: { consumesOnDrag: true }, fire: { consumesOnDrag: true } }
+
+// ── consumesOnDrag: move vs copy semantics ─────────────────────────────────
+
+it('dragging from a consuming list removes the item from the source', () => {
+  const result = resolveDrag(
+    'kitchen::potato',
+    'fire',
+    { kitchen: ['potato', 'egg'], fire: [] },
+    kitchenConsumes,
+  )
+  expect(result?.lists).toEqual({
+    kitchen: ['egg'],
+    fire: ['potato'],
+  })
+  expect(result?.changedListId).toBe('fire')
+  expect(result?.removedFromListId).toBe('kitchen')
+  expect(result?.copy).toBeNull()
+})
+
+it('dragging from a non-consuming list keeps the item in the source', () => {
+  const result = resolveDrag(
+    'despensa::potato',
+    'kitchen',
+    { despensa: ['potato', 'onion'], kitchen: [] },
+    { despensa: {}, kitchen: { consumesOnDrag: true } },
+    { createCopyId: () => 'potato-copy' },
+  )
+  expect(result?.lists).toEqual({
+    despensa: ['potato', 'onion'],
+    kitchen: ['potato-copy'],
+  })
+  expect(result?.removedFromListId).toBeNull()
+  expect(result?.copy).toEqual({ sourceItemId: 'potato', newItemId: 'potato-copy' })
+})
+
+it('a consuming target never overrides a non-consuming source, even dragging onto fire', () => {
+  const result = resolveDrag(
+    'despensa::potato',
+    'fire',
+    { despensa: ['potato', 'onion'], fire: [] },
+    { despensa: {}, fire: { consumesOnDrag: true } },
+    { createCopyId: () => 'potato-copy' },
+  )
+  expect(result?.lists).toEqual({
+    despensa: ['potato', 'onion'],
+    fire: ['potato-copy'],
+  })
+  expect(result?.changedListId).toBe('fire')
+  expect(result?.removedFromListId).toBeNull()
+})
+
+it('BUG regression: a copy is a distinct instance, so moving it later never touches the original', () => {
+  const copyStep = resolveDrag(
+    'despensa::salt#despensa',
+    'kitchen',
+    { despensa: ['salt#despensa'], kitchen: [], fire: [] },
+    { despensa: {}, kitchen: { consumesOnDrag: true }, fire: { consumesOnDrag: true } },
+    { createCopyId: () => 'salt#kitchen' },
+  )
+  expect(copyStep?.copy).toEqual({ sourceItemId: 'salt#despensa', newItemId: 'salt#kitchen' })
+
+  const moveStep = resolveDrag(
+    'kitchen::salt#kitchen',
+    'fire',
+    { despensa: ['salt#despensa'], kitchen: ['salt#kitchen'], fire: [] },
+    { despensa: {}, kitchen: { consumesOnDrag: true }, fire: { consumesOnDrag: true } },
+  )
+  expect(moveStep?.lists).toEqual({
+    despensa: ['salt#despensa'],
+    kitchen: [],
+    fire: ['salt#kitchen'],
+  })
+  expect(moveStep?.removedFromListId).toBe('kitchen')
+})
+
+describe('resolveListReorder', () => {
+  it('copies an item to another list, source stays untouched, target gets a new id', () => {
+    const drag = parseDrag('despensa::potato', 'kitchen::egg')!
+    const drop = evaluateDrop(drag, { despensa: ['potato', 'onion'], kitchen: ['egg'] })!
+    const result = resolveListReorder(drop, { despensa: ['potato', 'onion'], kitchen: ['egg'] }, {
+      createCopyId: () => 'potato-copy',
+    })
+    expect(result?.lists).toEqual({
+      despensa: ['potato', 'onion'],
+      kitchen: ['potato-copy', 'egg'],
+    })
+    expect(result?.changedListId).toBe('kitchen')
+    expect(result?.copy).toEqual({ sourceItemId: 'potato', newItemId: 'potato-copy' })
+  })
+
+  it('copies into an empty list', () => {
+    const drag = parseDrag('despensa::potato', 'kitchen')!
+    const drop = evaluateDrop(drag, { despensa: ['potato', 'onion'], kitchen: [] })!
+    const result = resolveListReorder(drop, { despensa: ['potato', 'onion'], kitchen: [] }, {
+      createCopyId: () => 'potato-copy',
+    })
+    expect(result?.lists).toEqual({
+      despensa: ['potato', 'onion'],
+      kitchen: ['potato-copy'],
+    })
+  })
+
+  it('default createCopyId still produces an id different from the source', () => {
+    const drag = parseDrag('despensa::potato', 'kitchen')!
+    const drop = evaluateDrop(drag, { despensa: ['potato'], kitchen: [] })!
+    const result = resolveListReorder(drop, { despensa: ['potato'], kitchen: [] })
+    expect(result?.copy?.newItemId).not.toBe('potato')
+    expect(result?.lists.kitchen[0]).not.toBe('potato')
+  })
+
+  it('reorders within the same list', () => {
+    const drag = parseDrag('despensa::egg', 'despensa::potato')!
+    const drop = evaluateDrop(drag, { despensa: ['potato', 'egg'], kitchen: [] })!
+    const result = resolveListReorder(drop, { despensa: ['potato', 'egg'], kitchen: [] })
+    expect(result?.lists.despensa).toEqual(['egg', 'potato'])
+    expect(result?.lists.kitchen).toEqual([])
+    expect(result?.changedListId).toBe('despensa')
+    expect(result?.copy).toBeNull()
+  })
+})
+
+describe('applyListReorder', () => {
+  it('moves an existing entity by updating its listId and position', () => {
+    const calls: Array<[string, Partial<Omit<Entity, 'id'>>]> = []
+    const updateEntity = (id: string, changes: Partial<Omit<Entity, 'id'>>) => calls.push([id, changes])
+    const addEntity = () => { throw new Error('should not create a new entity for a plain move') }
+    const getEntity = (id: string) => makeEntity(id, id, 'kitchen')
+
+    applyListReorder(updateEntity, addEntity, getEntity, {
+      lists: { fire: ['potato'] },
+      changedListId: 'fire',
+      removedFromListId: 'kitchen',
+      copy: null,
+    })
+
+    expect(calls).toEqual([['potato', { position: { x: 0, y: 0 }, listId: 'fire' }]])
+  })
+
+  it('creates a brand-new entity for a copy, leaving the original alone', () => {
+    const updateCalls: Array<[string, unknown]> = []
+    const addCalls: Entity[] = []
+    const updateEntity = (id: string, changes: Partial<Omit<Entity, 'id'>>) => updateCalls.push([id, changes])
+    const addEntity = (entity: Entity) => addCalls.push(entity)
+    const original = makeEntity('salt#despensa', 'salt', 'despensa')
+    const getEntity = (id: string) => (id === 'salt#despensa' ? original : undefined)
+
+    applyListReorder(updateEntity, addEntity, getEntity, {
+      lists: { kitchen: ['salt#kitchen'] },
+      changedListId: 'kitchen',
+      removedFromListId: null,
+      copy: { sourceItemId: 'salt#despensa', newItemId: 'salt#kitchen' },
+    })
+
+    expect(updateCalls).toEqual([])
+    expect(addCalls).toEqual([{
+      id: 'salt#kitchen',
+      type: 'ingredient',
+      ingredientId: 'salt',
+      position: { x: 0, y: 0 },
+      size: { width: 1, height: 1 },
+      state: 'idle',
+      listId: 'kitchen',
+    }])
+  })
+
+  it('writes position.y as insertion order', () => {
+    const calls: Array<[string, Partial<Omit<Entity, 'id'>>]> = []
+    const updateEntity = (id: string, changes: Partial<Omit<Entity, 'id'>>) => calls.push([id, changes])
+    const addEntity = () => { throw new Error('unexpected addEntity') }
+    const getEntity = (id: string) => makeEntity(id, id, 'kitchen')
+
+    applyListReorder(updateEntity, addEntity, getEntity, {
+      lists: { kitchen: ['egg', 'potato', 'onion'] },
+      changedListId: 'kitchen',
+      removedFromListId: null,
+      copy: null,
+    })
+
+    expect(calls[0][1].position).toEqual({ x: 0, y: 0 })
+    expect(calls[1][1].position).toEqual({ x: 0, y: 1 })
+    expect(calls[2][1].position).toEqual({ x: 0, y: 2 })
+  })
+})
+</file>
+
+<file path="src/systems/interaction.ts">
+import type { Entity } from '../types/Entity'
+import type { ApprovedDrop } from './dropRules'
+
+export interface ReorderOptions {
+  /**
+   * Produces the id for a brand-new instance created by a copy (dragging
+   * out of a non-consuming source). MUST be unique per call in real usage,
+   * or the copy will collide with another item.
+   */
+  createCopyId?: (itemId: string) => string
+}
+
+export interface ReorderResult {
+  lists: Record<string, string[]>
+  changedListId: string
+  removedFromListId: string | null
+  /**
+   * Set only when this resolution created a brand-new instance (i.e. a
+   * copy out of a non-consuming source). `sourceItemId` is the original,
+   * untouched instance; `newItemId` is the id inserted into the target
+   * list. The two are intentionally different entities from this point
+   * on — moving one must never affect the other.
+   */
+  copy: { sourceItemId: string; newItemId: string } | null
+}
+
+function defaultCreateCopyId(itemId: string): string {
+  return `${itemId}--copy--${Math.random().toString(36).slice(2, 8)}`
+}
+
+/**
+ * Pure: given an already-approved drop, compute the next list ordering.
+ * Validation lives in dropRules.ts — this function only rearranges ids.
+ */
+export function resolveListReorder(
+  drop: ApprovedDrop,
+  lists: Record<string, string[]>,
+  options: ReorderOptions = {},
+): ReorderResult | null {
+  const sourceIds = lists[drop.source.listId]
+  const targetIds = lists[drop.target.listId]
+  if (!sourceIds || !targetIds) return null
+
+  const createCopyId = options.createCopyId ?? defaultCreateCopyId
+  const next = { ...lists }
+
+  if (drop.kind === 'same-list-reorder') {
+    const reordered = sourceIds.filter((itemId) => itemId !== drop.source.itemId)
+    reordered.splice(drop.insertAt, 0, drop.source.itemId)
+    next[drop.source.listId] = reordered
+    return { lists: next, changedListId: drop.source.listId, removedFromListId: null, copy: null }
+  }
+
+  if (drop.kind === 'cross-list-move') {
+    next[drop.source.listId] = sourceIds.filter((itemId) => itemId !== drop.source.itemId)
+    const reorderedTarget = [...targetIds]
+    reorderedTarget.splice(drop.insertAt, 0, drop.source.itemId)
+    next[drop.target.listId] = reorderedTarget
+    return { lists: next, changedListId: drop.target.listId, removedFromListId: drop.source.listId, copy: null }
+  }
+
+  const newItemId = createCopyId(drop.source.itemId)
+  const reorderedTarget = [...targetIds]
+  reorderedTarget.splice(drop.insertAt, 0, newItemId)
+  next[drop.target.listId] = reorderedTarget
+  return {
+    lists: next,
+    changedListId: drop.target.listId,
+    removedFromListId: null,
+    copy: { sourceItemId: drop.source.itemId, newItemId },
+  }
+}
+
+/**
+ * Commit step: writes the changed list's ordering into the store.
+ *
+ * Each entity belongs to exactly one list at a time (`entity.listId`), so
+ * there's nothing to clean up on the source side — reassigning listId (or,
+ * for a copy, creating a new entity) is the entire move. The source list's
+ * contents are derived live from entity.listId elsewhere (queries.ts), so
+ * they update automatically once this runs.
+ */
+export function applyListReorder(
+  updateEntity: (entityId: string, changes: Partial<Omit<Entity, 'id'>>) => void,
+  addEntity: (entity: Entity) => void,
+  getEntity: (entityId: string) => Entity | undefined,
+  result: ReorderResult,
+) {
+  const itemIds = result.lists[result.changedListId]
+
+  itemIds.forEach((itemId, index) => {
+    const position = { x: 0, y: index }
+
+    if (result.copy && itemId === result.copy.newItemId) {
+      const original = getEntity(result.copy.sourceItemId)
+      if (!original) return
+      addEntity({
+        id: itemId,
+        type: original.type,
+        ingredientId: original.ingredientId,
+        position,
+        size: original.size,
+        state: 'idle',
+        listId: result.changedListId,
+      })
+      return
+    }
+
+    updateEntity(itemId, { position, listId: result.changedListId })
+  })
+}
+</file>
+
+<file path="src/store/worldStore.ts">
+import { createStore } from 'zustand/vanilla';
+import type { WorldState, WorldAction, Entity } from '../types/world';
+
+export const worldStore = createStore<WorldState>((set) => ({
+  entities: {},
+  containers: {},
+  dispatch: (action: WorldAction) => {
+    switch (action.type) {
+      case 'MOVE_ENTITY': {
+        const { entityId, targetContainerId, positionIndex } = action.payload;
+        set((state: WorldState) => {
+          const sourceContainer = Object.values(state.containers).find((c) =>
+            c.entityIds.includes(entityId)
+          );
+          const targetContainer = state.containers[targetContainerId];
+
+          if (!targetContainer) return state;
+
+          const newContainers = { ...state.containers };
+
+          if (sourceContainer) {
+            newContainers[sourceContainer.id] = {
+              ...sourceContainer,
+              entityIds: sourceContainer.entityIds.filter((id) => id !== entityId),
+            };
+          }
+
+          const targetIds = [...(newContainers[targetContainerId]?.entityIds || [])];
+          if (typeof positionIndex === 'number') {
+            targetIds.splice(positionIndex, 0, entityId);
+          } else {
+            targetIds.push(entityId);
+          }
+
+          newContainers[targetContainerId] = {
+            ...targetContainer,
+            entityIds: targetIds,
+          };
+
+          return { ...state, containers: newContainers };
+        });
+        break;
+      }
+
+      case 'ADD_ENTITY': {
+        const { entity, containerId } = action.payload;
+        set((state: WorldState) => {
+          const targetContainer = state.containers[containerId];
+          if (!targetContainer) return state;
+
+          return {
+            ...state,
+            entities: {
+              ...state.entities,
+              [entity.id]: entity as Entity,
+            },
+            containers: {
+              ...state.containers,
+              [containerId]: {
+                ...targetContainer,
+                entityIds: [...targetContainer.entityIds, entity.id],
+              },
+            },
+          };
+        });
+        break;
+      }
+
+      case 'REMOVE_ENTITY': {
+        const { entityId } = action.payload;
+        set((state: WorldState) => {
+          const newEntities = { ...state.entities };
+          delete newEntities[entityId];
+
+          const newContainers = { ...state.containers };
+          for (const cId in newContainers) {
+            newContainers[cId] = {
+              ...newContainers[cId],
+              entityIds: newContainers[cId].entityIds.filter((id) => id !== entityId),
+            };
+          }
+
+          return {
+            ...state,
+            entities: newEntities,
+            containers: newContainers,
+          };
+        });
+        break;
+      }
+
+      case 'UPDATE_ENTITY_STATE': {
+        const { entityId, changes } = action.payload;
+        set((state: WorldState) => {
+          const targetEntity = state.entities[entityId];
+          if (!targetEntity) return state;
+
+          return {
+            ...state,
+            entities: {
+              ...state.entities,
+              [entityId]: {
+                ...targetEntity,
+                state: {
+                  ...targetEntity.state,
+                  ...changes,
+                },
+              },
+            },
+          };
+        });
+        break;
+      }
+    }
+  },
+}));
 </file>
 
 </files>

@@ -1,33 +1,26 @@
-// src/components/Ingredients/IngredientListItem.tsx
-
 import React from 'react';
-import { useWorldStore } from '../../store/worldStore';
-import type { WorldState } from '../../store/worldStore';
+import { worldStore } from '../../store/worldStore';
 import type { Entity } from '../../types/world';
 
-interface Props {
+interface IngredientListItemProps {
   entity: Entity;
 }
 
-export const IngredientListItem: React.FC<Props> = ({ entity }) => {
-  const dispatch = useWorldStore((state: WorldState) => state.dispatch);
-
+export const IngredientListItem: React.FC<IngredientListItemProps> = ({ entity }) => {
   const handleRemove = () => {
-    dispatch({
+    worldStore.getState().dispatch({
       type: 'MOVE_ENTITY',
-      timestamp: Date.now(),
       payload: {
         entityId: entity.id,
-        fromContainerId: entity.containerId,
-        toContainerId: 'trash'
-      }
+        targetContainerId: 'storage',
+      },
     });
   };
 
   return (
-    <div className="ingredient-item">
+    <div className="ingredient-list-item">
       <span>{entity.name}</span>
-      <button onClick={handleRemove}>Discard</button>
+      <button onClick={handleRemove}>Remove</button>
     </div>
   );
 };

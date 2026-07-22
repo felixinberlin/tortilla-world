@@ -1,69 +1,38 @@
-// src/types/world.ts
+import type { WorldAction } from './actions';
 
-export type EntityType = 'ingredient' | 'tool' | 'utensil' | 'dish';
+export type EntityType = 'ingredient' | 'tool' | 'mascot';
+export type ContainerType = 'storage' | 'pan' | 'board' | 'plate' | 'trash';
 
-/**
- * Pure simulation entity.
- * Entities do not hold business logic or container movement logic[cite: 18].
- */
 export interface Entity {
   id: string;
-  type: EntityType;
   name: string;
-  containerId: string | null;
-  state: Record<string, unknown>; // e.g. { chopped: true, temperature: 180 }
+  type: EntityType;
+  state?: Record<string, unknown>;
 }
 
-export type ContainerType = 'inventory' | 'cutting_board' | 'pan' | 'plate' | 'trash' | 'surface';
-
-/**
- * Container-specific validation constraints enforced by the Container Authority.
- */
 export interface ContainerRules {
-  maxCapacity: number;
+  maxCapacity?: number;
   allowedTypes?: EntityType[];
   uniqueTypesOnly?: boolean;
-  customValidator?: (container: Container, entity: Entity, currentEntities: Entity[]) => boolean;
+  customValidator?: ( 
+    container: Container,
+    entity: Entity,
+    currentEntities: Entity[]
+  ) => boolean;
 }
 
-/**
- * Containers manage spatial ordering and entity ownership[cite: 21, 22].
- */
 export interface Container {
   id: string;
-  type: ContainerType;
   name: string;
-  entityIds: string[]; // Strict ordering of entity IDs
-  rules: ContainerRules;
+  type: ContainerType;
+  entityIds: string[];
+  rules?: ContainerRules;
 }
 
-/**
- * Standardized simulation actions.
- */
-export type ActionType = 'MOVE_ENTITY' | 'UPDATE_ENTITY_STATE' | 'REGISTER_ENTITY' | 'REGISTER_CONTAINER';
-
-export interface BaseAction<T extends ActionType, P> {
-  type: T;
-  timestamp: number;
-  payload: P;
+export interface WorldState {
+  entities: Record<string, Entity>;
+  containers: Record<string, Container>;
+  dispatch: (action: WorldAction) => void;
 }
 
-export type MoveEntityAction = BaseAction<
-  'MOVE_ENTITY',
-  {
-    entityId: string;
-    fromContainerId: string | null;
-    toContainerId: string;
-    targetIndex?: number;
-  }
->;
-
-export type UpdateEntityStateAction = BaseAction<
-  'UPDATE_ENTITY_STATE',
-  {
-    entityId: string;
-    statePatch: Record<string, unknown>;
-  }
->;
-
-export type WorldAction = MoveEntityAction | UpdateEntityStateAction;
+export type { WorldAction };
