@@ -39,9 +39,17 @@ export interface Container {
   rules?: ContainerRules;
 }
 
+export interface RejectionRecord {
+  containerId: string;
+  entityId: string;
+  reason: string;
+  timestamp: number;
+}
+
 export interface WorldState {
   entities: Record<string, Entity>;
   containers: Record<string, Container>;
+  lastRejection?: RejectionRecord | null;
   dispatch: (action: WorldAction) => void;
 }
 

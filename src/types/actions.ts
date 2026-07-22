@@ -43,4 +43,18 @@ export type WorldAction =
         entityId: string;
         changes: Record<string, unknown>;
       };
+    }
+  | {
+      type: 'INIT_WORLD';
+      payload: {
+        entities: Record<string, import('./world').Entity>;
+        containers: Record<string, import('./world').Container>;
+      };
+    }
+  | {
+      type: 'TRANSFORM_ENTITY';
+      payload: {
+        entityId: string;
+        newState: Record<string, unknown>;
+      };
     };

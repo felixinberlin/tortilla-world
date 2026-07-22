@@ -148,4 +148,41 @@ describe('worldStore container rule enforcement', () => {
     expect(log[0].action).toBe('MOVE_ENTITY');
     expect(typeof log[0].timestamp).toBe('number');
   });
+
+  it('records lastRejection when a container rule blocks a move', () => {
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'potato', targetContainerId: 'pan' },
+    });
+
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'onion', targetContainerId: 'pan' },
+    });
+
+    const state = worldStore.getState();
+    expect(state.lastRejection).not.toBeNull();
+    expect(state.lastRejection?.containerId).toBe('pan');
+    expect(state.lastRejection?.entityId).toBe('onion');
+    expect(state.lastRejection?.reason).toContain("capacity reached");
+  });
+
+  it('initializes world state via INIT_WORLD action', () => {
+    worldStore.getState().dispatch({
+      type: 'INIT_WORLD',
+      payload: {
+        entities: {
+          testItem: { id: 'testItem', name: 'Test Item', type: 'ingredient' },
+        },
+        containers: {
+          testContainer: { id: 'testContainer', name: 'Test Container', type: 'storage', entityIds: ['testItem'] },
+        },
+      },
+    });
+
+    const state = worldStore.getState();
+    expect(state.entities.testItem).toBeDefined();
+    expect(state.containers.testContainer.entityIds).toEqual(['testItem']);
+    expect(state.lastRejection).toBeNull();
+  });
 });

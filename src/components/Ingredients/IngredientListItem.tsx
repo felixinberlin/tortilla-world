@@ -2,15 +2,15 @@
  * FILE: IngredientListItem.tsx
  *
  * PURPOSE:
- * UI wrapper for an ingredient inside a list.
+ * Draggable UI component for rendering an entity inside a container.
  *
  * RESPONSIBILITY:
- * - Connects ingredient rendering with list interactions.
- * - Provides drag/drop related UI behavior.
+ * - Renders entity icon, name, and state badge.
+ * - Connects dnd-kit useDraggable hook.
  */
 
 import React from 'react';
-import { worldStore } from '../../store/worldStore';
+import { useDraggable } from '@dnd-kit/core';
 import type { Entity } from '../../types/world';
 
 interface IngredientListItemProps {
@@ -18,20 +18,33 @@ interface IngredientListItemProps {
 }
 
 export const IngredientListItem: React.FC<IngredientListItemProps> = ({ entity }) => {
-  const handleRemove = () => {
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: {
-        entityId: entity.id,
-        targetContainerId: 'storage',
-      },
-    });
-  };
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: entity.id,
+  });
+
+  const style = transform
+    ? {
+        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+        opacity: isDragging ? 0.4 : 1,
+      }
+    : undefined;
+
+  const icon = (entity.state?.icon as string) || (entity.type === 'tool' ? '🔧' : '🥬');
+  const cutState = entity.state?.cutState as string | undefined;
+  const cookState = entity.state?.cookState as string | undefined;
 
   return (
-    <div className="ingredient-list-item">
-      <span>{entity.name}</span>
-      <button onClick={handleRemove}>Remove</button>
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...listeners}
+      {...attributes}
+      className={`ingredient-item ${isDragging ? 'dragging' : ''} type-${entity.type}`}
+    >
+      <span className="item-icon">{icon}</span>
+      <span className="item-name">{entity.name}</span>
+      {cutState && <span className="state-badge cut-badge">{cutState}</span>}
+      {cookState && <span className="state-badge cook-badge">{cookState}</span>}
     </div>
   );
 };

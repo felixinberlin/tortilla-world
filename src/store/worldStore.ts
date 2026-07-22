@@ -53,7 +53,17 @@ export const worldStore = createStore<WorldState>()(
                     (e) => e.id !== entityId
                   );
                   const result = validateContainerRules(targetContainer, entity, currentEntities);
-                  if (!result.allowed) return state;
+                  if (!result.allowed) {
+                    return {
+                      ...state,
+                      lastRejection: {
+                        containerId: targetContainerId,
+                        entityId,
+                        reason: result.reason || 'Move rejected by container rules.',
+                        timestamp: Date.now(),
+                      },
+                    };
+                  }
                 }
 
                 const newContainers = { ...state.containers };
@@ -77,7 +87,7 @@ export const worldStore = createStore<WorldState>()(
                   entityIds: targetIds,
                 };
 
-                return { ...state, containers: newContainers };
+                return { ...state, containers: newContainers, lastRejection: null };
               },
               false,
               'MOVE_ENTITY'
@@ -98,10 +108,21 @@ export const worldStore = createStore<WorldState>()(
                   entity as Entity,
                   currentEntities
                 );
-                if (!result.allowed) return state;
+                if (!result.allowed) {
+                  return {
+                    ...state,
+                    lastRejection: {
+                      containerId,
+                      entityId: entity.id,
+                      reason: result.reason || 'Add entity rejected by container rules.',
+                      timestamp: Date.now(),
+                    },
+                  };
+                }
 
                 return {
                   ...state,
+                  lastRejection: null,
                   entities: {
                     ...state.entities,
                     [entity.id]: entity as Entity,
@@ -138,6 +159,7 @@ export const worldStore = createStore<WorldState>()(
 
                 return {
                   ...state,
+                  lastRejection: null,
                   entities: newEntities,
                   containers: newContainers,
                 };
@@ -157,6 +179,7 @@ export const worldStore = createStore<WorldState>()(
 
                 return {
                   ...state,
+                  lastRejection: null,
                   entities: {
                     ...state.entities,
                     [entityId]: {
@@ -171,6 +194,51 @@ export const worldStore = createStore<WorldState>()(
               },
               false,
               'UPDATE_ENTITY_STATE'
+            );
+            break;
+          }
+
+          case 'INIT_WORLD': {
+            const { entities, containers } = action.payload;
+            set(
+              () => ({
+                entities,
+                containers,
+                lastRejection: null,
+              }),
+              false,
+              'INIT_WORLD'
+            );
+            break;
+          }
+
+          case 'TRANSFORM_ENTITY': {
+            const { entityId, newState } = action.payload;
+            set(
+              (state: WorldState) => {
+                const targetEntity = state.entities[entityId];
+                if (!targetEntity) return state;
+
+                const { name, ...restState } = newState;
+
+                return {
+                  ...state,
+                  lastRejection: null,
+                  entities: {
+                    ...state.entities,
+                    [entityId]: {
+                      ...targetEntity,
+                      ...(name ? { name: String(name) } : {}),
+                      state: {
+                        ...targetEntity.state,
+                        ...restState,
+                      },
+                    },
+                  },
+                };
+              },
+              false,
+              'TRANSFORM_ENTITY'
             );
             break;
           }

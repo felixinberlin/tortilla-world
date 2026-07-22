@@ -1,77 +1,33 @@
-/**
- * FILE: queries.ts
- *
- * PURPOSE:
- * Read-only world queries.
- *
- * RESPONSIBILITY:
- * - Finds entities.
- * - Filters world data.
- * - Provides reusable selectors.
- *
- * SHOULD NOT:
- * - Modify state.
- */
-
-import type { Entity } from '../types/Entity'
-import type { Ingredient } from '../types/Ingredient'
-import type { List } from '../types/IngredientList'
-import { ingredients as ingredientCatalog } from '../data/catalog/ingredients'
-
-export function toIngredientView(entity: Entity): Ingredient {
-  const catalogEntry = ingredientCatalog.find((ingredient) => ingredient.id === entity.ingredientId)
-  return {
-    id: entity.id,
-    name: catalogEntry?.name ?? entity.ingredientId,
-    icon: catalogEntry?.icon ?? '🥔',
-  }
-}
+// src/systems/queries.ts
+import type { Container, Entity, WorldState } from '../types/world';
 
 /**
- * Read-only snapshot of which entity ids live in each list, sorted by
- * position.y. Used by drop rules and interaction — never falls back to
- * seed data; only reflects what's actually in the store.
+ * Retrieves an entity by its unique ID from the world state.
  */
-export function getListMembership(
-  entities: Record<string, Entity>,
-  listIds: string[],
-): Record<string, string[]> {
-  const membership = Object.fromEntries(listIds.map((listId) => [listId, [] as string[]]))
+export const getEntityById = (state: WorldState, entityId: string): Entity | undefined => {
+  return state.entities[entityId];
+};
 
-  for (const entity of Object.values(entities)) {
-    if (entity.type !== 'ingredient' || !entity.listId || !(entity.listId in membership)) continue
-    membership[entity.listId].push(entity.id)
-  }
+/**
+ * Retrieves the container that currently holds the given entity ID.
+ */
+export const getContainerByEntityId = (
+  state: WorldState,
+  entityId: string
+): Container | undefined => {
+  return Object.values(state.containers).find((container) =>
+    container.entityIds.includes(entityId)
+  );
+};
 
-  for (const listId of listIds) {
-    membership[listId].sort((leftId, rightId) => {
-      const leftY = entities[leftId]?.position.y ?? 0
-      const rightY = entities[rightId]?.position.y ?? 0
-      return leftY - rightY
-    })
-  }
+/**
+ * Retrieves all entities contained within a specific container.
+ */
+export const getEntitiesInContainer = (state: WorldState, containerId: string): Entity[] => {
+  const container = state.containers[containerId];
+  if (!container) return [];
 
-  return membership
-}
-
-export function getIngredientsForList(
-  entities: Record<string, Entity>,
-  list: List,
-): Ingredient[] {
-  const matching = Object.values(entities)
-    .filter((entity) => entity.type === 'ingredient' && entity.listId === list.id)
-    .sort((left, right) => left.position.y - right.position.y)
-    .map(toIngredientView)
-
-  if (matching.length > 0) return matching
-
-  if (list.seedFromCatalog) return [...ingredientCatalog]
-
-  if (list.seedIngredients) {
-    return list.seedIngredients
-      .map((id) => ingredientCatalog.find((i) => i.id === id))
-      .filter((i): i is Ingredient => i !== undefined)
-  }
-
-  return []
-}
+  return container.entityIds
+    .map((id) => state.entities[id])
+    .filter((entity): entity is Entity => entity !== undefined);
+};
