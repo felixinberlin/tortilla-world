@@ -1,116 +1,166 @@
 import { createStore } from 'zustand/vanilla';
-import type { WorldState, WorldAction, Entity } from '../types/world';
+import { devtools } from 'zustand/middleware';
+import type { Container, Entity, WorldAction, WorldState } from '../types/world';
+import { validateContainerRules } from '../engine/containerRules';
+import { actionLog } from './middleware/actionLog';
 
-export const worldStore = createStore<WorldState>((set) => ({
-  entities: {},
-  containers: {},
-  dispatch: (action: WorldAction) => {
-    switch (action.type) {
-      case 'MOVE_ENTITY': {
-        const { entityId, targetContainerId, positionIndex } = action.payload;
-        set((state: WorldState) => {
-          const sourceContainer = Object.values(state.containers).find((c) =>
-            c.entityIds.includes(entityId)
-          );
-          const targetContainer = state.containers[targetContainerId];
+function entitiesIn(container: Container, entities: Record<string, Entity>): Entity[] {
+  return container.entityIds
+    .map((id) => entities[id])
+    .filter((entity): entity is Entity => Boolean(entity));
+}
 
-          if (!targetContainer) return state;
+export const worldStore = createStore<WorldState>()(
+  devtools(
+    actionLog((set) => ({
+      entities: {},
+      containers: {},
+      dispatch: (action: WorldAction) => {
+        switch (action.type) {
+          case 'MOVE_ENTITY': {
+            const { entityId, targetContainerId, positionIndex } = action.payload;
+            set(
+              (state: WorldState) => {
+                const entity = state.entities[entityId];
+                const targetContainer = state.containers[targetContainerId];
+                if (!entity || !targetContainer) return state;
 
-          const newContainers = { ...state.containers };
+                const sourceContainer = Object.values(state.containers).find((c) =>
+                  c.entityIds.includes(entityId)
+                );
 
-          if (sourceContainer) {
-            newContainers[sourceContainer.id] = {
-              ...sourceContainer,
-              entityIds: sourceContainer.entityIds.filter((id) => id !== entityId),
-            };
-          }
+                // Reordering within the same container never re-checks
+                // rules — capacity/uniqueness only guard entities newly
+                // arriving from elsewhere.
+                if (sourceContainer?.id !== targetContainerId) {
+                  const currentEntities = entitiesIn(targetContainer, state.entities).filter(
+                    (e) => e.id !== entityId
+                  );
+                  const result = validateContainerRules(targetContainer, entity, currentEntities);
+                  if (!result.allowed) return state;
+                }
 
-          const targetIds = [...(newContainers[targetContainerId]?.entityIds || [])];
-          if (typeof positionIndex === 'number') {
-            targetIds.splice(positionIndex, 0, entityId);
-          } else {
-            targetIds.push(entityId);
-          }
+                const newContainers = { ...state.containers };
 
-          newContainers[targetContainerId] = {
-            ...targetContainer,
-            entityIds: targetIds,
-          };
+                if (sourceContainer) {
+                  newContainers[sourceContainer.id] = {
+                    ...sourceContainer,
+                    entityIds: sourceContainer.entityIds.filter((id) => id !== entityId),
+                  };
+                }
 
-          return { ...state, containers: newContainers };
-        });
-        break;
-      }
+                const targetIds = [...(newContainers[targetContainerId]?.entityIds || [])];
+                if (typeof positionIndex === 'number') {
+                  targetIds.splice(positionIndex, 0, entityId);
+                } else {
+                  targetIds.push(entityId);
+                }
 
-      case 'ADD_ENTITY': {
-        const { entity, containerId } = action.payload;
-        set((state: WorldState) => {
-          const targetContainer = state.containers[containerId];
-          if (!targetContainer) return state;
+                newContainers[targetContainerId] = {
+                  ...targetContainer,
+                  entityIds: targetIds,
+                };
 
-          return {
-            ...state,
-            entities: {
-              ...state.entities,
-              [entity.id]: entity as Entity,
-            },
-            containers: {
-              ...state.containers,
-              [containerId]: {
-                ...targetContainer,
-                entityIds: [...targetContainer.entityIds, entity.id],
+                return { ...state, containers: newContainers };
               },
-            },
-          };
-        });
-        break;
-      }
-
-      case 'REMOVE_ENTITY': {
-        const { entityId } = action.payload;
-        set((state: WorldState) => {
-          const newEntities = { ...state.entities };
-          delete newEntities[entityId];
-
-          const newContainers = { ...state.containers };
-          for (const cId in newContainers) {
-            newContainers[cId] = {
-              ...newContainers[cId],
-              entityIds: newContainers[cId].entityIds.filter((id) => id !== entityId),
-            };
+              false,
+              'MOVE_ENTITY'
+            );
+            break;
           }
 
-          return {
-            ...state,
-            entities: newEntities,
-            containers: newContainers,
-          };
-        });
-        break;
-      }
+          case 'ADD_ENTITY': {
+            const { entity, containerId } = action.payload;
+            set(
+              (state: WorldState) => {
+                const targetContainer = state.containers[containerId];
+                if (!targetContainer) return state;
 
-      case 'UPDATE_ENTITY_STATE': {
-        const { entityId, changes } = action.payload;
-        set((state: WorldState) => {
-          const targetEntity = state.entities[entityId];
-          if (!targetEntity) return state;
+                const currentEntities = entitiesIn(targetContainer, state.entities);
+                const result = validateContainerRules(
+                  targetContainer,
+                  entity as Entity,
+                  currentEntities
+                );
+                if (!result.allowed) return state;
 
-          return {
-            ...state,
-            entities: {
-              ...state.entities,
-              [entityId]: {
-                ...targetEntity,
-                state: {
-                  ...targetEntity.state,
-                  ...changes,
-                },
+                return {
+                  ...state,
+                  entities: {
+                    ...state.entities,
+                    [entity.id]: entity as Entity,
+                  },
+                  containers: {
+                    ...state.containers,
+                    [containerId]: {
+                      ...targetContainer,
+                      entityIds: [...targetContainer.entityIds, entity.id],
+                    },
+                  },
+                };
               },
-            },
-          };
-        });
-        break;
-      }
-    }
-  },
-}));
+              false,
+              'ADD_ENTITY'
+            );
+            break;
+          }
+
+          case 'REMOVE_ENTITY': {
+            const { entityId } = action.payload;
+            set(
+              (state: WorldState) => {
+                const newEntities = { ...state.entities };
+                delete newEntities[entityId];
+
+                const newContainers = { ...state.containers };
+                for (const cId in newContainers) {
+                  newContainers[cId] = {
+                    ...newContainers[cId],
+                    entityIds: newContainers[cId].entityIds.filter((id) => id !== entityId),
+                  };
+                }
+
+                return {
+                  ...state,
+                  entities: newEntities,
+                  containers: newContainers,
+                };
+              },
+              false,
+              'REMOVE_ENTITY'
+            );
+            break;
+          }
+
+          case 'UPDATE_ENTITY_STATE': {
+            const { entityId, changes } = action.payload;
+            set(
+              (state: WorldState) => {
+                const targetEntity = state.entities[entityId];
+                if (!targetEntity) return state;
+
+                return {
+                  ...state,
+                  entities: {
+                    ...state.entities,
+                    [entityId]: {
+                      ...targetEntity,
+                      state: {
+                        ...targetEntity.state,
+                        ...changes,
+                      },
+                    },
+                  },
+                };
+              },
+              false,
+              'UPDATE_ENTITY_STATE'
+            );
+            break;
+          }
+        }
+      },
+    })),
+    { name: 'tortilla-world' }
+  )
+);

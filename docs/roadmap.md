@@ -191,6 +191,14 @@ Benefits:
 * debugging
 * AI compatibility
 
+Status:
+
+✅ Traceability — every `dispatch` call is logged (`devtools` +
+`src/store/middleware/actionLog.ts`) and validated through
+`engine/containerRules.ts`.
+🚧 Replay — the log is in-memory only; replaying a recorded sequence back
+into the store is not implemented.
+
 ---
 
 # Phase 3 — Cooking Simulation

@@ -471,3 +471,98 @@ The core architecture decisions are:
 9. AI produces validated actions.
 
 This creates a foundation for a simulation-style cooking world rather than a simple drag-and-drop application.
+
+---
+
+# Decision: Container Rules Are Enforced Inside the Store, Not the Caller
+
+## Context
+
+`engine/containerRules.ts` implemented `validateContainerRules`, but nothing
+called it. `worldStore`'s `MOVE_ENTITY` and `ADD_ENTITY` handlers mutated
+containers directly, so capacity, allowed-type, and uniqueness rules existed
+on paper only.
+
+---
+
+## Decision
+
+Validation happens inside `worldStore`'s `dispatch`, immediately before a
+container's contents are mutated — not in `systems/movement.ts` or any other
+caller.
+
+```
+dispatch(MOVE_ENTITY)
+      |
+      v
+worldStore reducer
+      |
+      v
+validateContainerRules(targetContainer, entity, currentEntities)
+      |
+  not allowed -> no-op, state unchanged
+      |
+  allowed -> ownership updated
+```
+
+Reordering within the same container skips validation — an entity already
+inside a container isn't a new arrival, so capacity/uniqueness checks don't
+apply, and (for `uniqueTypesOnly`) would otherwise trip on the entity
+comparing against itself.
+
+---
+
+## Consequences
+
+Benefits:
+
+* `dispatch` is the single gate every caller goes through — systems, tests,
+  and the future AI system all get the same rules, with no way to bypass
+  them by calling a system function instead of another.
+* Rules live where the docs say they should: on the container, not the
+  caller.
+
+Trade-off:
+
+* An invalid move currently fails silently (state just doesn't change).
+  Surfacing *why* a move was rejected — for UI feedback, not just debug
+  logs — is not yet implemented.
+
+---
+
+# Decision: An In-Memory Action Log Implements the Action Queue
+
+## Context
+
+`docs/systems.md` and the roadmap describe an Action Queue for traceability,
+debugging, replay, and future AI compatibility, but no such log existed.
+
+---
+
+## Decision
+
+`worldStore` is wrapped with two Zustand middlewares:
+
+* `devtools` — every `dispatch` call is visible, named, and diffable in
+  Redux DevTools.
+* `actionLog` (`src/store/middleware/actionLog.ts`) — a small custom
+  middleware that appends `{ action, timestamp }` to an in-memory,
+  size-capped array whenever a `set` call is labelled with an action name
+  (the same convention `devtools` uses: `set(next, false, 'MOVE_ENTITY')`).
+  Read via `getActionLog()`.
+
+---
+
+## Consequences
+
+Benefits:
+
+* Fulfils the "traceability, debugging, replay" requirement without a new
+  dependency or a change to the `WorldAction` shape.
+* The same labelling convention is what the future AI system
+  (`docs/roadmap.md` Phase 5) will read from to reason about what happened.
+
+Trade-off:
+
+* The log is in-memory only — it resets on reload. Persistence (if ever
+  needed for real replay) is a separate, not-yet-made decision.
