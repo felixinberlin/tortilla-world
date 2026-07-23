@@ -43,4 +43,33 @@ export type WorldAction =
         entityId: string;
         changes: Record<string, unknown>;
       };
+    }
+  | {
+      type: 'MASCOT_FLIP';
+      payload: {
+        mascotId?: string;
+      };
+    }
+  | {
+      type: 'MASCOT_MOVE';
+      payload: {
+        mascotId?: string;
+        targetContainerId: string;
+      };
+    }
+  | {
+      type: 'MASCOT_GRAB';
+      payload: {
+        mascotId?: string;
+        entityId: string;
+        sourceContainerId?: string;
+      };
+    }
+  | {
+      type: 'MASCOT_DROP';
+      payload: {
+        mascotId?: string;
+        targetContainerId: string;
+        positionIndex?: number;
+      };
     };

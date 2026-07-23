@@ -262,6 +262,233 @@ export const worldStore = createStore<WorldState>()(
             );
             break;
           }
+
+          case 'MASCOT_FLIP': {
+            const mascotId = action.payload.mascotId || 'chef';
+            set(
+              (state: WorldState) => {
+                const targetEntity = state.entities[mascotId];
+                if (!targetEntity) return state;
+
+                return {
+                  ...state,
+                  entities: {
+                    ...state.entities,
+                    [mascotId]: {
+                      ...targetEntity,
+                      state: {
+                        ...targetEntity.state,
+                        state: 'flipping',
+                        isFlipping: true,
+                      },
+                    },
+                  },
+                };
+              },
+              false,
+              'MASCOT_FLIP'
+            );
+
+            setTimeout(() => {
+              set(
+                (state: WorldState) => {
+                  const targetEntity = state.entities[mascotId];
+                  if (!targetEntity || targetEntity.state?.state !== 'flipping') return state;
+
+                  return {
+                    ...state,
+                    entities: {
+                      ...state.entities,
+                      [mascotId]: {
+                        ...targetEntity,
+                        state: {
+                          ...targetEntity.state,
+                          state: 'idle',
+                          isFlipping: false,
+                        },
+                      },
+                    },
+                  };
+                },
+                false,
+                'RESET_MASCOT_FLIP'
+              );
+            }, 800);
+            break;
+          }
+
+          case 'MASCOT_MOVE': {
+            const mascotId = action.payload.mascotId || 'chef';
+            const { targetContainerId } = action.payload;
+            set(
+              (state: WorldState) => {
+                const targetEntity = state.entities[mascotId];
+                if (!targetEntity) return state;
+
+                return {
+                  ...state,
+                  entities: {
+                    ...state.entities,
+                    [mascotId]: {
+                      ...targetEntity,
+                      state: {
+                        ...targetEntity.state,
+                        gazingAt: targetContainerId,
+                        targetContainerId,
+                      },
+                    },
+                  },
+                };
+              },
+              false,
+              'MASCOT_MOVE'
+            );
+            break;
+          }
+
+          case 'MASCOT_GRAB': {
+            const mascotId = action.payload.mascotId || 'chef';
+            const { entityId, sourceContainerId } = action.payload;
+            set(
+              (state: WorldState) => {
+                const mascot = state.entities[mascotId];
+                if (!mascot) return state;
+                const grabbedEntity = state.entities[entityId];
+                if (!grabbedEntity) return state;
+
+                const foundSource = sourceContainerId
+                  ? state.containers[sourceContainerId]
+                  : Object.values(state.containers).find((c) => c.entityIds.includes(entityId));
+
+                return {
+                  ...state,
+                  entities: {
+                    ...state.entities,
+                    [mascotId]: {
+                      ...mascot,
+                      state: {
+                        ...mascot.state,
+                        holdingEntityId: entityId,
+                        sourceContainerId: foundSource?.id,
+                        gazingAt: foundSource?.id || mascot.state?.gazingAt,
+                      },
+                    },
+                  },
+                };
+              },
+              false,
+              'MASCOT_GRAB'
+            );
+            break;
+          }
+
+          case 'MASCOT_DROP': {
+            const mascotId = action.payload.mascotId || 'chef';
+            const { targetContainerId, positionIndex } = action.payload;
+
+            set(
+              (state: WorldState) => {
+                const mascot = state.entities[mascotId];
+                if (!mascot) return state;
+
+                const holdingEntityId = mascot.state?.holdingEntityId as string | undefined;
+
+                if (!holdingEntityId) {
+                  return {
+                    ...state,
+                    entities: {
+                      ...state.entities,
+                      [mascotId]: {
+                        ...mascot,
+                        state: {
+                          ...mascot.state,
+                          gazingAt: targetContainerId,
+                        },
+                      },
+                    },
+                  };
+                }
+
+                const entityToMove = state.entities[holdingEntityId];
+                const targetContainer = state.containers[targetContainerId];
+                if (!entityToMove || !targetContainer) return state;
+
+                const sourceContainerId = mascot.state?.sourceContainerId as string | undefined;
+                const sourceContainer = sourceContainerId
+                  ? state.containers[sourceContainerId]
+                  : Object.values(state.containers).find((c) => c.entityIds.includes(holdingEntityId));
+
+                const isSourceImmutable =
+                  sourceContainer?.rules?.isImmutable || sourceContainer?.rules?.consumesOnDrag === false;
+
+                let finalEntityId = holdingEntityId;
+                const newEntities = { ...state.entities };
+
+                if (sourceContainer && sourceContainer.id !== targetContainerId && isSourceImmutable) {
+                  const copyId = `${entityToMove.id}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+                  const copyEntity: Entity = {
+                    ...entityToMove,
+                    id: copyId,
+                    ingredientId: entityToMove.ingredientId || entityToMove.id.split('_')[0],
+                  };
+
+                  const currentEntities = entitiesIn(targetContainer, state.entities);
+                  const result = validateContainerRules(targetContainer, copyEntity, currentEntities);
+                  if (!result.allowed) return state;
+
+                  finalEntityId = copyId;
+                  newEntities[copyId] = copyEntity;
+                } else if (sourceContainer?.id !== targetContainerId) {
+                  const currentEntities = entitiesIn(targetContainer, state.entities).filter(
+                    (e) => e.id !== holdingEntityId
+                  );
+                  const result = validateContainerRules(targetContainer, entityToMove, currentEntities);
+                  if (!result.allowed) return state;
+                }
+
+                const newContainers = { ...state.containers };
+
+                if (sourceContainer && !isSourceImmutable) {
+                  newContainers[sourceContainer.id] = {
+                    ...sourceContainer,
+                    entityIds: sourceContainer.entityIds.filter((id) => id !== holdingEntityId),
+                  };
+                }
+
+                const targetIds = [...(newContainers[targetContainerId]?.entityIds || [])];
+                if (typeof positionIndex === 'number') {
+                  targetIds.splice(positionIndex, 0, finalEntityId);
+                } else {
+                  targetIds.push(finalEntityId);
+                }
+
+                newContainers[targetContainerId] = {
+                  ...targetContainer,
+                  entityIds: targetIds,
+                };
+
+                return {
+                  ...state,
+                  entities: {
+                    ...newEntities,
+                    [mascotId]: {
+                      ...mascot,
+                      state: {
+                        ...mascot.state,
+                        holdingEntityId: undefined,
+                        sourceContainerId: undefined,
+                        gazingAt: targetContainerId,
+                      },
+                    },
+                  },
+                  containers: newContainers,
+                };
+              },
+              false,
+              'MASCOT_DROP'
+            );
+            break;
+          }
         }
       },
     })),

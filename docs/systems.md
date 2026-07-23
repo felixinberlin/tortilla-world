@@ -44,6 +44,7 @@ Systems
 ├── Interaction System
 ├── Movement System
 ├── Container System
+├── Mascot System
 ├── Animation System
 ├── Cooking System
 └── AI System
@@ -699,6 +700,19 @@ Controls:
 * NPCs
 * player actions
 * behaviours
+
+---
+
+## Mascot System
+
+Controls:
+
+* `MASCOT_FLIP`: Flips Tortilla mascot in place.
+* `MASCOT_MOVE`: Moves gaze/focus of Tortilla to target container.
+* `MASCOT_GRAB`: Commands Tortilla to grab ingredient entity from a container.
+* `MASCOT_DROP`: Commands Tortilla to drop held ingredient into target container obeying rules.
+
+Dispatch helpers are located in `src/systems/mascotActions.ts` for AI agent or UI integration.
 
 ---
 
