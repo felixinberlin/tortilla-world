@@ -7,6 +7,7 @@ import {
   grabIngredient,
   dropIngredient,
   runTortillaPotatoScript,
+  runFollowRecipeScript,
 } from './mascotActions';
 
 function seedWorld() {
@@ -150,5 +151,37 @@ describe('mascotActions system', () => {
       'MASCOT_FLIP',
       'MASCOT_MOVE',
     ]);
+  });
+
+  it('runs follow recipe script: brings all recipe ingredients to table one by one', async () => {
+    // Seed default entities for all recipe ingredients
+    worldStore.setState({
+      ...worldStore.getState(),
+      entities: {
+        ...worldStore.getState().entities,
+        potato: { id: 'potato', ingredientId: 'potato', name: 'Potato', type: 'ingredient' },
+        egg: { id: 'egg', ingredientId: 'egg', name: 'Egg', type: 'ingredient' },
+        oil: { id: 'oil', ingredientId: 'oil', name: 'Oil', type: 'ingredient' },
+        onion: { id: 'onion', ingredientId: 'onion', name: 'Onion', type: 'ingredient' },
+        salt: { id: 'salt', ingredientId: 'salt', name: 'Salt', type: 'ingredient' },
+        pepper: { id: 'pepper', ingredientId: 'pepper', name: 'Pepper', type: 'ingredient' },
+      },
+      containers: {
+        ...worldStore.getState().containers,
+        board: {
+          id: 'board',
+          name: 'Board',
+          type: 'board',
+          entityIds: [],
+          rules: { maxCapacity: 10 },
+        },
+      },
+    });
+
+    await runFollowRecipeScript('concebolla', 'chef', 'board', 5);
+
+    const state = worldStore.getState();
+    // All 6 ingredients from concebolla recipe should now be on board
+    expect(state.containers.board.entityIds.length).toBe(6);
   });
 });

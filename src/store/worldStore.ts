@@ -53,7 +53,7 @@ const defaultContainers: Record<string, Container> = {
     name: 'Tabla (Cutting Board)',
     type: 'board',
     entityIds: [],
-    rules: { maxCapacity: 3, allowedTypes: ['ingredient'] },
+    rules: { maxCapacity: 10, allowedTypes: ['ingredient'] },
   },
   pan: {
     id: 'pan',
