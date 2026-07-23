@@ -19,6 +19,11 @@ export interface ValidationResult {
   reason?: string;
 }
 
+export function getIngredientCatalogId(entity: Entity): string {
+  if (entity.ingredientId) return entity.ingredientId;
+  return entity.id.split('_')[0];
+}
+
 export function validateContainerRules(
   container: Container,
   entity: Entity,
@@ -26,11 +31,25 @@ export function validateContainerRules(
 ): ValidationResult {
   const rules = container.rules;
 
+  // 1. Ingredient Uniqueness Check (Rule 6: A container cannot contain two identical ingredients)
+  if (entity.type === 'ingredient') {
+    const targetIngredientId = getIngredientCatalogId(entity);
+    const hasDuplicateIngredient = currentEntitiesInContainer.some(
+      (e) => e.type === 'ingredient' && getIngredientCatalogId(e) === targetIngredientId
+    );
+    if (hasDuplicateIngredient) {
+      return {
+        allowed: false,
+        reason: `Container '${container.name}' already contains ingredient '${targetIngredientId}'.`,
+      };
+    }
+  }
+
   if (!rules) {
     return { allowed: true };
   }
 
-  // 1. Capacity Check
+  // 2. Capacity Check
   if (
     rules.maxCapacity !== undefined &&
     container.entityIds.length >= rules.maxCapacity
@@ -41,7 +60,7 @@ export function validateContainerRules(
     };
   }
 
-  // 2. Allowed Types Check
+  // 3. Allowed Types Check
   if (rules.allowedTypes && !rules.allowedTypes.includes(entity.type)) {
     return {
       allowed: false,
@@ -49,7 +68,7 @@ export function validateContainerRules(
     };
   }
 
-  // 3. Unique Types Check
+  // 4. Unique Types Check
   if (rules.uniqueTypesOnly) {
     const hasTypeAlready = currentEntitiesInContainer.some(
       (e) => e.type === entity.type
@@ -62,7 +81,7 @@ export function validateContainerRules(
     }
   }
 
-  // 4. Custom Validator Check
+  // 5. Custom Validator Check
   if (rules.customValidator) {
     const passesCustom = rules.customValidator(
       container,

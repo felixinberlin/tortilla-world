@@ -24,14 +24,14 @@ export const IngredientListItem: React.FC<IngredientListItemProps> = ({ entity }
 
   const style: React.CSSProperties | undefined = transform
     ? {
-      transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-      opacity: isDragging ? 0.6 : 1,
-      zIndex: isDragging ? 1000 : 1,
-      cursor: 'grab',
-    }
+        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+        opacity: isDragging ? 0.6 : 1,
+        zIndex: isDragging ? 1000 : 1,
+        cursor: 'grab',
+      }
     : {
-      cursor: 'grab',
-    };
+        cursor: 'grab',
+      };
 
   return (
     <div

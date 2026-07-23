@@ -17,6 +17,7 @@ export interface Entity {
   id: string;
   name: string;
   type: EntityType;
+  ingredientId?: string;
   state?: Record<string, unknown>;
 }
 
@@ -24,6 +25,8 @@ export interface ContainerRules {
   maxCapacity?: number;
   allowedTypes?: EntityType[];
   uniqueTypesOnly?: boolean;
+  consumesOnDrag?: boolean;
+  isImmutable?: boolean;
   customValidator?: ( 
     container: Container,
     entity: Entity,

@@ -33,8 +33,8 @@ export function IngredientList({ container }: IngredientListProps) {
     .filter((e: Entity | undefined): e is Entity => Boolean(e));
 
   return (
-    <div
-      ref={setNodeRef}
+    <div 
+      ref={setNodeRef} 
       className={`ingredient-list ${isOver ? 'drag-over' : ''}`}
     >
       <h3>{container.name}</h3>

@@ -19,22 +19,34 @@ import { devtools } from 'zustand/middleware';
 import type { Container, Entity, WorldAction, WorldState } from '../types/world';
 import { validateContainerRules } from '../engine/containerRules';
 import { actionLog } from './middleware/actionLog';
+import { ingredients as catalogIngredients } from '../data/catalog/ingredients';
 
 const defaultEntities: Record<string, Entity> = {
-  potato: { id: 'potato', name: '🥔 Potatoes', type: 'ingredient', state: { sliced: false, cooked: false } },
-  egg: { id: 'egg', name: '🥚 Eggs', type: 'ingredient', state: { cracked: false, cooked: false } },
-  onion: { id: 'onion', name: '🧅 Onion', type: 'ingredient', state: { sliced: false, cooked: false } },
-  oil: { id: 'oil', name: '🫒 Olive Oil', type: 'ingredient', state: { poured: false } },
-  salt: { id: 'salt', name: '🧂 Salt', type: 'ingredient', state: {} },
+  chef: { id: 'chef', name: 'Chef Tortilla 🍳', type: 'mascot', state: { gazingAt: 'Despensa' } },
+  ...catalogIngredients.reduce((acc, item) => {
+    acc[item.id] = {
+      id: item.id,
+      ingredientId: item.id,
+      name: `${item.icon} ${item.name}`,
+      type: 'ingredient',
+      state: {},
+    };
+    return acc;
+  }, {} as Record<string, Entity>),
 };
 
 const defaultContainers: Record<string, Container> = {
   despensa: {
     id: 'despensa',
-    name: 'Despensa (Pantry)',
+    name: 'Despensa (All Ingredients - Immutable Catalog)',
     type: 'storage',
-    entityIds: ['potato', 'egg', 'onion', 'oil', 'salt'],
-    rules: { maxCapacity: 10, allowedTypes: ['ingredient', 'tool'] },
+    entityIds: catalogIngredients.map((i) => i.id),
+    rules: {
+      maxCapacity: 20,
+      allowedTypes: ['ingredient', 'tool'],
+      consumesOnDrag: false,
+      isImmutable: true,
+    },
   },
   board: {
     id: 'board',
@@ -84,9 +96,46 @@ export const worldStore = createStore<WorldState>()(
                   c.entityIds.includes(entityId)
                 );
 
-                // Reordering within the same container never re-checks
-                // rules — capacity/uniqueness only guard entities newly
-                // arriving from elsewhere.
+                const isSourceImmutable =
+                  sourceContainer?.rules?.isImmutable || sourceContainer?.rules?.consumesOnDrag === false;
+
+                // Immutable source container logic: create a copy instance in target
+                if (sourceContainer && sourceContainer.id !== targetContainerId && isSourceImmutable) {
+                  const copyId = `${entity.id}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+                  const copyEntity: Entity = {
+                    ...entity,
+                    id: copyId,
+                    ingredientId: entity.ingredientId || entity.id.split('_')[0],
+                  };
+
+                  const currentEntities = entitiesIn(targetContainer, state.entities);
+                  const result = validateContainerRules(targetContainer, copyEntity, currentEntities);
+                  if (!result.allowed) return state;
+
+                  const targetIds = [...(state.containers[targetContainerId]?.entityIds || [])];
+                  if (typeof positionIndex === 'number') {
+                    targetIds.splice(positionIndex, 0, copyId);
+                  } else {
+                    targetIds.push(copyId);
+                  }
+
+                  return {
+                    ...state,
+                    entities: {
+                      ...state.entities,
+                      [copyId]: copyEntity,
+                    },
+                    containers: {
+                      ...state.containers,
+                      [targetContainerId]: {
+                        ...targetContainer,
+                        entityIds: targetIds,
+                      },
+                    },
+                  };
+                }
+
+                // Reordering within the same container never re-checks rules
                 if (sourceContainer?.id !== targetContainerId) {
                   const currentEntities = entitiesIn(targetContainer, state.entities).filter(
                     (e) => e.id !== entityId

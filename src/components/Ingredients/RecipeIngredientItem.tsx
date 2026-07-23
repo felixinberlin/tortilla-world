@@ -12,6 +12,7 @@
 import type { Ingredient } from '../../types/Ingredient'
 
 interface RecipeIngredientItemProps {
+  key?: string | number
   ingredient: Ingredient
   amount: number
   unit: string

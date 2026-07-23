@@ -158,4 +158,74 @@ describe('worldStore container rule enforcement', () => {
     expect(log[0].action).toBe('MOVE_ENTITY');
     expect(typeof log[0].timestamp).toBe('number');
   });
+
+  it('keeps source entity and creates copy in target when moving from an immutable container', () => {
+    worldStore.setState({
+      entities: {
+        potato: { id: 'potato', name: 'Potato', type: 'ingredient' },
+      },
+      containers: {
+        pantry: {
+          id: 'pantry',
+          name: 'Immutable Pantry',
+          type: 'storage',
+          entityIds: ['potato'],
+          rules: { isImmutable: true },
+        },
+        pan: {
+          id: 'pan',
+          name: 'Pan',
+          type: 'pan',
+          entityIds: [],
+        },
+      },
+    });
+
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'potato', targetContainerId: 'pan' },
+    });
+
+    const state = worldStore.getState();
+    // Source container retains original entity
+    expect(state.containers.pantry.entityIds).toEqual(['potato']);
+    // Target container gets a copy instance
+    expect(state.containers.pan.entityIds.length).toBe(1);
+    const copyId = state.containers.pan.entityIds[0];
+    expect(copyId).not.toBe('potato');
+    expect(state.entities[copyId].name).toBe('Potato');
+  });
+
+  it('rejects adding a duplicate ingredient to a container according to Rule 6', () => {
+    worldStore.setState({
+      entities: {
+        potato: { id: 'potato', ingredientId: 'potato', name: 'Potato', type: 'ingredient' },
+        potato_copy: { id: 'potato_copy', ingredientId: 'potato', name: 'Potato Copy', type: 'ingredient' },
+      },
+      containers: {
+        pantry: {
+          id: 'pantry',
+          name: 'Pantry',
+          type: 'storage',
+          entityIds: ['potato_copy'],
+          rules: { isImmutable: true },
+        },
+        pan: {
+          id: 'pan',
+          name: 'Pan',
+          type: 'pan',
+          entityIds: ['potato'],
+        },
+      },
+    });
+
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'potato_copy', targetContainerId: 'pan' },
+    });
+
+    const state = worldStore.getState();
+    // Pan should still only have 1 potato because duplicate ingredient is blocked
+    expect(state.containers.pan.entityIds).toEqual(['potato']);
+  });
 });
