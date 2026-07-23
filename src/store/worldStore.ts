@@ -438,7 +438,7 @@ export const worldStore = createStore<WorldState>()(
 
                   finalEntityId = copyId;
                   newEntities[copyId] = copyEntity;
-                } else if (sourceContainer?.id !== targetContainerId) {
+                } else {
                   const currentEntities = entitiesIn(targetContainer, state.entities).filter(
                     (e) => e.id !== holdingEntityId
                   );

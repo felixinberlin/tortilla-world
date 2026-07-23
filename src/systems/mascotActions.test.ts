@@ -98,6 +98,43 @@ describe('mascotActions system', () => {
     expect(actions).toContain('MASCOT_DROP');
   });
 
+  it('clears holdingEntityId when drop is possible and retains it when drop is blocked', () => {
+    // 1. Fill board to capacity (maxCapacity = 3)
+    worldStore.setState({
+      ...worldStore.getState(),
+      entities: {
+        ...worldStore.getState().entities,
+        i1: { id: 'i1', ingredientId: 'i1', name: 'I1', type: 'ingredient' },
+        i2: { id: 'i2', ingredientId: 'i2', name: 'I2', type: 'ingredient' },
+        i3: { id: 'i3', ingredientId: 'i3', name: 'I3', type: 'ingredient' },
+      },
+      containers: {
+        ...worldStore.getState().containers,
+        board: {
+          id: 'board',
+          name: 'Board',
+          type: 'board',
+          entityIds: ['i1', 'i2', 'i3'],
+          rules: { maxCapacity: 3 },
+        },
+      },
+    });
+
+    // 2. Grab potato from despensa
+    grabIngredient('potato', 'despensa', 'chef');
+    expect(worldStore.getState().entities.chef.state?.holdingEntityId).toBe('potato');
+
+    // 3. Attempt to drop into full board -> should be blocked and Tortilla continues grabbing/holding it
+    dropIngredient('board', undefined, 'chef');
+    expect(worldStore.getState().entities.chef.state?.holdingEntityId).toBe('potato');
+    expect(worldStore.getState().containers.board.entityIds).toEqual(['i1', 'i2', 'i3']);
+
+    // 4. Drop into non-full pan -> allowed, Tortilla stops grabbing it (holdingEntityId cleared)
+    dropIngredient('pan', undefined, 'chef');
+    expect(worldStore.getState().entities.chef.state?.holdingEntityId).toBeUndefined();
+    expect(worldStore.getState().containers.pan.entityIds.length).toBe(1);
+  });
+
   it('runs full async script sequence: move ➔ grab ➔ move ➔ drop ➔ flip ➔ return home', async () => {
     await runTortillaPotatoScript('chef', 10);
 
