@@ -13,6 +13,11 @@ import { worldStore } from '../store/worldStore';
 
 export type GazeTarget = string | null;
 
+export interface GazePoint {
+  x: number;
+  y: number;
+}
+
 interface GazeState {
   gazingAt?: GazeTarget;
 }

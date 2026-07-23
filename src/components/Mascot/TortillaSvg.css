@@ -1,0 +1,23 @@
+/**
+ * FILE: TortillaSvg.css
+ *
+ * PURPOSE:
+ * Styles and animations for TortillaSvg mascot.
+ */
+
+.tortilla-blink {
+  animation: tortillaBlink 4s infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes tortillaBlink {
+  0%, 92%, 100% {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  94%, 98% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
