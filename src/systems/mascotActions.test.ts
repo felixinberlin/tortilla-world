@@ -6,6 +6,7 @@ import {
   moveTortillaTo,
   grabIngredient,
   dropIngredient,
+  runTortillaPotatoScript,
 } from './mascotActions';
 
 function seedWorld() {
@@ -95,5 +96,22 @@ describe('mascotActions system', () => {
     const actions = log.map((l) => l.action);
     expect(actions).toContain('MASCOT_GRAB');
     expect(actions).toContain('MASCOT_DROP');
+  });
+
+  it('runs full async script sequence: move ➔ grab ➔ move ➔ drop ➔ flip ➔ return home', async () => {
+    await runTortillaPotatoScript('chef', 10);
+
+    const state = worldStore.getState();
+    expect(state.containers.board.entityIds.length).toBe(1);
+
+    const log = getActionLog().map((l) => l.action).filter((a) => a !== 'RESET_MASCOT_FLIP');
+    expect(log).toEqual([
+      'MASCOT_MOVE',
+      'MASCOT_GRAB',
+      'MASCOT_MOVE',
+      'MASCOT_DROP',
+      'MASCOT_FLIP',
+      'MASCOT_MOVE',
+    ]);
   });
 });

@@ -1,0 +1,37 @@
+[
+  {
+    "type": "MASCOT_MOVE",
+    "payload": {
+      "mascotId": "chef",
+      "targetContainerId": "despensa"
+    }
+  },
+  {
+    "type": "MASCOT_GRAB",
+    "payload": {
+      "mascotId": "chef",
+      "entityId": "potato",
+      "sourceContainerId": "despensa"
+    }
+  },
+  {
+    "type": "MASCOT_MOVE",
+    "payload": {
+      "mascotId": "chef",
+      "targetContainerId": "board"
+    }
+  },
+  {
+    "type": "MASCOT_DROP",
+    "payload": {
+      "mascotId": "chef",
+      "targetContainerId": "board"
+    }
+  },
+  {
+    "type": "MASCOT_FLIP",
+    "payload": {
+      "mascotId": "chef"
+    }
+  }
+]

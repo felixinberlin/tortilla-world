@@ -712,7 +712,9 @@ Controls:
 * `MASCOT_GRAB`: Commands Tortilla to grab ingredient entity from a container.
 * `MASCOT_DROP`: Commands Tortilla to drop held ingredient into target container obeying rules.
 
-Dispatch helpers are located in `src/systems/mascotActions.ts` for AI agent or UI integration.
+Dispatch helpers and automated action sequences (e.g. `runTortillaPotatoScript`) are located in `src/systems/mascotActions.ts` for AI agent, console, or UI integration.
+
+React components (`Mascot.tsx`) translate pure target container state into physical Framer Motion spring translations across the DOM viewport without touching store logic.
 
 ---
 

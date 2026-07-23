@@ -35,6 +35,7 @@ export function IngredientList({ container }: IngredientListProps) {
   return (
     <div 
       ref={setNodeRef} 
+      data-container-id={container.id}
       className={`ingredient-list ${isOver ? 'drag-over' : ''}`}
     >
       <h3>{container.name}</h3>

@@ -58,3 +58,41 @@ export function dropIngredient(
     payload: { mascotId, targetContainerId, positionIndex },
   });
 }
+
+/**
+ * Commands Tortilla to execute a sequence:
+ * 1. Move focus to despensa
+ * 2. Grab potato from despensa
+ * 3. Move focus to board (tabla)
+ * 4. Drop potato into board
+ * 5. Flip Tortilla mascot
+ */
+export async function runTortillaPotatoScript(
+  mascotId: string = 'chef',
+  delayMs: number = 600
+): Promise<void> {
+  const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  // 1. Look at despensa
+  moveTortillaTo('despensa', mascotId);
+  await wait(delayMs);
+
+  // 2. Grab potato from despensa
+  grabIngredient('potato', 'despensa', mascotId);
+  await wait(delayMs);
+
+  // 3. Look at board (tabla)
+  moveTortillaTo('board', mascotId);
+  await wait(delayMs);
+
+  // 4. Drop potato in board
+  dropIngredient('board', undefined, mascotId);
+  await wait(delayMs);
+
+  // 5. Flip Tortilla
+  flipTortilla(mascotId);
+  await wait(900);
+
+  // 6. Return home gracefully
+  moveTortillaTo('', mascotId);
+}
