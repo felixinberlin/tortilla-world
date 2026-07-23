@@ -12,57 +12,48 @@
 import { useState } from 'react';
 import { useStore } from 'zustand';
 import { ingredients as ingredientCatalog } from '../../data/catalog/ingredients';
-import { concebollaRecipe } from '../../data/catalog/recipes/concebolla';
-import { sincebollaRecipe } from '../../data/catalog/recipes/sincebolla';
+import { recipes } from '../../data/catalog/recipes';
 import { RecipeIngredientList } from '../Ingredients/RecipeIngredientList';
 import { worldStore } from '../../store/worldStore';
+import { countMatchingIngredients } from '../../systems/recipeMatcher';
 import './RecipePanel.css';
 
 export function RecipePanel() {
-  const [selectedRecipeId, setSelectedRecipeId] = useState<'concebolla' | 'sincebolla'>('concebolla');
+  const [selectedRecipeId, setSelectedRecipeId] = useState<string>(recipes[0]?.id || 'concebolla');
 
-  const activeRecipe = selectedRecipeId === 'concebolla' ? concebollaRecipe : sincebollaRecipe;
+  const activeRecipe = recipes.find((r) => r.id === selectedRecipeId) || recipes[0];
 
   const entities = useStore(worldStore, (state) => state.entities);
   const containers = useStore(worldStore, (state) => state.containers);
 
-  // Collect ingredient IDs currently placed in active workspace containers (pan, board, plate)
+  // Collect ingredient entities currently placed in active workspace containers (board, pan, plate)
   const activeContainerEntities = [
     ...(containers.board?.entityIds || []),
     ...(containers.pan?.entityIds || []),
     ...(containers.plate?.entityIds || []),
   ].map((id) => entities[id]).filter(Boolean);
 
-  const activeIngredientBaseIds = activeContainerEntities.map((e) => {
-    // If copied, ID might be "potato_12345_678", extract base catalog ID
-    return e.id.split('_')[0];
-  });
+  const matchResult = countMatchingIngredients(activeRecipe, activeContainerEntities);
 
-  const matchingCount = activeRecipe.ingredients.filter((req) =>
-    activeIngredientBaseIds.includes(req.ingredientId)
-  ).length;
+  if (!activeRecipe) return null;
 
   return (
     <div className="recipe-panel">
       <div className="recipe-panel-header">
         <div className="recipe-selector">
-          <button
-            type="button"
-            className={`recipe-tab ${selectedRecipeId === 'concebolla' ? 'active' : ''}`}
-            onClick={() => setSelectedRecipeId('concebolla')}
-          >
-            🧅 Con Cebolla
-          </button>
-          <button
-            type="button"
-            className={`recipe-tab ${selectedRecipeId === 'sincebolla' ? 'active' : ''}`}
-            onClick={() => setSelectedRecipeId('sincebolla')}
-          >
-            🍳 Sin Cebolla
-          </button>
+          {recipes.map((recipe) => (
+            <button
+              key={recipe.id}
+              type="button"
+              className={`recipe-tab ${selectedRecipeId === recipe.id ? 'active' : ''}`}
+              onClick={() => setSelectedRecipeId(recipe.id)}
+            >
+              {recipe.name}
+            </button>
+          ))}
         </div>
         <div className="recipe-status">
-          Match: <span className="highlight-count">{matchingCount}</span> / {activeRecipe.ingredients.length}
+          Match: <span className="highlight-count">{matchResult.matchingCount}</span> / {matchResult.totalCount}
         </div>
       </div>
 
