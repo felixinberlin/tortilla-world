@@ -1,3 +1,13 @@
+/**
+ * FILE: interaction.test.ts
+ *
+ * PURPOSE:
+ * Unit tests for interaction system and reordering resolutions.
+ *
+ * RESPONSIBILITY:
+ * - Validates resolveListReorder and applyListReorder behavior.
+ */
+
 import { describe, it, expect } from 'vitest'
 import { evaluateDrop, parseDrag } from './dropRules'
 import { resolveListReorder, applyListReorder } from './interaction'

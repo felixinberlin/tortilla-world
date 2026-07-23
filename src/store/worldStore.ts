@@ -20,6 +20,45 @@ import type { Container, Entity, WorldAction, WorldState } from '../types/world'
 import { validateContainerRules } from '../engine/containerRules';
 import { actionLog } from './middleware/actionLog';
 
+const defaultEntities: Record<string, Entity> = {
+  potato: { id: 'potato', name: '🥔 Potatoes', type: 'ingredient', state: { sliced: false, cooked: false } },
+  egg: { id: 'egg', name: '🥚 Eggs', type: 'ingredient', state: { cracked: false, cooked: false } },
+  onion: { id: 'onion', name: '🧅 Onion', type: 'ingredient', state: { sliced: false, cooked: false } },
+  oil: { id: 'oil', name: '🫒 Olive Oil', type: 'ingredient', state: { poured: false } },
+  salt: { id: 'salt', name: '🧂 Salt', type: 'ingredient', state: {} },
+};
+
+const defaultContainers: Record<string, Container> = {
+  despensa: {
+    id: 'despensa',
+    name: 'Despensa (Pantry)',
+    type: 'storage',
+    entityIds: ['potato', 'egg', 'onion', 'oil', 'salt'],
+    rules: { maxCapacity: 10, allowedTypes: ['ingredient', 'tool'] },
+  },
+  board: {
+    id: 'board',
+    name: 'Tabla (Cutting Board)',
+    type: 'board',
+    entityIds: [],
+    rules: { maxCapacity: 3, allowedTypes: ['ingredient'] },
+  },
+  pan: {
+    id: 'pan',
+    name: 'Sartén (Skillet)',
+    type: 'pan',
+    entityIds: [],
+    rules: { maxCapacity: 5, allowedTypes: ['ingredient'] },
+  },
+  plate: {
+    id: 'plate',
+    name: 'Plato (Plate)',
+    type: 'plate',
+    entityIds: [],
+    rules: { maxCapacity: 5, allowedTypes: ['ingredient'] },
+  },
+};
+
 function entitiesIn(container: Container, entities: Record<string, Entity>): Entity[] {
   return container.entityIds
     .map((id) => entities[id])
@@ -29,8 +68,8 @@ function entitiesIn(container: Container, entities: Record<string, Entity>): Ent
 export const worldStore = createStore<WorldState>()(
   devtools(
     actionLog((set) => ({
-      entities: {},
-      containers: {},
+      entities: defaultEntities,
+      containers: defaultContainers,
       dispatch: (action: WorldAction) => {
         switch (action.type) {
           case 'MOVE_ENTITY': {

@@ -1,3 +1,13 @@
+/**
+ * FILE: worldStore.test.ts
+ *
+ * PURPOSE:
+ * Unit tests for central world store and container rule enforcement.
+ *
+ * RESPONSIBILITY:
+ * - Validates state transitions, move/add entity actions, and rule checks.
+ */
+
 import { describe, it, expect, beforeEach } from 'vitest';
 import { worldStore } from './worldStore';
 import { clearActionLog, getActionLog } from './middleware/actionLog';

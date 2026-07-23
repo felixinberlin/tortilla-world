@@ -1,3 +1,13 @@
+/**
+ * FILE: actionLog.test.ts
+ *
+ * PURPOSE:
+ * Unit tests for actionLog Zustand middleware.
+ *
+ * RESPONSIBILITY:
+ * - Validates action recording, log size limits, and clearing behavior.
+ */
+
 import { describe, it, expect, beforeEach } from 'vitest';
 import { createStore } from 'zustand/vanilla';
 import { devtools } from 'zustand/middleware';

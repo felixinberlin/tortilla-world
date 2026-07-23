@@ -14,25 +14,30 @@
 
 import React from 'react';
 import { useStore } from 'zustand';
+import { DndContext } from '@dnd-kit/core';
 import { worldStore } from '../../store/worldStore';
 import { IngredientList } from '../Ingredients/IngredientList';
+import { useSceneDragAndDrop } from './useSceneDragAndDrop';
 
 export const Scene: React.FC = () => {
-  const containers = useStore(
-    worldStore,
-    (state) => state.containers
-  );
+  // 1. Mount the drag-and-drop input listeners and dispatch handler
+  const { sensors, handleDragEnd } = useSceneDragAndDrop();
 
-  const containerList = Object.values(containers);
+  // 2. Query the pure simulation state for rendering
+  const containersMap = useStore(worldStore, (state) => state.containers);
+  const containers = Object.values(containersMap);
 
   return (
-    <div className="scene">
-      {containerList.map((container) => (
-        <IngredientList
-          key={container.id}
-          containerEntityIds={container.entityIds}
-        />
-      ))}
-    </div>
+    // 3. The DndContext wrapper acts as the physical input boundary
+    <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+      <div className="scene">
+        {containers.map((container) => (
+          <IngredientList
+            key={container.id}
+            container={container}
+          />
+        ))}
+      </div>
+    </DndContext>
   );
 };

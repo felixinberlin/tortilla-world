@@ -5,29 +5,47 @@
  * Displays a collection/container of ingredients.
  *
  * RESPONSIBILITY:
- * - Renders ingredients belonging to a specific list.
- * - Delegates individual rendering to IngredientListItem.
- *
- * DOMAIN:
- * Represents UI for containers like pantry, kitchen, recipe.
+ * - Renders container title and its inner entities.
+ * - Acts as a droppable target for drag-and-drop.
  */
 
 import { useStore } from 'zustand';
+import { useDroppable } from '@dnd-kit/core';
 import { worldStore } from '../../store/worldStore';
-import type { Entity } from '../../types/world';
+import type { Container, Entity } from '../../types/world';
+import { IngredientListItem } from './IngredientListItem';
 
-export function IngredientList({ containerEntityIds }: { containerEntityIds: string[] }) {
+interface IngredientListProps {
+  key?: string | number;
+  container: Container;
+}
+
+export function IngredientList({ container }: IngredientListProps) {
   const entities = useStore(worldStore, (state) => state.entities);
 
-  const containerEntities = containerEntityIds
+  // Set up dnd-kit droppable binding for this container
+  const { setNodeRef, isOver } = useDroppable({
+    id: container.id,
+  });
+
+  const containerEntities = container.entityIds
     .map((id: string) => entities[id])
     .filter((e: Entity | undefined): e is Entity => Boolean(e));
 
   return (
-    <div>
-      {containerEntities.map((entity: Entity) => (
-        <div key={entity.id}>{entity.name}</div>
-      ))}
+    <div
+      ref={setNodeRef}
+      className={`ingredient-list ${isOver ? 'drag-over' : ''}`}
+    >
+      <h3>{container.name}</h3>
+      <div className="items-container">
+        {containerEntities.map((entity: Entity) => (
+          <IngredientListItem key={entity.id} entity={entity} />
+        ))}
+        {containerEntities.length === 0 && (
+          <span className="empty-hint">Drop ingredients here</span>
+        )}
+      </div>
     </div>
   );
 }

@@ -10,7 +10,7 @@
  */
 
 import React from 'react';
-import { worldStore } from '../../store/worldStore';
+import { useDraggable } from '@dnd-kit/core';
 import type { Entity } from '../../types/world';
 
 interface IngredientListItemProps {
@@ -18,20 +18,30 @@ interface IngredientListItemProps {
 }
 
 export const IngredientListItem: React.FC<IngredientListItemProps> = ({ entity }) => {
-  const handleRemove = () => {
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: {
-        entityId: entity.id,
-        targetContainerId: 'storage',
-      },
-    });
-  };
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: entity.id,
+  });
+
+  const style: React.CSSProperties | undefined = transform
+    ? {
+      transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+      opacity: isDragging ? 0.6 : 1,
+      zIndex: isDragging ? 1000 : 1,
+      cursor: 'grab',
+    }
+    : {
+      cursor: 'grab',
+    };
 
   return (
-    <div className="ingredient-list-item">
-      <span>{entity.name}</span>
-      <button onClick={handleRemove}>Remove</button>
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...listeners}
+      {...attributes}
+      className={`ingredient-list-item ${isDragging ? 'dragging' : ''}`}
+    >
+      <span className="ingredient-name">{entity.name}</span>
     </div>
   );
 };

@@ -1,3 +1,13 @@
+/**
+ * FILE: ingredients.ts
+ *
+ * PURPOSE:
+ * Catalog of available ingredient definitions.
+ *
+ * RESPONSIBILITY:
+ * - Provides master list of ingredient metadata (names, icons, ids).
+ */
+
 import type { Ingredient } from "../../types/Ingredient";
 
 

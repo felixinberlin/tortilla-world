@@ -1,3 +1,13 @@
+/**
+ * FILE: dropRules.test.ts
+ *
+ * PURPOSE:
+ * Unit tests for drag & drop evaluation rules.
+ *
+ * RESPONSIBILITY:
+ * - Validates parsing, reordering, move vs copy logic, and group constraints.
+ */
+
 import { describe, it, expect } from 'vitest'
 import { parseDrag, evaluateDrop } from './dropRules'
 

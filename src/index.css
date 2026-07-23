@@ -77,20 +77,24 @@ h1 {
   font-size: 56px;
   letter-spacing: -1.68px;
   margin: 32px 0;
+
   @media (max-width: 1024px) {
     font-size: 36px;
     margin: 20px 0;
   }
 }
+
 h2 {
   font-size: 24px;
   line-height: 118%;
   letter-spacing: -0.24px;
   margin: 0 0 8px;
+
   @media (max-width: 1024px) {
     font-size: 20px;
   }
 }
+
 p {
   margin: 0;
 }
@@ -108,4 +112,74 @@ code {
   line-height: 135%;
   padding: 4px 8px;
   background: var(--code-bg);
+}
+
+.scene {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+  padding: 24px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ingredient-list {
+  background: var(--code-bg);
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s ease;
+}
+
+.ingredient-list.drag-over {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.ingredient-list h3 {
+  margin: 0 0 12px 0;
+  font-size: 18px;
+  color: var(--text-h);
+  text-align: left;
+}
+
+.items-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-grow: 1;
+}
+
+.ingredient-list-item {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 500;
+  color: var(--text-h);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  user-select: none;
+  touch-action: none;
+}
+
+.ingredient-list-item:hover {
+  border-color: var(--accent-border);
+}
+
+.ingredient-list-item.dragging {
+  box-shadow: var(--shadow);
+}
+
+.empty-hint {
+  font-size: 14px;
+  color: var(--text);
+  font-style: italic;
+  margin: auto;
+  opacity: 0.6;
 }

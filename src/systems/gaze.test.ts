@@ -1,3 +1,13 @@
+/**
+ * FILE: gaze.test.ts
+ *
+ * PURPOSE:
+ * Unit tests for gaze system.
+ *
+ * RESPONSIBILITY:
+ * - Validates mascot gaze target updates and idempotency.
+ */
+
 import { describe, it, expect, beforeEach } from 'vitest';
 import { worldStore } from '../store/worldStore';
 import { updateMascotGaze, getMascotGazeTarget } from './gaze';
