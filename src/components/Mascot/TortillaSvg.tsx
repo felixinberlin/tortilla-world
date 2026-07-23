@@ -21,7 +21,7 @@ export interface ToastMark {
 }
 
 export interface TortillaSvgProps {
-  state?: MascotState;
+  state?: MascotState | "flipping"; // Added 'flipping' if not in your MascotState yet
   radius?: number;
   pupilOffset?: { left: GazePoint; right: GazePoint };
   mouth?: string;
@@ -32,6 +32,7 @@ export interface TortillaSvgProps {
   potatoes?: Potato[];
   toastMarks?: ToastMark[];
   gazingAt?: string | null;
+  onDoubleClick?: (e: React.MouseEvent<SVGSVGElement>) => void;
 }
 
 const DEFAULT_POTATOES: Potato[] = [
@@ -59,12 +60,24 @@ export function TortillaSvg({
   height = 100,
   potatoes = DEFAULT_POTATOES,
   toastMarks = DEFAULT_TOAST_MARKS,
+  onDoubleClick,
 }: TortillaSvgProps) {
   const svgRef = useRef<SVGSVGElement>(null);
+  const [isFlipping, setIsFlipping] = useState(false);
   const [mouseOffset, setMouseOffset] = useState<{ left: GazePoint; right: GazePoint }>({
     left: { x: 0, y: 0 },
     right: { x: 0, y: 0 },
   });
+
+  const handleDoubleClick = (e: React.MouseEvent<SVGSVGElement>) => {
+    if (!isFlipping) {
+      setIsFlipping(true);
+      setTimeout(() => {
+        setIsFlipping(false);
+      }, 800);
+    }
+    onDoubleClick?.(e);
+  };
 
   useEffect(() => {
     if (externalPupilOffset) return;
@@ -98,6 +111,7 @@ export function TortillaSvg({
 
   const pupilOffset = externalPupilOffset || mouseOffset;
   const r = radius ?? 28;
+  const effectiveState = isFlipping ? "flipping" : state;
 
   return (
     <motion.svg
@@ -105,16 +119,9 @@ export function TortillaSvg({
       viewBox="-40 -40 80 80"
       width={width}
       height={height}
-      animate={
-        state === "idle"
-          ? { y: [0, -3, 0], scaleY: [1, 1.02, 1] }
-          : { y: 0, scaleY: 1 }
-      }
-      transition={
-        state === "idle"
-          ? { duration: 2.5, repeat: Infinity, ease: "easeInOut" }
-          : { duration: 0.2 }
-      }
+      className={`tortilla-svg is-${effectiveState}`}
+      onDoubleClick={handleDoubleClick}
+      style={{ cursor: "pointer" }}
     >
       <defs>
         {/* Hauptkörper: Ei + Kartoffeln */}

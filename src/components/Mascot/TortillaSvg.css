@@ -5,6 +5,43 @@
  * Styles and animations for TortillaSvg mascot.
  */
 
+/* === Root SVG Styles & State Animations === */
+.tortilla-svg {
+  transform-origin: center;
+  /* Ensures the 60px toss doesn't get clipped by the SVG boundary */
+  overflow: visible; 
+}
+
+.tortilla-svg.is-idle {
+  animation: tortillaIdle 2.5s infinite ease-in-out;
+}
+
+.tortilla-svg.is-flipping {
+  animation: tortillaFlip 0.8s ease-in-out forwards;
+}
+
+@keyframes tortillaIdle {
+  0%, 100% {
+    transform: translateY(0) scaleY(1);
+  }
+  50% {
+    transform: translateY(-3px) scaleY(1.02);
+  }
+}
+
+@keyframes tortillaFlip {
+  0% {
+    transform: translateY(0) rotateX(0deg) scale(1);
+  }
+  50% {
+    transform: translateY(-60px) rotateX(180deg) scale(1.15);
+  }
+  100% {
+    transform: translateY(0) rotateX(360deg) scale(1);
+  }
+}
+
+/* === Internal Element Animations === */
 .tortilla-blink {
   animation: tortillaBlink 4s infinite;
   transform-box: fill-box;
