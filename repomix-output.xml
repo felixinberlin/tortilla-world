@@ -64,7 +64,11 @@ src/
       RecipeIngredientList.tsx
     Mascot/
       Mascot.tsx
+      TortillaSvg.css
       TortillaSvg.tsx
+    Recipe/
+      RecipePanel.css
+      RecipePanel.tsx
     Scene/
       Scene.tsx
       useSceneDragAndDrop.ts
@@ -72,6 +76,8 @@ src/
     catalog/
       recipes/
         concebolla.ts
+        index.ts
+        recipes.test.ts
         sincebolla.ts
       ingredients.ts
   engine/
@@ -84,21 +90,21 @@ src/
     worldStore.test.ts
     worldStore.ts
   systems/
-    dropRules.test.ts
-    dropRules.ts
     gaze.test.ts
     gaze.ts
-    interaction.test.ts
-    interaction.ts
+    mascot.ts
     movement.ts
     queries.test.ts
     queries.ts
+    recipeMatcher.test.ts
+    recipeMatcher.ts
   types/
     actions.ts
-    Entity.ts
     Ingredient.ts
     IngredientList.ts
+    Recipe.ts
     RecipeIngredient.ts
+    RecipeList.ts
     world.ts
   App.tsx
   index.css
@@ -174,20 +180,336 @@ Systems modify the world.
 </svg>
 </file>
 
-<file path="src/data/catalog/recipes/sincebolla.ts">
-import { ingredients } from "../ingredients";
+<file path="src/components/Recipe/RecipePanel.css">
+.recipe-panel {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
 
-export const recipe = {
-  id: "sincebolla",
-  name: "Sincebolla",
-  ingredients: [
-    ingredients.find(i => i.id === "potato"),
-    ingredients.find(i => i.id === "egg"),
-    ingredients.find(i => i.id === "oil"),
-    ingredients.find(i => i.id === "salt"),
-    ingredients.find(i => i.id === "pepper"),
-  ]
-};
+.recipe-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.recipe-selector {
+  display: flex;
+  gap: 8px;
+}
+
+.recipe-tab {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.recipe-tab:hover {
+  border-color: var(--accent-border);
+}
+
+.recipe-tab.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.recipe-status {
+  font-size: 14px;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.highlight-count {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.recipe-title {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  color: var(--text-h);
+}
+</file>
+
+<file path="src/data/catalog/recipes/index.ts">
+/**
+ * FILE: index.ts
+ *
+ * PURPOSE:
+ * Master export and catalog for all recipe definitions.
+ *
+ * RESPONSIBILITY:
+ * - Collects all available recipes into a typed RecipeList.
+ * - Provides a single entry point for accessing recipes.
+ * - New recipes only need to be added here to appear in the catalog.
+ */
+
+import type { RecipeList } from '../../../types/Recipe'
+
+import { concebollaRecipe } from './concebolla'
+import { sincebollaRecipe } from './sincebolla'
+
+/**
+ * Master recipe catalog.
+ *
+ * Used by systems that need access to all available recipes.
+ */
+export const recipes: RecipeList = [
+  concebollaRecipe,
+  sincebollaRecipe,
+]
+
+/**
+ * Individual recipe exports.
+ *
+ * Useful for:
+ * - Recipe detail views
+ * - Testing
+ * - Debugging
+ * - Future recipe editors
+ */
+export {
+  concebollaRecipe,
+  sincebollaRecipe,
+}
+</file>
+
+<file path="src/data/catalog/recipes/recipes.test.ts">
+import { describe, expect, it } from 'vitest';
+import { recipes, concebollaRecipe, sincebollaRecipe } from './index';
+import { ingredients as ingredientCatalog } from '../ingredients';
+import type { RecipeList } from '../../../types/RecipeList';
+
+describe('Recipe Catalog', () => {
+  it('exports a valid RecipeList array', () => {
+    const list: RecipeList = recipes;
+    expect(Array.isArray(list)).toBe(true);
+    expect(list.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('contains concebolla and sincebolla recipes', () => {
+    const ids = recipes.map((r) => r.id);
+    expect(ids).toContain('concebolla');
+    expect(ids).toContain('sincebolla');
+  });
+
+  it('validates that every recipe has required properties', () => {
+    recipes.forEach((recipe) => {
+      expect(recipe.id).toBeTruthy();
+      expect(recipe.name).toBeTruthy();
+      expect(Array.isArray(recipe.ingredients)).toBe(true);
+      expect(recipe.ingredients.length).toBeGreaterThan(0);
+    });
+  });
+
+  it('ensures all recipe ingredients refer to valid catalog ingredients', () => {
+    const catalogIds = ingredientCatalog.map((i) => i.id);
+
+    recipes.forEach((recipe) => {
+      recipe.ingredients.forEach((req) => {
+        expect(req.id).toBeTruthy();
+        expect(req.ingredientId).toBeTruthy();
+        expect(catalogIds).toContain(req.ingredientId);
+        expect(req.amount).toBeGreaterThan(0);
+        expect(req.unit).toBeTruthy();
+      });
+    });
+  });
+
+  it('distinguishes concebolla (with onion) and sincebolla (without onion)', () => {
+    const concebollaOnion = concebollaRecipe.ingredients.find((i) => i.ingredientId === 'onion');
+    const sincebollaOnion = sincebollaRecipe.ingredients.find((i) => i.ingredientId === 'onion');
+
+    expect(concebollaOnion).toBeDefined();
+    expect(sincebollaOnion).toBeUndefined();
+  });
+});
+</file>
+
+<file path="src/systems/recipeMatcher.test.ts">
+import { describe, expect, it } from 'vitest'
+import { countMatchingIngredients } from './recipeMatcher'
+import type { Recipe } from '../types/Recipe'
+import type { Entity } from '../types/world'
+
+describe('countMatchingIngredients', () => {
+  const sampleRecipe: Recipe = {
+    id: 'test-recipe',
+    name: 'Test Recipe',
+    ingredients: [
+      { id: 'req-1', ingredientId: 'potato', amount: 3, unit: 'pcs' },
+      { id: 'req-2', ingredientId: 'egg', amount: 4, unit: 'pcs' },
+      { id: 'req-3', ingredientId: 'onion', amount: 1, unit: 'pcs' },
+    ],
+  }
+
+  it('returns zeros when recipe is undefined', () => {
+    const result = countMatchingIngredients(undefined, [])
+    expect(result.matchingCount).toBe(0)
+    expect(result.totalCount).toBe(0)
+    expect(result.matchingIngredientIds).toEqual([])
+    expect(result.missingIngredientIds).toEqual([])
+  })
+
+  it('returns zero matching count when workspace is empty', () => {
+    const result = countMatchingIngredients(sampleRecipe, [])
+    expect(result.matchingCount).toBe(0)
+    expect(result.totalCount).toBe(3)
+    expect(result.matchingIngredientIds).toEqual([])
+    expect(result.missingIngredientIds).toEqual(['potato', 'egg', 'onion'])
+  })
+
+  it('correctly matches entities present in workspace', () => {
+    const workspaceEntities: Entity[] = [
+      { id: 'potato_123', ingredientId: 'potato', name: 'Potato', type: 'ingredient' },
+      { id: 'egg_456', ingredientId: 'egg', name: 'Egg', type: 'ingredient' },
+    ]
+
+    const result = countMatchingIngredients(sampleRecipe, workspaceEntities)
+    expect(result.matchingCount).toBe(2)
+    expect(result.totalCount).toBe(3)
+    expect(result.matchingIngredientIds).toEqual(['potato', 'egg'])
+    expect(result.missingIngredientIds).toEqual(['onion'])
+  })
+
+  it('handles entities without explicit ingredientId field by fallback prefix parsing', () => {
+    const workspaceEntities: Entity[] = [
+      { id: 'onion_999', name: 'Onion', type: 'ingredient' },
+    ]
+
+    const result = countMatchingIngredients(sampleRecipe, workspaceEntities)
+    expect(result.matchingCount).toBe(1)
+    expect(result.matchingIngredientIds).toEqual(['onion'])
+  })
+
+  it('ignores non-ingredient entities in workspace', () => {
+    const workspaceEntities: Entity[] = [
+      { id: 'knife_1', name: 'Knife', type: 'tool' },
+      { id: 'potato_100', ingredientId: 'potato', name: 'Potato', type: 'ingredient' },
+    ]
+
+    const result = countMatchingIngredients(sampleRecipe, workspaceEntities)
+    expect(result.matchingCount).toBe(1)
+    expect(result.matchingIngredientIds).toEqual(['potato'])
+  })
+})
+</file>
+
+<file path="src/systems/recipeMatcher.ts">
+/**
+ * FILE: recipeMatcher.ts
+ *
+ * PURPOSE:
+ * Utility functions for evaluating recipe completion and matching ingredients against workspace entities.
+ *
+ * RESPONSIBILITY:
+ * - Computes matching ingredients and counts for a recipe given active world entities.
+ * - Identifies matched and missing ingredient IDs.
+ */
+
+import type { Recipe } from '../types/Recipe'
+import type { Entity } from '../types/world'
+import { getIngredientCatalogId } from '../engine/containerRules'
+
+export interface RecipeMatchResult {
+  matchingCount: number
+  totalCount: number
+  matchingIngredientIds: string[]
+  missingIngredientIds: string[]
+}
+
+/**
+ * Calculates matching ingredient count and detailed breakdown for a given recipe
+ * based on entities present in workspace containers.
+ */
+export function countMatchingIngredients(
+  recipe: Recipe | undefined | null,
+  entities: Entity[]
+): RecipeMatchResult {
+  if (!recipe) {
+    return {
+      matchingCount: 0,
+      totalCount: 0,
+      matchingIngredientIds: [],
+      missingIngredientIds: [],
+    }
+  }
+
+  const workspaceIngredientIds = new Set(
+    entities
+      .filter((e) => e && e.type === 'ingredient')
+      .map((e) => getIngredientCatalogId(e))
+  )
+
+  const matchingIngredientIds: string[] = []
+  const missingIngredientIds: string[] = []
+
+  for (const req of recipe.ingredients) {
+    if (workspaceIngredientIds.has(req.ingredientId)) {
+      matchingIngredientIds.push(req.ingredientId)
+    } else {
+      missingIngredientIds.push(req.ingredientId)
+    }
+  }
+
+  return {
+    matchingCount: matchingIngredientIds.length,
+    totalCount: recipe.ingredients.length,
+    matchingIngredientIds,
+    missingIngredientIds,
+  }
+}
+</file>
+
+<file path="src/types/Recipe.ts">
+/**
+ * FILE: Recipe.ts
+ *
+ * PURPOSE:
+ * Defines recipe data structure.
+ *
+ * RESPONSIBILITY:
+ * - Represents a recipe with required ingredients.
+ */
+
+import type { RecipeIngredient } from './RecipeIngredient'
+
+export interface Recipe {
+  id: string
+  name: string
+  ingredients: RecipeIngredient[]
+}
+
+export type RecipeList = Recipe[]
+</file>
+
+<file path="src/types/RecipeList.ts">
+/**
+ * FILE: RecipeList.ts
+ *
+ * PURPOSE:
+ * Export RecipeList type for recipe catalog collections.
+ *
+ * RESPONSIBILITY:
+ * - Defines collection contracts for recipes.
+ */
+
+import type { Recipe, RecipeList as RecipeListArray } from './Recipe'
+
+export type { Recipe }
+export type RecipeList = RecipeListArray
 </file>
 
 <file path="src/repomix-output.xml">
@@ -4785,43 +5107,6 @@ export function Ingredient({ ingredient }: IngredientProps) {
 }
 </file>
 
-<file path="src/components/Ingredients/RecipeIngredientItem.tsx">
-/**
- * FILE: RecipeIngredientItem.tsx
- *
- * PURPOSE:
- * Displays an ingredient used in a recipe.
- *
- * RESPONSIBILITY:
- * - Shows ingredient amount and unit.
- * - Represents recipe-specific ingredient data.
- */
-
-import type { Ingredient } from '../../types/Ingredient'
-
-interface RecipeIngredientItemProps {
-  ingredient: Ingredient
-  amount: number
-  unit: string
-}
-
-export function RecipeIngredientItem({
-  ingredient,
-  amount,
-  unit,
-}: RecipeIngredientItemProps) {
-  return (
-    <li className="recipe-ingredient-item">
-      <span aria-hidden="true">{ingredient.icon}</span>
-      <span className="recipe-ingredient-name">{ingredient.name}</span>
-      <span className="recipe-ingredient-amount">
-        {amount} {unit}
-      </span>
-    </li>
-  )
-}
-</file>
-
 <file path="src/components/Ingredients/RecipeIngredientList.tsx">
 /**
  * FILE: RecipeIngredientList.tsx
@@ -4873,6 +5158,169 @@ export function RecipeIngredientList({
     </ul>
   )
 }
+</file>
+
+<file path="src/components/Mascot/TortillaSvg.css">
+/**
+ * FILE: TortillaSvg.css
+ *
+ * PURPOSE:
+ * Styles and animations for TortillaSvg mascot.
+ */
+
+/* === Root SVG Styles & State Animations === */
+.tortilla-svg {
+  transform-origin: center;
+  /* Ensures the 60px toss doesn't get clipped by the SVG boundary */
+  overflow: visible; 
+}
+
+.tortilla-svg.is-idle {
+  animation: tortillaIdle 2.5s infinite ease-in-out;
+}
+
+.tortilla-svg.is-flipping {
+  animation: tortillaFlip 0.8s ease-in-out forwards;
+}
+
+@keyframes tortillaIdle {
+  0%, 100% {
+    transform: translateY(0) scaleY(1);
+  }
+  50% {
+    transform: translateY(-3px) scaleY(1.02);
+  }
+}
+
+@keyframes tortillaFlip {
+  0% {
+    transform: translateY(0) rotateX(0deg) scale(1);
+  }
+  50% {
+    transform: translateY(-60px) rotateX(180deg) scale(1.15);
+  }
+  100% {
+    transform: translateY(0) rotateX(360deg) scale(1);
+  }
+}
+
+/* === Internal Element Animations === */
+.tortilla-blink {
+  animation: tortillaBlink 4s infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes tortillaBlink {
+  0%, 92%, 100% {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  94%, 98% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+</file>
+
+<file path="src/components/Recipe/RecipePanel.tsx">
+/**
+ * FILE: RecipePanel.tsx
+ *
+ * PURPOSE:
+ * Interactive recipe selector and catalog viewer.
+ *
+ * RESPONSIBILITY:
+ * - Wires catalog recipes (Con Cebolla, Sin Cebolla) with RecipeIngredientList.
+ * - Displays active recipe requirements and matches with current world state.
+ */
+
+import { useState } from 'react';
+import { useStore } from 'zustand';
+import { ingredients as ingredientCatalog } from '../../data/catalog/ingredients';
+import { recipes } from '../../data/catalog/recipes';
+import { RecipeIngredientList } from '../Ingredients/RecipeIngredientList';
+import { worldStore } from '../../store/worldStore';
+import { countMatchingIngredients } from '../../systems/recipeMatcher';
+import './RecipePanel.css';
+
+export function RecipePanel() {
+  const [selectedRecipeId, setSelectedRecipeId] = useState<string>(recipes[0]?.id || 'concebolla');
+
+  const activeRecipe = recipes.find((r) => r.id === selectedRecipeId) || recipes[0];
+
+  const entities = useStore(worldStore, (state) => state.entities);
+  const containers = useStore(worldStore, (state) => state.containers);
+
+  // Collect ingredient entities currently placed in active workspace containers (board, pan, plate)
+  const activeContainerEntities = [
+    ...(containers.board?.entityIds || []),
+    ...(containers.pan?.entityIds || []),
+    ...(containers.plate?.entityIds || []),
+  ].map((id) => entities[id]).filter(Boolean);
+
+  const matchResult = countMatchingIngredients(activeRecipe, activeContainerEntities);
+
+  if (!activeRecipe) return null;
+
+  return (
+    <div className="recipe-panel">
+      <div className="recipe-panel-header">
+        <div className="recipe-selector">
+          {recipes.map((recipe) => (
+            <button
+              key={recipe.id}
+              type="button"
+              className={`recipe-tab ${selectedRecipeId === recipe.id ? 'active' : ''}`}
+              onClick={() => setSelectedRecipeId(recipe.id)}
+            >
+              {recipe.name}
+            </button>
+          ))}
+        </div>
+        <div className="recipe-status">
+          Match: <span className="highlight-count">{matchResult.matchingCount}</span> / {matchResult.totalCount}
+        </div>
+      </div>
+
+      <div className="recipe-content">
+        <h3 className="recipe-title">{activeRecipe.name}</h3>
+        <RecipeIngredientList
+          ingredients={activeRecipe.ingredients}
+          ingredientCatalog={ingredientCatalog}
+        />
+      </div>
+    </div>
+  );
+}
+</file>
+
+<file path="src/data/catalog/recipes/sincebolla.ts">
+/**
+ * FILE: sincebolla.ts
+ *
+ * PURPOSE:
+ * Recipe definition for Tortilla sin cebolla.
+ *
+ * RESPONSIBILITY:
+ * - Specifies ingredients needed for the sin cebolla recipe variant.
+ */
+
+import type { RecipeIngredient } from '../../../types/RecipeIngredient'
+
+export const sincebollaRecipe = {
+  id: 'sincebolla',
+  name: 'Tortilla sin Cebolla',
+  ingredients: [
+    { id: 'sincebolla-potato', ingredientId: 'potato', amount: 4, unit: 'pcs' },
+    { id: 'sincebolla-egg', ingredientId: 'egg', amount: 6, unit: 'pcs' },
+    { id: 'sincebolla-oil', ingredientId: 'oil', amount: 100, unit: 'ml' },
+    { id: 'sincebolla-salt', ingredientId: 'salt', amount: 1, unit: 'tsp' },
+    { id: 'sincebolla-pepper', ingredientId: 'pepper', amount: 1, unit: 'pinch' },
+  ] satisfies RecipeIngredient[],
+}
+
+export const recipe = sincebollaRecipe
 </file>
 
 <file path="src/data/catalog/ingredients.ts">
@@ -5160,404 +5608,6 @@ export const useGazeStore = create<GazeState>((set) => ({
 }))
 </file>
 
-<file path="src/store/worldStore.test.ts">
-/**
- * FILE: worldStore.test.ts
- *
- * PURPOSE:
- * Unit tests for central world store and container rule enforcement.
- *
- * RESPONSIBILITY:
- * - Validates state transitions, move/add entity actions, and rule checks.
- */
-
-import { describe, it, expect, beforeEach } from 'vitest';
-import { worldStore } from './worldStore';
-import { clearActionLog, getActionLog } from './middleware/actionLog';
-
-function seed() {
-  worldStore.setState({
-    entities: {
-      potato: { id: 'potato', name: 'Potato', type: 'ingredient' },
-      onion: { id: 'onion', name: 'Onion', type: 'ingredient' },
-      knife: { id: 'knife', name: 'Knife', type: 'tool' },
-      chef: { id: 'chef', name: 'Chef', type: 'mascot' },
-    },
-    containers: {
-      kitchen: {
-        id: 'kitchen',
-        name: 'Kitchen',
-        type: 'storage',
-        entityIds: ['potato', 'onion', 'knife'],
-      },
-      pan: {
-        id: 'pan',
-        name: 'Pan',
-        type: 'pan',
-        entityIds: [],
-        rules: { maxCapacity: 1 },
-      },
-      board: {
-        id: 'board',
-        name: 'Cutting Board',
-        type: 'board',
-        entityIds: [],
-        rules: { allowedTypes: ['ingredient'] },
-      },
-      recipe: {
-        id: 'recipe',
-        name: 'Recipe',
-        type: 'plate',
-        entityIds: [],
-        rules: { allowedTypes: ['ingredient'], uniqueTypesOnly: true },
-      },
-    },
-  });
-}
-
-describe('worldStore container rule enforcement', () => {
-  beforeEach(() => {
-    seed();
-    clearActionLog();
-  });
-
-  it('allows a move that satisfies the target container rules', () => {
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: { entityId: 'potato', targetContainerId: 'pan' },
-    });
-
-    const state = worldStore.getState();
-    expect(state.containers.pan.entityIds).toEqual(['potato']);
-    expect(state.containers.kitchen.entityIds).not.toContain('potato');
-  });
-
-  it('blocks a move once the target container is at capacity', () => {
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: { entityId: 'potato', targetContainerId: 'pan' },
-    });
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: { entityId: 'onion', targetContainerId: 'pan' },
-    });
-
-    const state = worldStore.getState();
-    expect(state.containers.pan.entityIds).toEqual(['potato']);
-    expect(state.containers.kitchen.entityIds).toContain('onion');
-  });
-
-  it('blocks a move that violates allowedTypes', () => {
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: { entityId: 'knife', targetContainerId: 'board' },
-    });
-
-    // knife is a tool; board only allows ingredients
-    const state = worldStore.getState();
-    expect(state.containers.board.entityIds).toEqual([]);
-    expect(state.containers.kitchen.entityIds).toContain('knife');
-  });
-
-  it('blocks a move that would duplicate a type in a uniqueTypesOnly container', () => {
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: { entityId: 'potato', targetContainerId: 'recipe' },
-    });
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: { entityId: 'onion', targetContainerId: 'recipe' },
-    });
-
-    // both are 'ingredient' type; uniqueTypesOnly blocks the second
-    const state = worldStore.getState();
-    expect(state.containers.recipe.entityIds).toEqual(['potato']);
-    expect(state.containers.kitchen.entityIds).toContain('onion');
-  });
-
-  it('never re-validates a same-container reorder', () => {
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: { entityId: 'potato', targetContainerId: 'kitchen', positionIndex: 0 },
-    });
-
-    // would fail uniqueTypesOnly-style self-comparison if the entity
-    // weren't excluded from its own container's current entities
-    const state = worldStore.getState();
-    expect(state.containers.kitchen.entityIds[0]).toBe('potato');
-  });
-
-  it('is a no-op when the entity does not exist', () => {
-    const before = worldStore.getState().containers.pan.entityIds;
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: { entityId: 'ghost', targetContainerId: 'pan' },
-    });
-    expect(worldStore.getState().containers.pan.entityIds).toEqual(before);
-  });
-
-  it('enforces the same rules on ADD_ENTITY', () => {
-    worldStore.getState().dispatch({
-      type: 'ADD_ENTITY',
-      payload: {
-        entity: { id: 'spoon', name: 'Spoon', type: 'tool' },
-        containerId: 'board',
-      },
-    });
-
-    const state = worldStore.getState();
-    expect(state.containers.board.entityIds).toEqual([]);
-    expect(state.entities.spoon).toBeUndefined();
-  });
-
-  it('logs a labelled entry into the action log for each dispatch', () => {
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: { entityId: 'potato', targetContainerId: 'pan' },
-    });
-
-    const log = getActionLog();
-    expect(log).toHaveLength(1);
-    expect(log[0].action).toBe('MOVE_ENTITY');
-    expect(typeof log[0].timestamp).toBe('number');
-  });
-});
-</file>
-
-<file path="src/systems/dropRules.test.ts">
-/**
- * FILE: dropRules.test.ts
- *
- * PURPOSE:
- * Unit tests for drag & drop evaluation rules.
- *
- * RESPONSIBILITY:
- * - Validates parsing, reordering, move vs copy logic, and group constraints.
- */
-
-import { describe, it, expect } from 'vitest'
-import { parseDrag, evaluateDrop } from './dropRules'
-
-const kitchenConsumes = { kitchen: { consumesOnDrag: true }, fire: { consumesOnDrag: true } }
-
-describe('parseDrag', () => {
-  it('parses a dragged item and a list drop target', () => {
-    expect(parseDrag('despensa::potato', 'kitchen')).toEqual({
-      source: { listId: 'despensa', itemId: 'potato' },
-      target: { listId: 'kitchen', itemId: null },
-    })
-  })
-
-  it('parses a dragged item and an item drop target', () => {
-    expect(parseDrag('despensa::egg', 'despensa::potato')).toEqual({
-      source: { listId: 'despensa', itemId: 'egg' },
-      target: { listId: 'despensa', itemId: 'potato' },
-    })
-  })
-
-  it('returns null for malformed ids', () => {
-    expect(parseDrag('potato', 'kitchen')).toBeNull()
-    expect(parseDrag('despensa::potato', '')).toBeNull()
-  })
-})
-
-describe('evaluateDrop', () => {
-  it('approves same-list reorder without duplicate checks', () => {
-    const drag = parseDrag('despensa::egg', 'despensa::potato')!
-    const drop = evaluateDrop(drag, { despensa: ['potato', 'egg'], kitchen: [] })
-    expect(drop).toMatchObject({
-      kind: 'same-list-reorder',
-      insertAt: 0,
-    })
-  })
-
-  it('approves a move from a consuming source', () => {
-    const drag = parseDrag('kitchen::potato', 'fire')!
-    const drop = evaluateDrop(
-      drag,
-      { kitchen: ['potato', 'egg'], fire: [] },
-      kitchenConsumes,
-    )
-    expect(drop?.kind).toBe('cross-list-move')
-  })
-
-  it('approves a copy from a non-consuming source', () => {
-    const drag = parseDrag('despensa::potato', 'kitchen')!
-    const drop = evaluateDrop(
-      drag,
-      { despensa: ['potato', 'onion'], kitchen: [] },
-      { despensa: {}, kitchen: { consumesOnDrag: true } },
-    )
-    expect(drop?.kind).toBe('cross-list-copy')
-  })
-
-  it('never lets a consuming target override a non-consuming source', () => {
-    const drag = parseDrag('despensa::potato', 'fire')!
-    const drop = evaluateDrop(
-      drag,
-      { despensa: ['potato', 'onion'], fire: [] },
-      { despensa: {}, fire: { consumesOnDrag: true } },
-    )
-    expect(drop?.kind).toBe('cross-list-copy')
-  })
-
-  it('blocks copying when the target already holds the same ingredient group', () => {
-    const drag = parseDrag('despensa::potato#despensa', 'kitchen')!
-    const drop = evaluateDrop(
-      drag,
-      { despensa: ['potato#despensa'], kitchen: ['potato#kitchen'] },
-      {},
-      { groupOf: (id) => id.split('#')[0] },
-    )
-    expect(drop).toBeNull()
-  })
-
-  it('blocks copying an item already in the target list (default identity grouping)', () => {
-    const drag = parseDrag('despensa::potato', 'kitchen')!
-    const drop = evaluateDrop(
-      drag,
-      { despensa: ['potato', 'onion'], kitchen: ['potato', 'egg'] },
-    )
-    expect(drop).toBeNull()
-  })
-
-  it('blocks copying even when dropping on blank space in a list that already has the item', () => {
-    const drag = parseDrag('despensa::potato', 'kitchen')!
-    const drop = evaluateDrop(
-      drag,
-      { despensa: ['potato'], kitchen: ['potato'] },
-    )
-    expect(drop).toBeNull()
-  })
-
-  it('returns null when the item is not in the source list', () => {
-    const drag = parseDrag('despensa::garlic', 'kitchen')!
-    const drop = evaluateDrop(drag, { despensa: ['potato'], kitchen: [] })
-    expect(drop).toBeNull()
-  })
-
-  it('returns null when source list does not exist', () => {
-    const drag = parseDrag('ghost::potato', 'kitchen')!
-    const drop = evaluateDrop(drag, { despensa: ['potato'], kitchen: [] })
-    expect(drop).toBeNull()
-  })
-})
-</file>
-
-<file path="src/systems/dropRules.ts">
-/**
- * FILE: dropRules.ts
- *
- * PURPOSE:
- * Defines rules for drag and drop interactions.
- *
- * RESPONSIBILITY:
- * - Determines whether an entity can enter a container.
- * - Validates possible world transitions.
- *
- * SHOULD NOT:
- * - Modify state.
- */
-
-export interface DragEndpoint {
-  listId: string
-  itemId: string
-}
-
-export interface DropTarget {
-  listId: string
-  itemId: string | null
-}
-
-export interface ParsedDrag {
-  source: DragEndpoint
-  target: DropTarget
-}
-
-export type DropKind = 'same-list-reorder' | 'cross-list-move' | 'cross-list-copy'
-
-export interface ApprovedDrop {
-  kind: DropKind
-  source: DragEndpoint
-  target: DropTarget
-  insertAt: number
-}
-
-export interface ListFlags {
-  consumesOnDrag?: boolean
-}
-
-export interface DropRuleOptions {
-  /**
-   * Groups items for the "already in target" duplicate check — e.g. two
-   * different physical instances of "potato" should still be treated as
-   * the same ingredient for blocking purposes.
-   */
-  groupOf?: (itemId: string) => string
-}
-
-export function parseDrag(activeId: string, overId: string): ParsedDrag | null {
-  const sourceParts = activeId.split('::')
-  const targetParts = overId.split('::')
-
-  const sourceListId = sourceParts[0]
-  const sourceItemId = sourceParts[1]
-  const targetListId = targetParts[0]
-
-  if (!sourceListId || !sourceItemId || !targetListId) return null
-
-  return {
-    source: { listId: sourceListId, itemId: sourceItemId },
-    target: { listId: targetListId, itemId: targetParts[1] ?? null },
-  }
-}
-
-/**
- * Read-only gate: can this drag-and-drop happen?
- *
- * Same-list reorder: always allowed.
- * Cross-list: blocked when the target already holds an instance of the
- * same group. Otherwise allowed as a move (consuming source) or copy
- * (non-consuming source) — the kind is decided here so interaction.ts
- * only has to apply it.
- */
-export function evaluateDrop(
-  drag: ParsedDrag,
-  lists: Record<string, string[]>,
-  listFlags: Record<string, ListFlags> = {},
-  options: DropRuleOptions = {},
-): ApprovedDrop | null {
-  const sourceIds = lists[drag.source.listId]
-  const targetIds = lists[drag.target.listId]
-  if (!sourceIds || !targetIds || !sourceIds.includes(drag.source.itemId)) return null
-
-  const targetIndex = drag.target.itemId ? targetIds.indexOf(drag.target.itemId) : -1
-  const insertAt = targetIndex === -1 ? targetIds.length : targetIndex
-
-  if (drag.source.listId === drag.target.listId) {
-    return {
-      kind: 'same-list-reorder',
-      source: drag.source,
-      target: drag.target,
-      insertAt,
-    }
-  }
-
-  const groupOf = options.groupOf ?? ((itemId: string) => itemId)
-  const sourceGroup = groupOf(drag.source.itemId)
-  if (targetIds.some((itemId) => groupOf(itemId) === sourceGroup)) return null
-
-  const sourceConsumes = listFlags[drag.source.listId]?.consumesOnDrag ?? false
-
-  return {
-    kind: sourceConsumes ? 'cross-list-move' : 'cross-list-copy',
-    source: drag.source,
-    target: drag.target,
-    insertAt,
-  }
-}
-</file>
-
 <file path="src/types/actions.ts">
 /**
  * FILE: actions.ts
@@ -5623,194 +5673,6 @@ export interface RecipeIngredient {
   ingredientId: string
   amount: number
   unit: string
-}
-</file>
-
-<file path="src/index.css">
-:root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
-
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
-}
-
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-}
-
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
-}
-
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-
-p {
-  margin: 0;
-}
-
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
-}
-
-.scene {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 20px;
-  padding: 24px;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.ingredient-list {
-  background: var(--code-bg);
-  border: 2px dashed var(--border);
-  border-radius: 12px;
-  padding: 16px;
-  min-height: 180px;
-  display: flex;
-  flex-direction: column;
-  transition: all 0.2s ease;
-}
-
-.ingredient-list.drag-over {
-  border-color: var(--accent);
-  background: var(--accent-bg);
-}
-
-.ingredient-list h3 {
-  margin: 0 0 12px 0;
-  font-size: 18px;
-  color: var(--text-h);
-  text-align: left;
-}
-
-.items-container {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  flex-grow: 1;
-}
-
-.ingredient-list-item {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-weight: 500;
-  color: var(--text-h);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  user-select: none;
-  touch-action: none;
-}
-
-.ingredient-list-item:hover {
-  border-color: var(--accent-border);
-}
-
-.ingredient-list-item.dragging {
-  box-shadow: var(--shadow);
-}
-
-.empty-hint {
-  font-size: 14px;
-  color: var(--text);
-  font-style: italic;
-  margin: auto;
-  opacity: 0.6;
 }
 </file>
 
@@ -6977,114 +6839,276 @@ docs/
 }
 </file>
 
-<file path="src/data/catalog/recipes/concebolla.ts">
+<file path="src/components/Ingredients/RecipeIngredientItem.tsx">
 /**
- * FILE: sincebolla.ts
+ * FILE: RecipeIngredientItem.tsx
  *
  * PURPOSE:
- * Recipe definition for Tortilla sin cebolla.
+ * Displays an ingredient used in a recipe.
  *
  * RESPONSIBILITY:
- * - Specifies ingredients needed for the sin cebolla recipe variant.
+ * - Shows ingredient amount and unit.
+ * - Represents recipe-specific ingredient data.
  */
 
-import { ingredients } from "../ingredients";
+import type { Ingredient } from '../../types/Ingredient'
 
-export const recipe = {
-  id: "sincebolla",
-  name: "Sincebolla",
-  ingredients: [
-    ingredients.find(i => i.id === "potato"),
-    ingredients.find(i => i.id === "egg"),
-    ingredients.find(i => i.id === "oil"),
-    ingredients.find(i => i.id === "salt"),
-    ingredients.find(i => i.id === "pepper"),
-  ]
-};
+interface RecipeIngredientItemProps {
+  key?: string | number
+  ingredient: Ingredient
+  amount: number
+  unit: string
+}
+
+export function RecipeIngredientItem({
+  ingredient,
+  amount,
+  unit,
+}: RecipeIngredientItemProps) {
+  return (
+    <li className="recipe-ingredient-item">
+      <span aria-hidden="true">{ingredient.icon}</span>
+      <span className="recipe-ingredient-name">{ingredient.name}</span>
+      <span className="recipe-ingredient-amount">
+        {amount} {unit}
+      </span>
+    </li>
+  )
+}
 </file>
 
-<file path="src/engine/containerRules.ts">
+<file path="src/store/worldStore.test.ts">
 /**
- * FILE: containerRules.ts
+ * FILE: worldStore.test.ts
  *
  * PURPOSE:
- * Generic container behavior rules.
+ * Unit tests for central world store and container rule enforcement.
  *
  * RESPONSIBILITY:
- * - Defines reusable rules for lists/containers.
- * - Determines allowed contents and constraints.
- *
- * DOMAIN:
- * Game engine logic independent from React.
+ * - Validates state transitions, move/add entity actions, and rule checks.
  */
 
-import type { Container, Entity } from '../types/world';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { worldStore } from './worldStore';
+import { clearActionLog, getActionLog } from './middleware/actionLog';
 
-export interface ValidationResult {
-  allowed: boolean;
-  reason?: string;
+function seed() {
+  worldStore.setState({
+    entities: {
+      potato: { id: 'potato', name: 'Potato', type: 'ingredient' },
+      onion: { id: 'onion', name: 'Onion', type: 'ingredient' },
+      knife: { id: 'knife', name: 'Knife', type: 'tool' },
+      chef: { id: 'chef', name: 'Chef', type: 'mascot' },
+    },
+    containers: {
+      kitchen: {
+        id: 'kitchen',
+        name: 'Kitchen',
+        type: 'storage',
+        entityIds: ['potato', 'onion', 'knife'],
+      },
+      pan: {
+        id: 'pan',
+        name: 'Pan',
+        type: 'pan',
+        entityIds: [],
+        rules: { maxCapacity: 1 },
+      },
+      board: {
+        id: 'board',
+        name: 'Cutting Board',
+        type: 'board',
+        entityIds: [],
+        rules: { allowedTypes: ['ingredient'] },
+      },
+      recipe: {
+        id: 'recipe',
+        name: 'Recipe',
+        type: 'plate',
+        entityIds: [],
+        rules: { allowedTypes: ['ingredient'], uniqueTypesOnly: true },
+      },
+    },
+  });
 }
 
-export function validateContainerRules(
-  container: Container,
-  entity: Entity,
-  currentEntitiesInContainer: Entity[]
-): ValidationResult {
-  const rules = container.rules;
+describe('worldStore container rule enforcement', () => {
+  beforeEach(() => {
+    seed();
+    clearActionLog();
+  });
 
-  if (!rules) {
-    return { allowed: true };
-  }
+  it('allows a move that satisfies the target container rules', () => {
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'potato', targetContainerId: 'pan' },
+    });
 
-  // 1. Capacity Check
-  if (
-    rules.maxCapacity !== undefined &&
-    container.entityIds.length >= rules.maxCapacity
-  ) {
-    return {
-      allowed: false,
-      reason: `Container '${container.name}' capacity reached (${rules.maxCapacity} items max).`,
-    };
-  }
+    const state = worldStore.getState();
+    expect(state.containers.pan.entityIds).toEqual(['potato']);
+    expect(state.containers.kitchen.entityIds).not.toContain('potato');
+  });
 
-  // 2. Allowed Types Check
-  if (rules.allowedTypes && !rules.allowedTypes.includes(entity.type)) {
-    return {
-      allowed: false,
-      reason: `Container '${container.name}' does not accept entity type '${entity.type}'.`,
-    };
-  }
+  it('blocks a move once the target container is at capacity', () => {
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'potato', targetContainerId: 'pan' },
+    });
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'onion', targetContainerId: 'pan' },
+    });
 
-  // 3. Unique Types Check
-  if (rules.uniqueTypesOnly) {
-    const hasTypeAlready = currentEntitiesInContainer.some(
-      (e) => e.type === entity.type
-    );
-    if (hasTypeAlready) {
-      return {
-        allowed: false,
-        reason: `Container '${container.name}' already contains an entity of type '${entity.type}'.`,
-      };
-    }
-  }
+    const state = worldStore.getState();
+    expect(state.containers.pan.entityIds).toEqual(['potato']);
+    expect(state.containers.kitchen.entityIds).toContain('onion');
+  });
 
-  // 4. Custom Validator Check
-  if (rules.customValidator) {
-    const passesCustom = rules.customValidator(
-      container,
-      entity,
-      currentEntitiesInContainer
-    );
-    if (!passesCustom) {
-      return {
-        allowed: false,
-        reason: `Entity '${entity.name}' failed custom container rules for '${container.name}'.`,
-      };
-    }
-  }
+  it('blocks a move that violates allowedTypes', () => {
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'knife', targetContainerId: 'board' },
+    });
 
-  return { allowed: true };
-}
+    // knife is a tool; board only allows ingredients
+    const state = worldStore.getState();
+    expect(state.containers.board.entityIds).toEqual([]);
+    expect(state.containers.kitchen.entityIds).toContain('knife');
+  });
+
+  it('blocks a move that would duplicate a type in a uniqueTypesOnly container', () => {
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'potato', targetContainerId: 'recipe' },
+    });
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'onion', targetContainerId: 'recipe' },
+    });
+
+    // both are 'ingredient' type; uniqueTypesOnly blocks the second
+    const state = worldStore.getState();
+    expect(state.containers.recipe.entityIds).toEqual(['potato']);
+    expect(state.containers.kitchen.entityIds).toContain('onion');
+  });
+
+  it('never re-validates a same-container reorder', () => {
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'potato', targetContainerId: 'kitchen', positionIndex: 0 },
+    });
+
+    // would fail uniqueTypesOnly-style self-comparison if the entity
+    // weren't excluded from its own container's current entities
+    const state = worldStore.getState();
+    expect(state.containers.kitchen.entityIds[0]).toBe('potato');
+  });
+
+  it('is a no-op when the entity does not exist', () => {
+    const before = worldStore.getState().containers.pan.entityIds;
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'ghost', targetContainerId: 'pan' },
+    });
+    expect(worldStore.getState().containers.pan.entityIds).toEqual(before);
+  });
+
+  it('enforces the same rules on ADD_ENTITY', () => {
+    worldStore.getState().dispatch({
+      type: 'ADD_ENTITY',
+      payload: {
+        entity: { id: 'spoon', name: 'Spoon', type: 'tool' },
+        containerId: 'board',
+      },
+    });
+
+    const state = worldStore.getState();
+    expect(state.containers.board.entityIds).toEqual([]);
+    expect(state.entities.spoon).toBeUndefined();
+  });
+
+  it('logs a labelled entry into the action log for each dispatch', () => {
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'potato', targetContainerId: 'pan' },
+    });
+
+    const log = getActionLog();
+    expect(log).toHaveLength(1);
+    expect(log[0].action).toBe('MOVE_ENTITY');
+    expect(typeof log[0].timestamp).toBe('number');
+  });
+
+  it('keeps source entity and creates copy in target when moving from an immutable container', () => {
+    worldStore.setState({
+      entities: {
+        potato: { id: 'potato', name: 'Potato', type: 'ingredient' },
+      },
+      containers: {
+        pantry: {
+          id: 'pantry',
+          name: 'Immutable Pantry',
+          type: 'storage',
+          entityIds: ['potato'],
+          rules: { isImmutable: true },
+        },
+        pan: {
+          id: 'pan',
+          name: 'Pan',
+          type: 'pan',
+          entityIds: [],
+        },
+      },
+    });
+
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'potato', targetContainerId: 'pan' },
+    });
+
+    const state = worldStore.getState();
+    // Source container retains original entity
+    expect(state.containers.pantry.entityIds).toEqual(['potato']);
+    // Target container gets a copy instance
+    expect(state.containers.pan.entityIds.length).toBe(1);
+    const copyId = state.containers.pan.entityIds[0];
+    expect(copyId).not.toBe('potato');
+    expect(state.entities[copyId].name).toBe('Potato');
+  });
+
+  it('rejects adding a duplicate ingredient to a container according to Rule 6', () => {
+    worldStore.setState({
+      entities: {
+        potato: { id: 'potato', ingredientId: 'potato', name: 'Potato', type: 'ingredient' },
+        potato_copy: { id: 'potato_copy', ingredientId: 'potato', name: 'Potato Copy', type: 'ingredient' },
+      },
+      containers: {
+        pantry: {
+          id: 'pantry',
+          name: 'Pantry',
+          type: 'storage',
+          entityIds: ['potato_copy'],
+          rules: { isImmutable: true },
+        },
+        pan: {
+          id: 'pan',
+          name: 'Pan',
+          type: 'pan',
+          entityIds: ['potato'],
+        },
+      },
+    });
+
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'potato_copy', targetContainerId: 'pan' },
+    });
+
+    const state = worldStore.getState();
+    // Pan should still only have 1 potato because duplicate ingredient is blocked
+    expect(state.containers.pan.entityIds).toEqual(['potato']);
+  });
+});
 </file>
 
 <file path="src/types/Ingredient.ts">
@@ -7102,6 +7126,190 @@ export interface Ingredient {
   id: string
   name: string
   icon: string
+}
+</file>
+
+<file path="src/index.css">
+:root {
+  --text: #6b6375;
+  --text-h: #08060d;
+  --bg: #fff;
+  --border: #e5e4e7;
+  --code-bg: #f4f3ec;
+  --accent: #aa3bff;
+  --accent-bg: rgba(170, 59, 255, 0.1);
+  --accent-border: rgba(170, 59, 255, 0.5);
+  --social-bg: rgba(244, 243, 236, 0.5);
+  --shadow:
+    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+
+  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, Consolas, monospace;
+
+  font: 18px/145% var(--sans);
+  letter-spacing: 0.18px;
+  color-scheme: light dark;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  @media (max-width: 1024px) {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #9ca3af;
+    --text-h: #f3f4f6;
+    --bg: #16171d;
+    --border: #2e303a;
+    --code-bg: #1f2028;
+    --accent: #c084fc;
+    --accent-bg: rgba(192, 132, 252, 0.15);
+    --accent-border: rgba(192, 132, 252, 0.5);
+    --social-bg: rgba(47, 48, 58, 0.5);
+    --shadow:
+      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+  }
+
+  #social .button-icon {
+    filter: invert(1) brightness(2);
+  }
+}
+
+#root {
+  width: 1126px;
+  max-width: 100%;
+  margin: 0 auto;
+  text-align: center;
+  border-inline: 1px solid var(--border);
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+h1,
+h2 {
+  font-family: var(--heading);
+  font-weight: 500;
+  color: var(--text-h);
+}
+
+h1 {
+  font-size: 56px;
+  letter-spacing: -1.68px;
+  margin: 32px 0;
+  @media (max-width: 1024px) {
+    font-size: 36px;
+    margin: 20px 0;
+  }
+}
+h2 {
+  font-size: 24px;
+  line-height: 118%;
+  letter-spacing: -0.24px;
+  margin: 0 0 8px;
+  @media (max-width: 1024px) {
+    font-size: 20px;
+  }
+}
+p {
+  margin: 0;
+}
+
+code,
+.counter {
+  font-family: var(--mono);
+  display: inline-flex;
+  border-radius: 4px;
+  color: var(--text-h);
+}
+
+code {
+  font-size: 15px;
+  line-height: 135%;
+  padding: 4px 8px;
+  background: var(--code-bg);
+}
+
+.scene {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+  padding: 24px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ingredient-list {
+  background: var(--code-bg);
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s ease;
+}
+
+.ingredient-list.drag-over {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.ingredient-list h3 {
+  margin: 0 0 12px 0;
+  font-size: 18px;
+  color: var(--text-h);
+  text-align: left;
+}
+
+.items-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-grow: 1;
+}
+
+.ingredient-list-item {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 500;
+  color: var(--text-h);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  user-select: none;
+  touch-action: none;
+}
+
+.ingredient-list-item:hover {
+  border-color: var(--accent-border);
+}
+
+.ingredient-list-item.dragging {
+  box-shadow: var(--shadow);
+}
+
+.empty-hint {
+  font-size: 14px;
+  color: var(--text);
+  font-style: italic;
+  margin: auto;
+  opacity: 0.6;
 }
 </file>
 
@@ -7529,6 +7737,109 @@ The immediate goal is:
 Everything else depends on this foundation.
 </file>
 
+<file path="src/engine/containerRules.ts">
+/**
+ * FILE: containerRules.ts
+ *
+ * PURPOSE:
+ * Generic container behavior rules.
+ *
+ * RESPONSIBILITY:
+ * - Defines reusable rules for lists/containers.
+ * - Determines allowed contents and constraints.
+ *
+ * DOMAIN:
+ * Game engine logic independent from React.
+ */
+
+import type { Container, Entity } from '../types/world';
+
+export interface ValidationResult {
+  allowed: boolean;
+  reason?: string;
+}
+
+export function getIngredientCatalogId(entity: Entity): string {
+  if (entity.ingredientId) return entity.ingredientId;
+  return entity.id.split('_')[0];
+}
+
+export function validateContainerRules(
+  container: Container,
+  entity: Entity,
+  currentEntitiesInContainer: Entity[]
+): ValidationResult {
+  const rules = container.rules;
+
+  // 1. Ingredient Uniqueness Check (Rule 6: A container cannot contain two identical ingredients)
+  if (entity.type === 'ingredient') {
+    const targetIngredientId = getIngredientCatalogId(entity);
+    const hasDuplicateIngredient = currentEntitiesInContainer.some(
+      (e) => e.type === 'ingredient' && getIngredientCatalogId(e) === targetIngredientId
+    );
+    if (hasDuplicateIngredient) {
+      return {
+        allowed: false,
+        reason: `Container '${container.name}' already contains ingredient '${targetIngredientId}'.`,
+      };
+    }
+  }
+
+  if (!rules) {
+    return { allowed: true };
+  }
+
+  // 2. Capacity Check
+  if (
+    rules.maxCapacity !== undefined &&
+    container.entityIds.length >= rules.maxCapacity
+  ) {
+    return {
+      allowed: false,
+      reason: `Container '${container.name}' capacity reached (${rules.maxCapacity} items max).`,
+    };
+  }
+
+  // 3. Allowed Types Check
+  if (rules.allowedTypes && !rules.allowedTypes.includes(entity.type)) {
+    return {
+      allowed: false,
+      reason: `Container '${container.name}' does not accept entity type '${entity.type}'.`,
+    };
+  }
+
+  // 4. Unique Types Check
+  if (rules.uniqueTypesOnly) {
+    const hasTypeAlready = currentEntitiesInContainer.some(
+      (e) => e.type === entity.type
+    );
+    if (hasTypeAlready) {
+      return {
+        allowed: false,
+        reason: `Container '${container.name}' already contains an entity of type '${entity.type}'.`,
+      };
+    }
+  }
+
+  // 5. Custom Validator Check
+  if (rules.customValidator) {
+    const passesCustom = rules.customValidator(
+      container,
+      entity,
+      currentEntitiesInContainer
+    );
+    if (!passesCustom) {
+      return {
+        allowed: false,
+        reason: `Entity '${entity.name}' failed custom container rules for '${container.name}'.`,
+      };
+    }
+  }
+
+  return { allowed: true };
+}
+</file>
+
 <file path="src/systems/gaze.test.ts">
 /**
  * FILE: gaze.test.ts
@@ -7600,6 +7911,69 @@ describe('Gaze System', () => {
 });
 </file>
 
+<file path="src/systems/movement.ts">
+/**
+ * FILE: movement.ts
+ *
+ * PURPOSE:
+ * Handles entity movement calculations.
+ *
+ * RESPONSIBILITY:
+ * - Calculates position changes.
+ * - Provides movement behavior.
+ */
+
+import { worldStore } from '../store/worldStore';
+
+/**
+ * Requests that an entity be moved to another container.
+ * The reducer determines the source container automatically.
+ */
+export function moveEntity(
+  entityId: string,
+  targetContainerId: string,
+  positionIndex?: number
+): void {
+  worldStore.getState().dispatch({
+    type: 'MOVE_ENTITY',
+    payload: {
+      entityId,
+      targetContainerId,
+      positionIndex,
+    },
+  });
+}
+</file>
+
+<file path="src/data/catalog/recipes/concebolla.ts">
+import type { RecipeIngredient } from '../../../types/RecipeIngredient'
+
+/**
+ * FILE: concebolla.ts
+ *
+ * PURPOSE:
+ * Recipe definition for Tortilla con cebolla.
+ *
+ * RESPONSIBILITY:
+ * - Defines the ingredients and quantities required for this recipe.
+ */
+
+export const concebollaRecipe = {
+  id: 'concebolla',
+  name: 'Tortilla con Cebolla',
+  ingredients: [
+    { id: 'concebolla-potato', ingredientId: 'potato', amount: 4, unit: 'pcs' },
+    { id: 'concebolla-egg', ingredientId: 'egg', amount: 6, unit: 'pcs' },
+    { id: 'concebolla-oil', ingredientId: 'oil', amount: 100, unit: 'ml' },
+    { id: 'concebolla-onion', ingredientId: 'onion', amount: 1, unit: 'pcs' },
+    { id: 'concebolla-salt', ingredientId: 'salt', amount: 1, unit: 'tsp' },
+    { id: 'concebolla-pepper', ingredientId: 'pepper', amount: 1, unit: 'pinch' },
+  ] satisfies RecipeIngredient[],
+}
+
+export const recipe = concebollaRecipe
+</file>
+
 <file path="src/systems/gaze.ts">
 /**
  * FILE: gaze.ts
@@ -7615,6 +7989,11 @@ describe('Gaze System', () => {
 import { worldStore } from '../store/worldStore';
 
 export type GazeTarget = string | null;
+
+export interface GazePoint {
+  x: number;
+  y: number;
+}
 
 interface GazeState {
   gazingAt?: GazeTarget;
@@ -7662,132 +8041,6 @@ export function getMascotGazeTarget(
 }
 </file>
 
-<file path="src/systems/movement.ts">
-/**
- * FILE: movement.ts
- *
- * PURPOSE:
- * Handles entity movement calculations.
- *
- * RESPONSIBILITY:
- * - Calculates position changes.
- * - Provides movement behavior.
- */
-
-import { worldStore } from '../store/worldStore';
-
-/**
- * Requests that an entity be moved to another container.
- * The reducer determines the source container automatically.
- */
-export function moveEntity(
-  entityId: string,
-  targetContainerId: string,
-  positionIndex?: number
-): void {
-  worldStore.getState().dispatch({
-    type: 'MOVE_ENTITY',
-    payload: {
-      entityId,
-      targetContainerId,
-      positionIndex,
-    },
-  });
-}
-</file>
-
-<file path="src/types/Entity.ts">
-/**
- * FILE: Entity.ts
- *
- * PURPOSE:
- * Defines the base entity contract.
- *
- * RESPONSIBILITY:
- * - Shared structure for all world objects.
- */
-
-export type EntityType = 'character' | 'ingredient' | 'kitchen-object'
-
-export interface Position {
-  x: number
-  y: number
-}
-
-export interface Size {
-  width: number
-  height: number
-}
-
-export interface Entity {
-  id: string            // unique per physical instance — NOT the same as ingredientId
-  type: EntityType
-  ingredientId: string  // catalog id used to look up name/icon; for non-ingredient
-                         // entities (mascot, kitchen-objects) this equals `id`
-  position: Position
-  size: Size
-  state: string          // behavior state: 'idle' | 'walking' | 'carrying' etc
-  listId: string | null  // the single list this entity currently lives in (null = unplaced)
-}
-
-export interface EntityRelationship {
-  sourceId: string
-  targetId: string
-  type: string
-}
-</file>
-
-<file path="src/types/world.ts">
-/**
- * FILE: world.ts
- *
- * PURPOSE:
- * Defines complete world state structures.
- *
- * RESPONSIBILITY:
- * - Describes the game world's data model.
- */
-
-import type { WorldAction } from './actions';
-
-export type EntityType = 'ingredient' | 'tool' | 'mascot';
-export type ContainerType = 'storage' | 'pan' | 'board' | 'plate' | 'trash';
-
-export interface Entity {
-  id: string;
-  name: string;
-  type: EntityType;
-  state?: Record<string, unknown>;
-}
-
-export interface ContainerRules {
-  maxCapacity?: number;
-  allowedTypes?: EntityType[];
-  uniqueTypesOnly?: boolean;
-  customValidator?: ( 
-    container: Container,
-    entity: Entity,
-    currentEntities: Entity[]
-  ) => boolean;
-}
-
-export interface Container {
-  id: string;
-  name: string;
-  type: ContainerType;
-  entityIds: string[];
-  rules?: ContainerRules;
-}
-
-export interface WorldState {
-  entities: Record<string, Entity>;
-  containers: Record<string, Container>;
-  dispatch: (action: WorldAction) => void;
-}
-
-export type { WorldAction };
-</file>
-
 <file path="src/types/IngredientList.ts">
 /**
  * FILE: IngredientList.ts
@@ -7814,6 +8067,60 @@ export interface List {
   seedIngredients?: string[]
   consumesOnDrag?: boolean   // true = item is removed from this list when dragged out
 }
+</file>
+
+<file path="src/types/world.ts">
+/**
+ * FILE: world.ts
+ *
+ * PURPOSE:
+ * Defines complete world state structures.
+ *
+ * RESPONSIBILITY:
+ * - Describes the game world's data model.
+ */
+
+import type { WorldAction } from './actions';
+
+export type EntityType = 'ingredient' | 'tool' | 'mascot';
+export type ContainerType = 'storage' | 'pan' | 'board' | 'plate' | 'trash';
+
+export interface Entity {
+  id: string;
+  name: string;
+  type: EntityType;
+  ingredientId?: string;
+  state?: Record<string, unknown>;
+}
+
+export interface ContainerRules {
+  maxCapacity?: number;
+  allowedTypes?: EntityType[];
+  uniqueTypesOnly?: boolean;
+  consumesOnDrag?: boolean;
+  isImmutable?: boolean;
+  customValidator?: ( 
+    container: Container,
+    entity: Entity,
+    currentEntities: Entity[]
+  ) => boolean;
+}
+
+export interface Container {
+  id: string;
+  name: string;
+  type: ContainerType;
+  entityIds: string[];
+  rules?: ContainerRules;
+}
+
+export interface WorldState {
+  entities: Record<string, Entity>;
+  containers: Record<string, Container>;
+  dispatch: (action: WorldAction) => void;
+}
+
+export type { WorldAction };
 </file>
 
 <file path="docs/decisions.md">
@@ -8387,60 +8694,6 @@ Trade-off:
   needed for real replay) is a separate, not-yet-made decision.
 </file>
 
-<file path="src/components/Ingredients/IngredientList.tsx">
-/**
- * FILE: IngredientList.tsx
- *
- * PURPOSE:
- * Displays a collection/container of ingredients.
- *
- * RESPONSIBILITY:
- * - Renders container title and its inner entities.
- * - Acts as a droppable target for drag-and-drop.
- */
-
-import { useStore } from 'zustand';
-import { useDroppable } from '@dnd-kit/core';
-import { worldStore } from '../../store/worldStore';
-import type { Container, Entity } from '../../types/world';
-import { IngredientListItem } from './IngredientListItem';
-
-interface IngredientListProps {
-  key?: string | number;
-  container: Container;
-}
-
-export function IngredientList({ container }: IngredientListProps) {
-  const entities = useStore(worldStore, (state) => state.entities);
-
-  // Set up dnd-kit droppable binding for this container
-  const { setNodeRef, isOver } = useDroppable({
-    id: container.id,
-  });
-
-  const containerEntities = container.entityIds
-    .map((id: string) => entities[id])
-    .filter((e: Entity | undefined): e is Entity => Boolean(e));
-
-  return (
-    <div
-      ref={setNodeRef}
-      className={`ingredient-list ${isOver ? 'drag-over' : ''}`}
-    >
-      <h3>{container.name}</h3>
-      <div className="items-container">
-        {containerEntities.map((entity: Entity) => (
-          <IngredientListItem key={entity.id} entity={entity} />
-        ))}
-        {containerEntities.length === 0 && (
-          <span className="empty-hint">Drop ingredients here</span>
-        )}
-      </div>
-    </div>
-  );
-}
-</file>
-
 <file path="src/systems/queries.test.ts">
 /**
  * FILE: queries.test.ts
@@ -8542,34 +8795,72 @@ describe('Query System', () => {
 }
 </file>
 
-<file path="src/components/Mascot/TortillaSvg.tsx">
+<file path="src/components/Ingredients/IngredientList.tsx">
 /**
- * FILE: TortillaSvg.tsx
+ * FILE: IngredientList.tsx
  *
  * PURPOSE:
- * SVG graphics definition for the Tortilla mascot.
+ * Displays a collection/container of ingredients.
  *
  * RESPONSIBILITY:
- * - Contains visual SVG structure only.
- * - Provides reusable mascot artwork.
+ * - Renders container title and its inner entities.
+ * - Acts as a droppable target for drag-and-drop.
  */
 
-import React from 'react';
-import type { GazeTarget } from '../../systems/gaze';
+import { useStore } from 'zustand';
+import { useDroppable } from '@dnd-kit/core';
+import { worldStore } from '../../store/worldStore';
+import type { Container, Entity } from '../../types/world';
+import { IngredientListItem } from './IngredientListItem';
 
-interface TortillaSvgProps {
-  gazingAt?: GazeTarget;
+interface IngredientListProps {
+  key?: string | number;
+  container: Container;
 }
 
-export const TortillaSvg: React.FC<TortillaSvgProps> = ({ gazingAt }) => {
+export function IngredientList({ container }: IngredientListProps) {
+  const entities = useStore(worldStore, (state) => state.entities);
+
+  // Set up dnd-kit droppable binding for this container
+  const { setNodeRef, isOver } = useDroppable({
+    id: container.id,
+  });
+
+  const containerEntities = container.entityIds
+    .map((id: string) => entities[id])
+    .filter((e: Entity | undefined): e is Entity => Boolean(e));
+
   return (
-    <svg width="100" height="100" viewBox="0 0 100 100">
-      <circle cx="50" cy="50" r="40" fill="#f4d03f" />
-      {/* Visual representation of mascot gaze direction */}
-      <circle cx={gazingAt ? 60 : 50} cy="40" r="5" fill="#000" />
-    </svg>
+    <div 
+      ref={setNodeRef} 
+      className={`ingredient-list ${isOver ? 'drag-over' : ''}`}
+    >
+      <h3>{container.name}</h3>
+      <div className="items-container">
+        {containerEntities.map((entity: Entity) => (
+          <IngredientListItem key={entity.id} entity={entity} />
+        ))}
+        {containerEntities.length === 0 && (
+          <span className="empty-hint">Drop ingredients here</span>
+        )}
+      </div>
+    </div>
   );
-};
+}
+</file>
+
+<file path="src/systems/mascot.ts">
+/**
+ * FILE: mascot.ts
+ *
+ * PURPOSE:
+ * Mascot state definitions and behavior functions.
+ *
+ * RESPONSIBILITY:
+ * - Defines mascot visual states ('idle', 'cooking', 'celebrating', etc.).
+ */
+
+export type MascotState = 'idle' | 'cooking' | 'celebrating' | 'thinking' | 'flipping' | string;
 </file>
 
 <file path="src/systems/queries.ts">
@@ -8648,14 +8939,14 @@ export const IngredientListItem: React.FC<IngredientListItemProps> = ({ entity }
 
   const style: React.CSSProperties | undefined = transform
     ? {
-      transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-      opacity: isDragging ? 0.6 : 1,
-      zIndex: isDragging ? 1000 : 1,
-      cursor: 'grab',
-    }
+        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+        opacity: isDragging ? 0.6 : 1,
+        zIndex: isDragging ? 1000 : 1,
+        cursor: 'grab',
+      }
     : {
-      cursor: 'grab',
-    };
+        cursor: 'grab',
+      };
 
   return (
     <div
@@ -8669,6 +8960,480 @@ export const IngredientListItem: React.FC<IngredientListItemProps> = ({ entity }
     </div>
   );
 };
+</file>
+
+<file path="src/components/Mascot/TortillaSvg.tsx">
+import React, { useEffect, useState, useRef } from "react";
+import { motion } from "framer-motion";
+import type { GazePoint } from "../../systems/gaze";
+import type { MascotState } from "../../systems/mascot";
+import "./TortillaSvg.css";
+
+export interface Potato {
+  x: number;
+  y: number;
+  rx: number;
+  ry: number;
+  rotate: number;
+}
+
+export interface ToastMark {
+  x: number;
+  y: number;
+  rx: number;
+  ry: number;
+  rotate: number;
+}
+
+export interface TortillaSvgProps {
+  state?: MascotState | "flipping"; // Added 'flipping' if not in your MascotState yet
+  radius?: number;
+  pupilOffset?: { left: GazePoint; right: GazePoint };
+  mouth?: string;
+  leftEyeRef?: React.RefObject<SVGEllipseElement | null>;
+  rightEyeRef?: React.RefObject<SVGEllipseElement | null>;
+  width?: number | string;
+  height?: number | string;
+  potatoes?: Potato[];
+  toastMarks?: ToastMark[];
+  gazingAt?: string | null;
+  onDoubleClick?: (e: React.MouseEvent<SVGSVGElement>) => void;
+}
+
+const DEFAULT_POTATOES: Potato[] = [
+  { x: -12, y: -10, rx: 4, ry: 3, rotate: 15 },
+  { x: 14, y: 8, rx: 5, ry: 3.5, rotate: -25 },
+  { x: -6, y: 12, rx: 4.5, ry: 3, rotate: 40 },
+  { x: 8, y: -14, rx: 3.5, ry: 2.5, rotate: -10 },
+];
+
+const DEFAULT_TOAST_MARKS: ToastMark[] = [
+  { x: -18, y: -12, rx: 3, ry: 2, rotate: 20 },
+  { x: 12, y: -16, rx: 4, ry: 2.5, rotate: -15 },
+  { x: -14, y: 14, rx: 3.5, ry: 2, rotate: 30 },
+  { x: 16, y: 10, rx: 2.5, ry: 1.8, rotate: -45 },
+];
+
+export function TortillaSvg({
+  state = "idle",
+  radius = 28,
+  pupilOffset: externalPupilOffset,
+  mouth = "M -10 6 Q 0 16 10 6",
+  leftEyeRef,
+  rightEyeRef,
+  width = 100,
+  height = 100,
+  potatoes = DEFAULT_POTATOES,
+  toastMarks = DEFAULT_TOAST_MARKS,
+  onDoubleClick,
+}: TortillaSvgProps) {
+  const svgRef = useRef<SVGSVGElement>(null);
+  const [isFlipping, setIsFlipping] = useState(false);
+  const [mouseOffset, setMouseOffset] = useState<{ left: GazePoint; right: GazePoint }>({
+    left: { x: 0, y: 0 },
+    right: { x: 0, y: 0 },
+  });
+
+  const handleDoubleClick = (e: React.MouseEvent<SVGSVGElement>) => {
+    if (!isFlipping) {
+      setIsFlipping(true);
+      setTimeout(() => {
+        setIsFlipping(false);
+      }, 800);
+    }
+    onDoubleClick?.(e);
+  };
+
+  useEffect(() => {
+    if (externalPupilOffset) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!svgRef.current) return;
+      const rect = svgRef.current.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      const dx = e.clientX - centerX;
+      const dy = e.clientY - centerY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      const angle = Math.atan2(dy, dx);
+
+      const maxOffset = 3.5;
+      const offsetDist = Math.min(distance / 60, 1) * maxOffset;
+
+      const ox = Math.cos(angle) * offsetDist;
+      const oy = Math.sin(angle) * offsetDist;
+
+      setMouseOffset({
+        left: { x: ox, y: oy },
+        right: { x: ox, y: oy },
+      });
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, [externalPupilOffset]);
+
+  const pupilOffset = externalPupilOffset || mouseOffset;
+  const r = radius ?? 28;
+  const effectiveState = isFlipping ? "flipping" : state;
+
+  return (
+    <motion.svg
+      ref={svgRef}
+      viewBox="-40 -40 80 80"
+      width={width}
+      height={height}
+      className={`tortilla-svg is-${effectiveState}`}
+      onDoubleClick={handleDoubleClick}
+      style={{ cursor: "pointer" }}
+    >
+      <defs>
+        {/* Hauptkörper: Ei + Kartoffeln */}
+        <radialGradient id="tortillaBody" cx="40%" cy="35%">
+          <stop offset="0%" stopColor="#fff8e1" />
+          <stop offset="30%" stopColor="#f5d98e" />
+          <stop offset="70%" stopColor="#e8b84a" />
+          <stop offset="100%" stopColor="#c98a2a" />
+        </radialGradient>
+
+        {/* Gebräunter Rand */}
+        <linearGradient id="crustEdge" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#d4953a" />
+          <stop offset="50%" stopColor="#b8731f" />
+          <stop offset="100%" stopColor="#8b5a1a" />
+        </linearGradient>
+
+        {/* Schatten unter der Tortilla */}
+        <radialGradient id="dropShadow" cx="50%" cy="50%">
+          <stop offset="0%" stopColor="#5a3a0a" stopOpacity="0.4" />
+          <stop offset="100%" stopColor="#5a3a0a" stopOpacity="0" />
+        </radialGradient>
+
+        {/* Öl-Glanz */}
+        <linearGradient id="oilShine" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.6" />
+          <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+        </linearGradient>
+
+        {/* Kartoffel-Textur */}
+        <radialGradient id="potatoChunk" cx="30%" cy="30%">
+          <stop offset="0%" stopColor="#fff5d6" />
+          <stop offset="100%" stopColor="#e8c97a" />
+        </radialGradient>
+
+        {/* Zwiebel-Textur */}
+        <radialGradient id="onionChunk" cx="50%" cy="50%">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="100%" stopColor="#f0e6d2" />
+        </radialGradient>
+
+        {/* Dampf für Cooking-State */}
+        <linearGradient id="steam" x1="0%" y1="100%" x2="0%" y2="0%">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.6" />
+          <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+        </linearGradient>
+
+        <filter id="softShadow">
+          <feDropShadow dx="0" dy="3" stdDeviation="3" opacity="0.3" />
+        </filter>
+
+        <filter id="innerGlow">
+          <feGaussianBlur stdDeviation="1" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+      </defs>
+
+      {/* === SCHATTEN === */}
+      <ellipse
+        cx="2"
+        cy="22"
+        rx={r * 0.9}
+        ry={r * 0.7}
+        fill="url(#dropShadow)"
+      />
+
+      {/* === TORTILLA-DICKE (Seitenansicht) === */}
+      <ellipse
+        cx="0"
+        cy="8"
+        rx={r * 0.95}
+        ry={r * 0.85}
+        fill="#7a4a15"
+      />
+
+      {/* === HAUPTKÖRPER === */}
+      <ellipse
+        cx="0"
+        cy="0"
+        rx={r}
+        ry={r * 0.88}
+        fill="url(#tortillaBody)"
+        stroke="url(#crustEdge)"
+        strokeWidth="2.5"
+        filter="url(#softShadow)"
+      />
+
+      {/* === GEKRÄUSELTER RAND === */}
+      <path
+        d="M -28 -8 
+           Q -32 -2 -30 5 
+           Q -28 15 -20 22 
+           Q -10 28 0 27 
+           Q 12 28 22 22 
+           Q 30 15 31 5 
+           Q 32 -5 25 -15 
+           Q 15 -25 0 -26 
+           Q -15 -25 -28 -8 Z"
+        fill="none"
+        stroke="#b8731f"
+        strokeWidth="1.5"
+        strokeDasharray="4 3"
+        opacity="0.6"
+      />
+
+      {/* === KARTOFFEL-STÜCKE (aus Props) === */}
+      {potatoes.map((potato, i) => (
+        <g key={`potato-${i}`} transform={`rotate(${potato.rotate} ${potato.x} ${potato.y})`}>
+          {/* Schatten */}
+          <ellipse
+            cx={potato.x + 0.5}
+            cy={potato.y + 0.5}
+            rx={potato.rx}
+            ry={potato.ry}
+            fill="#b8892a"
+            opacity="0.4"
+          />
+          {/* Kartoffel */}
+          <ellipse
+            cx={potato.x}
+            cy={potato.y}
+            rx={potato.rx}
+            ry={potato.ry}
+            fill="url(#potatoChunk)"
+            stroke="#d4a84a"
+            strokeWidth="0.8"
+          />
+          {/* Highlight */}
+          <ellipse
+            cx={potato.x - 1}
+            cy={potato.y - 1}
+            rx={potato.rx * 0.4}
+            ry={potato.ry * 0.3}
+            fill="#ffffff"
+            opacity="0.5"
+          />
+        </g>
+      ))}
+
+      {/* === ZWIEBEL-RINGE === */}
+      {[
+        { x: -22, y: -2, r: 3.5 },
+        { x: 20, y: -8, r: 2.5 },
+        { x: 8, y: -22, r: 2 },
+        { x: -5, y: 20, r: 3 },
+      ].map((onion, i) => (
+        <g key={`onion-${i}`}>
+          <circle
+            cx={onion.x}
+            cy={onion.y}
+            r={onion.r}
+            fill="none"
+            stroke="#f5e6c8"
+            strokeWidth="1.8"
+            opacity="0.7"
+          />
+          <circle
+            cx={onion.x}
+            cy={onion.y}
+            r={onion.r * 0.5}
+            fill="none"
+            stroke="#e8d5a8"
+            strokeWidth="1"
+            opacity="0.5"
+          />
+        </g>
+      ))}
+
+      {/* === GEBRÄUNTE STELLEN (aus Props) === */}
+      {toastMarks.map((mark, i) => (
+        <ellipse
+          key={`toast-${i}`}
+          cx={mark.x}
+          cy={mark.y}
+          rx={mark.rx}
+          ry={mark.ry}
+          fill="#8b5a1a"
+          opacity="0.35"
+          transform={`rotate(${mark.rotate} ${mark.x} ${mark.y})`}
+        />
+      ))}
+
+      {/* === ÖL-GLANZ (mehrere Highlights) === */}
+      <path
+        d="M -15 -18 Q -5 -25 8 -20"
+        fill="none"
+        stroke="url(#oilShine)"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M 10 15 Q 18 18 24 12"
+        fill="none"
+        stroke="url(#oilShine)"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        opacity="0.6"
+      />
+      <ellipse cx="-8" cy="-16" rx="3" ry="1.5" fill="#ffffff" opacity="0.3" transform="rotate(-20 -8 -16)" />
+
+      {/* === BASILIKUM-BLATT (als "Haarschmuck") === */}
+      <g transform="translate(18, -22) rotate(25)">
+        <path
+          d="M 0 0 Q -4 -8 0 -14 Q 4 -8 0 0 Z"
+          fill="#5a8f3a"
+          stroke="#4a7a2e"
+          strokeWidth="0.8"
+        />
+        <path
+          d="M 0 0 L 0 -12"
+          fill="none"
+          stroke="#4a7a2e"
+          strokeWidth="0.5"
+        />
+        <ellipse cx="-1.5" cy="-5" rx="1" ry="0.8" fill="#6ba84a" opacity="0.7" />
+        <ellipse cx="1.5" cy="-9" rx="0.8" ry="0.6" fill="#6ba84a" opacity="0.7" />
+      </g>
+
+      {/* === DAMPF (nur im Cooking-State) === */}
+      {state === "cooking" && (
+        <>
+          <motion.path
+            d="M -10 -28 Q -15 -38 -8 -45"
+            fill="none"
+            stroke="url(#steam)"
+            strokeWidth="3"
+            strokeLinecap="round"
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: [0, 0.7, 0], y: [-2, -8, -15], x: [0, 3, -2] }}
+            transition={{ duration: 2, repeat: Infinity, delay: 0 }}
+          />
+          <motion.path
+            d="M 5 -30 Q 10 -40 3 -48"
+            fill="none"
+            stroke="url(#steam)"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: [0, 0.6, 0], y: [-2, -10, -18], x: [0, -3, 2] }}
+            transition={{ duration: 2.2, repeat: Infinity, delay: 0.7 }}
+          />
+          <motion.path
+            d="M 0 -32 Q -5 -42 2 -50"
+            fill="none"
+            stroke="url(#steam)"
+            strokeWidth="2"
+            strokeLinecap="round"
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: [0, 0.5, 0], y: [-2, -12, -20], x: [0, 4, -3] }}
+            transition={{ duration: 1.8, repeat: Infinity, delay: 1.4 }}
+          />
+        </>
+      )}
+
+      {/* === GESICHT === */}
+
+      {/* Wangen (Blush) */}
+      <ellipse cx="-22" cy="6" rx="5" ry="3" fill="#e85a5a" opacity="0.25" filter="url(#innerGlow)" />
+      <ellipse cx="22" cy="6" rx="5" ry="3" fill="#e85a5a" opacity="0.25" filter="url(#innerGlow)" />
+
+      {/* Augen (Weiß) */}
+      <ellipse ref={leftEyeRef} cx="-11" cy="-6" rx="8" ry="9" fill="#fff" />
+      <ellipse ref={rightEyeRef} cx="11" cy="-6" rx="8" ry="9" fill="#fff" />
+
+      {/* Augenlider (Blinzeln via CSS) */}
+      <ellipse
+        cx="-11"
+        cy="-6"
+        rx="8"
+        ry="9"
+        fill="#e8b84a"
+        className="tortilla-blink"
+        style={{ transformOrigin: "-11px -6px" }}
+      />
+      <ellipse
+        cx="11"
+        cy="-6"
+        rx="8"
+        ry="9"
+        fill="#e8b84a"
+        className="tortilla-blink"
+        style={{ transformOrigin: "11px -6px" }}
+      />
+
+      {/* Pupillen */}
+      <motion.circle
+        cx="-11"
+        cy="-6"
+        r="3.5"
+        fill="#3b2418"
+        animate={{ x: pupilOffset.left.x, y: pupilOffset.left.y }}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      />
+      <motion.circle
+        cx="11"
+        cy="-6"
+        r="3.5"
+        fill="#3b2418"
+        animate={{ x: pupilOffset.right.x, y: pupilOffset.right.y }}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      />
+
+      {/* Pupillen-Highlights */}
+      <circle cx="-12.5" cy="-8" r="1.2" fill="white" />
+      <circle cx="9.5" cy="-8" r="1.2" fill="white" />
+
+      {/* Mund */}
+      <motion.path
+        d={mouth}
+        fill="none"
+        stroke="#3b2418"
+        strokeWidth="3"
+        strokeLinecap="round"
+        animate={
+          state === "celebrating"
+            ? { scale: [1, 1.1, 1] }
+            : state === "cooking"
+            ? { d: ["M -14 4 Q 0 18 14 4", "M -14 5 Q 0 16 14 5", "M -14 4 Q 0 18 14 4"] }
+            : {}
+        }
+        transition={
+          state === "celebrating"
+            ? { duration: 0.5, repeat: Infinity }
+            : state === "cooking"
+            ? { duration: 1.5, repeat: Infinity }
+            : { duration: 0.2 }
+        }
+      />
+
+      {/* Zunge (nur bei celebrating) */}
+      {state === "celebrating" && (
+        <motion.path
+          d="M -6 12 Q 0 18 6 12"
+          fill="#e85a5a"
+          opacity="0.8"
+          animate={{ scaleY: [1, 1.2, 1] }}
+          transition={{ duration: 0.5, repeat: Infinity }}
+        />
+      )}
+
+      {/* === EXTRA: Kleine Krümel (Details) === */}
+      <circle cx="-30" cy="5" r="1" fill="#c98a2a" opacity="0.5" />
+      <circle cx="32" cy="-5" r="0.8" fill="#c98a2a" opacity="0.4" />
+      <circle cx="28" cy="18" r="1.2" fill="#c98a2a" opacity="0.3" />
+    </motion.svg>
+  );
+}
 </file>
 
 <file path="src/components/Mascot/Mascot.tsx">
@@ -8690,6 +9455,7 @@ export const IngredientListItem: React.FC<IngredientListItemProps> = ({ entity }
 import React from 'react';
 import { useStore } from 'zustand';
 import { worldStore } from '../../store/worldStore';
+import { TortillaSvg } from './TortillaSvg';
 
 interface MascotProps {
   mascotId?: string;
@@ -8700,10 +9466,17 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
 
   if (!mascotEntity) return null;
 
+  const gazingAt = mascotEntity.state?.gazingAt as string | undefined;
+
   return (
-    <div className="mascot">
-      <h3>{mascotEntity.name}</h3>
-      Gazing at: {mascotEntity.state?.gazingAt ? String(mascotEntity.state.gazingAt) : 'Nothing'}
+    <div className="mascot-card" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', background: 'var(--code-bg)', border: '1px solid var(--border)', borderRadius: '12px' }}>
+      <TortillaSvg gazingAt={gazingAt as any} />
+      <div>
+        <h3 style={{ margin: 0, fontSize: '16px', color: 'var(--text-h)' }}>{mascotEntity.name}</h3>
+        <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: 'var(--text)' }}>
+          Gazing at: <strong>{gazingAt || 'Kitchen World'}</strong>
+        </p>
+      </div>
     </div>
   );
 };
@@ -8727,242 +9500,31 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
  */
 
 import { Scene } from './components/Scene/Scene';
+import { Mascot } from './components/Mascot/Mascot';
+import { RecipePanel } from './components/Recipe/RecipePanel';
 
 function App() {
   return (
-    <Scene />
+    <div className="app-container" style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px' }}>
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+        <div>
+          <h1 style={{ margin: 0, fontSize: '28px', color: 'var(--text-h)' }}>Tortilla World</h1>
+          <p style={{ margin: '4px 0 0 0', color: 'var(--text)', opacity: 0.8 }}>
+            An interactive simulation world. Drag ingredients from the immutable catalog pantry into workspace containers.
+          </p>
+        </div>
+        <Mascot />
+      </header>
+
+      <main>
+        <RecipePanel />
+        <Scene />
+      </main>
+    </div>
   );
 }
 
 export default App;
-</file>
-
-<file path="src/systems/interaction.test.ts">
-/**
- * FILE: interaction.test.ts
- *
- * PURPOSE:
- * Unit tests for interaction system and reordering resolutions.
- *
- * RESPONSIBILITY:
- * - Validates resolveListReorder and applyListReorder behavior.
- */
-
-import { describe, it, expect } from 'vitest'
-import { evaluateDrop, parseDrag } from './dropRules'
-import { resolveListReorder, applyListReorder } from './interaction'
-import type { Entity } from '../types/Entity'
-
-function makeEntity(id: string, ingredientId: string, listId: string | null): Entity {
-  return {
-    id,
-    type: 'ingredient',
-    ingredientId,
-    position: { x: 0, y: 0 },
-    size: { width: 1, height: 1 },
-    state: 'idle',
-    listId,
-  }
-}
-
-function resolveDrag(
-  activeId: string,
-  overId: string,
-  lists: Record<string, string[]>,
-  listFlags: Record<string, { consumesOnDrag?: boolean }> = {},
-  options: { groupOf?: (itemId: string) => string; createCopyId?: (itemId: string) => string } = {},
-) {
-  const drag = parseDrag(activeId, overId)
-  if (!drag) return null
-  const drop = evaluateDrop(drag, lists, listFlags, { groupOf: options.groupOf })
-  if (!drop) return null
-  return resolveListReorder(drop, lists, { createCopyId: options.createCopyId })
-}
-
-const kitchenConsumes = { kitchen: { consumesOnDrag: true }, fire: { consumesOnDrag: true } }
-
-// ── consumesOnDrag: move vs copy semantics ─────────────────────────────────
-
-it('dragging from a consuming list removes the item from the source', () => {
-  const result = resolveDrag(
-    'kitchen::potato',
-    'fire',
-    { kitchen: ['potato', 'egg'], fire: [] },
-    kitchenConsumes,
-  )
-  expect(result?.lists).toEqual({
-    kitchen: ['egg'],
-    fire: ['potato'],
-  })
-  expect(result?.changedListId).toBe('fire')
-  expect(result?.removedFromListId).toBe('kitchen')
-  expect(result?.copy).toBeNull()
-})
-
-it('dragging from a non-consuming list keeps the item in the source', () => {
-  const result = resolveDrag(
-    'despensa::potato',
-    'kitchen',
-    { despensa: ['potato', 'onion'], kitchen: [] },
-    { despensa: {}, kitchen: { consumesOnDrag: true } },
-    { createCopyId: () => 'potato-copy' },
-  )
-  expect(result?.lists).toEqual({
-    despensa: ['potato', 'onion'],
-    kitchen: ['potato-copy'],
-  })
-  expect(result?.removedFromListId).toBeNull()
-  expect(result?.copy).toEqual({ sourceItemId: 'potato', newItemId: 'potato-copy' })
-})
-
-it('a consuming target never overrides a non-consuming source, even dragging onto fire', () => {
-  const result = resolveDrag(
-    'despensa::potato',
-    'fire',
-    { despensa: ['potato', 'onion'], fire: [] },
-    { despensa: {}, fire: { consumesOnDrag: true } },
-    { createCopyId: () => 'potato-copy' },
-  )
-  expect(result?.lists).toEqual({
-    despensa: ['potato', 'onion'],
-    fire: ['potato-copy'],
-  })
-  expect(result?.changedListId).toBe('fire')
-  expect(result?.removedFromListId).toBeNull()
-})
-
-it('BUG regression: a copy is a distinct instance, so moving it later never touches the original', () => {
-  const copyStep = resolveDrag(
-    'despensa::salt#despensa',
-    'kitchen',
-    { despensa: ['salt#despensa'], kitchen: [], fire: [] },
-    { despensa: {}, kitchen: { consumesOnDrag: true }, fire: { consumesOnDrag: true } },
-    { createCopyId: () => 'salt#kitchen' },
-  )
-  expect(copyStep?.copy).toEqual({ sourceItemId: 'salt#despensa', newItemId: 'salt#kitchen' })
-
-  const moveStep = resolveDrag(
-    'kitchen::salt#kitchen',
-    'fire',
-    { despensa: ['salt#despensa'], kitchen: ['salt#kitchen'], fire: [] },
-    { despensa: {}, kitchen: { consumesOnDrag: true }, fire: { consumesOnDrag: true } },
-  )
-  expect(moveStep?.lists).toEqual({
-    despensa: ['salt#despensa'],
-    kitchen: [],
-    fire: ['salt#kitchen'],
-  })
-  expect(moveStep?.removedFromListId).toBe('kitchen')
-})
-
-describe('resolveListReorder', () => {
-  it('copies an item to another list, source stays untouched, target gets a new id', () => {
-    const drag = parseDrag('despensa::potato', 'kitchen::egg')!
-    const drop = evaluateDrop(drag, { despensa: ['potato', 'onion'], kitchen: ['egg'] })!
-    const result = resolveListReorder(drop, { despensa: ['potato', 'onion'], kitchen: ['egg'] }, {
-      createCopyId: () => 'potato-copy',
-    })
-    expect(result?.lists).toEqual({
-      despensa: ['potato', 'onion'],
-      kitchen: ['potato-copy', 'egg'],
-    })
-    expect(result?.changedListId).toBe('kitchen')
-    expect(result?.copy).toEqual({ sourceItemId: 'potato', newItemId: 'potato-copy' })
-  })
-
-  it('copies into an empty list', () => {
-    const drag = parseDrag('despensa::potato', 'kitchen')!
-    const drop = evaluateDrop(drag, { despensa: ['potato', 'onion'], kitchen: [] })!
-    const result = resolveListReorder(drop, { despensa: ['potato', 'onion'], kitchen: [] }, {
-      createCopyId: () => 'potato-copy',
-    })
-    expect(result?.lists).toEqual({
-      despensa: ['potato', 'onion'],
-      kitchen: ['potato-copy'],
-    })
-  })
-
-  it('default createCopyId still produces an id different from the source', () => {
-    const drag = parseDrag('despensa::potato', 'kitchen')!
-    const drop = evaluateDrop(drag, { despensa: ['potato'], kitchen: [] })!
-    const result = resolveListReorder(drop, { despensa: ['potato'], kitchen: [] })
-    expect(result?.copy?.newItemId).not.toBe('potato')
-    expect(result?.lists.kitchen[0]).not.toBe('potato')
-  })
-
-  it('reorders within the same list', () => {
-    const drag = parseDrag('despensa::egg', 'despensa::potato')!
-    const drop = evaluateDrop(drag, { despensa: ['potato', 'egg'], kitchen: [] })!
-    const result = resolveListReorder(drop, { despensa: ['potato', 'egg'], kitchen: [] })
-    expect(result?.lists.despensa).toEqual(['egg', 'potato'])
-    expect(result?.lists.kitchen).toEqual([])
-    expect(result?.changedListId).toBe('despensa')
-    expect(result?.copy).toBeNull()
-  })
-})
-
-describe('applyListReorder', () => {
-  it('moves an existing entity by updating its listId and position', () => {
-    const calls: Array<[string, Partial<Omit<Entity, 'id'>>]> = []
-    const updateEntity = (id: string, changes: Partial<Omit<Entity, 'id'>>) => calls.push([id, changes])
-    const addEntity = () => { throw new Error('should not create a new entity for a plain move') }
-    const getEntity = (id: string) => makeEntity(id, id, 'kitchen')
-
-    applyListReorder(updateEntity, addEntity, getEntity, {
-      lists: { fire: ['potato'] },
-      changedListId: 'fire',
-      removedFromListId: 'kitchen',
-      copy: null,
-    })
-
-    expect(calls).toEqual([['potato', { position: { x: 0, y: 0 }, listId: 'fire' }]])
-  })
-
-  it('creates a brand-new entity for a copy, leaving the original alone', () => {
-    const updateCalls: Array<[string, unknown]> = []
-    const addCalls: Entity[] = []
-    const updateEntity = (id: string, changes: Partial<Omit<Entity, 'id'>>) => updateCalls.push([id, changes])
-    const addEntity = (entity: Entity) => addCalls.push(entity)
-    const original = makeEntity('salt#despensa', 'salt', 'despensa')
-    const getEntity = (id: string) => (id === 'salt#despensa' ? original : undefined)
-
-    applyListReorder(updateEntity, addEntity, getEntity, {
-      lists: { kitchen: ['salt#kitchen'] },
-      changedListId: 'kitchen',
-      removedFromListId: null,
-      copy: { sourceItemId: 'salt#despensa', newItemId: 'salt#kitchen' },
-    })
-
-    expect(updateCalls).toEqual([])
-    expect(addCalls).toEqual([{
-      id: 'salt#kitchen',
-      type: 'ingredient',
-      ingredientId: 'salt',
-      position: { x: 0, y: 0 },
-      size: { width: 1, height: 1 },
-      state: 'idle',
-      listId: 'kitchen',
-    }])
-  })
-
-  it('writes position.y as insertion order', () => {
-    const calls: Array<[string, Partial<Omit<Entity, 'id'>>]> = []
-    const updateEntity = (id: string, changes: Partial<Omit<Entity, 'id'>>) => calls.push([id, changes])
-    const addEntity = () => { throw new Error('unexpected addEntity') }
-    const getEntity = (id: string) => makeEntity(id, id, 'kitchen')
-
-    applyListReorder(updateEntity, addEntity, getEntity, {
-      lists: { kitchen: ['egg', 'potato', 'onion'] },
-      changedListId: 'kitchen',
-      removedFromListId: null,
-      copy: null,
-    })
-
-    expect(calls[0][1].position).toEqual({ x: 0, y: 0 })
-    expect(calls[1][1].position).toEqual({ x: 0, y: 1 })
-    expect(calls[2][1].position).toEqual({ x: 0, y: 2 })
-  })
-})
 </file>
 
 <file path="src/components/Scene/Scene.tsx">
@@ -9066,131 +9628,6 @@ export function useSceneDragAndDrop() {
 }
 </file>
 
-<file path="src/systems/interaction.ts">
-/**
- * FILE: interaction.ts
- *
- * PURPOSE:
- * Handles player interaction logic.
- *
- * RESPONSIBILITY:
- * - Converts user actions into world actions.
- * - Coordinates interaction flow.
- */
-
-import type { Entity } from '../types/Entity'
-import type { ApprovedDrop } from './dropRules'
-
-export interface ReorderOptions {
-  /**
-   * Produces the id for a brand-new instance created by a copy (dragging
-   * out of a non-consuming source). MUST be unique per call in real usage,
-   * or the copy will collide with another item.
-   */
-  createCopyId?: (itemId: string) => string
-}
-
-export interface ReorderResult {
-  lists: Record<string, string[]>
-  changedListId: string
-  removedFromListId: string | null
-  /**
-   * Set only when this resolution created a brand-new instance (i.e. a
-   * copy out of a non-consuming source). `sourceItemId` is the original,
-   * untouched instance; `newItemId` is the id inserted into the target
-   * list. The two are intentionally different entities from this point
-   * on — moving one must never affect the other.
-   */
-  copy: { sourceItemId: string; newItemId: string } | null
-}
-
-function defaultCreateCopyId(itemId: string): string {
-  return `${itemId}--copy--${Math.random().toString(36).slice(2, 8)}`
-}
-
-/**
- * Pure: given an already-approved drop, compute the next list ordering.
- * Validation lives in dropRules.ts — this function only rearranges ids.
- */
-export function resolveListReorder(
-  drop: ApprovedDrop,
-  lists: Record<string, string[]>,
-  options: ReorderOptions = {},
-): ReorderResult | null {
-  const sourceIds = lists[drop.source.listId]
-  const targetIds = lists[drop.target.listId]
-  if (!sourceIds || !targetIds) return null
-
-  const createCopyId = options.createCopyId ?? defaultCreateCopyId
-  const next = { ...lists }
-
-  if (drop.kind === 'same-list-reorder') {
-    const reordered = sourceIds.filter((itemId) => itemId !== drop.source.itemId)
-    reordered.splice(drop.insertAt, 0, drop.source.itemId)
-    next[drop.source.listId] = reordered
-    return { lists: next, changedListId: drop.source.listId, removedFromListId: null, copy: null }
-  }
-
-  if (drop.kind === 'cross-list-move') {
-    next[drop.source.listId] = sourceIds.filter((itemId) => itemId !== drop.source.itemId)
-    const reorderedTarget = [...targetIds]
-    reorderedTarget.splice(drop.insertAt, 0, drop.source.itemId)
-    next[drop.target.listId] = reorderedTarget
-    return { lists: next, changedListId: drop.target.listId, removedFromListId: drop.source.listId, copy: null }
-  }
-
-  const newItemId = createCopyId(drop.source.itemId)
-  const reorderedTarget = [...targetIds]
-  reorderedTarget.splice(drop.insertAt, 0, newItemId)
-  next[drop.target.listId] = reorderedTarget
-  return {
-    lists: next,
-    changedListId: drop.target.listId,
-    removedFromListId: null,
-    copy: { sourceItemId: drop.source.itemId, newItemId },
-  }
-}
-
-/**
- * Commit step: writes the changed list's ordering into the store.
- *
- * Each entity belongs to exactly one list at a time (`entity.listId`), so
- * there's nothing to clean up on the source side — reassigning listId (or,
- * for a copy, creating a new entity) is the entire move. The source list's
- * contents are derived live from entity.listId elsewhere (queries.ts), so
- * they update automatically once this runs.
- */
-export function applyListReorder(
-  updateEntity: (entityId: string, changes: Partial<Omit<Entity, 'id'>>) => void,
-  addEntity: (entity: Entity) => void,
-  getEntity: (entityId: string) => Entity | undefined,
-  result: ReorderResult,
-) {
-  const itemIds = result.lists[result.changedListId]
-
-  itemIds.forEach((itemId, index) => {
-    const position = { x: 0, y: index }
-
-    if (result.copy && itemId === result.copy.newItemId) {
-      const original = getEntity(result.copy.sourceItemId)
-      if (!original) return
-      addEntity({
-        id: itemId,
-        type: original.type,
-        ingredientId: original.ingredientId,
-        position,
-        size: original.size,
-        state: 'idle',
-        listId: result.changedListId,
-      })
-      return
-    }
-
-    updateEntity(itemId, { position, listId: result.changedListId })
-  })
-}
-</file>
-
 <file path="src/store/worldStore.ts">
 /**
  * FILE: worldStore.ts
@@ -9213,22 +9650,34 @@ import { devtools } from 'zustand/middleware';
 import type { Container, Entity, WorldAction, WorldState } from '../types/world';
 import { validateContainerRules } from '../engine/containerRules';
 import { actionLog } from './middleware/actionLog';
+import { ingredients as catalogIngredients } from '../data/catalog/ingredients';
 
 const defaultEntities: Record<string, Entity> = {
-  potato: { id: 'potato', name: '🥔 Potatoes', type: 'ingredient', state: { sliced: false, cooked: false } },
-  egg: { id: 'egg', name: '🥚 Eggs', type: 'ingredient', state: { cracked: false, cooked: false } },
-  onion: { id: 'onion', name: '🧅 Onion', type: 'ingredient', state: { sliced: false, cooked: false } },
-  oil: { id: 'oil', name: '🫒 Olive Oil', type: 'ingredient', state: { poured: false } },
-  salt: { id: 'salt', name: '🧂 Salt', type: 'ingredient', state: {} },
+  chef: { id: 'chef', name: 'Chef Tortilla 🍳', type: 'mascot', state: { gazingAt: 'Despensa' } },
+  ...catalogIngredients.reduce((acc, item) => {
+    acc[item.id] = {
+      id: item.id,
+      ingredientId: item.id,
+      name: `${item.icon} ${item.name}`,
+      type: 'ingredient',
+      state: {},
+    };
+    return acc;
+  }, {} as Record<string, Entity>),
 };
 
 const defaultContainers: Record<string, Container> = {
   despensa: {
     id: 'despensa',
-    name: 'Despensa (Pantry)',
+    name: 'Despensa (All Ingredients - Immutable Catalog)',
     type: 'storage',
-    entityIds: ['potato', 'egg', 'onion', 'oil', 'salt'],
-    rules: { maxCapacity: 10, allowedTypes: ['ingredient', 'tool'] },
+    entityIds: catalogIngredients.map((i) => i.id),
+    rules: {
+      maxCapacity: 20,
+      allowedTypes: ['ingredient', 'tool'],
+      consumesOnDrag: false,
+      isImmutable: true,
+    },
   },
   board: {
     id: 'board',
@@ -9278,9 +9727,46 @@ export const worldStore = createStore<WorldState>()(
                   c.entityIds.includes(entityId)
                 );
 
-                // Reordering within the same container never re-checks
-                // rules — capacity/uniqueness only guard entities newly
-                // arriving from elsewhere.
+                const isSourceImmutable =
+                  sourceContainer?.rules?.isImmutable || sourceContainer?.rules?.consumesOnDrag === false;
+
+                // Immutable source container logic: create a copy instance in target
+                if (sourceContainer && sourceContainer.id !== targetContainerId && isSourceImmutable) {
+                  const copyId = `${entity.id}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+                  const copyEntity: Entity = {
+                    ...entity,
+                    id: copyId,
+                    ingredientId: entity.ingredientId || entity.id.split('_')[0],
+                  };
+
+                  const currentEntities = entitiesIn(targetContainer, state.entities);
+                  const result = validateContainerRules(targetContainer, copyEntity, currentEntities);
+                  if (!result.allowed) return state;
+
+                  const targetIds = [...(state.containers[targetContainerId]?.entityIds || [])];
+                  if (typeof positionIndex === 'number') {
+                    targetIds.splice(positionIndex, 0, copyId);
+                  } else {
+                    targetIds.push(copyId);
+                  }
+
+                  return {
+                    ...state,
+                    entities: {
+                      ...state.entities,
+                      [copyId]: copyEntity,
+                    },
+                    containers: {
+                      ...state.containers,
+                      [targetContainerId]: {
+                        ...targetContainer,
+                        entityIds: targetIds,
+                      },
+                    },
+                  };
+                }
+
+                // Reordering within the same container never re-checks rules
                 if (sourceContainer?.id !== targetContainerId) {
                   const currentEntities = entitiesIn(targetContainer, state.entities).filter(
                     (e) => e.id !== entityId
