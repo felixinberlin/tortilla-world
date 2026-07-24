@@ -90,14 +90,18 @@ Example:
 
 ## Tool
 
-Tools are reusable objects used by actions.
+Tools are reusable objects used by actions at workstations.
 
 Examples:
 
-* pan
-* knife
-* spoon
-* bowl
+* knife (`knife`)
+* peeler (`peeler`)
+* whisk (`whisk`)
+* fork (`fork`)
+* spatula (`spatula`)
+* grater (`grater`)
+* mandoline (`mandoline`)
+* spoon (`spoon`)
 
 Tools have different rules from ingredients:
 

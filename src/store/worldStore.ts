@@ -20,6 +20,7 @@ import type { Container, Entity, WorldAction, WorldState } from '../types/world'
 import { validateContainerRules } from '../engine/containerRules';
 import { actionLog } from './middleware/actionLog';
 import { ingredients as catalogIngredients } from '../data/catalog/ingredients';
+import { catalogTools } from '../data/catalog/tools';
 
 const defaultEntities: Record<string, Entity> = {
   chef: { id: 'chef', name: 'Chef Tortilla 🍳', type: 'mascot', state: { gazingAt: 'Despensa' } },
@@ -33,6 +34,15 @@ const defaultEntities: Record<string, Entity> = {
     };
     return acc;
   }, {} as Record<string, Entity>),
+  ...catalogTools.reduce((acc, item) => {
+    acc[item.id] = {
+      id: item.id,
+      name: `${item.icon} ${item.name}`,
+      type: 'tool',
+      state: {},
+    };
+    return acc;
+  }, {} as Record<string, Entity>),
 };
 
 const defaultContainers: Record<string, Container> = {
@@ -40,34 +50,48 @@ const defaultContainers: Record<string, Container> = {
     id: 'despensa',
     name: 'Despensa (All Ingredients - Immutable Catalog)',
     type: 'storage',
-    entityIds: catalogIngredients.map((i) => i.id),
+    entityIds: [...catalogIngredients.map((i) => i.id), ...catalogTools.map((t) => t.id)],
     rules: {
-      maxCapacity: 20,
+      maxCapacity: 30,
       allowedTypes: ['ingredient', 'tool'],
       consumesOnDrag: false,
       isImmutable: true,
     },
+  },
+  sink: {
+    id: 'sink',
+    name: 'Fregadero (Sink)',
+    type: 'sink',
+    entityIds: [],
+    rules: { maxCapacity: 10, allowedTypes: ['ingredient', 'tool'] },
   },
   board: {
     id: 'board',
     name: 'Tabla (Cutting Board)',
     type: 'board',
     entityIds: [],
-    rules: { maxCapacity: 10, allowedTypes: ['ingredient'] },
+    rules: { maxCapacity: 10, allowedTypes: ['ingredient', 'tool'] },
+  },
+  bowl: {
+    id: 'bowl',
+    name: 'Bol (Preparation Bowl)',
+    type: 'bowl',
+    entityIds: [],
+    rules: { maxCapacity: 10, allowedTypes: ['ingredient', 'tool'] },
   },
   pan: {
     id: 'pan',
     name: 'Sartén (Skillet)',
     type: 'pan',
     entityIds: [],
-    rules: { maxCapacity: 5, allowedTypes: ['ingredient'] },
+    rules: { maxCapacity: 5, allowedTypes: ['ingredient', 'tool'] },
   },
   plate: {
     id: 'plate',
     name: 'Plato (Plate)',
     type: 'plate',
     entityIds: [],
-    rules: { maxCapacity: 5, allowedTypes: ['ingredient'] },
+    rules: { maxCapacity: 5, allowedTypes: ['ingredient', 'tool'] },
   },
 };
 

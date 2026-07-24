@@ -31,12 +31,12 @@ export function RecipePanel() {
   const entities = useStore(worldStore, (state) => state.entities);
   const containers = useStore(worldStore, (state) => state.containers);
 
-  // Collect ingredient entities currently placed in active workspace containers (board, pan, plate)
-  const activeContainerEntities = [
-    ...(containers.board?.entityIds || []),
-    ...(containers.pan?.entityIds || []),
-    ...(containers.plate?.entityIds || []),
-  ].map((id) => entities[id]).filter(Boolean);
+  // Collect ingredient entities currently placed in active workspace containers
+  const activeContainerEntities = Object.values(containers)
+    .filter((c) => c.id !== 'despensa')
+    .flatMap((c) => c.entityIds)
+    .map((id) => entities[id])
+    .filter(Boolean);
 
   const matchResult = countMatchingIngredients(activeRecipe, activeContainerEntities);
 

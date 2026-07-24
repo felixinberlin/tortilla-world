@@ -12,7 +12,7 @@ import type { WorldAction } from './actions';
 import type { PreparationStyle, CookingMethod } from './RecipeStep';
 
 export type EntityType = 'ingredient' | 'tool' | 'mascot';
-export type ContainerType = 'storage' | 'pan' | 'board' | 'plate' | 'trash';
+export type ContainerType = 'storage' | 'pan' | 'board' | 'plate' | 'trash' | 'bowl' | 'sink';
 
 export interface IngredientState {
   preparation?: PreparationStyle;

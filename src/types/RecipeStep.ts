@@ -29,6 +29,12 @@ export type RecipeStep =
       containerId?: string;
     }
   | {
+      action: 'wash' | 'rinse' | 'drain';
+      target?: string;
+      ingredient?: string;
+      containerId?: string;
+    }
+  | {
       action: 'mix' | 'beat';
       inputs?: string[];
       output?: string;

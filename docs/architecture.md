@@ -63,6 +63,19 @@ They are controlled by systems.
 
 ---
 
+# Workstations
+
+Workstations represent *where actions can be performed* in the kitchen simulation:
+
+* **Pantry (`pantry`)**: Store ingredients (`despensa`).
+* **Washing Station (`washing_station`)**: Clean ingredients (`sink`).
+* **Cutting Station (`cutting_station`)**: Preparation (`board`, `knife`, `peeler`).
+* **Preparation Station (`preparation_station`)**: Mix & combine (`bowl`, `whisk`, `fork`).
+* **Cooking Station (`cooking_station`)**: Apply heat (`pan`, `spatula`).
+* **Serving Station (`serving_station`)**: Plate and serve (`plate`).
+
+---
+
 # Containers
 
 Containers are entities that own other entities.

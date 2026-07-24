@@ -1,589 +1,748 @@
-# Architectural Decisions
+# Systems
 
-This document records the important architectural decisions made during the development of Tortilla World.
+## Overview
 
-The goal is to keep the world model predictable, extensible, and suitable for future systems such as AI-controlled actions, cooking processes, animations, and simulations.
+Systems contain the behaviour of Tortilla World.
 
----
+Components display the world.
+Systems modify the world.
 
-# Decision: Use Entities and Containers as the World Model
+A system receives actions, validates them, and updates the world state.
 
-## Context
+The general flow is:
 
-The initial concept used "lists" to represent groups of objects:
-
-* pantry list
-* recipe list
-* fire list
-
-This worked for simple drag and drop, but became insufficient when objects started having different behaviours.
-
-Requirements:
-
-* objects need ownership
-* objects need movement between locations
-* some collections allow changes
-* some collections represent predefined world content
-* some objects can exist multiple times
-* some objects must be unique
-
-A simple list cannot express these rules.
-
----
-
-## Decision
-
-Replace the concept of **Lists** with **Containers**.
-
-A Container is a first-class world entity that:
-
-* owns other entities
-* defines what it can contain
-* validates actions
-* preserves ordering
-* controls movement rules
-
-The world is modelled as:
-
-```
-Entities
-   |
-   v
-Containers
+```text
+Input
+  |
+  v
+Action
+  |
+  v
+System
+  |
+  v
+Validation
+  |
+  v
+World State Update
+  |
+  v
+UI Update
 ```
 
 ---
 
-## Consequences
+# System Architecture
 
-Positive:
+Tortilla World is based on independent systems.
 
-* clear ownership model
-* easier drag and drop logic
-* easier AI action validation
-* supports future gameplay systems
-* containers can have different behaviours
+Current and planned systems:
 
-Negative:
+```text
+Systems
 
-* more complex than arrays
-* requires validation before actions
-* requires explicit ownership handling
+├── Interaction System
+├── Movement System
+├── Container System
+├── Mascot System
+├── Animation System
+├── Cooking System
+└── AI System
+```
+
+Each system has a clear responsibility.
 
 ---
 
-# Decision: Entities Are Never Duplicated During Movement
+# Interaction System
 
-## Context
+## Responsibility
 
-A drag and drop action can visually look like moving an object.
+The Interaction System converts external events into world actions.
 
-The implementation must decide whether the object itself changes or whether a copy is created.
+External events:
 
----
+* mouse clicks
+* drag and drop
+* AI requests
+* future keyboard/gamepad input
 
-## Decision
-
-Entities keep their identity.
-
-A move changes ownership.
-
-Example:
-
-Before:
-
-```
-Kitchen
- └── potato
-
-
-Pan
-```
-
-After:
-
-```
-Kitchen
-
-
-Pan
- └── potato
-```
-
-The potato entity is the same entity.
+The Interaction System does not modify the world directly.
 
 ---
 
-## Consequences
+## Example
 
-Benefits:
+User drags potato into pan.
 
-* animations can track objects
-* AI can reference objects by ID
-* history and debugging become easier
-* no duplicated world state
-
----
-
-# Decision: Containers Own Rules, Not Entities
-
-## Context
-
-An ingredient does not know where it can exist.
-
-A potato can exist in:
-
-* kitchen
-* recipe
-* pan
-* plate
-* trash
-
-Each location has different rules.
-
----
-
-## Decision
-
-Rules belong to containers.
-
-Example:
-
-```
-Potato
- |
- +-- Kitchen: allowed
- |
- +-- Recipe: allowed
- |
- +-- Trash: allowed
- |
- +-- Knife: forbidden
-```
-
-The container decides.
-
----
-
-## Consequences
-
-New containers can be added without modifying every entity.
-
-Example:
-
-Adding:
-
-```
-Fridge
-```
-
-only requires defining fridge rules.
-
-Ingredients do not change.
-
----
-
-# Decision: Container Contents Are Ordered
-
-## Context
-
-A programming Set solves uniqueness, but loses order.
-
-The world requires:
-
-* visual ordering
-* animations
-* predictable rendering
-* drag and drop positions
-
----
-
-## Decision
-
-Containers use ordered collections.
-
-Example:
+The Interaction System creates:
 
 ```ts
-[
- "potato",
- "egg",
- "onion"
-]
+{
+  type:"MOVE_ENTITY",
+  entityId:"potato",
+  targetContainer:"pan"
+}
 ```
 
-Ordering is part of the world state.
+The action is passed to the Movement System.
 
 ---
 
-## Consequences
+# Movement System
 
-Uniqueness is handled separately from ordering.
+## Responsibility
 
-The system validates whether an item can be inserted.
+The Movement System controls ownership changes.
+
+It handles:
+
+* moving entities
+* validating source ownership
+* validating destination rules
+* applying transfer behaviour
 
 ---
 
-# Decision: Ingredient Uniqueness Is Enforced Per Container
+## Move Flow
 
-## Context
+```text
+Move Request
 
-Cooking containers should not contain duplicate ingredients.
+      |
+      v
+
+Find Entity
+
+      |
+      v
+
+Find Current Container
+
+      |
+      v
+
+Find Target Container
+
+      |
+      v
+
+Validate Move
+
+      |
+      v
+
+Apply Transfer Rule
+
+      |
+      v
+
+Update Ownership
+
+```
+
+---
+
+# Move Validation
+
+Before moving an entity, the system checks:
+
+## Entity existence
+
+Does the entity exist?
 
 Example:
 
-Invalid:
-
-```
-Recipe
- ├ potato
- └ potato
+```text
+potato
 ```
 
-However, duplicate tools are valid.
+must exist in the world.
+
+---
+
+## Source ownership
+
+Does the source container own the entity?
 
 Example:
 
 Valid:
 
+```text
+Kitchen owns potato
 ```
+
+Invalid:
+
+```text
+Pan owns potato
+```
+
+when moving from Kitchen.
+
+---
+
+## Destination capability
+
+Can the target container accept this entity?
+
+Example:
+
+A pan may accept:
+
+```text
+ingredient
+```
+
+but reject:
+
+```text
+container
+```
+
+---
+
+## Duplicate rules
+
+The container checks uniqueness.
+
+Example:
+
+Valid:
+
+```text
+Recipe
+
+potato
+egg
+```
+
+Invalid:
+
+```text
+Recipe
+
+potato
+potato
+```
+
+---
+
+# Transfer Rules
+
+A move is not always the same operation.
+
+Containers define transfer behaviour.
+
+---
+
+# Static Container To Dynamic Container
+
+Example:
+
+```text
 Kitchen
- ├ pan-001
- └ pan-002
+ |
+ potato
+
+
+Recipe
 ```
+
+Move potato:
+
+Result:
+
+```text
+Kitchen
+ |
+ potato
+
+
+Recipe
+ |
+ potato
+```
+
+The destination receives the ingredient.
+
+The source remains unchanged.
+
+This represents a world resource.
 
 ---
 
-## Decision
-
-Uniqueness rules depend on entity type.
-
-Default rules:
-
-Ingredients:
-
-```
-unique inside container
-```
-
-Tools:
-
-```
-duplicates allowed
-```
-
----
-
-## Consequences
-
-The model supports realistic kitchens.
-
-A kitchen can have:
-
-* many pans
-* many knives
-* one potato entry
-
----
-
-# Decision: Moving Between Containers Uses Transfer Rules
-
-## Context
-
-Not every move behaves the same.
-
-Examples:
-
-Kitchen → Recipe:
-
-* ingredient remains in kitchen inventory conceptually
-* recipe receives a reference/copy
-
-Recipe → Pan:
-
-* recipe loses ingredient
-* pan receives ingredient
-
----
-
-## Decision
-
-Movement is not a simple array operation.
-
-Every move goes through a transfer system:
-
-```
-Request Move
-      |
-      v
-Validate source
-      |
-      v
-Validate destination
-      |
-      v
-Apply transfer rule
-      |
-      v
-Update ownership
-```
-
----
-
-# Decision: Immutable and Mutable Containers
-
-## Context
-
-Some containers represent world definitions.
+# Dynamic Container To Dynamic Container
 
 Example:
 
-Kitchen starting ingredients.
+```text
+Recipe
+ |
+ potato
 
-Others represent changing gameplay state.
 
-Example:
-
-Recipe.
-
----
-
-## Decision
-
-Containers have ownership behaviour.
-
-## Static Containers
-
-Represent predefined world resources.
-
-Examples:
-
-* kitchen inventory
-* starting objects
-
-They can provide items without necessarily losing the original definition.
-
----
-
-## Dynamic Containers
-
-Represent changing state.
-
-Examples:
-
-* recipe
-* pan
-* plate
-
-They gain and lose ownership.
-
----
-
-# Decision: Systems Modify State, Components Display State
-
-## Context
-
-React components should not contain world logic.
-
-A drag component should not decide:
-
-* if a move is valid
-* if duplicates are allowed
-* if an item disappears
-
----
-
-## Decision
-
-Components display the world.
-
-Systems modify the world.
-
-Example:
-
-```
-Drag Component
-       |
-       v
-Interaction System
-       |
-       v
-Container Rules
-       |
-       v
-World Store
+Pan
 ```
 
+Move potato:
+
+Result:
+
+```text
+Recipe
+
+
+Pan
+ |
+ potato
+```
+
+Ownership transfers.
+
 ---
 
-# Decision: AI Uses Actions, Not Direct State Modification
-
-## Context
-
-Future AI behaviour requires predictable actions.
-
-The AI should not directly modify Zustand state.
-
----
-
-## Decision
-
-AI produces actions.
+# Dynamic Container To Static Container
 
 Example:
+
+```text
+Recipe
+ |
+ potato
+
+
+Kitchen
+```
+
+Move potato back.
+
+Result:
+
+```text
+Recipe
+
+
+Kitchen
+ |
+ potato
+```
+
+The dynamic container loses ownership.
+
+The static container provides the original world resource.
+
+---
+
+# Container System
+
+## Responsibility
+
+The Container System manages container rules.
+
+It answers questions:
+
+* Can this entity be added?
+* Can this entity be removed?
+* Are duplicates allowed?
+* Is the container full?
+* Does ordering matter?
+
+---
+
+## Example API
+
+```ts
+canAccept(
+  container,
+  entity
+)
+```
+
+returns:
+
+```ts
+true
+```
+
+or:
+
+```ts
+false
+```
+
+---
+
+# Action Queue
+
+## Responsibility
+
+All world changes should pass through an action queue.
+
+Example:
+
+```text
+AI
+ |
+User
+ |
+System
+ |
+Action Queue
+ |
+World Update
+```
+
+---
+
+## Example Action
 
 ```ts
 {
  type:"MOVE_ENTITY",
- entity:"potato",
- from:"kitchen",
- to:"pan"
+
+ entityId:"egg",
+
+ source:"kitchen",
+
+ target:"recipe"
 }
 ```
 
-The world validates and executes the action.
+---
+
+## Benefits
+
+Action queues provide:
+
+* debugging
+* replay
+* logging
+* AI control
+* animations
+* delayed actions
 
 ---
 
-## Consequences
+# Animation System
 
-Benefits:
+## Responsibility
 
-* AI cannot break world rules
-* actions can be logged
-* actions can be replayed
-* debugging becomes easier
+The Animation System reacts to world changes.
 
----
+It does not decide what happens.
 
-# Decision: Step-Based Recipe State Machine via RecipeRunner
+Example:
 
-## Context
+Movement System:
 
-Hardcoded recipe scripts (e.g. `runFollowRecipeScript`) directly encoded container move logic in code.
-As recipes expand to include cutting, peeling, beating eggs, mixing, frying, and animations, hardcoding each recipe script leads to duplication and tight coupling.
-
----
-
-## Decision
-
-1. Recipes are declarative data structures containing a `steps: RecipeStep[]` array.
-2. A generic `RecipeRunner` system (`src/systems/recipeRunner.ts`) executes recipe step arrays sequentially by dispatching world and mascot actions.
-3. Ingredient identity is strictly preserved during state transformations (e.g. preparation: `whole` ➔ `diced`, cooking: `raw` ➔ `fried`). Entity state is updated via `PREPARE_INGREDIENT` or `COOK_INGREDIENT` without creating or destroying entities.
-
----
-
-## Consequences
-
-Benefits:
-
-* Adding new recipes requires adding data definitions only, with zero imperative logic code.
-* `RecipeRunner` handles generic kitchen actions (`move`, `grab`, `drop`, `cut`, `cook`, `mix`, `wait`, `flip`, `speak`, `celebrate`) and can easily be extended with new action handlers.
-* World state remains predictable and fully loggable in the Action Log and Redux DevTools.
-
-1. The world contains entities.
-2. Containers own entities.
-3. Containers enforce rules.
-4. Movement changes ownership, not identity.
-5. Contents are ordered.
-6. Ingredients are unique per container.
-7. Tools may have duplicates.
-8. Systems modify state.
-9. AI produces validated actions.
-
-This creates a foundation for a simulation-style cooking world rather than a simple drag-and-drop application.
-
----
-
-# Decision: Container Rules Are Enforced Inside the Store, Not the Caller
-
-## Context
-
-`engine/containerRules.ts` implemented `validateContainerRules`, but nothing
-called it. `worldStore`'s `MOVE_ENTITY` and `ADD_ENTITY` handlers mutated
-containers directly, so capacity, allowed-type, and uniqueness rules existed
-on paper only.
-
----
-
-## Decision
-
-Validation happens inside `worldStore`'s `dispatch`, immediately before a
-container's contents are mutated — not in `systems/movement.ts` or any other
-caller.
-
-```
-dispatch(MOVE_ENTITY)
-      |
-      v
-worldStore reducer
-      |
-      v
-validateContainerRules(targetContainer, entity, currentEntities)
-      |
-  not allowed -> no-op, state unchanged
-      |
-  allowed -> ownership updated
+```text
+Potato moved to Pan
 ```
 
-Reordering within the same container skips validation — an entity already
-inside a container isn't a new arrival, so capacity/uniqueness checks don't
-apply, and (for `uniqueTypesOnly`) would otherwise trip on the entity
-comparing against itself.
+Animation System:
+
+```text
+Play potato movement animation
+```
 
 ---
 
-## Consequences
+## Separation
 
-Benefits:
+Bad:
 
-* `dispatch` is the single gate every caller goes through — systems, tests,
-  and the future AI system all get the same rules, with no way to bypass
-  them by calling a system function instead of another.
-* Rules live where the docs say they should: on the container, not the
-  caller.
+```text
+Drag component:
+move object
+animate object
+change state
+```
 
-Trade-off:
+Good:
 
-* An invalid move currently fails silently (state just doesn't change).
-  Surfacing *why* a move was rejected — for UI feedback, not just debug
-  logs — is not yet implemented.
+```text
+Drag component:
+create action
 
----
 
-# Decision: An In-Memory Action Log Implements the Action Queue
+Movement System:
+change state
 
-## Context
 
-`docs/systems.md` and the roadmap describe an Action Queue for traceability,
-debugging, replay, and future AI compatibility, but no such log existed.
-
----
-
-## Decision
-
-`worldStore` is wrapped with two Zustand middlewares:
-
-* `devtools` — every `dispatch` call is visible, named, and diffable in
-  Redux DevTools.
-* `actionLog` (`src/store/middleware/actionLog.ts`) — a small custom
-  middleware that appends `{ action, timestamp }` to an in-memory,
-  size-capped array whenever a `set` call is labelled with an action name
-  (the same convention `devtools` uses: `set(next, false, 'MOVE_ENTITY')`).
-  Read via `getActionLog()`.
+Animation System:
+animate change
+```
 
 ---
 
-## Consequences
+# Cooking System
 
-Benefits:
+## Responsibility
 
-* Fulfils the "traceability, debugging, replay" requirement without a new
-  dependency or a change to the `WorldAction` shape.
-* The same labelling convention is what the future AI system
-  (`docs/roadmap.md` Phase 5) will read from to reason about what happened.
+Future system for transforming entities.
 
-Trade-off:
+Examples:
 
-* The log is in-memory only — it resets on reload. Persistence (if ever
-  needed for real replay) is a separate, not-yet-made decision.
+```text
+Potato
++
+Oil
++
+Heat
+
+    |
+    v
+
+Fried Potato
+```
+
+---
+
+The cooking system changes entity state.
+
+Example:
+
+Before:
+
+```ts
+{
+ type:"ingredient",
+ state:"raw"
+}
+```
+
+After:
+
+```ts
+{
+ type:"ingredient",
+ state:"cooked"
+}
+```
+
+---
+
+# AI System
+
+## Responsibility
+
+The AI System creates actions.
+
+The AI does not directly manipulate Zustand state.
+
+---
+
+Example:
+
+AI decides:
+
+```text
+Prepare tortilla
+```
+
+Creates:
+
+```ts
+[
+ {
+  type:"MOVE_ENTITY",
+  entityId:"potato",
+  target:"pan"
+ },
+
+ {
+  type:"ADD_HEAT",
+  target:"pan"
+ }
+]
+```
+
+The normal systems execute them.
+
+---
+
+# System Communication
+
+Systems communicate through actions and world state.
+
+Example:
+
+```text
+Interaction System
+
+        |
+        v
+
+Move Action
+
+        |
+        v
+
+Movement System
+
+        |
+        v
+
+World Store
+
+        |
+        v
+
+Animation System
+
+```
+
+---
+
+# Zustand Responsibility
+
+Zustand is the storage layer.
+
+It stores:
+
+* entities
+* containers
+* relationships
+* world state
+
+It should not contain UI logic.
+
+---
+
+Example:
+
+Good:
+
+```ts
+moveEntity(
+ entityId,
+ from,
+ to
+)
+```
+
+Bad:
+
+```ts
+onDropIngredient(
+ mouseEvent
+)
+```
+
+---
+
+# Testing Strategy
+
+Systems should be testable without React.
+
+Example:
+
+```ts
+moveEntity(
+ "potato",
+ "kitchen",
+ "pan"
+)
+```
+
+Expected:
+
+```text
+Kitchen:
+empty
+
+Pan:
+potato
+```
+
+---
+
+# Future Systems
+
+Possible additions:
+
+## Time System
+
+Controls:
+
+* cooking duration
+* day/night
+* events
+
+---
+
+## Physics System
+
+Controls:
+
+* collisions
+* falling objects
+* movement
+
+---
+
+## Economy System
+
+Controls:
+
+* ingredients cost
+* customers
+* money
+
+---
+
+## Character System
+
+Controls:
+
+* NPCs
+* player actions
+* behaviours
+
+---
+
+## Mascot System & Recipe System
+
+### Mascot System
+Controls:
+
+* `MASCOT_FLIP`: Flips Tortilla mascot in place.
+* `MASCOT_MOVE`: Moves gaze/focus of Tortilla to target container.
+* `MASCOT_GRAB`: Commands Tortilla to grab ingredient entity from a container.
+* `MASCOT_DROP`: Commands Tortilla to drop held ingredient into target container obeying rules.
+
+Dispatch helpers and automated action sequences (e.g. `runFollowRecipeScript`) are located in `src/systems/mascotActions.ts` for AI agent, console, or UI integration.
+
+React components (`Mascot.tsx`) translate pure target container state into physical Framer Motion spring translations across the DOM viewport without touching store logic.
+
+---
+
+### Recipe System & RecipeRunner
+
+The Recipe System executes declarative, step-based recipe state machines via `RecipeRunner` (`src/systems/recipeRunner.ts`).
+
+#### Architecture:
+* **Declarative Data**: Recipes (`RecipeStep[]`) define *what* needs to happen (e.g. `move`, `grab`, `drop`, `cut`, `cook`, `mix`, `wait`, `flip`, `speak`, `celebrate`) without referencing specific kitchen containers or locations.
+* **Workstation & Tool Resolution**: `RecipeRunner` dynamically queries the Workstation engine (`src/engine/workstations.ts`) to determine the required workstation (`pantry`, `washing_station`, `cutting_station`, `preparation_station`, `cooking_station`, `serving_station`) and tools (`knife`, `peeler`, `whisk`, `fork`, `spatula`, etc.) for each step.
+* **Generic Execution**: `RecipeRunner` iterates over recipe steps and dispatches appropriate world/mascot actions.
+* **Entity Identity Preservation**: Ingredient state mutations (such as preparation: `whole` ➔ `diced` or cooking: `raw` ➔ `fried`) modify the target entity's `state` via `PREPARE_INGREDIENT` or `COOK_INGREDIENT` without creating or destroying entities.
+
+---
+
+# Final Principle
+
+The rule of Tortilla World:
+
+```text
+Components show the world.
+
+Systems change the world.
+
+Containers define the rules.
+
+Actions describe intentions.
+
+The Store remembers the result.
+```

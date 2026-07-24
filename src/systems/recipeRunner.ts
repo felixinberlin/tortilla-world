@@ -2,18 +2,20 @@
  * FILE: recipeRunner.ts
  *
  * PURPOSE:
- * Generic step-based recipe execution engine (RecipeRunner).
+ * Workstation and tool-driven recipe execution engine (RecipeRunner).
  *
  * RESPONSIBILITY:
  * - Iterates over declarative RecipeSteps sequentially.
+ * - Dynamically determines required workstation and tools for each step.
  * - Dispatches appropriate world and mascot actions.
  * - Modifies existing entity state for preparation/cooking without destroying/recreating entities.
- * - Supports dictionary ingredients, step aliases, automatic ingredient resolution, and serving.
+ * - Preserves data-driven architecture and keeps recipes decoupled from kitchen locations.
  */
 
 import { worldStore } from '../store/worldStore';
 import { moveTortillaTo, grabIngredient, dropIngredient, flipTortilla } from './mascotActions';
 import { getIngredientCatalogId } from '../engine/containerRules';
+import { findWorkstationForStep } from '../engine/workstations';
 import type { Recipe, RecipeIngredientDictItem } from '../types/Recipe';
 import type { RecipeStep } from '../types/RecipeStep';
 
@@ -59,14 +61,20 @@ export class RecipeRunner {
   }
 
   /**
-   * Ensures specified ingredient is present in active workspace containers or mascot hand.
-   * If absent, automatically moves ingredient from defaultSourceId to defaultTargetId.
+   * Ensures specified ingredient is present in active workstation containers or mascot hand.
+   * If absent, automatically moves ingredient from defaultSourceId to targetContainerId.
    */
-  private async ensureIngredientInWorkspace(ingredientCatalogId: string): Promise<string | undefined> {
+  private async ensureIngredientInWorkspace(
+    ingredientCatalogId: string,
+    targetContainerId: string = this.defaultTargetId
+  ): Promise<string | undefined> {
     const state = worldStore.getState();
-    const workspaceContainers = ['board', 'pan', 'plate'];
+    // Exclude storage/pantry containers when checking if ingredient is already in active workspace
+    const activeWorkspaceContainerIds = Object.values(state.containers)
+      .filter((c) => c.type !== 'storage' && c.id !== 'despensa')
+      .map((c) => c.id);
 
-    for (const cId of workspaceContainers) {
+    for (const cId of activeWorkspaceContainerIds) {
       const container = state.containers[cId];
       if (container) {
         const foundId = container.entityIds.find((id) => {
@@ -85,16 +93,16 @@ export class RecipeRunner {
       }
     }
 
-    // Move missing ingredient from source to target container
+    // Move missing ingredient from source to target workstation container
     await this.executeStep({
       action: 'move',
       ingredient: ingredientCatalogId,
       source: this.defaultSourceId,
-      target: this.defaultTargetId,
+      target: targetContainerId,
     });
 
     const updatedState = worldStore.getState();
-    const targetContainer = updatedState.containers[this.defaultTargetId];
+    const targetContainer = updatedState.containers[targetContainerId];
     if (targetContainer) {
       return targetContainer.entityIds.find((id) => {
         const e = updatedState.entities[id];
@@ -122,13 +130,15 @@ export class RecipeRunner {
   }
 
   /**
-   * Executes an individual step.
+   * Executes an individual step by resolving workstation and required tools.
    */
   public async executeStep(step: RecipeStep): Promise<void> {
+    const workstation = findWorkstationForStep(step);
+
     switch (step.action) {
       case 'move': {
         const source = step.source || this.defaultSourceId;
-        const target = step.target || this.defaultTargetId;
+        const target = step.target || workstation.defaultContainerId || this.defaultTargetId;
         const rawKey = step.ingredient || step.target;
         const ingredientId = this.resolveIngredientId(rawKey) || rawKey;
 
@@ -181,7 +191,7 @@ export class RecipeRunner {
       }
 
       case 'drop': {
-        const target = step.target || this.defaultTargetId;
+        const target = step.target || workstation.defaultContainerId || this.defaultTargetId;
         moveTortillaTo(target, this.mascotId);
         await this.wait();
 
@@ -195,21 +205,21 @@ export class RecipeRunner {
         const rawKey = step.target || step.ingredient;
         const ingredientId = this.resolveIngredientId(rawKey);
         const prepStyle = step.preparation || step.style || 'prepared';
+        const targetContainerId = step.containerId || workstation.defaultContainerId || this.defaultTargetId;
 
         if (ingredientId && ingredientId !== 'mixture') {
-          await this.ensureIngredientInWorkspace(ingredientId);
+          await this.ensureIngredientInWorkspace(ingredientId, targetContainerId);
         }
 
-        const containerId = step.containerId || this.defaultTargetId;
-        moveTortillaTo(containerId, this.mascotId);
+        moveTortillaTo(targetContainerId, this.mascotId);
         await this.wait();
 
         const state = worldStore.getState();
         let targetEntityId: string | undefined;
 
         if (ingredientId) {
-          // Search workspace containers for the matching ingredient
-          for (const cId of [containerId, 'board', 'pan', 'plate']) {
+          // Search workstation containers for the matching ingredient
+          for (const cId of [targetContainerId, 'board', 'bowl', 'pan', 'plate']) {
             const container = state.containers[cId];
             if (container) {
               targetEntityId = container.entityIds.find((id) => {
@@ -243,10 +253,10 @@ export class RecipeRunner {
         const rawKey = step.target || step.ingredient;
         const ingredientId = this.resolveIngredientId(rawKey);
         const cookingMethod = step.method || 'cooked';
-        const containerId = step.containerId || 'pan';
+        const containerId = step.containerId || workstation.defaultContainerId || 'pan';
 
         if (ingredientId && ingredientId !== 'mixture') {
-          await this.ensureIngredientInWorkspace(ingredientId);
+          await this.ensureIngredientInWorkspace(ingredientId, containerId);
         }
 
         moveTortillaTo(containerId, this.mascotId);
@@ -257,8 +267,29 @@ export class RecipeRunner {
 
         if (container) {
           if (rawKey === 'mixture' || ingredientId === 'mixture') {
-            // Cook all ingredients in pan
-            container.entityIds.forEach((id) => {
+            // Transfer items from prep/cutting containers to cooking container if cooking container is empty
+            let currentContainerState = worldStore.getState().containers[containerId] || container;
+            if (currentContainerState.entityIds.length === 0) {
+              for (const prepCId of ['bowl', 'board']) {
+                const prepContainer = worldStore.getState().containers[prepCId];
+                if (prepContainer && prepContainer.entityIds.length > 0) {
+                  [...prepContainer.entityIds].forEach((id) => {
+                    worldStore.getState().dispatch({
+                      type: 'MOVE_ENTITY',
+                      payload: {
+                        entityId: id,
+                        targetContainerId: containerId,
+                      },
+                    });
+                  });
+                  break;
+                }
+              }
+            }
+
+            // Cook all ingredients in target cooking container
+            currentContainerState = worldStore.getState().containers[containerId] || container;
+            currentContainerState.entityIds.forEach((id) => {
               worldStore.getState().dispatch({
                 type: 'COOK_INGREDIENT',
                 payload: {
@@ -273,22 +304,25 @@ export class RecipeRunner {
               return e && getIngredientCatalogId(e) === ingredientId;
             });
 
-            // If ingredient is on board but target is pan, move it to pan
-            if (!targetEntityId && containerId === 'pan') {
-              const boardContainer = state.containers.board;
-              const boardEntityId = boardContainer?.entityIds.find((id) => {
-                const e = state.entities[id];
-                return e && getIngredientCatalogId(e) === ingredientId;
-              });
-              if (boardEntityId) {
-                worldStore.getState().dispatch({
-                  type: 'MOVE_ENTITY',
-                  payload: {
-                    entityId: boardEntityId,
-                    targetContainerId: 'pan',
-                  },
+            // If ingredient is on another container (e.g. board/bowl) but target is cooking container, transfer it
+            if (!targetEntityId) {
+              for (const sourceCId of ['board', 'bowl', 'sink']) {
+                const sourceContainer = state.containers[sourceCId];
+                const foundId = sourceContainer?.entityIds.find((id) => {
+                  const e = state.entities[id];
+                  return e && getIngredientCatalogId(e) === ingredientId;
                 });
-                targetEntityId = boardEntityId;
+                if (foundId) {
+                  worldStore.getState().dispatch({
+                    type: 'MOVE_ENTITY',
+                    payload: {
+                      entityId: foundId,
+                      targetContainerId: containerId,
+                    },
+                  });
+                  targetEntityId = foundId;
+                  break;
+                }
               }
             }
 
@@ -309,17 +343,18 @@ export class RecipeRunner {
 
       case 'mix':
       case 'beat': {
+        const targetContainerId = step.targetContainerId || workstation.defaultContainerId || 'bowl';
+
         if (step.inputs && step.inputs.length > 0) {
           for (const rawInput of step.inputs) {
             const ingredientId = this.resolveIngredientId(rawInput);
             if (ingredientId) {
-              await this.ensureIngredientInWorkspace(ingredientId);
+              await this.ensureIngredientInWorkspace(ingredientId, targetContainerId);
             }
           }
         }
 
-        const containerId = step.targetContainerId || this.defaultTargetId;
-        moveTortillaTo(containerId, this.mascotId);
+        moveTortillaTo(targetContainerId, this.mascotId);
         await this.wait();
         flipTortilla(this.mascotId);
         await this.wait();
@@ -327,23 +362,25 @@ export class RecipeRunner {
       }
 
       case 'serve': {
-        const targetContainerId = step.containerId || 'plate';
+        const targetContainerId = step.containerId || workstation.defaultContainerId || 'plate';
         moveTortillaTo(targetContainerId, this.mascotId);
         await this.wait();
 
-        // Move all items from pan to plate
+        // Move all cooked/prepared items from pan, bowl, or board to plate
         const state = worldStore.getState();
-        const pan = state.containers.pan;
-        if (pan && pan.entityIds.length > 0) {
-          [...pan.entityIds].forEach((entityId) => {
-            worldStore.getState().dispatch({
-              type: 'MOVE_ENTITY',
-              payload: {
-                entityId,
-                targetContainerId: targetContainerId,
-              },
+        for (const sourceCId of ['pan', 'bowl', 'board']) {
+          const container = state.containers[sourceCId];
+          if (container && container.entityIds.length > 0) {
+            [...container.entityIds].forEach((entityId) => {
+              worldStore.getState().dispatch({
+                type: 'MOVE_ENTITY',
+                payload: {
+                  entityId,
+                  targetContainerId: targetContainerId,
+                },
+              });
             });
-          });
+          }
         }
         await this.wait();
         break;
@@ -381,4 +418,3 @@ export class RecipeRunner {
     }
   }
 }
-
