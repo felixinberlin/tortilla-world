@@ -77,6 +77,49 @@ function entitiesIn(container: Container, entities: Record<string, Entity>): Ent
     .filter((entity): entity is Entity => Boolean(entity));
 }
 
+/**
+ * Normalizes an ingredient entity ID or ingredientId to a singular ingredient key for generic status formatting.
+ * Examples: 'potatoes' | 'potato' -> 'potatoe'
+ *           'onions' | 'onion' -> 'onion'
+ *           'carrots' | 'carrot' -> 'carrot'
+ */
+function getIngredientSingularKey(targetEntity: Entity): string {
+  const baseKey = (targetEntity.ingredientId || targetEntity.id.split('_')[0] || 'ingredient').toLowerCase();
+  if (baseKey.startsWith('potato')) return 'potatoe';
+  if (baseKey.startsWith('tomato')) return 'tomato';
+  if (baseKey.startsWith('onion')) return 'onion';
+  if (baseKey.startsWith('carrot')) return 'carrot';
+  if (baseKey.endsWith('es') && baseKey.length > 3) return baseKey.slice(0, -2);
+  if (baseKey.endsWith('s') && !['cheese', 'glass'].includes(baseKey) && baseKey.length > 2) return baseKey.slice(0, -1);
+  return baseKey;
+}
+
+/**
+ * Derives the generic status string for a prepared ingredient.
+ * Examples:
+ * - preparation 'peeled' -> 'peeled'
+ * - preparation 'sliced' for potato -> 'sliced-potatoe'
+ * - preparation 'diced' for onion -> 'diced-onion'
+ */
+function derivePreparationStatus(targetEntity: Entity, preparation: string): string {
+  const singularKey = getIngredientSingularKey(targetEntity);
+  return preparation === 'peeled' ? 'peeled' : `${preparation}-${singularKey}`;
+}
+
+/**
+ * Derives the generic status string for a cooked ingredient.
+ * Examples:
+ * - cooking 'fried' with prep 'sliced' for potato -> 'fried-sliced-potatoe'
+ */
+function deriveCookingStatus(targetEntity: Entity, cooking: string): string {
+  const singularKey = getIngredientSingularKey(targetEntity);
+  const prep = targetEntity.state?.preparation;
+  if (cooking === 'raw') {
+    return prep ? (prep === 'peeled' ? 'peeled' : `${prep}-${singularKey}`) : 'raw';
+  }
+  return `${cooking}-${prep ? prep + '-' : ''}${singularKey}`;
+}
+
 export const worldStore = createStore<WorldState>()(
   devtools(
     actionLog((set) => ({
@@ -270,15 +313,28 @@ export const worldStore = createStore<WorldState>()(
                 const targetEntity = state.entities[entityId];
                 if (!targetEntity) return state;
 
+                const singularKey = getIngredientSingularKey(targetEntity);
+                const status = derivePreparationStatus(targetEntity, preparation);
+
+                const baseKey = (targetEntity.ingredientId || targetEntity.id.split('_')[0] || 'ingredient').toLowerCase();
+                const catalogItem = catalogIngredients.find((i) => i.id === targetEntity.ingredientId || i.id === baseKey || i.id === singularKey);
+                const icon = catalogItem?.icon || (targetEntity.name.match(/^(\p{Emoji}|\p{Extended_Pictographic})/u)?.[0] ?? '');
+                const baseName = catalogItem?.name || targetEntity.name.replace(/^(\p{Emoji}|\p{Extended_Pictographic})\s*/u, '');
+
+                const capitalizedPrep = preparation.charAt(0).toUpperCase() + preparation.slice(1);
+                const updatedName = `${icon} ${capitalizedPrep} ${baseName}`.trim();
+
                 return {
                   ...state,
                   entities: {
                     ...state.entities,
                     [entityId]: {
                       ...targetEntity,
+                      name: updatedName,
                       state: {
                         ...targetEntity.state,
                         preparation,
+                        status,
                       },
                     },
                   },
@@ -297,6 +353,8 @@ export const worldStore = createStore<WorldState>()(
                 const targetEntity = state.entities[entityId];
                 if (!targetEntity) return state;
 
+                const status = deriveCookingStatus(targetEntity, cooking);
+
                 return {
                   ...state,
                   entities: {
@@ -306,6 +364,7 @@ export const worldStore = createStore<WorldState>()(
                       state: {
                         ...targetEntity.state,
                         cooking,
+                        status,
                       },
                     },
                   },

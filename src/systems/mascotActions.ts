@@ -11,7 +11,7 @@
 
 import { worldStore } from '../store/worldStore';
 import { recipes } from '../data/catalog/recipes';
-import { getIngredientCatalogId } from '../engine/containerRules';
+import { RecipeRunner } from './recipeRunner';
 
 /**
  * Triggers Tortilla flip animation and records action in store.
@@ -98,8 +98,6 @@ export async function runTortillaPotatoScript(
   // 6. Return home gracefully
   moveTortillaTo('', mascotId);
 }
-
-import { RecipeRunner } from './recipeRunner';
 
 /**
  * Commands Tortilla to follow a recipe by running its step-based state machine.

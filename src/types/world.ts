@@ -17,6 +17,7 @@ export type ContainerType = 'storage' | 'pan' | 'board' | 'plate' | 'trash';
 export interface IngredientState {
   preparation?: PreparationStyle;
   cooking?: CookingMethod;
+  status?: string;
   [key: string]: unknown;
 }
 
