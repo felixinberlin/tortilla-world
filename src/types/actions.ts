@@ -9,6 +9,7 @@
  */
 
 import type { EntityType } from './world';
+import type { PreparationStyle, CookingMethod } from './RecipeStep';
 
 export type WorldAction =
   | {
@@ -42,6 +43,20 @@ export type WorldAction =
       payload: {
         entityId: string;
         changes: Record<string, unknown>;
+      };
+    }
+  | {
+      type: 'PREPARE_INGREDIENT';
+      payload: {
+        entityId: string;
+        preparation: PreparationStyle;
+      };
+    }
+  | {
+      type: 'COOK_INGREDIENT';
+      payload: {
+        entityId: string;
+        cooking: CookingMethod;
       };
     }
   | {

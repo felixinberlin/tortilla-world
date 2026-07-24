@@ -1,5 +1,3 @@
-import type { RecipeIngredient } from '../../../types/RecipeIngredient'
-
 /**
  * FILE: concebolla.ts
  *
@@ -7,10 +5,12 @@ import type { RecipeIngredient } from '../../../types/RecipeIngredient'
  * Recipe definition for Tortilla con cebolla.
  *
  * RESPONSIBILITY:
- * - Defines the ingredients and quantities required for this recipe.
+ * - Defines the ingredients, quantities, and step-by-step actions required for this recipe.
  */
 
-export const concebollaRecipe = {
+import type { Recipe } from '../../../types/Recipe';
+
+export const concebollaRecipe: Recipe = {
   id: 'concebolla',
   name: 'Tortilla con Cebolla',
   ingredients: [
@@ -20,7 +20,16 @@ export const concebollaRecipe = {
     { id: 'concebolla-onion', ingredientId: 'onion', amount: 1, unit: 'pcs' },
     { id: 'concebolla-salt', ingredientId: 'salt', amount: 1, unit: 'tsp' },
     { id: 'concebolla-pepper', ingredientId: 'pepper', amount: 1, unit: 'pinch' },
-  ] satisfies RecipeIngredient[],
-}
+  ],
+  steps: [
+    { action: 'move', ingredient: 'potato', source: 'despensa', target: 'board' },
+    { action: 'move', ingredient: 'egg', source: 'despensa', target: 'board' },
+    { action: 'move', ingredient: 'oil', source: 'despensa', target: 'board' },
+    { action: 'move', ingredient: 'onion', source: 'despensa', target: 'board' },
+    { action: 'move', ingredient: 'salt', source: 'despensa', target: 'board' },
+    { action: 'move', ingredient: 'pepper', source: 'despensa', target: 'board' },
+    { action: 'celebrate' },
+  ],
+};
 
-export const recipe = concebollaRecipe
+export const recipe = concebollaRecipe;

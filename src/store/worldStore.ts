@@ -263,6 +263,60 @@ export const worldStore = createStore<WorldState>()(
             break;
           }
 
+          case 'PREPARE_INGREDIENT': {
+            const { entityId, preparation } = action.payload;
+            set(
+              (state: WorldState) => {
+                const targetEntity = state.entities[entityId];
+                if (!targetEntity) return state;
+
+                return {
+                  ...state,
+                  entities: {
+                    ...state.entities,
+                    [entityId]: {
+                      ...targetEntity,
+                      state: {
+                        ...targetEntity.state,
+                        preparation,
+                      },
+                    },
+                  },
+                };
+              },
+              false,
+              'PREPARE_INGREDIENT'
+            );
+            break;
+          }
+
+          case 'COOK_INGREDIENT': {
+            const { entityId, cooking } = action.payload;
+            set(
+              (state: WorldState) => {
+                const targetEntity = state.entities[entityId];
+                if (!targetEntity) return state;
+
+                return {
+                  ...state,
+                  entities: {
+                    ...state.entities,
+                    [entityId]: {
+                      ...targetEntity,
+                      state: {
+                        ...targetEntity.state,
+                        cooking,
+                      },
+                    },
+                  },
+                };
+              },
+              false,
+              'COOK_INGREDIENT'
+            );
+            break;
+          }
+
           case 'MASCOT_FLIP': {
             const mascotId = action.payload.mascotId || 'chef';
             set(

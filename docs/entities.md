@@ -437,20 +437,20 @@ Recipe
     Egg
 ```
 
-## Cooking states
+## Entity State (Preparation & Cooking)
 
-```
-Pan
-  owns
-    Raw Potato
+Entities store mutable properties inside their `state` field without changing entity identity:
+
+```ts
+{
+  id: "potato",
+  type: "ingredient",
+  name: "Potato",
+  state: {
+    preparation: "diced", // "whole" | "peeled" | "sliced" | "diced" | "minced"
+    cooking: "fried"     // "raw" | "fried" | "boiled" | "burned"
+  }
+}
 ```
 
-becomes:
-
-```
-Pan
-  owns
-    Fried Potato
-```
-
-without changing the fundamental entity/container model.
+Preparation and cooking actions mutate this state via `PREPARE_INGREDIENT` and `COOK_INGREDIENT` actions without recreating entities.

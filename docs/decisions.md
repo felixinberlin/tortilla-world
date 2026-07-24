@@ -456,9 +456,30 @@ Benefits:
 
 ---
 
-# Summary
+# Decision: Step-Based Recipe State Machine via RecipeRunner
 
-The core architecture decisions are:
+## Context
+
+Hardcoded recipe scripts (e.g. `runFollowRecipeScript`) directly encoded container move logic in code.
+As recipes expand to include cutting, peeling, beating eggs, mixing, frying, and animations, hardcoding each recipe script leads to duplication and tight coupling.
+
+---
+
+## Decision
+
+1. Recipes are declarative data structures containing a `steps: RecipeStep[]` array.
+2. A generic `RecipeRunner` system (`src/systems/recipeRunner.ts`) executes recipe step arrays sequentially by dispatching world and mascot actions.
+3. Ingredient identity is strictly preserved during state transformations (e.g. preparation: `whole` ➔ `diced`, cooking: `raw` ➔ `fried`). Entity state is updated via `PREPARE_INGREDIENT` or `COOK_INGREDIENT` without creating or destroying entities.
+
+---
+
+## Consequences
+
+Benefits:
+
+* Adding new recipes requires adding data definitions only, with zero imperative logic code.
+* `RecipeRunner` handles generic kitchen actions (`move`, `grab`, `drop`, `cut`, `cook`, `mix`, `wait`, `flip`, `speak`, `celebrate`) and can easily be extended with new action handlers.
+* World state remains predictable and fully loggable in the Action Log and Redux DevTools.
 
 1. The world contains entities.
 2. Containers own entities.

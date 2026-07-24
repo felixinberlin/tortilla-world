@@ -9,16 +9,23 @@
  */
 
 import type { WorldAction } from './actions';
+import type { PreparationStyle, CookingMethod } from './RecipeStep';
 
 export type EntityType = 'ingredient' | 'tool' | 'mascot';
 export type ContainerType = 'storage' | 'pan' | 'board' | 'plate' | 'trash';
+
+export interface IngredientState {
+  preparation?: PreparationStyle;
+  cooking?: CookingMethod;
+  [key: string]: unknown;
+}
 
 export interface Entity {
   id: string;
   name: string;
   type: EntityType;
   ingredientId?: string;
-  state?: Record<string, unknown>;
+  state?: IngredientState;
 }
 
 export interface ContainerRules {

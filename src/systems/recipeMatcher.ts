@@ -9,6 +9,7 @@
  * - Identifies matched and missing ingredient IDs.
  */
 
+import { getRecipeIngredientsArray } from '../types/Recipe'
 import type { Recipe } from '../types/Recipe'
 import type { Entity } from '../types/world'
 import { getIngredientCatalogId } from '../engine/containerRules'
@@ -37,6 +38,8 @@ export function countMatchingIngredients(
     }
   }
 
+  const recipeIngredients = getRecipeIngredientsArray(recipe)
+
   const workspaceIngredientIds = new Set(
     entities
       .filter((e) => e && e.type === 'ingredient')
@@ -46,7 +49,7 @@ export function countMatchingIngredients(
   const matchingIngredientIds: string[] = []
   const missingIngredientIds: string[] = []
 
-  for (const req of recipe.ingredients) {
+  for (const req of recipeIngredients) {
     if (workspaceIngredientIds.has(req.ingredientId)) {
       matchingIngredientIds.push(req.ingredientId)
     } else {
@@ -56,7 +59,7 @@ export function countMatchingIngredients(
 
   return {
     matchingCount: matchingIngredientIds.length,
-    totalCount: recipe.ingredients.length,
+    totalCount: recipeIngredients.length,
     matchingIngredientIds,
     missingIngredientIds,
   }

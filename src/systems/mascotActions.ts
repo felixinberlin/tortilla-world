@@ -99,9 +99,10 @@ export async function runTortillaPotatoScript(
   moveTortillaTo('', mascotId);
 }
 
+import { RecipeRunner } from './recipeRunner';
+
 /**
- * Commands Tortilla to follow a recipe by bringing all required ingredients
- * from the catalog/pantry (despensa) to the workspace table (board) one by one.
+ * Commands Tortilla to follow a recipe by running its step-based state machine.
  */
 export async function runFollowRecipeScript(
   recipeId: string,
@@ -109,47 +110,14 @@ export async function runFollowRecipeScript(
   targetContainerId: string = 'board',
   delayMs: number = 600
 ): Promise<void> {
-  const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
   const activeRecipe = recipes.find((r) => r.id === recipeId);
   if (!activeRecipe) return;
 
-  for (const item of activeRecipe.ingredients) {
-    const ingredientId = item.ingredientId;
+  const runner = new RecipeRunner({
+    mascotId,
+    defaultTargetId: targetContainerId,
+    delayMs,
+  });
 
-    // Check if table already contains this ingredient
-    const state = worldStore.getState();
-    const targetContainer = state.containers[targetContainerId];
-    if (targetContainer) {
-      const currentEntities = targetContainer.entityIds
-        .map((id) => state.entities[id])
-        .filter(Boolean);
-      const alreadyPresent = currentEntities.some(
-        (e) => e.type === 'ingredient' && getIngredientCatalogId(e) === ingredientId
-      );
-      if (alreadyPresent) {
-        continue; // Skip if already present on table
-      }
-    }
-
-    // 1. Look at despensa
-    moveTortillaTo('despensa', mascotId);
-    await wait(delayMs);
-
-    // 2. Grab ingredient from despensa
-    grabIngredient(ingredientId, 'despensa', mascotId);
-    await wait(delayMs);
-
-    // 3. Move focus to table (board)
-    moveTortillaTo(targetContainerId, mascotId);
-    await wait(delayMs);
-
-    // 4. Drop ingredient into table (board)
-    dropIngredient(targetContainerId, undefined, mascotId);
-    await wait(delayMs);
-  }
-
-  // Final celebration flip and return home
-  flipTortilla(mascotId);
-  await wait(900);
-  moveTortillaTo('', mascotId);
+  await runner.runRecipe(activeRecipe);
 }

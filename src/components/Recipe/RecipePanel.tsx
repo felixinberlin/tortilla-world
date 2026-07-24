@@ -18,6 +18,7 @@ import { RecipeIngredientList } from '../Ingredients/RecipeIngredientList';
 import { worldStore } from '../../store/worldStore';
 import { countMatchingIngredients } from '../../systems/recipeMatcher';
 import { runFollowRecipeScript } from '../../systems/mascotActions';
+import { getRecipeIngredientsArray } from '../../types/Recipe';
 import './RecipePanel.css';
 
 export function RecipePanel() {
@@ -99,7 +100,7 @@ export function RecipePanel() {
       {isExpanded && (
         <div className="recipe-content compact">
           <RecipeIngredientList
-            ingredients={activeRecipe.ingredients}
+            ingredients={getRecipeIngredientsArray(activeRecipe)}
             ingredientCatalog={ingredientCatalog}
           />
         </div>

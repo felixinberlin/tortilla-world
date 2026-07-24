@@ -12,6 +12,7 @@ describe('countMatchingIngredients', () => {
       { id: 'req-2', ingredientId: 'egg', amount: 4, unit: 'pcs' },
       { id: 'req-3', ingredientId: 'onion', amount: 1, unit: 'pcs' },
     ],
+    steps: [],
   }
 
   it('returns zeros when recipe is undefined', () => {

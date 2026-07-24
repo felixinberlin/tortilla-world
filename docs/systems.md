@@ -703,8 +703,9 @@ Controls:
 
 ---
 
-## Mascot System
+## Mascot System & Recipe System
 
+### Mascot System
 Controls:
 
 * `MASCOT_FLIP`: Flips Tortilla mascot in place.
@@ -712,9 +713,20 @@ Controls:
 * `MASCOT_GRAB`: Commands Tortilla to grab ingredient entity from a container.
 * `MASCOT_DROP`: Commands Tortilla to drop held ingredient into target container obeying rules.
 
-Dispatch helpers and automated action sequences (e.g. `runTortillaPotatoScript`) are located in `src/systems/mascotActions.ts` for AI agent, console, or UI integration.
+Dispatch helpers and automated action sequences (e.g. `runFollowRecipeScript`) are located in `src/systems/mascotActions.ts` for AI agent, console, or UI integration.
 
 React components (`Mascot.tsx`) translate pure target container state into physical Framer Motion spring translations across the DOM viewport without touching store logic.
+
+---
+
+### Recipe System & RecipeRunner
+
+The Recipe System executes declarative, step-based recipe state machines via `RecipeRunner` (`src/systems/recipeRunner.ts`).
+
+#### Architecture:
+* **Declarative Data**: Recipes (`RecipeStep[]`) define *what* needs to happen (e.g. `move`, `grab`, `drop`, `cut`, `cook`, `mix`, `wait`, `flip`, `speak`, `celebrate`) rather than hardcoding executable scripts.
+* **Generic Execution**: `RecipeRunner` iterates over recipe steps and dispatches appropriate world/mascot actions.
+* **Entity Identity Preservation**: Ingredient state mutations (such as preparation: `whole` ➔ `diced` or cooking: `raw` ➔ `fried`) modify the target entity's `state` via `PREPARE_INGREDIENT` or `COOK_INGREDIENT` without creating or destroying entities.
 
 ---
 
