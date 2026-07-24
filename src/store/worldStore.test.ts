@@ -228,4 +228,52 @@ describe('worldStore container rule enforcement', () => {
     // Pan should still only have 1 potato because duplicate ingredient is blocked
     expect(state.containers.pan.entityIds).toEqual(['potato']);
   });
+
+  it('updates ingredient status to peeled when preparation is peeled', () => {
+    worldStore.setState({
+      entities: {
+        potato: { id: 'potato', ingredientId: 'potato', name: '🥔 Potatoes', type: 'ingredient' },
+      },
+      containers: {
+        board: { id: 'board', name: 'Board', type: 'board', entityIds: ['potato'] },
+      },
+    });
+
+    worldStore.getState().dispatch({
+      type: 'PREPARE_INGREDIENT',
+      payload: { entityId: 'potato', preparation: 'peeled' },
+    });
+
+    const state = worldStore.getState();
+    const entity = state.entities.potato;
+    expect(entity.state?.preparation).toBe('peeled');
+    expect(entity.state?.status).toBe('peeled');
+    expect(entity.name).toBe('🥔 Peeled Potatoes');
+  });
+
+  it('updates ingredient status to sliced-potatoe and diced-potatoe generically', () => {
+    worldStore.setState({
+      entities: {
+        potato: { id: 'potato', ingredientId: 'potato', name: '🥔 Potatoes', type: 'ingredient' },
+        onion: { id: 'onion', ingredientId: 'onion', name: '🧅 Onion', type: 'ingredient' },
+      },
+      containers: {
+        board: { id: 'board', name: 'Board', type: 'board', entityIds: ['potato', 'onion'] },
+      },
+    });
+
+    worldStore.getState().dispatch({
+      type: 'PREPARE_INGREDIENT',
+      payload: { entityId: 'potato', preparation: 'sliced' },
+    });
+
+    worldStore.getState().dispatch({
+      type: 'PREPARE_INGREDIENT',
+      payload: { entityId: 'onion', preparation: 'diced' },
+    });
+
+    const state = worldStore.getState();
+    expect(state.entities.potato.state?.status).toBe('sliced-potatoe');
+    expect(state.entities.onion.state?.status).toBe('diced-onion');
+  });
 });

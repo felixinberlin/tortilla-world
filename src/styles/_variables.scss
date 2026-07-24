@@ -1,0 +1,108 @@
+/**
+ * FILE: src/styles/_variables.scss
+ *
+ * PURPOSE:
+ * Design system tokens and color variables for Tortilla World simulation app.
+ */
+
+// === PRIMARY PALETTE ===
+// Warm tortilla yellow: main brand color (cooked egg & golden potato)
+$tortilla-yellow: #e8a838;
+$tortilla-yellow-hover: #d99729;
+$tortilla-yellow-light: #fef7e8;
+$tortilla-yellow-border: #f1c875;
+
+// Olive green: secondary actions & natural Mediterranean elements
+$olive-green: #5b8a46;
+$olive-green-hover: #4b7339;
+$olive-green-light: #f1f7ef;
+$olive-green-border: #a4c795;
+
+// Terracotta orange/red: highlights, alerts & active kitchen states (Spanish clay cookware)
+$terracotta: #c85a32;
+$terracotta-hover: #b34b25;
+$terracotta-light: #fdf2ee;
+$terracotta-border: #e8a58e;
+
+// Warm cream/beige: background surfaces (flour, whitewashed walls, paper)
+$warm-cream: #fbf6ee;
+$warm-beige: #f5ebd0;
+$warm-surface: #faf3e8;
+$warm-border: #e6d7c3;
+
+// Dark brown/wood: text, headers & grounding structural elements
+$dark-brown: #2c1a14;
+$wood-medium: #6b4226;
+$wood-muted: #8c6b4a;
+$wood-light: #f1e4d1;
+
+// === KITCHEN AREA WORKSTATION COLOR SYSTEM ===
+// Pantry / Ingredient Storage
+$pantry-bg: #f5ebdc;
+$pantry-border: #e2d2bd;
+$pantry-accent: #8c6b4a;
+
+// Washing Area (Sink) - Water & cleanliness with natural tones
+$washing-bg: #ebf5f8;
+$washing-border: #c5e2eb;
+$washing-accent: #2b7890;
+$washing-text: #1d5466;
+
+// Cutting Area (Board) - Warm wood & neutral preparation space
+$cutting-bg: #f8f1e5;
+$cutting-border: #e7d7c1;
+$cutting-accent: #8b5a2b;
+$cutting-text: #4e3217;
+
+// Mixing / Preparation Area (Bowl) - Cream/yellow transformation & creativity
+$mixing-bg: #fff8eb;
+$mixing-border: #f5e2b8;
+$mixing-accent: #d49b2a;
+$mixing-text: #6e4e0c;
+
+// Cooking Area (Pan) - Orange/red heat, fire & activity
+$cooking-bg: #fdf2ee;
+$cooking-border: #f5cbbf;
+$cooking-accent: #c85a32;
+$cooking-text: #732a10;
+
+// Serving Area (Plate) - Green/terracotta final presentation stage
+$serving-bg: #f3f8f2;
+$serving-border: #cde0c8;
+$serving-accent: #5b8a46;
+$serving-text: #2d4c20;
+
+// === INGREDIENT STATE PALETTE ===
+// Raw: natural, muted earthy colors
+$state-raw-bg: #faf6f0;
+$state-raw-border: #d8ccc0;
+$state-raw-text: #6e5f53;
+
+// Prepared: brighter, clean preparation teal/emerald
+$state-prep-bg: #ebf7f5;
+$state-prep-border: #a8e0d6;
+$state-prep-text: #206157;
+
+// Cooking: warmer orange/red active heat
+$state-cook-bg: #fff2ee;
+$state-cook-border: #f8beb0;
+$state-cook-text: #a83a14;
+
+// Finished Food: golden, satisfying cooked food yellow/gold
+$state-finished-bg: #fff8e7;
+$state-finished-border: #e8c872;
+$state-finished-text: #8c5a0d;
+
+// === SHADOWS & ELEVATIONS ===
+$shadow-ceramic: 0 4px 14px rgba(44, 26, 20, 0.07);
+$shadow-ceramic-hover: 0 8px 22px rgba(44, 26, 20, 0.12);
+$shadow-floating: 0 12px 28px rgba(44, 26, 20, 0.18);
+
+// === TYPOGRAPHY & RADII ===
+$font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+$font-mono: ui-monospace, SFMono-Regular, Consolas, monospace;
+
+$radius-sm: 8px;
+$radius-md: 12px;
+$radius-lg: 16px;
+$radius-xl: 24px;

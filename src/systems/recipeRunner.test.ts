@@ -8,7 +8,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { worldStore } from '../store/worldStore';
 import { RecipeRunner } from './recipeRunner';
-import { concebollaRecipe, sincebollaRecipe } from '../data/catalog/recipes';
+import { concebollaRecipe, clasicaRecipe } from '../data/catalog/recipes';
 import type { Recipe } from '../types/Recipe';
 import { clearActionLog, getActionLog } from '../store/middleware/actionLog';
 
@@ -149,9 +149,9 @@ describe('RecipeRunner System', () => {
     expect(state.entities.chef.state?.gazingAt).toBe('');
   });
 
-  it('executes sincebollaRecipe dictionary steps and state transformations', async () => {
+  it('executes clasicaRecipe dictionary steps and state transformations', async () => {
     const runner = new RecipeRunner({ mascotId: 'chef', delayMs: 5 });
-    await runner.runRecipe(sincebollaRecipe);
+    await runner.runRecipe(clasicaRecipe);
 
     const state = worldStore.getState();
     const plateEntities = state.containers.plate.entityIds.map((id) => state.entities[id]);

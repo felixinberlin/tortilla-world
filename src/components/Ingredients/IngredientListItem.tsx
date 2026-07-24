@@ -15,9 +15,10 @@ import type { Entity } from '../../types/world';
 
 interface IngredientListItemProps {
   entity: Entity;
+  containerId?: string;
 }
 
-export const IngredientListItem: React.FC<IngredientListItemProps> = ({ entity }) => {
+export const IngredientListItem: React.FC<IngredientListItemProps> = ({ entity, containerId }) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: entity.id,
   });
@@ -33,6 +34,26 @@ export const IngredientListItem: React.FC<IngredientListItemProps> = ({ entity }
         cursor: 'grab',
       };
 
+  // Determine ingredient state badge (Raw, Prepared, Cooking, Finished)
+  const renderStateBadge = () => {
+    if (entity.type !== 'ingredient') return null;
+
+    const prep = entity.state?.preparation as string | undefined;
+    const cooking = entity.state?.cooking as string | undefined;
+    const status = entity.state?.status as string | undefined;
+
+    if (containerId === 'plate' || status?.includes('cooked') || status?.includes('fried') || status?.includes('tortilla')) {
+      return <span className="ingredient-state-badge state-finished">Finished ✨</span>;
+    }
+    if (cooking && cooking !== 'raw') {
+      return <span className="ingredient-state-badge state-cooking">Cooking 🔥</span>;
+    }
+    if (prep) {
+      return <span className="ingredient-state-badge state-prepared">Prepared 🔪</span>;
+    }
+    return <span className="ingredient-state-badge state-raw">Raw 🌾</span>;
+  };
+
   return (
     <div
       ref={setNodeRef}
@@ -42,6 +63,7 @@ export const IngredientListItem: React.FC<IngredientListItemProps> = ({ entity }
       className={`ingredient-list-item ${isDragging ? 'dragging' : ''}`}
     >
       <span className="ingredient-name">{entity.name}</span>
+      {renderStateBadge()}
     </div>
   );
 };

@@ -32,16 +32,31 @@ export function IngredientList({ container }: IngredientListProps) {
     .map((id: string) => entities[id])
     .filter((e: Entity | undefined): e is Entity => Boolean(e));
 
+  const getWorkstationBadge = (id: string) => {
+    switch (id) {
+      case 'sink': return 'Washing Area 💧';
+      case 'board': return 'Cutting Workspace 🔪';
+      case 'bowl': return 'Preparation 🥣';
+      case 'pan': return 'Cooking Heat 🍳';
+      case 'plate': return 'Serving Stage 🍽️';
+      case 'despensa': return 'Pantry 🧺';
+      default: return 'Workstation 🍳';
+    }
+  };
+
   return (
     <div 
       ref={setNodeRef} 
       data-container-id={container.id}
-      className={`ingredient-list ${isOver ? 'drag-over' : ''}`}
+      className={`ingredient-list workstation-${container.id} ${isOver ? 'drag-over' : ''}`}
     >
-      <h3>{container.name}</h3>
+      <div className="workstation-header">
+        <h3>{container.name}</h3>
+        <span className="workstation-type-badge">{getWorkstationBadge(container.id)}</span>
+      </div>
       <div className="items-container">
         {containerEntities.map((entity: Entity) => (
-          <IngredientListItem key={entity.id} entity={entity} />
+          <IngredientListItem key={entity.id} entity={entity} containerId={container.id} />
         ))}
         {containerEntities.length === 0 && (
           <span className="empty-hint">Drop ingredients here</span>

@@ -1,0 +1,89 @@
+/**
+ * FILE: src/styles/_mixins.scss
+ *
+ * PURPOSE:
+ * Reusable SCSS mixins for ceramic cards, workstation panels, and interactive elements.
+ */
+
+@import './variables';
+
+// Cozy ceramic card container mixin
+@mixin ceramic-card($bg-color: $warm-surface, $border-color: $warm-border) {
+  background: $bg-color;
+  border: 1px solid $border-color;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-ceramic;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+// Workstation panel header styling
+@mixin workstation-header($accent-color, $text-color: $dark-brown) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  border-bottom: 2px dashed mix($accent-color, white, 35%);
+  margin-bottom: 12px;
+
+  h3 {
+    color: $text-color;
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .workstation-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: $radius-sm;
+    background: mix($accent-color, white, 18%);
+    color: $accent-color;
+    border: 1px solid mix($accent-color, white, 40%);
+  }
+}
+
+// Interactive wooden/playful button mixin
+@mixin playful-button($bg: $tortilla-yellow, $text: #ffffff) {
+  background: $bg;
+  color: $text;
+  border: none;
+  border-radius: $radius-sm;
+  padding: 8px 14px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(44, 26, 20, 0.12);
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(44, 26, 20, 0.18);
+    filter: brightness(1.04);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 1px 3px rgba(44, 26, 20, 0.15);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+}
+
+// Flex center helper
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

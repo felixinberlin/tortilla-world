@@ -11,7 +11,7 @@
 
 import type { Ingredient } from '../../types/Ingredient'
 import type { RecipeIngredient } from '../../types/RecipeIngredient'
-import './Ingredients.css'
+import './Ingredients.scss'
 import { RecipeIngredientItem } from './RecipeIngredientItem'
 
 interface RecipeIngredientListProps {

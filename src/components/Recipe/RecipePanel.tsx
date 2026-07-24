@@ -19,7 +19,7 @@ import { worldStore } from '../../store/worldStore';
 import { countMatchingIngredients } from '../../systems/recipeMatcher';
 import { runFollowRecipeScript } from '../../systems/mascotActions';
 import { getRecipeIngredientsArray } from '../../types/Recipe';
-import './RecipePanel.css';
+import './RecipePanel.scss';
 
 export function RecipePanel() {
   const [selectedRecipeId, setSelectedRecipeId] = useState<string>(recipes[0]?.id || 'concebolla');

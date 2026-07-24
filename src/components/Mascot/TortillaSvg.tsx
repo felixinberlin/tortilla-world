@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
 import type { GazePoint } from "../../systems/gaze";
 import type { MascotState } from "../../systems/mascot";
-import "./TortillaSvg.css";
+import "./TortillaSvg.scss";
 
 export interface Potato {
   x: number;

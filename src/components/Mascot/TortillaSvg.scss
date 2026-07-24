@@ -1,23 +1,25 @@
 /**
- * FILE: TortillaSvg.css
+ * FILE: src/components/Mascot/TortillaSvg.scss
  *
  * PURPOSE:
- * Styles and animations for TortillaSvg mascot.
+ * Styles and animations for TortillaSvg mascot using SCSS variables and mixins.
  */
+
+@import '../../styles/variables';
+@import '../../styles/mixins';
 
 /* === Root SVG Styles & State Animations === */
 .tortilla-svg {
   transform-origin: center;
-  /* Ensures the 60px toss doesn't get clipped by the SVG boundary */
-  overflow: visible; 
-}
+  overflow: visible;
 
-.tortilla-svg.is-idle {
-  animation: tortillaIdle 2.5s infinite ease-in-out;
-}
+  &.is-idle {
+    animation: tortillaIdle 2.5s infinite ease-in-out;
+  }
 
-.tortilla-svg.is-flipping {
-  animation: tortillaFlip 0.8s ease-in-out forwards;
+  &.is-flipping {
+    animation: tortillaFlip 0.8s ease-in-out forwards;
+  }
 }
 
 @keyframes tortillaIdle {
@@ -42,6 +44,11 @@
 }
 
 /* === Physical Movement & Wrapper Animations === */
+.mascot-card {
+  @include ceramic-card($warm-surface, $warm-border);
+  padding: 12px 16px;
+}
+
 .mascot-wrapper {
   position: absolute;
   top: 0;
@@ -50,15 +57,15 @@
   transition: transform 0.65s cubic-bezier(0.34, 1.25, 0.64, 1), filter 0.3s ease;
   will-change: transform, filter;
   z-index: 1;
-}
 
-.mascot-wrapper.is-floating {
-  z-index: 1000;
-  filter: drop-shadow(0 14px 22px rgba(0, 0, 0, 0.28));
-}
+  &.is-floating {
+    z-index: 1000;
+    filter: drop-shadow(0 14px 22px rgba(44, 26, 20, 0.25));
+  }
 
-.mascot-wrapper.is-holding {
-  animation: mascotGrabPulse 0.4s ease-in-out;
+  &.is-holding {
+    animation: mascotGrabPulse 0.4s ease-in-out;
+  }
 }
 
 @keyframes mascotGrabPulse {
@@ -73,16 +80,16 @@
   bottom: -8px;
   right: -12px;
   background: #ffffff;
-  border: 2px solid #e8b84a;
+  border: 2px solid $tortilla-yellow;
   border-radius: 20px;
   padding: 3px 8px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 4px 14px rgba(44, 26, 20, 0.18);
   display: flex;
   align-items: center;
   gap: 4px;
   font-size: 12px;
   font-weight: bold;
-  color: #4a2e00;
+  color: $dark-brown;
   white-space: nowrap;
   pointer-events: none;
   z-index: 1001;
