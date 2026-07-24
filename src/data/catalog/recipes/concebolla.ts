@@ -28,6 +28,39 @@ export const concebollaRecipe: Recipe = {
     { action: 'move', ingredient: 'onion', source: 'despensa', target: 'board' },
     { action: 'move', ingredient: 'salt', source: 'despensa', target: 'board' },
     { action: 'move', ingredient: 'pepper', source: 'despensa', target: 'board' },
+
+    { action: 'peel', ingredient: 'potato' },
+    { action: 'wash', ingredient: 'potato' },
+    { action: 'cut', ingredient: 'potato', preparation: 'sliced' },
+    { action: 'peel', ingredient: 'onion' },
+    { action: 'wash', ingredient: 'onion' },
+    { action: 'cut', ingredient: 'onion', preparation: 'diced' },
+
+    { action: 'cook', ingredient: 'potato' },
+    { action: 'cook', ingredient: 'onion' },
+
+    { action: 'mix', ingredients: ['egg', 'salt', 'pepper'] },
+    { action: 'combine', ingredients: ['potato', 'onion', 'egg'] },
+
+    { action: 'cook', containerId: 'pan' },
+
+    {
+      action: 'instruction',
+      text: 'Con una espátula blanda, asegúrate de que la tortilla no se pega a la sartén.',
+    },
+
+    {
+      action: 'flip',
+      instruction: 'Dale la vuelta a la tortilla.',
+    },
+
+    {
+      action: 'cook',
+      duration: 5,
+      unit: 'min',
+      instruction: 'Deja cocinar por otros 5 min.',
+    },
+
     { action: 'celebrate' },
   ],
 };

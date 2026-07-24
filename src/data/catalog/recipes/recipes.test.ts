@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { recipes, concebollaRecipe, sincebollaRecipe } from './index';
+import { recipes, concebollaRecipe, clasicaRecipe } from './index';
 import { ingredients as ingredientCatalog } from '../ingredients';
-import type { RecipeList } from '../../../types/RecipeList';
+import type { RecipeList } from '../../../types/Recipe';
 import { getRecipeIngredientsArray } from '../../../types/Recipe';
 
 describe('Recipe Catalog', () => {
@@ -11,10 +11,10 @@ describe('Recipe Catalog', () => {
     expect(list.length).toBeGreaterThanOrEqual(2);
   });
 
-  it('contains concebolla and sincebolla recipes', () => {
+  it('contains concebolla and clasica recipes', () => {
     const ids = recipes.map((r) => r.id);
     expect(ids).toContain('concebolla');
-    expect(ids).toContain('sincebolla');
+    expect(ids).toContain('clasica');
   });
 
   it('validates that every recipe has required properties', () => {
@@ -42,11 +42,11 @@ describe('Recipe Catalog', () => {
     });
   });
 
-  it('distinguishes concebolla (with onion) and sincebolla (without onion)', () => {
+  it('distinguishes concebolla (with onion) and clasica (without onion)', () => {
     const concebollaOnion = getRecipeIngredientsArray(concebollaRecipe).find((i) => i.ingredientId === 'onion');
-    const sincebollaOnion = getRecipeIngredientsArray(sincebollaRecipe).find((i) => i.ingredientId === 'onion');
+    const clasicaOnion = getRecipeIngredientsArray(clasicaRecipe).find((i) => i.ingredientId === 'onion');
 
     expect(concebollaOnion).toBeDefined();
-    expect(sincebollaOnion).toBeUndefined();
+    expect(clasicaOnion).toBeUndefined();
   });
 });

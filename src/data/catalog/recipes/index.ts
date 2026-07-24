@@ -12,8 +12,8 @@
 
 import type { RecipeList } from '../../../types/Recipe'
 
-import { concebollaRecipe } from './concebolla'
-import { sincebollaRecipe } from './sincebolla'
+import { concebollaRecipe } from './concebolla';
+import { clasicaRecipe } from './clasica';
 
 /**
  * Master recipe catalog.
@@ -22,8 +22,10 @@ import { sincebollaRecipe } from './sincebolla'
  */
 export const recipes: RecipeList = [
   concebollaRecipe,
-  sincebollaRecipe,
-]
+  clasicaRecipe,
+];
+
+export const sincebollaRecipe = clasicaRecipe;
 
 /**
  * Individual recipe exports.
@@ -36,5 +38,5 @@ export const recipes: RecipeList = [
  */
 export {
   concebollaRecipe,
-  sincebollaRecipe,
-}
+  clasicaRecipe,
+};

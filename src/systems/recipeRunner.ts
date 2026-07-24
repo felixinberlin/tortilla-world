@@ -56,6 +56,12 @@ export class RecipeRunner {
       if (dict[targetOrKey]) {
         return dict[targetOrKey].ingredientId;
       }
+      const match = Object.values(dict).find(
+        (item) => item.ingredientId === targetOrKey
+      );
+      if (match) {
+        return match.ingredientId;
+      }
     }
     return targetOrKey;
   }
@@ -201,10 +207,15 @@ export class RecipeRunner {
       }
 
       case 'cut':
-      case 'prepare': {
+      case 'prepare':
+      case 'peel':
+      case 'wash': {
         const rawKey = step.target || step.ingredient;
         const ingredientId = this.resolveIngredientId(rawKey);
-        const prepStyle = step.preparation || step.style || 'prepared';
+        const prepStyle =
+          (step as any).preparation ||
+          (step as any).style ||
+          (step.action === 'peel' ? 'peeled' : step.action === 'wash' ? 'washed' : 'prepared');
         const targetContainerId = step.containerId || workstation.defaultContainerId || this.defaultTargetId;
 
         if (ingredientId && ingredientId !== 'mixture') {
@@ -255,6 +266,16 @@ export class RecipeRunner {
         const cookingMethod = step.method || 'cooked';
         const containerId = step.containerId || workstation.defaultContainerId || 'pan';
 
+        if (step.instruction) {
+          worldStore.getState().dispatch({
+            type: 'UPDATE_ENTITY_STATE',
+            payload: {
+              entityId: step.mascotId || this.mascotId,
+              changes: { speechMessage: step.instruction },
+            },
+          });
+        }
+
         if (ingredientId && ingredientId !== 'mixture') {
           await this.ensureIngredientInWorkspace(ingredientId, containerId);
         }
@@ -267,28 +288,24 @@ export class RecipeRunner {
 
         if (container) {
           if (rawKey === 'mixture' || ingredientId === 'mixture') {
-            // Transfer items from prep/cutting containers to cooking container if cooking container is empty
-            let currentContainerState = worldStore.getState().containers[containerId] || container;
-            if (currentContainerState.entityIds.length === 0) {
-              for (const prepCId of ['bowl', 'board']) {
-                const prepContainer = worldStore.getState().containers[prepCId];
-                if (prepContainer && prepContainer.entityIds.length > 0) {
-                  [...prepContainer.entityIds].forEach((id) => {
-                    worldStore.getState().dispatch({
-                      type: 'MOVE_ENTITY',
-                      payload: {
-                        entityId: id,
-                        targetContainerId: containerId,
-                      },
-                    });
+            // Transfer items from prep/cutting containers to cooking container
+            for (const prepCId of ['bowl', 'board']) {
+              const prepContainer = worldStore.getState().containers[prepCId];
+              if (prepContainer && prepContainer.entityIds.length > 0) {
+                [...prepContainer.entityIds].forEach((id) => {
+                  worldStore.getState().dispatch({
+                    type: 'MOVE_ENTITY',
+                    payload: {
+                      entityId: id,
+                      targetContainerId: containerId,
+                    },
                   });
-                  break;
-                }
+                });
               }
             }
 
             // Cook all ingredients in target cooking container
-            currentContainerState = worldStore.getState().containers[containerId] || container;
+            const currentContainerState = worldStore.getState().containers[containerId] || container;
             currentContainerState.entityIds.forEach((id) => {
               worldStore.getState().dispatch({
                 type: 'COOK_INGREDIENT',
@@ -342,14 +359,40 @@ export class RecipeRunner {
       }
 
       case 'mix':
-      case 'beat': {
+      case 'beat':
+      case 'combine': {
         const targetContainerId = step.targetContainerId || workstation.defaultContainerId || 'bowl';
+        const inputs = step.inputs || (step as any).ingredients || [];
 
-        if (step.inputs && step.inputs.length > 0) {
-          for (const rawInput of step.inputs) {
-            const ingredientId = this.resolveIngredientId(rawInput);
+        if (inputs && inputs.length > 0) {
+          for (const rawInput of inputs) {
+            const ingredientId = this.resolveIngredientId(rawInput) || rawInput;
             if (ingredientId) {
               await this.ensureIngredientInWorkspace(ingredientId, targetContainerId);
+
+              // Move entity to target container (e.g. bowl) if it's currently on board/pan
+              const state = worldStore.getState();
+              const entityIdInWorld = Object.values(state.containers)
+                .flatMap((c) => c.entityIds)
+                .find((id) => {
+                  const e = state.entities[id];
+                  return e && getIngredientCatalogId(e) === ingredientId;
+                });
+
+              if (entityIdInWorld) {
+                const sourceContainer = Object.values(state.containers).find((c) =>
+                  c.entityIds.includes(entityIdInWorld)
+                );
+                if (sourceContainer && sourceContainer.id !== targetContainerId) {
+                  worldStore.getState().dispatch({
+                    type: 'MOVE_ENTITY',
+                    payload: {
+                      entityId: entityIdInWorld,
+                      targetContainerId,
+                    },
+                  });
+                }
+              }
             }
           }
         }
@@ -391,8 +434,55 @@ export class RecipeRunner {
         break;
       }
 
+      case 'instruction': {
+        const text = step.text || (step as any).instruction;
+        if (text) {
+          worldStore.getState().dispatch({
+            type: 'UPDATE_ENTITY_STATE',
+            payload: {
+              entityId: step.mascotId || this.mascotId,
+              changes: { speechMessage: text },
+            },
+          });
+        }
+        await this.wait();
+        break;
+      }
+
       case 'flip': {
+        const targetContainer = step.target === 'mixture' ? 'pan' : step.target || 'pan';
+        const instructionText = step.instruction || (step as any).text;
+
+        if (instructionText) {
+          worldStore.getState().dispatch({
+            type: 'UPDATE_ENTITY_STATE',
+            payload: {
+              entityId: step.mascotId || this.mascotId,
+              changes: { speechMessage: instructionText },
+            },
+          });
+        }
+
+        moveTortillaTo(targetContainer, this.mascotId);
+        await this.wait();
+
         flipTortilla(step.mascotId || this.mascotId);
+
+        // Update entities in target cooking container state to flipped
+        const state = worldStore.getState();
+        const panContainer = state.containers[targetContainer];
+        if (panContainer) {
+          panContainer.entityIds.forEach((entityId) => {
+            worldStore.getState().dispatch({
+              type: 'UPDATE_ENTITY_STATE',
+              payload: {
+                entityId,
+                changes: { isFlipped: true, status: 'flipped-tortilla' },
+              },
+            });
+          });
+        }
+
         await this.wait();
         break;
       }

@@ -40,6 +40,7 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
   const targetContainerId = (mascotEntity.state?.targetContainerId || gazingAt) as string | undefined;
   const state = (mascotEntity.state?.state as string | undefined) || 'idle';
   const holdingEntityId = mascotEntity.state?.holdingEntityId as string | undefined;
+  const speechMessage = mascotEntity.state?.speechMessage as string | undefined;
 
   // Resolve held entity and ingredient metadata
   const heldEntity = holdingEntityId ? entities[holdingEntityId] : undefined;
@@ -151,6 +152,28 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
 
       <div>
         <h3 style={{ margin: 0, fontSize: '16px', color: 'var(--text-h)' }}>{mascotEntity.name}</h3>
+        {speechMessage && (
+          <div
+            className="mascot-speech-bubble"
+            style={{
+              margin: '6px 0',
+              padding: '8px 12px',
+              fontSize: '13px',
+              fontWeight: 500,
+              color: 'var(--text-h)',
+              background: 'var(--card-bg, #ffffff)',
+              border: '1px solid var(--primary, #e8b84a)',
+              borderRadius: '8px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            <span>💬</span>
+            <span>{speechMessage}</span>
+          </div>
+        )}
         <p style={{ margin: '4px 0 8px 0', fontSize: '13px', color: 'var(--text)' }}>
           Focus / Target: <strong>{targetContainerId || gazingAt || 'Kitchen Home'}</strong>
           {holdingEntityId && (

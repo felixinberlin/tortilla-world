@@ -14,7 +14,7 @@ export type CookingMethod = 'raw' | 'fried' | 'boiled' | 'burned' | 'heat' | str
 
 export type RecipeStep =
   | {
-      action: 'prepare' | 'cut';
+      action: 'prepare' | 'cut' | 'peel' | 'wash';
       target?: string;
       ingredient?: string;
       preparation?: PreparationStyle;
@@ -25,8 +25,12 @@ export type RecipeStep =
       action: 'cook';
       target?: string;
       ingredient?: string;
-      method: CookingMethod;
+      method?: CookingMethod;
       containerId?: string;
+      duration?: number;
+      unit?: string;
+      instruction?: string;
+      mascotId?: string;
     }
   | {
       action: 'wash' | 'rinse' | 'drain';
@@ -35,14 +39,22 @@ export type RecipeStep =
       containerId?: string;
     }
   | {
-      action: 'mix' | 'beat';
+      action: 'mix' | 'beat' | 'combine';
       inputs?: string[];
+      ingredients?: string[];
       output?: string;
       targetContainerId?: string;
     }
   | {
+      action: 'instruction';
+      text?: string;
+      instruction?: string;
+      mascotId?: string;
+    }
+  | {
       action: 'flip';
       target?: string;
+      instruction?: string;
       mascotId?: string;
     }
   | {
