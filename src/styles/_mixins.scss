@@ -5,7 +5,8 @@
  * Reusable SCSS mixins for ceramic cards, workstation panels, and interactive elements.
  */
 
-@import './variables';
+@use 'sass:color';
+@use './variables' as *;
 
 // Cozy ceramic card container mixin
 @mixin ceramic-card($bg-color: $warm-surface, $border-color: $warm-border) {
@@ -22,7 +23,7 @@
   align-items: center;
   justify-content: space-between;
   padding-bottom: 10px;
-  border-bottom: 2px dashed mix($accent-color, white, 35%);
+  border-bottom: 2px dashed color.mix($accent-color, white, 35%);
   margin-bottom: 12px;
 
   h3 {
@@ -40,9 +41,9 @@
     font-weight: 700;
     padding: 3px 8px;
     border-radius: $radius-sm;
-    background: mix($accent-color, white, 18%);
+    background: color.mix($accent-color, white, 18%);
     color: $accent-color;
-    border: 1px solid mix($accent-color, white, 40%);
+    border: 1px solid color.mix($accent-color, white, 40%);
   }
 }
 

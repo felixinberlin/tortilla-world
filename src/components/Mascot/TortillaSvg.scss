@@ -5,8 +5,9 @@
  * Styles and animations for TortillaSvg mascot using SCSS variables and mixins.
  */
 
-@import '../../styles/variables';
-@import '../../styles/mixins';
+@use 'sass:color';
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
 
 /* === Root SVG Styles & State Animations === */
 .tortilla-svg {

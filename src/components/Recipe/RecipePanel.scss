@@ -5,8 +5,9 @@
  * SCSS styles for the Recipe selection and execution panel.
  */
 
-@import '../../styles/variables';
-@import '../../styles/mixins';
+@use 'sass:color';
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
 
 .recipe-panel {
   @include ceramic-card($warm-surface, $warm-border);

@@ -6,8 +6,9 @@
  * Establishes warm Spanish kitchen simulation theme, global CSS variables, typography, and workstation layouts.
  */
 
-@import './styles/variables';
-@import './styles/mixins';
+@use 'sass:color';
+@use './styles/variables' as *;
+@use './styles/mixins' as *;
 
 :root {
   --text: #{$dark-brown};
@@ -111,7 +112,7 @@ p {
     justify-content: space-between;
     margin-bottom: 12px;
     padding-bottom: 8px;
-    border-bottom: 2px dashed mix($dark-brown, white, 15%);
+    border-bottom: 2px dashed color.mix($dark-brown, white, 15%);
 
     h3 {
       font-size: 1rem;
@@ -137,9 +138,9 @@ p {
     background: $pantry-bg;
     border-color: $pantry-border;
     .workstation-type-badge {
-      background: mix($pantry-accent, white, 15%);
+      background: color.mix($pantry-accent, white, 15%);
       color: $pantry-accent;
-      border: 1px solid mix($pantry-accent, white, 30%);
+      border: 1px solid color.mix($pantry-accent, white, 30%);
     }
   }
 
@@ -148,9 +149,9 @@ p {
     background: $washing-bg;
     border-color: $washing-border;
     .workstation-type-badge {
-      background: mix($washing-accent, white, 15%);
+      background: color.mix($washing-accent, white, 15%);
       color: $washing-accent;
-      border: 1px solid mix($washing-accent, white, 30%);
+      border: 1px solid color.mix($washing-accent, white, 30%);
     }
   }
 
@@ -159,9 +160,9 @@ p {
     background: $cutting-bg;
     border-color: $cutting-border;
     .workstation-type-badge {
-      background: mix($cutting-accent, white, 15%);
+      background: color.mix($cutting-accent, white, 15%);
       color: $cutting-accent;
-      border: 1px solid mix($cutting-accent, white, 30%);
+      border: 1px solid color.mix($cutting-accent, white, 30%);
     }
   }
 
@@ -170,9 +171,9 @@ p {
     background: $mixing-bg;
     border-color: $mixing-border;
     .workstation-type-badge {
-      background: mix($mixing-accent, white, 15%);
+      background: color.mix($mixing-accent, white, 15%);
       color: $mixing-accent;
-      border: 1px solid mix($mixing-accent, white, 30%);
+      border: 1px solid color.mix($mixing-accent, white, 30%);
     }
   }
 
@@ -181,9 +182,9 @@ p {
     background: $cooking-bg;
     border-color: $cooking-border;
     .workstation-type-badge {
-      background: mix($cooking-accent, white, 15%);
+      background: color.mix($cooking-accent, white, 15%);
       color: $cooking-accent;
-      border: 1px solid mix($cooking-accent, white, 30%);
+      border: 1px solid color.mix($cooking-accent, white, 30%);
     }
   }
 
@@ -192,9 +193,9 @@ p {
     background: $serving-bg;
     border-color: $serving-border;
     .workstation-type-badge {
-      background: mix($serving-accent, white, 15%);
+      background: color.mix($serving-accent, white, 15%);
       color: $serving-accent;
-      border: 1px solid mix($serving-accent, white, 30%);
+      border: 1px solid color.mix($serving-accent, white, 30%);
     }
   }
 
@@ -234,7 +235,7 @@ p {
   transition: all 0.18s ease;
 
   &:hover {
-    border-color: mix($tortilla-yellow, $warm-border, 50%);
+    border-color: color.mix($tortilla-yellow, $warm-border, 50%);
     transform: translateY(-1px);
     box-shadow: 0 4px 10px rgba(44, 26, 20, 0.08);
   }

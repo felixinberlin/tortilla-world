@@ -5,8 +5,9 @@
  * SCSS styles for ingredient list panels, item lists, and recipe ingredients.
  */
 
-@import '../../styles/variables';
-@import '../../styles/mixins';
+@use 'sass:color';
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
 
 .ingredient-list-panel {
   @include ceramic-card($warm-surface, $warm-border);
@@ -58,7 +59,7 @@
   transition: all 0.2s ease;
 
   &:hover {
-    border-color: mix($tortilla-yellow, $warm-border, 50%);
+    border-color: color.mix($tortilla-yellow, $warm-border, 50%);
   }
 
   &:active {
