@@ -14,6 +14,7 @@ export type WorldStateStore = {
   entities: Record<string, Entity>;
   containers: Record<string, Container>;
   dispatch: (action: WorldAction) => void;
+  resetWorld: () => void; // <-- NEW METHOD
 } & EntitySlice &
   ContainerSlice &
   MascotSlice;

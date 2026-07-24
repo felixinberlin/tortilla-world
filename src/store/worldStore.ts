@@ -29,12 +29,24 @@ export const worldStore = createStore<WorldStateStore>()(
         ...createContainerSlice(set, get, api),
         ...createMascotSlice(set, get, api),
 
-        entities: defaultEntities,
-        containers: defaultContainers,
+        // Deep clone initial state to avoid reference mutations
+        entities: JSON.parse(JSON.stringify(defaultEntities)),
+        containers: JSON.parse(JSON.stringify(defaultContainers)),
+
+        resetWorld: () => {
+          set((draft) => {
+            draft.entities = JSON.parse(JSON.stringify(defaultEntities));
+            draft.containers = JSON.parse(JSON.stringify(defaultContainers));
+          }, false, 'RESET_WORLD');
+        },
 
         dispatch: (action: WorldAction) => {
           const store = get();
           switch (action.type) {
+            case 'RESET_WORLD':
+              store.resetWorld();
+              break;
+
             case 'MOVE_ENTITY':
               store.moveEntity(
                 action.payload.entityId,

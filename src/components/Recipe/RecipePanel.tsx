@@ -30,6 +30,7 @@ export function RecipePanel() {
 
   const entities = useStore(worldStore, (state) => state.entities);
   const containers = useStore(worldStore, (state) => state.containers);
+  const dispatch = useStore(worldStore, (state) => state.dispatch);
 
   // Collect ingredient entities currently placed in active workspace containers
   const activeContainerEntities = Object.values(containers)
@@ -42,6 +43,10 @@ export function RecipePanel() {
 
   const handleFollowRecipe = async (recipeId: string) => {
     if (runningRecipeId !== null) return;
+    
+    // Auto-reset the kitchen world before starting a new recipe
+    dispatch({ type: 'RESET_WORLD' });
+
     setSelectedRecipeId(recipeId);
     setRunningRecipeId(recipeId);
     try {
@@ -89,6 +94,15 @@ export function RecipePanel() {
           <button
             type="button"
             className="recipe-toggle-btn"
+            onClick={() => dispatch({ type: 'RESET_WORLD' })}
+            disabled={runningRecipeId !== null}
+            title="Clean the kitchen and start over"
+          >
+            🔄 Reset
+          </button>
+          <button
+            type="button"
+            className="recipe-toggle-btn"
             onClick={() => setIsExpanded(!isExpanded)}
             title={isExpanded ? 'Collapse ingredient list' : 'Expand ingredient list'}
           >
@@ -108,4 +122,3 @@ export function RecipePanel() {
     </div>
   );
 }
-

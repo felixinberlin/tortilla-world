@@ -34,13 +34,13 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
   const [offset, setOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const mascotAnchorRef = useRef<HTMLDivElement>(null);
 
-  if (!mascotEntity) return null;
-
-  const gazingAt = mascotEntity.state?.gazingAt as string | undefined;
-  const targetContainerId = (mascotEntity.state?.targetContainerId || gazingAt) as string | undefined;
-  const state = (mascotEntity.state?.state as string | undefined) || 'idle';
-  const holdingEntityId = mascotEntity.state?.holdingEntityId as string | undefined;
-  const speechMessage = mascotEntity.state?.speechMessage as string | undefined;
+  // Derived from mascotEntity.state — use optional chaining so these stay safe
+  // when mascotEntity is undefined, keeping every hook below unconditional.
+  const gazingAt = mascotEntity?.state?.gazingAt as string | undefined;
+  const targetContainerId = (mascotEntity?.state?.targetContainerId || gazingAt) as string | undefined;
+  const state = (mascotEntity?.state?.state as string | undefined) || 'idle';
+  const holdingEntityId = mascotEntity?.state?.holdingEntityId as string | undefined;
+  const speechMessage = mascotEntity?.state?.speechMessage as string | undefined;
 
   // Resolve held entity and ingredient metadata
   const heldEntity = holdingEntityId ? entities[holdingEntityId] : undefined;
@@ -82,6 +82,9 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
       window.removeEventListener('scroll', updatePosition);
     };
   }, [targetContainerId]);
+
+  // Guarded until after all hooks so hook call order never changes between renders.
+  if (!mascotEntity) return null;
 
   const handleDoubleClick = () => {
     dispatch({ type: 'MASCOT_FLIP', payload: { mascotId } });
