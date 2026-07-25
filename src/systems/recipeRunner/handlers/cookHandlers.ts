@@ -120,7 +120,7 @@ export async function handleFlipStep(
   step: FlipStep
 ): Promise<void> {
   const targetContainer = step.target === 'mixture' ? 'pan' : step.target || 'pan';
-  const instructionText = step.instruction || (step as any).text;
+  const instructionText = step.instruction;
 
   if (instructionText) {
     worldStore.getState().dispatch({

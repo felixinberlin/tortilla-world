@@ -55,7 +55,7 @@ export async function handleInstructionStep(
   ctx: RecipeRunnerContext,
   step: InstructionStep
 ): Promise<void> {
-  const text = step.text || (step as any).instruction;
+  const text = step.text || step.instruction;
   if (text) {
     worldStore.getState().dispatch({
       type: 'UPDATE_ENTITY_STATE',

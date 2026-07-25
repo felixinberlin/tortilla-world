@@ -23,10 +23,15 @@ export async function handlePrepStep(
 ): Promise<void> {
   const rawKey = step.target || step.ingredient;
   const ingredientId = ctx.resolveIngredientId(rawKey);
-  const prepStyle =
-    (step as any).preparation ||
-    (step as any).style ||
-    (step.action === 'peel' ? 'peeled' : step.action === 'wash' ? 'washed' : 'prepared');
+  // 'preparation' and 'style' only exist on the prepare/cut/peel/wash variant,
+  // not on rinse/drain — narrow by checking action before accessing them.
+  const prepStyle = (() => {
+    if ('preparation' in step && step.preparation) return step.preparation;
+    if ('style' in step && step.style) return step.style;
+    if (step.action === 'peel') return 'peeled';
+    if (step.action === 'wash') return 'washed';
+    return 'prepared';
+  })();
   const targetContainerId = step.containerId || workstationDefaultContainerId || ctx.defaultTargetId;
 
   if (ingredientId && ingredientId !== 'mixture') {
