@@ -31,6 +31,12 @@ export const ingredients: Ingredient[] = [
     name: "Olive Oil",
   },
 
+    {
+    id: "oil2",
+    icon: "🫒",
+    name: "Olive Oil",
+  },
+
   {
     id: "onion",
     icon: "🧅",

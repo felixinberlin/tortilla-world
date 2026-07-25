@@ -15,6 +15,7 @@ export type WorkstationId =
   | 'cutting_station'
   | 'preparation_station'
   | 'cooking_station'
+  | 'cooking_station2'
   | 'serving_station';
 
 export type Workstation = {

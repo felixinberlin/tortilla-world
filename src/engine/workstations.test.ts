@@ -17,8 +17,11 @@ describe('Workstations Engine', () => {
     expect(findWorkstationForStep({ action: 'prepare', target: 'eggs', preparation: 'beaten' }))
       .toBe(KITCHEN_WORKSTATIONS.preparation_station);
 
-    expect(findWorkstationForStep({ action: 'cook', target: 'potatoes', method: 'fry' }))
+    expect(findWorkstationForStep({ action: 'cook', target: 'potatoes', method: 'fry', 'where': 'cooking_station' }))
       .toBe(KITCHEN_WORKSTATIONS.cooking_station);
+
+    expect(findWorkstationForStep({ action: 'cook', target: 'potatoes', method: 'fry', 'where': 'cooking_station2' }))
+      .toBe(KITCHEN_WORKSTATIONS.cooking_station2);
 
     expect(findWorkstationForStep({ action: 'mix', inputs: ['potatoes', 'eggs'] }))
       .toBe(KITCHEN_WORKSTATIONS.preparation_station);

@@ -52,6 +52,15 @@ export const KITCHEN_WORKSTATIONS: Record<WorkstationId, Workstation> = {
     requiredTools: ['pan'],
     optionalTools: ['pot', 'spatula'],
   },
+  cooking_station2: {
+    id: 'cooking_station2',
+    name: 'Cooking Station 2',
+    purpose: 'Apply heat',
+    supportedActions: ['heat', 'fry', 'boil', 'steam', 'grill', 'bake', 'roast', 'cook'],
+    defaultContainerId: 'pan2',
+    requiredTools: ['pan2'],
+    optionalTools: ['pot', 'spatula'],
+  },
   serving_station: {
     id: 'serving_station',
     name: 'Serving Station',

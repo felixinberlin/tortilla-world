@@ -28,7 +28,10 @@ export function findWorkstationForStep(step: RecipeStep): Workstation {
   }
 
   if (action === 'cook') {
-    return KITCHEN_WORKSTATIONS.cooking_station;
+    if (step.where === 'cooking_station') {
+      return KITCHEN_WORKSTATIONS.cooking_station;
+    }
+    return KITCHEN_WORKSTATIONS.cooking_station2;
   }
 
   if (action === 'mix' || action === 'beat') {

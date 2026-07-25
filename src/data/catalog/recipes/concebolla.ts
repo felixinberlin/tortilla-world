@@ -83,16 +83,25 @@ export const concebollaRecipe: Recipe = {
       action: 'cook',
       target: 'oil',
       method: 'heat',
+      where: 'pan',
+    },
+    {
+      action: 'cook',
+      target: 'oil2',
+      method: 'heat',
+      where: 'pan1',
     },
     {
       action: 'cook',
       target: 'potatoes',
       method: 'fry',
+      where: 'pan',
     },
     {
       action: 'cook',
       target: 'onions',
       method: 'fry',
+      where: 'pan',
     },
     {
       action: 'prepare',

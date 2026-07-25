@@ -40,6 +40,7 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
       case 'board': return 'Cutting Workspace 🔪';
       case 'bowl': return 'Preparation 🥣';
       case 'pan': return 'Cooking Heat 🍳';
+      case 'pan2': return 'Cooking Heat 🍳';
       case 'plate': return 'Serving Stage 🍽️';
       case 'despensa': return 'Pantry 🧺';
       default: return 'Workstation 📦';
