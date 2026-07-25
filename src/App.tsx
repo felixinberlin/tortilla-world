@@ -25,7 +25,7 @@ function App() {
         <div>
           <h1 style={{ margin: 0, fontSize: '28px', color: 'var(--text-h)' }}>Tortilla World</h1>
           <p style={{ margin: '4px 0 0 0', color: 'var(--text)', opacity: 0.8 }}>
-            An interactive simulation world. Drag ingredients from the immutable catalog pantry into workspace containers.
+            An interactive simulation world. Drag entities from the immutable catalog pantry into workspace containers.
           </p>
         </div>
         <Mascot />

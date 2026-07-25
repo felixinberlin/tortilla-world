@@ -5,45 +5,53 @@
  * Defines recipe data structure.
  *
  * RESPONSIBILITY:
- * - Represents a recipe with required ingredients and steps.
- * - Supports both array and key-based dictionary ingredient declarations.
+ * - Represents a recipe with required entities (requirements) and steps.
+ * - Supports both array and key-based dictionary requirement declarations.
  */
 
-import type { RecipeIngredient } from './RecipeIngredient';
+import type { Requirement, RequirementDictItem } from './Requirement';
 import type { RecipeStep } from './RecipeStep';
 
-export interface RecipeIngredientDictItem {
-  ingredientId: string;
-  amount: number;
-  unit: string;
-  name?: string;
-}
+export type RecipeRequirementDictItem = RequirementDictItem;
 
-export type RecipeIngredients =
-  | RecipeIngredient[]
-  | Record<string, RecipeIngredientDictItem>;
+export type RecipeRequirements =
+  | Requirement[]
+  | Record<string, RequirementDictItem>;
 
 export interface Recipe {
   id: string;
   name: string;
-  ingredients: RecipeIngredients;
+  requirements: RecipeRequirements;
   steps: RecipeStep[];
 }
 
 export type RecipeList = Recipe[];
 
 /**
- * Normalizes a Recipe's ingredients into a standard array of RecipeIngredient.
+ * Normalizes a Recipe's requirements into a standard array of Requirement objects.
  */
-export function getRecipeIngredientsArray(recipe: Recipe): RecipeIngredient[] {
-  if (Array.isArray(recipe.ingredients)) {
-    return recipe.ingredients;
+export function getRecipeRequirementsArray(recipe: Recipe): Requirement[] {
+  const reqs = recipe.requirements;
+  if (Array.isArray(reqs)) {
+    return reqs.map((item) => ({
+      ...item,
+      entityId: item.entityId || (item as unknown as { ingredientId?: string }).ingredientId || '',
+    }));
   }
 
-  return Object.entries(recipe.ingredients).map(([key, item]) => ({
-    id: `${recipe.id}-${key}`,
-    ingredientId: item.ingredientId,
-    amount: item.amount,
-    unit: item.unit,
-  }));
+  if (reqs && typeof reqs === 'object') {
+    return Object.entries(reqs).map(([key, item]) => ({
+      id: `${recipe.id}-${key}`,
+      entityId: item.entityId || item.ingredientId || key,
+      amount: item.amount,
+      unit: item.unit,
+      name: item.name,
+    }));
+  }
+
+  return [];
 }
+
+/** Legacy alias helper for backward compatibility during transition */
+export const getRecipeIngredientsArray = getRecipeRequirementsArray;
+

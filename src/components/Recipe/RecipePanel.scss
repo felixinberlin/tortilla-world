@@ -115,6 +115,28 @@
   border-top: 1px dashed $warm-border;
 }
 
+.recipe-requirements {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.requirement-view {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+
+  &__amount {
+    font-size: 0.8rem;
+    color: $wood-muted;
+    font-weight: 600;
+  }
+}
+
 .recipe-title {
   margin: 0 0 8px 0;
   font-size: 14px;

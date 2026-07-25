@@ -16,7 +16,7 @@ import React from 'react';
 import { useStore } from 'zustand';
 import { DndContext } from '@dnd-kit/core';
 import { worldStore } from '../../store/worldStore';
-import { IngredientList } from '../Ingredients/IngredientList';
+import { ContainerView } from '../World/ContainerView';
 import { useSceneDragAndDrop } from './useSceneDragAndDrop';
 
 export const Scene: React.FC = () => {
@@ -32,11 +32,11 @@ export const Scene: React.FC = () => {
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
       <div className="scene">
         {containers.map((container) => (
-  <IngredientList
-    key={container.id}
-    container={container}
-  />
-))}
+          <ContainerView
+            key={container.id}
+            container={container}
+          />
+        ))}
       </div>
     </DndContext>
   );

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { recipes, concebollaRecipe, clasicaRecipe } from './index';
 import { ingredients as ingredientCatalog } from '../ingredients';
 import type { RecipeList } from '../../../types/Recipe';
-import { getRecipeIngredientsArray } from '../../../types/Recipe';
+import { getRecipeRequirementsArray } from '../../../types/Recipe';
 
 describe('Recipe Catalog', () => {
   it('exports a valid RecipeList array', () => {
@@ -21,21 +21,21 @@ describe('Recipe Catalog', () => {
     recipes.forEach((recipe) => {
       expect(recipe.id).toBeTruthy();
       expect(recipe.name).toBeTruthy();
-      const ingredients = getRecipeIngredientsArray(recipe);
-      expect(Array.isArray(ingredients)).toBe(true);
-      expect(ingredients.length).toBeGreaterThan(0);
+      const requirements = getRecipeRequirementsArray(recipe);
+      expect(Array.isArray(requirements)).toBe(true);
+      expect(requirements.length).toBeGreaterThan(0);
     });
   });
 
-  it('ensures all recipe ingredients refer to valid catalog ingredients', () => {
+  it('ensures all recipe requirements refer to valid catalog entities', () => {
     const catalogIds = ingredientCatalog.map((i) => i.id);
 
     recipes.forEach((recipe) => {
-      const ingredients = getRecipeIngredientsArray(recipe);
-      ingredients.forEach((req) => {
+      const requirements = getRecipeRequirementsArray(recipe);
+      requirements.forEach((req) => {
         expect(req.id).toBeTruthy();
-        expect(req.ingredientId).toBeTruthy();
-        expect(catalogIds).toContain(req.ingredientId);
+        expect(req.entityId).toBeTruthy();
+        expect(catalogIds).toContain(req.entityId);
         expect(req.amount).toBeGreaterThan(0);
         expect(req.unit).toBeTruthy();
       });
@@ -43,8 +43,8 @@ describe('Recipe Catalog', () => {
   });
 
   it('distinguishes concebolla (with onion) and clasica (without onion)', () => {
-    const concebollaOnion = getRecipeIngredientsArray(concebollaRecipe).find((i) => i.ingredientId === 'onion');
-    const clasicaOnion = getRecipeIngredientsArray(clasicaRecipe).find((i) => i.ingredientId === 'onion');
+    const concebollaOnion = getRecipeRequirementsArray(concebollaRecipe).find((i) => i.entityId === 'onion');
+    const clasicaOnion = getRecipeRequirementsArray(clasicaRecipe).find((i) => i.entityId === 'onion');
 
     expect(concebollaOnion).toBeDefined();
     expect(clasicaOnion).toBeUndefined();

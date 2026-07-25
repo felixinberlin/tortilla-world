@@ -17,34 +17,34 @@ export const concebollaRecipe: Recipe = {
   
   name: 'Tortilla con Cebolla',
 
-  ingredients: {
+  requirements: {
     potatoes: {
-      ingredientId: 'potato',
+      entityId: 'potato',
       amount: 4,
       unit: 'pcs',
     },
     eggs: {
-      ingredientId: 'egg',
+      entityId: 'egg',
       amount: 6,
       unit: 'pcs',
     },
     oil: {
-      ingredientId: 'oil',
+      entityId: 'oil',
       amount: 100,
       unit: 'ml',
     },
     onions: {
-      ingredientId: 'onion',
+      entityId: 'onion',
       amount: 1,
       unit: 'pcs',
     },
     salt: {
-      ingredientId: 'salt',
+      entityId: 'salt',
       amount: 1,
       unit: 'tsp',
     },
     pepper: {
-      ingredientId: 'pepper',
+      entityId: 'pepper',
       amount: 1,
       unit: 'pinch',
     },

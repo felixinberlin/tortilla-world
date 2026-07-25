@@ -5,20 +5,19 @@
  * Compact, unintrusive recipe selector and catalog viewer.
  *
  * RESPONSIBILITY:
- * - Wires catalog recipes (Con Cebolla, Sin Cebolla) with RecipeIngredientList.
+ * - Wires catalog recipes (Con Cebolla, Sin Cebolla) with RecipeRequirements.
  * - Provides a "Follow the recipe" button for each recipe to automate mascot actions.
  * - Displays active recipe requirements and matches with current world state.
  */
 
 import { useState } from 'react';
 import { useStore } from 'zustand';
-import { ingredients as ingredientCatalog } from '../../data/catalog/ingredients';
 import { recipes } from '../../data/catalog/recipes';
-import { RecipeIngredientList } from '../Ingredients/RecipeIngredientList';
+import { RecipeRequirements } from './RecipeRequirements';
 import { worldStore } from '../../store/worldStore';
-import { countMatchingIngredients } from '../../systems/recipeMatcher';
+import { countMatchingRequirements } from '../../systems/recipeMatcher';
 import { runFollowRecipeScript } from '../../systems/mascotActions';
-import { getRecipeIngredientsArray } from '../../types/Recipe';
+import { getRecipeRequirementsArray } from '../../types/Recipe';
 import './RecipePanel.scss';
 
 export function RecipePanel() {
@@ -32,14 +31,14 @@ export function RecipePanel() {
   const containers = useStore(worldStore, (state) => state.containers);
   const dispatch = useStore(worldStore, (state) => state.dispatch);
 
-  // Collect ingredient entities currently placed in active workspace containers
+  // Collect entities currently placed in active workspace containers
   const activeContainerEntities = Object.values(containers)
     .filter((c) => c.id !== 'despensa')
     .flatMap((c) => c.entityIds)
     .map((id) => entities[id])
     .filter(Boolean);
 
-  const matchResult = countMatchingIngredients(activeRecipe, activeContainerEntities);
+  const matchResult = countMatchingRequirements(activeRecipe, activeContainerEntities);
 
   const handleFollowRecipe = async (recipeId: string) => {
     if (runningRecipeId !== null) return;
@@ -79,7 +78,7 @@ export function RecipePanel() {
                 className="follow-recipe-btn"
                 disabled={runningRecipeId !== null}
                 onClick={() => handleFollowRecipe(recipe.id)}
-                title={`Bring all ingredients for ${recipe.name} to the table`}
+                title={`Bring all requirements for ${recipe.name} to the table`}
               >
                 {runningRecipeId === recipe.id ? '⏳ Following...' : '👨‍🍳 Follow the recipe'}
               </button>
@@ -104,19 +103,16 @@ export function RecipePanel() {
             type="button"
             className="recipe-toggle-btn"
             onClick={() => setIsExpanded(!isExpanded)}
-            title={isExpanded ? 'Collapse ingredient list' : 'Expand ingredient list'}
+            title={isExpanded ? 'Collapse requirements' : 'Expand requirements'}
           >
-            {isExpanded ? '▲ Hide List' : '▼ Ingredients'}
+            {isExpanded ? '▲ Hide Requirements' : '▼ Requirements'}
           </button>
         </div>
       </div>
 
       {isExpanded && (
         <div className="recipe-content compact">
-          <RecipeIngredientList
-            ingredients={getRecipeIngredientsArray(activeRecipe)}
-            ingredientCatalog={ingredientCatalog}
-          />
+          <RecipeRequirements requirements={getRecipeRequirementsArray(activeRecipe)} />
         </div>
       )}
     </div>

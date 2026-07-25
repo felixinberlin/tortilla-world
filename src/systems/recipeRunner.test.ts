@@ -134,7 +134,7 @@ describe('RecipeRunner System', () => {
     const customRecipe: Recipe = {
       id: 'custom-test',
       name: 'Custom Test Recipe',
-      ingredients: [],
+      requirements: [],
       steps: [
         { action: 'speak', message: 'Cooking initialized!' },
         { action: 'wait', durationMs: 10 },
@@ -169,9 +169,9 @@ describe('RecipeRunner System', () => {
     const multiIngredientRecipe: Recipe = {
       id: 'multi-potato',
       name: 'Two Potatoes Recipe',
-      ingredients: [
-        { id: 'p1', ingredientId: 'potato', amount: 1, unit: 'unit' },
-        { id: 'p2', ingredientId: 'potato', amount: 1, unit: 'unit' },
+      requirements: [
+        { id: 'p1', entityId: 'potato', amount: 1, unit: 'unit' },
+        { id: 'p2', entityId: 'potato', amount: 1, unit: 'unit' },
       ],
       steps: [
         { action: 'move', ingredient: 'p1', source: 'despensa', target: 'board' },
@@ -203,9 +203,9 @@ describe('RecipeRunner System', () => {
     const mixRecipe: Recipe = {
       id: 'mix-test',
       name: 'Mix Test',
-      ingredients: [
-        { id: 'egg1', ingredientId: 'egg', amount: 1, unit: 'unit' },
-        { id: 'salt1', ingredientId: 'salt', amount: 1, unit: 'unit' },
+      requirements: [
+        { id: 'egg1', entityId: 'egg', amount: 1, unit: 'unit' },
+        { id: 'salt1', entityId: 'salt', amount: 1, unit: 'unit' },
       ],
       steps: [
         { action: 'mix', inputs: ['egg1', 'salt1'], targetContainerId: 'bowl', output: 'batter' },

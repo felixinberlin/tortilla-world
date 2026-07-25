@@ -26,33 +26,33 @@ export const clasicaRecipe: Recipe = {
 
   name: 'Clásica',
 
-  ingredients: {
+  requirements: {
     potatoes: {
-      ingredientId: 'potato',
+      entityId: 'potato',
       amount: 4,
       unit: 'pcs',
     },
 
     eggs: {
-      ingredientId: 'egg',
+      entityId: 'egg',
       amount: 6,
       unit: 'pcs',
     },
 
     oil: {
-      ingredientId: 'oil',
+      entityId: 'oil',
       amount: 100,
       unit: 'ml',
     },
 
     salt: {
-      ingredientId: 'salt',
+      entityId: 'salt',
       amount: 1,
       unit: 'tsp',
     },
 
     pepper: {
-      ingredientId: 'pepper',
+      entityId: 'pepper',
       amount: 1,
       unit: 'pinch',
     },

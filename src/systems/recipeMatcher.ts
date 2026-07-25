@@ -2,14 +2,14 @@
  * FILE: recipeMatcher.ts
  *
  * PURPOSE:
- * Utility functions for evaluating recipe completion and matching ingredients against workspace entities.
+ * Utility functions for evaluating recipe completion and matching requirements against workspace entities.
  *
  * RESPONSIBILITY:
- * - Computes matching ingredients and counts for a recipe given active world entities.
- * - Identifies matched and missing ingredient IDs.
+ * - Computes matching requirements and counts for a recipe given active world entities.
+ * - Identifies matched and missing entity IDs.
  */
 
-import { getRecipeIngredientsArray } from '../types/Recipe'
+import { getRecipeRequirementsArray } from '../types/Recipe'
 import type { Recipe } from '../types/Recipe'
 import type { Entity } from '../types/world'
 import { getIngredientCatalogId } from '../engine/containerRules'
@@ -17,15 +17,18 @@ import { getIngredientCatalogId } from '../engine/containerRules'
 export interface RecipeMatchResult {
   matchingCount: number
   totalCount: number
+  matchingRequirementIds: string[]
+  missingRequirementIds: string[]
+  // Backward compatibility aliases
   matchingIngredientIds: string[]
   missingIngredientIds: string[]
 }
 
 /**
- * Calculates matching ingredient count and detailed breakdown for a given recipe
+ * Calculates matching requirement count and detailed breakdown for a given recipe
  * based on entities present in workspace containers.
  */
-export function countMatchingIngredients(
+export function countMatchingRequirements(
   recipe: Recipe | undefined | null,
   entities: Entity[]
 ): RecipeMatchResult {
@@ -33,34 +36,43 @@ export function countMatchingIngredients(
     return {
       matchingCount: 0,
       totalCount: 0,
+      matchingRequirementIds: [],
+      missingRequirementIds: [],
       matchingIngredientIds: [],
       missingIngredientIds: [],
     }
   }
 
-  const recipeIngredients = getRecipeIngredientsArray(recipe)
+  const requirements = getRecipeRequirementsArray(recipe)
 
-  const workspaceIngredientIds = new Set(
+  const workspaceEntityIds = new Set(
     entities
-      .filter((e) => e && e.type === 'ingredient')
-      .map((e) => getIngredientCatalogId(e))
+      .filter((e) => Boolean(e))
+      .map((e) => e.ingredientId || getIngredientCatalogId(e) || e.id)
   )
 
-  const matchingIngredientIds: string[] = []
-  const missingIngredientIds: string[] = []
+  const matchingRequirementIds: string[] = []
+  const missingRequirementIds: string[] = []
 
-  for (const req of recipeIngredients) {
-    if (workspaceIngredientIds.has(req.ingredientId)) {
-      matchingIngredientIds.push(req.ingredientId)
+  for (const req of requirements) {
+    const reqId = req.entityId || (req as unknown as { ingredientId?: string }).ingredientId || ''
+    if (workspaceEntityIds.has(reqId)) {
+      matchingRequirementIds.push(reqId)
     } else {
-      missingIngredientIds.push(req.ingredientId)
+      missingRequirementIds.push(reqId)
     }
   }
 
   return {
-    matchingCount: matchingIngredientIds.length,
-    totalCount: recipeIngredients.length,
-    matchingIngredientIds,
-    missingIngredientIds,
+    matchingCount: matchingRequirementIds.length,
+    totalCount: requirements.length,
+    matchingRequirementIds,
+    missingRequirementIds,
+    matchingIngredientIds: matchingRequirementIds,
+    missingIngredientIds: missingRequirementIds,
   }
 }
+
+/** Alias for backward compatibility */
+export const countMatchingIngredients = countMatchingRequirements
+

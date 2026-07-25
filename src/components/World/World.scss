@@ -1,0 +1,136 @@
+/**
+ * FILE: World.scss
+ *
+ * PURPOSE:
+ * SCSS styles for world containers and entity views.
+ */
+
+@use 'sass:color';
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.container-view {
+  @include ceramic-card($warm-surface, $warm-border);
+  min-width: 240px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+
+  &--drag-over {
+    border-color: $tortilla-yellow;
+    background-color: color.mix($tortilla-yellow, $warm-surface, 10%);
+  }
+}
+
+.container-view__header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.container-view__title {
+  color: $dark-brown;
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.container-view__badge {
+  color: $wood-muted;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.container-view__items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  min-height: 48px;
+}
+
+.container-view__empty-hint {
+  color: $wood-muted;
+  font-size: 0.85rem;
+  font-style: italic;
+  text-align: center;
+  padding: 12px;
+  border: 1px dashed $warm-border;
+  border-radius: $radius-md;
+}
+
+.entity-view {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid $warm-border;
+  border-radius: $radius-md;
+  box-shadow: 0 2px 6px rgba(44, 26, 20, 0.04);
+  display: flex;
+  gap: 0.5rem;
+  padding: 8px 12px;
+  user-select: none;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: color.mix($tortilla-yellow, $warm-border, 50%);
+  }
+
+  &--dragging {
+    opacity: 0.6;
+    cursor: grabbing;
+  }
+
+  &--readonly {
+    cursor: default;
+    background: color.mix($warm-beige, #ffffff, 40%);
+    box-shadow: none;
+
+    &:hover {
+      border-color: $warm-border;
+    }
+  }
+}
+
+.entity-view__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.entity-view__name {
+  font-weight: 600;
+  color: $dark-brown;
+  font-size: 0.9rem;
+}
+
+.entity-view__state {
+  margin-left: auto;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: $radius-sm;
+
+  &--raw {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  &--prepared {
+    background: #e0f2fe;
+    color: #0369a1;
+  }
+
+  &--cooking {
+    background: #ffedd5;
+    color: #c2410c;
+  }
+
+  &--finished {
+    background: #dcfce7;
+    color: #15803d;
+  }
+}
