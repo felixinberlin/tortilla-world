@@ -6,11 +6,11 @@
  */
 
 import { beforeEach, describe, expect, it } from 'vitest';
-import { worldStore } from '../store/worldStore';
-import { RecipeRunner } from './recipeRunner';
-import { concebollaRecipe, clasicaRecipe } from '../data/catalog/recipes';
-import type { Recipe } from '../types/Recipe';
-import { clearActionLog, getActionLog } from '../store/middleware/actionLog';
+import { worldStore } from '../../store/worldStore';
+import { RecipeRunner } from './RecipeRunner';
+import { concebollaRecipe, clasicaRecipe } from '../../data/catalog/recipes';
+import type { Recipe } from '../../types/Recipe';
+import { clearActionLog, getActionLog } from '../../store/middleware/actionLog';
 
 function seedTestWorld() {
   worldStore.setState({
@@ -82,7 +82,8 @@ describe('RecipeRunner System', () => {
     await runner.runRecipe(concebollaRecipe);
 
     const state = worldStore.getState();
-    expect(state.containers.board.entityIds.length).toBeGreaterThanOrEqual(1);
+    // New concebolla format uses a serve step that collects everything onto the plate
+    expect(state.containers.plate.entityIds.length).toBeGreaterThanOrEqual(1);
 
     const actionNames = getActionLog().map((a) => a.action);
     expect(actionNames).toContain('MASCOT_MOVE');

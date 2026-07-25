@@ -82,7 +82,8 @@ describe('RecipeRunner System', () => {
     await runner.runRecipe(concebollaRecipe);
 
     const state = worldStore.getState();
-    expect(state.containers.board.entityIds.length).toBeGreaterThanOrEqual(1);
+    // New concebolla format uses a serve step that collects everything onto the plate
+    expect(state.containers.plate.entityIds.length).toBeGreaterThanOrEqual(1);
 
     const actionNames = getActionLog().map((a) => a.action);
     expect(actionNames).toContain('MASCOT_MOVE');
