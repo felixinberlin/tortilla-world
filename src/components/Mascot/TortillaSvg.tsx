@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
-import type { GazePoint, GazeTarget } from "../../systems/gaze";
-import type { MascotState } from "../../systems/mascot";
+import type { GazePoint, GazeTarget } from "../../systems/Mascot/gaze";
+import type { MascotState } from "../../systems/Mascot/mascot";
 import "./TortillaSvg.scss";
 
 export interface Potato {

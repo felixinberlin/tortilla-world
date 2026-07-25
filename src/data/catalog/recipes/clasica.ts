@@ -75,6 +75,7 @@ export const clasicaRecipe: Recipe = {
       action: 'cook',
       target: 'oil',
       method: 'heat',
+      cooking_area: 'cooking_area_sarten',
     },
 
     {

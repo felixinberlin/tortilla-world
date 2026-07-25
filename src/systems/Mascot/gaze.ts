@@ -9,7 +9,7 @@
  * - Updates gaze-related state.
  */
 
-import { worldStore } from '../store/worldStore';
+import { worldStore } from '../../store/worldStore';
 
 export interface GazePoint {
   x: number;

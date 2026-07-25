@@ -12,7 +12,7 @@ import type { StateCreator } from 'zustand/vanilla';
 import type { Entity } from '../../types/world';
 import type { WorldStateStore } from '../types';
 import { validateContainerRules } from '../../engine/containerRules';
-import type { GazeTarget } from '../../systems/gaze';
+import type { GazeTarget } from '../../systems/Mascot/gaze';
 
 export interface MascotSlice {
   mascotFlip: (mascotId?: string) => void;

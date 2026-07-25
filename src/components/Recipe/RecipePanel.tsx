@@ -16,7 +16,7 @@ import { recipes } from '../../data/catalog/recipes';
 import { RecipeRequirements } from './RecipeRequirements';
 import { worldStore } from '../../store/worldStore';
 import { countMatchingRequirements } from '../../systems/recipeMatcher';
-import { runFollowRecipeScript } from '../../systems/mascotActions';
+import { runFollowRecipeScript } from '../../systems/Mascot/mascotActions';
 import { getRecipeRequirementsArray } from '../../types/Recipe';
 import './RecipePanel.scss';
 

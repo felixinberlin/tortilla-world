@@ -6,7 +6,7 @@
  */
 
 import { worldStore } from '../../../store/worldStore';
-import { moveTortillaTo, grabIngredient, dropIngredient } from '../../mascotActions';
+import { moveTortillaTo, grabIngredient, dropIngredient } from '../../Mascot/mascotActions';
 import type { RecipeStep } from '../../../types/RecipeStep';
 import type { RecipeRunnerContext } from '../types';
 

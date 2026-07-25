@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { worldStore } from '../store/worldStore';
-import { clearActionLog, getActionLog } from '../store/middleware/actionLog';
+import { worldStore } from '../../store/worldStore';
+import { clearActionLog, getActionLog } from '../../store/middleware/actionLog';
 import {
   flipTortilla,
   moveTortillaTo,

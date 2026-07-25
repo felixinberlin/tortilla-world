@@ -9,9 +9,9 @@
  * - Handles tortilla movement, grabbing ingredients from containers, dropping ingredients into containers, and flipping.
  */
 
-import { worldStore } from '../store/worldStore';
-import { recipes } from '../data/catalog/recipes';
-import { RecipeRunner } from './recipeRunner';
+import { worldStore } from '../../store/worldStore';
+import { recipes } from '../../data/catalog/recipes';
+import { RecipeRunner } from '../recipeRunner';
 
 /**
  * Triggers Tortilla flip animation and records action in store.

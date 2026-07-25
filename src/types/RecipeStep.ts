@@ -31,6 +31,7 @@ export type RecipeStep =
       unit?: string;
       instruction?: string;
       mascotId?: string;
+      cooking_area?: string;
     }
   | {
       action: 'wash' | 'rinse' | 'drain';

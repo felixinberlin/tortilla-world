@@ -10,7 +10,7 @@
  */
 
 import type { Container, Entity } from '../types/world';
-import type { GazeTarget } from '../systems/gaze';
+import type { GazeTarget } from '../systems/Mascot/gaze';
 import { ingredients as catalogIngredients } from '../data/catalog/ingredients';
 import { catalogTools } from '../data/catalog/tools';
 
@@ -76,9 +76,16 @@ export const defaultContainers: Record<string, Container> = {
     entityIds: [],
     rules: { maxCapacity: 10, allowedTypes: ['ingredient', 'tool'] },
   },
-  pan: {
-    id: 'pan',
+  cooking_area_sarten: {
+    id: 'cooking_area_sarten',
     name: 'Sartén (Skillet)',
+    type: 'pan',
+    entityIds: [],
+    rules: { maxCapacity: 5, allowedTypes: ['ingredient', 'tool'] },
+  },
+  cooking_area_sarten_grande: {
+    id: 'cooking_area_sarten_grande',
+    name: 'Sartén Grande',
     type: 'pan',
     entityIds: [],
     rules: { maxCapacity: 5, allowedTypes: ['ingredient', 'tool'] },

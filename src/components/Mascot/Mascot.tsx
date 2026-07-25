@@ -18,10 +18,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from 'zustand';
 import { worldStore } from '../../store/worldStore';
 import { TortillaSvg } from './TortillaSvg';
-import { runTortillaPotatoScript } from '../../systems/mascotActions';
+import { runTortillaPotatoScript } from '../../systems/Mascot/mascotActions';
 import { ingredients } from '../../data/catalog/ingredients';
-import type { GazeTarget } from '../../systems/gaze';
-import { gazeEntityId } from '../../systems/gaze';
+import type { GazeTarget } from '../../systems/Mascot/gaze';
+import { gazeEntityId } from '../../systems/Mascot/gaze';
 
 interface MascotProps {
   mascotId?: string;

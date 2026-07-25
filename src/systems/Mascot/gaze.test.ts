@@ -9,7 +9,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { worldStore } from '../store/worldStore';
+import { worldStore } from '../../store/worldStore';
 import { updateMascotGaze, getMascotGazeTarget } from './gaze';
 import type { GazeTarget } from './gaze';
 

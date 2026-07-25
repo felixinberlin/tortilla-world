@@ -11,8 +11,8 @@
 
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
-import type { GazeTarget } from '../systems/gaze';
-import { gazeEntityId } from '../systems/gaze';
+import type { GazeTarget } from '../systems/Mascot/gaze';
+import { gazeEntityId } from '../systems/Mascot/gaze';
 
 interface GazeState {
   /**
