@@ -114,7 +114,6 @@ src/
         moveHandlers.ts
         prepHandlers.ts
         utilityHandlers.ts
-      RecipeRunner.test.ts
       RecipeRunner.ts
       types.ts
     gaze.test.ts
@@ -1021,165 +1020,6 @@ export const selectMascot = (mascotId: string = 'chef') => (state: WorldState): 
   state.entities[mascotId];
 </file>
 
-<file path="src/systems/recipeRunner/handlers/cookHandlers.ts">
-/**
- * FILE: src/systems/recipeRunner/handlers/cookHandlers.ts
- *
- * PURPOSE:
- * Step handlers for cooking and thermal steps ('cook', 'flip').
- */
-
-import { worldStore } from '../../../store/worldStore';
-import { moveTortillaTo, flipTortilla } from '../../mascotActions';
-import { getIngredientCatalogId } from '../../../engine/containerRules';
-import type { RecipeStep } from '../../../types/RecipeStep';
-import type { RecipeRunnerContext } from '../types';
-
-type CookStep = Extract<RecipeStep, { action: 'cook' }>;
-type FlipStep = Extract<RecipeStep, { action: 'flip' }>;
-
-export async function handleCookStep(
-  ctx: RecipeRunnerContext,
-  step: CookStep,
-  workstationDefaultContainerId?: string
-): Promise<void> {
-  const rawKey = step.target || step.ingredient;
-  const ingredientId = ctx.resolveIngredientId(rawKey);
-  const cookingMethod = step.method || 'cooked';
-  const containerId = step.containerId || workstationDefaultContainerId || 'pan';
-
-  if (step.instruction) {
-    worldStore.getState().dispatch({
-      type: 'UPDATE_ENTITY_STATE',
-      payload: {
-        entityId: step.mascotId || ctx.mascotId,
-        changes: { speechMessage: step.instruction },
-      },
-    });
-  }
-
-  if (ingredientId && ingredientId !== 'mixture') {
-    await ctx.ensureIngredientInWorkspace(ingredientId, containerId);
-  }
-
-  moveTortillaTo(containerId, ctx.mascotId);
-  await ctx.wait();
-
-  const state = worldStore.getState();
-  const container = state.containers[containerId] || state.containers.pan;
-
-  if (container) {
-    if (rawKey === 'mixture' || ingredientId === 'mixture') {
-      // Transfer items from prep/cutting containers to cooking container
-      for (const prepCId of ['bowl', 'board']) {
-        const prepContainer = worldStore.getState().containers[prepCId];
-        if (prepContainer && prepContainer.entityIds.length > 0) {
-          [...prepContainer.entityIds].forEach((id) => {
-            worldStore.getState().dispatch({
-              type: 'MOVE_ENTITY',
-              payload: {
-                entityId: id,
-                targetContainerId: containerId,
-              },
-            });
-          });
-        }
-      }
-
-      // Cook all ingredients in target cooking container
-      const currentContainerState = worldStore.getState().containers[containerId] || container;
-      currentContainerState.entityIds.forEach((id) => {
-        worldStore.getState().dispatch({
-          type: 'COOK_INGREDIENT',
-          payload: {
-            entityId: id,
-            cooking: cookingMethod,
-          },
-        });
-      });
-    } else if (ingredientId) {
-      let targetEntityId = container.entityIds.find((id) => {
-        const e = state.entities[id];
-        return e && getIngredientCatalogId(e) === ingredientId;
-      });
-
-      // If ingredient is on another container (e.g. board/bowl) but target is cooking container, transfer it
-      if (!targetEntityId) {
-        for (const sourceCId of ['board', 'bowl', 'sink']) {
-          const sourceContainer = state.containers[sourceCId];
-          const foundId = sourceContainer?.entityIds.find((id) => {
-            const e = state.entities[id];
-            return e && getIngredientCatalogId(e) === ingredientId;
-          });
-          if (foundId) {
-            worldStore.getState().dispatch({
-              type: 'MOVE_ENTITY',
-              payload: {
-                entityId: foundId,
-                targetContainerId: containerId,
-              },
-            });
-            targetEntityId = foundId;
-            break;
-          }
-        }
-      }
-
-      if (targetEntityId) {
-        worldStore.getState().dispatch({
-          type: 'COOK_INGREDIENT',
-          payload: {
-            entityId: targetEntityId,
-            cooking: cookingMethod,
-          },
-        });
-      }
-    }
-  }
-  await ctx.wait();
-}
-
-export async function handleFlipStep(
-  ctx: RecipeRunnerContext,
-  step: FlipStep
-): Promise<void> {
-  const targetContainer = step.target === 'mixture' ? 'pan' : step.target || 'pan';
-  const instructionText = step.instruction || (step as any).text;
-
-  if (instructionText) {
-    worldStore.getState().dispatch({
-      type: 'UPDATE_ENTITY_STATE',
-      payload: {
-        entityId: step.mascotId || ctx.mascotId,
-        changes: { speechMessage: instructionText },
-      },
-    });
-  }
-
-  moveTortillaTo(targetContainer, ctx.mascotId);
-  await ctx.wait();
-
-  flipTortilla(step.mascotId || ctx.mascotId);
-
-  // Update entities in target cooking container state to flipped
-  const state = worldStore.getState();
-  const panContainer = state.containers[targetContainer];
-  if (panContainer) {
-    panContainer.entityIds.forEach((entityId) => {
-      worldStore.getState().dispatch({
-        type: 'UPDATE_ENTITY_STATE',
-        payload: {
-          entityId,
-          changes: { isFlipped: true, status: 'flipped-tortilla' },
-        },
-      });
-    });
-  }
-
-  await ctx.wait();
-}
-</file>
-
 <file path="src/systems/recipeRunner/handlers/mixHandlers.ts">
 /**
  * FILE: src/systems/recipeRunner/handlers/mixHandlers.ts
@@ -1333,249 +1173,6 @@ export async function handleDropStep(
   dropIngredient(target, step.positionIndex, ctx.mascotId);
   await ctx.wait();
 }
-</file>
-
-<file path="src/systems/recipeRunner/handlers/prepHandlers.ts">
-/**
- * FILE: src/systems/recipeRunner/handlers/prepHandlers.ts
- *
- * PURPOSE:
- * Step handlers for ingredient preparation steps ('cut', 'prepare', 'peel', 'wash', 'rinse', 'drain').
- */
-
-import { worldStore } from '../../../store/worldStore';
-import { moveTortillaTo } from '../../mascotActions';
-import { getIngredientCatalogId } from '../../../engine/containerRules';
-import type { RecipeStep } from '../../../types/RecipeStep';
-import type { RecipeRunnerContext } from '../types';
-
-type PrepStep = Extract<
-  RecipeStep,
-  { action: 'cut' | 'prepare' | 'peel' | 'wash' | 'rinse' | 'drain' }
->;
-
-export async function handlePrepStep(
-  ctx: RecipeRunnerContext,
-  step: PrepStep,
-  workstationDefaultContainerId?: string
-): Promise<void> {
-  const rawKey = step.target || step.ingredient;
-  const ingredientId = ctx.resolveIngredientId(rawKey);
-  const prepStyle =
-    (step as any).preparation ||
-    (step as any).style ||
-    (step.action === 'peel' ? 'peeled' : step.action === 'wash' ? 'washed' : 'prepared');
-  const targetContainerId = step.containerId || workstationDefaultContainerId || ctx.defaultTargetId;
-
-  if (ingredientId && ingredientId !== 'mixture') {
-    await ctx.ensureIngredientInWorkspace(ingredientId, targetContainerId);
-  }
-
-  moveTortillaTo(targetContainerId, ctx.mascotId);
-  await ctx.wait();
-
-  const state = worldStore.getState();
-  let targetEntityId: string | undefined;
-
-  if (ingredientId) {
-    // Search workstation containers for the matching ingredient
-    for (const cId of [targetContainerId, 'board', 'bowl', 'pan', 'plate']) {
-      const container = state.containers[cId];
-      if (container) {
-        targetEntityId = container.entityIds.find((id) => {
-          const e = state.entities[id];
-          return e && getIngredientCatalogId(e) === ingredientId;
-        });
-        if (targetEntityId) break;
-      }
-    }
-  }
-
-  if (!targetEntityId) {
-    const mascot = state.entities[ctx.mascotId];
-    targetEntityId = mascot?.state?.holdingEntityId as string | undefined;
-  }
-
-  if (targetEntityId) {
-    worldStore.getState().dispatch({
-      type: 'PREPARE_INGREDIENT',
-      payload: {
-        entityId: targetEntityId,
-        preparation: prepStyle,
-      },
-    });
-  }
-  await ctx.wait();
-}
-</file>
-
-<file path="src/systems/recipeRunner/RecipeRunner.test.ts">
-/**
- * FILE: recipeRunner.test.ts
- *
- * PURPOSE:
- * Unit tests for the generic RecipeRunner step-based state machine.
- */
-
-import { beforeEach, describe, expect, it } from 'vitest';
-import { worldStore } from '../store/worldStore';
-import { RecipeRunner } from './recipeRunner';
-import { concebollaRecipe, clasicaRecipe } from '../data/catalog/recipes';
-import type { Recipe } from '../types/Recipe';
-import { clearActionLog, getActionLog } from '../store/middleware/actionLog';
-
-function seedTestWorld() {
-  worldStore.setState({
-    entities: {
-      chef: { id: 'chef', name: 'Chef Tortilla 🍳', type: 'mascot', state: { gazingAt: null } },
-      onion: { id: 'onion', ingredientId: 'onion', name: 'Onion', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-      potato: { id: 'potato', ingredientId: 'potato', name: 'Potato', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-      egg: { id: 'egg', ingredientId: 'egg', name: 'Egg', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-      oil: { id: 'oil', ingredientId: 'oil', name: 'Oil', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-      salt: { id: 'salt', ingredientId: 'salt', name: 'Salt', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-      pepper: { id: 'pepper', ingredientId: 'pepper', name: 'Pepper', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-    },
-    containers: {
-      despensa: {
-        id: 'despensa',
-        name: 'Despensa',
-        type: 'storage',
-        entityIds: ['onion', 'potato', 'egg', 'oil', 'salt', 'pepper'],
-        rules: { isImmutable: true },
-      },
-      sink: {
-        id: 'sink',
-        name: 'Sink',
-        type: 'sink',
-        entityIds: [],
-        rules: { maxCapacity: 10 },
-      },
-      board: {
-        id: 'board',
-        name: 'Board',
-        type: 'board',
-        entityIds: [],
-        rules: { maxCapacity: 10 },
-      },
-      bowl: {
-        id: 'bowl',
-        name: 'Bowl',
-        type: 'bowl',
-        entityIds: [],
-        rules: { maxCapacity: 10 },
-      },
-      pan: {
-        id: 'pan',
-        name: 'Pan',
-        type: 'pan',
-        entityIds: [],
-        rules: { maxCapacity: 5 },
-      },
-      plate: {
-        id: 'plate',
-        name: 'Plate',
-        type: 'plate',
-        entityIds: [],
-        rules: { maxCapacity: 5 },
-      },
-    },
-    dispatch: worldStore.getState().dispatch,
-  });
-}
-
-describe('RecipeRunner System', () => {
-  beforeEach(() => {
-    seedTestWorld();
-    clearActionLog();
-  });
-
-  it('runs a declarative recipe and populates target container', async () => {
-    const runner = new RecipeRunner({ mascotId: 'chef', defaultTargetId: 'board', delayMs: 5 });
-    await runner.runRecipe(concebollaRecipe);
-
-    const state = worldStore.getState();
-    expect(state.containers.board.entityIds.length).toBeGreaterThanOrEqual(1);
-
-    const actionNames = getActionLog().map((a) => a.action);
-    expect(actionNames).toContain('MASCOT_MOVE');
-    expect(actionNames).toContain('MASCOT_GRAB');
-    expect(actionNames).toContain('MASCOT_DROP');
-    expect(actionNames).toContain('MASCOT_FLIP');
-  });
-
-  it('mutates existing entity state for cut/prepare without creating new entity', async () => {
-    // Move onion to board first
-    const runner = new RecipeRunner({ mascotId: 'chef', defaultTargetId: 'board', delayMs: 5 });
-    await runner.runSteps([
-      { action: 'move', ingredient: 'onion', source: 'despensa', target: 'board' },
-      { action: 'cut', ingredient: 'onion', style: 'diced', containerId: 'board' },
-    ]);
-
-    const state = worldStore.getState();
-    const boardEntities = state.containers.board.entityIds.map((id) => state.entities[id]);
-    const dicedOnion = boardEntities.find((e) => e?.ingredientId === 'onion');
-
-    expect(dicedOnion).toBeDefined();
-    // Verify entity ID was retained (no recreation!)
-    expect(dicedOnion?.state?.preparation).toBe('diced');
-
-    const actionNames = getActionLog().map((a) => a.action);
-    expect(actionNames).toContain('PREPARE_INGREDIENT');
-  });
-
-  it('mutates existing entity state for cook step', async () => {
-    const runner = new RecipeRunner({ mascotId: 'chef', defaultTargetId: 'pan', delayMs: 5 });
-    await runner.runSteps([
-      { action: 'move', ingredient: 'potato', source: 'despensa', target: 'pan' },
-      { action: 'cook', ingredient: 'potato', method: 'fried', containerId: 'pan' },
-    ]);
-
-    const state = worldStore.getState();
-    const panEntities = state.containers.pan.entityIds.map((id) => state.entities[id]);
-    const friedPotato = panEntities.find((e) => e?.ingredientId === 'potato');
-
-    expect(friedPotato).toBeDefined();
-    expect(friedPotato?.state?.cooking).toBe('fried');
-
-    const actionNames = getActionLog().map((a) => a.action);
-    expect(actionNames).toContain('COOK_INGREDIENT');
-  });
-
-  it('handles speak, wait, and celebrate steps', async () => {
-    const customRecipe: Recipe = {
-      id: 'custom-test',
-      name: 'Custom Test Recipe',
-      ingredients: [],
-      steps: [
-        { action: 'speak', message: 'Cooking initialized!' },
-        { action: 'wait', durationMs: 10 },
-        { action: 'celebrate' },
-      ],
-    };
-
-    const runner = new RecipeRunner({ mascotId: 'chef', delayMs: 5 });
-    await runner.runRecipe(customRecipe);
-
-    const state = worldStore.getState();
-    expect(state.entities.chef.state?.speechMessage).toBe('Cooking initialized!');
-    // After celebrate step, clearTortillaGaze is called → gazingAt is null.
-    expect(state.entities.chef.state?.gazingAt).toBeNull();
-  });
-
-  it('executes clasicaRecipe dictionary steps and state transformations', async () => {
-    const runner = new RecipeRunner({ mascotId: 'chef', delayMs: 5 });
-    await runner.runRecipe(clasicaRecipe);
-
-    const state = worldStore.getState();
-    const plateEntities = state.containers.plate.entityIds.map((id) => state.entities[id]);
-    expect(plateEntities.length).toBeGreaterThan(0);
-
-    const actionNames = getActionLog().map((a) => a.action);
-    expect(actionNames).toContain('PREPARE_INGREDIENT');
-    expect(actionNames).toContain('COOK_INGREDIENT');
-    expect(actionNames).toContain('MASCOT_FLIP');
-  });
-});
 </file>
 
 <file path="src/systems/recipeRunner/RecipeRunner.ts">
@@ -6089,98 +5686,241 @@ $radius-lg: 16px;
 $radius-xl: 24px;
 </file>
 
-<file path="src/systems/recipeRunner/handlers/utilityHandlers.ts">
+<file path="src/systems/recipeRunner/handlers/cookHandlers.ts">
 /**
- * FILE: src/systems/recipeRunner/handlers/utilityHandlers.ts
+ * FILE: src/systems/recipeRunner/handlers/cookHandlers.ts
  *
  * PURPOSE:
- * Step handlers for utility, narrative, and completion steps ('serve', 'wait', 'instruction', 'speak', 'celebrate').
+ * Step handlers for cooking and thermal steps ('cook', 'flip').
  */
 
 import { worldStore } from '../../../store/worldStore';
-import { moveTortillaTo, flipTortilla, clearTortillaGaze } from '../../mascotActions';
+import { moveTortillaTo, flipTortilla } from '../../mascotActions';
+import { getIngredientCatalogId } from '../../../engine/containerRules';
 import type { RecipeStep } from '../../../types/RecipeStep';
 import type { RecipeRunnerContext } from '../types';
 
-type ServeStep = Extract<RecipeStep, { action: 'serve' }>;
-type WaitStep = Extract<RecipeStep, { action: 'wait' }>;
-type InstructionStep = Extract<RecipeStep, { action: 'instruction' }>;
-type SpeakStep = Extract<RecipeStep, { action: 'speak' }>;
-type CelebrateStep = Extract<RecipeStep, { action: 'celebrate' }>;
+type CookStep = Extract<RecipeStep, { action: 'cook' }>;
+type FlipStep = Extract<RecipeStep, { action: 'flip' }>;
 
-export async function handleServeStep(
+export async function handleCookStep(
   ctx: RecipeRunnerContext,
-  step: ServeStep,
+  step: CookStep,
   workstationDefaultContainerId?: string
 ): Promise<void> {
-  const targetContainerId = step.containerId || workstationDefaultContainerId || 'plate';
-  moveTortillaTo(targetContainerId, ctx.mascotId);
+  const rawKey = step.target || step.ingredient;
+  const ingredientId = ctx.resolveIngredientId(rawKey);
+  const cookingMethod = step.method || 'cooked';
+  const containerId = step.containerId || workstationDefaultContainerId || 'pan';
+
+  if (step.instruction) {
+    worldStore.getState().dispatch({
+      type: 'UPDATE_ENTITY_STATE',
+      payload: {
+        entityId: step.mascotId || ctx.mascotId,
+        changes: { speechMessage: step.instruction },
+      },
+    });
+  }
+
+  if (ingredientId && ingredientId !== 'mixture') {
+    await ctx.ensureIngredientInWorkspace(ingredientId, containerId);
+  }
+
+  moveTortillaTo(containerId, ctx.mascotId);
   await ctx.wait();
 
-  // Move all cooked/prepared items from pan, bowl, or board to plate
   const state = worldStore.getState();
-  for (const sourceCId of ['pan', 'bowl', 'board']) {
-    const container = state.containers[sourceCId];
-    if (container && container.entityIds.length > 0) {
-      [...container.entityIds].forEach((entityId) => {
+  const container = state.containers[containerId] || state.containers.pan;
+
+  if (container) {
+    if (rawKey === 'mixture' || ingredientId === 'mixture') {
+      // Transfer items from prep/cutting containers to cooking container
+      for (const prepCId of ['bowl', 'board']) {
+        const prepContainer = worldStore.getState().containers[prepCId];
+        if (prepContainer && prepContainer.entityIds.length > 0) {
+          [...prepContainer.entityIds].forEach((id) => {
+            worldStore.getState().dispatch({
+              type: 'MOVE_ENTITY',
+              payload: {
+                entityId: id,
+                targetContainerId: containerId,
+              },
+            });
+          });
+        }
+      }
+
+      // Cook all ingredients in target cooking container
+      const currentContainerState = worldStore.getState().containers[containerId] || container;
+      currentContainerState.entityIds.forEach((id) => {
         worldStore.getState().dispatch({
-          type: 'MOVE_ENTITY',
+          type: 'COOK_INGREDIENT',
           payload: {
-            entityId,
-            targetContainerId: targetContainerId,
+            entityId: id,
+            cooking: cookingMethod,
           },
         });
       });
+    } else if (ingredientId) {
+      let targetEntityId = container.entityIds.find((id) => {
+        const e = state.entities[id];
+        return e && getIngredientCatalogId(e) === ingredientId;
+      });
+
+      // If ingredient is on another container (e.g. board/bowl) but target is cooking container, transfer it
+      if (!targetEntityId) {
+        for (const sourceCId of ['board', 'bowl', 'sink']) {
+          const sourceContainer = state.containers[sourceCId];
+          const foundId = sourceContainer?.entityIds.find((id) => {
+            const e = state.entities[id];
+            return e && getIngredientCatalogId(e) === ingredientId;
+          });
+          if (foundId) {
+            worldStore.getState().dispatch({
+              type: 'MOVE_ENTITY',
+              payload: {
+                entityId: foundId,
+                targetContainerId: containerId,
+              },
+            });
+            targetEntityId = foundId;
+            break;
+          }
+        }
+      }
+
+      if (targetEntityId) {
+        worldStore.getState().dispatch({
+          type: 'COOK_INGREDIENT',
+          payload: {
+            entityId: targetEntityId,
+            cooking: cookingMethod,
+          },
+        });
+      }
     }
   }
   await ctx.wait();
 }
 
-export async function handleWaitStep(
+export async function handleFlipStep(
   ctx: RecipeRunnerContext,
-  step: WaitStep
+  step: FlipStep
 ): Promise<void> {
-  await ctx.wait(step.durationMs);
-}
+  const targetContainer = step.target === 'mixture' ? 'pan' : step.target || 'pan';
+  const instructionText = step.instruction;
 
-export async function handleInstructionStep(
-  ctx: RecipeRunnerContext,
-  step: InstructionStep
-): Promise<void> {
-  const text = step.text || (step as any).instruction;
-  if (text) {
+  if (instructionText) {
     worldStore.getState().dispatch({
       type: 'UPDATE_ENTITY_STATE',
       payload: {
         entityId: step.mascotId || ctx.mascotId,
-        changes: { speechMessage: text },
+        changes: { speechMessage: instructionText },
+      },
+    });
+  }
+
+  moveTortillaTo(targetContainer, ctx.mascotId);
+  await ctx.wait();
+
+  flipTortilla(step.mascotId || ctx.mascotId);
+
+  // Update entities in target cooking container state to flipped
+  const state = worldStore.getState();
+  const panContainer = state.containers[targetContainer];
+  if (panContainer) {
+    panContainer.entityIds.forEach((entityId) => {
+      worldStore.getState().dispatch({
+        type: 'UPDATE_ENTITY_STATE',
+        payload: {
+          entityId,
+          changes: { isFlipped: true, status: 'flipped-tortilla' },
+        },
+      });
+    });
+  }
+
+  await ctx.wait();
+}
+</file>
+
+<file path="src/systems/recipeRunner/handlers/prepHandlers.ts">
+/**
+ * FILE: src/systems/recipeRunner/handlers/prepHandlers.ts
+ *
+ * PURPOSE:
+ * Step handlers for ingredient preparation steps ('cut', 'prepare', 'peel', 'wash', 'rinse', 'drain').
+ */
+
+import { worldStore } from '../../../store/worldStore';
+import { moveTortillaTo } from '../../mascotActions';
+import { getIngredientCatalogId } from '../../../engine/containerRules';
+import type { RecipeStep } from '../../../types/RecipeStep';
+import type { RecipeRunnerContext } from '../types';
+
+type PrepStep = Extract<
+  RecipeStep,
+  { action: 'cut' | 'prepare' | 'peel' | 'wash' | 'rinse' | 'drain' }
+>;
+
+export async function handlePrepStep(
+  ctx: RecipeRunnerContext,
+  step: PrepStep,
+  workstationDefaultContainerId?: string
+): Promise<void> {
+  const rawKey = step.target || step.ingredient;
+  const ingredientId = ctx.resolveIngredientId(rawKey);
+  // 'preparation' and 'style' only exist on the prepare/cut/peel/wash variant,
+  // not on rinse/drain — narrow by checking action before accessing them.
+  const prepStyle = (() => {
+    if ('preparation' in step && step.preparation) return step.preparation;
+    if ('style' in step && step.style) return step.style;
+    if (step.action === 'peel') return 'peeled';
+    if (step.action === 'wash') return 'washed';
+    return 'prepared';
+  })();
+  const targetContainerId = step.containerId || workstationDefaultContainerId || ctx.defaultTargetId;
+
+  if (ingredientId && ingredientId !== 'mixture') {
+    await ctx.ensureIngredientInWorkspace(ingredientId, targetContainerId);
+  }
+
+  moveTortillaTo(targetContainerId, ctx.mascotId);
+  await ctx.wait();
+
+  const state = worldStore.getState();
+  let targetEntityId: string | undefined;
+
+  if (ingredientId) {
+    // Search workstation containers for the matching ingredient
+    for (const cId of [targetContainerId, 'board', 'bowl', 'pan', 'plate']) {
+      const container = state.containers[cId];
+      if (container) {
+        targetEntityId = container.entityIds.find((id) => {
+          const e = state.entities[id];
+          return e && getIngredientCatalogId(e) === ingredientId;
+        });
+        if (targetEntityId) break;
+      }
+    }
+  }
+
+  if (!targetEntityId) {
+    const mascot = state.entities[ctx.mascotId];
+    targetEntityId = mascot?.state?.holdingEntityId as string | undefined;
+  }
+
+  if (targetEntityId) {
+    worldStore.getState().dispatch({
+      type: 'PREPARE_INGREDIENT',
+      payload: {
+        entityId: targetEntityId,
+        preparation: prepStyle,
       },
     });
   }
   await ctx.wait();
-}
-
-export async function handleSpeakStep(
-  ctx: RecipeRunnerContext,
-  step: SpeakStep
-): Promise<void> {
-  worldStore.getState().dispatch({
-    type: 'UPDATE_ENTITY_STATE',
-    payload: {
-      entityId: step.mascotId || ctx.mascotId,
-      changes: { speechMessage: step.message },
-    },
-  });
-  await ctx.wait();
-}
-
-export async function handleCelebrateStep(
-  ctx: RecipeRunnerContext,
-  step: CelebrateStep
-): Promise<void> {
-  flipTortilla(step.mascotId || ctx.mascotId);
-  await ctx.wait(900);
-  clearTortillaGaze(step.mascotId || ctx.mascotId);
 }
 </file>
 
@@ -8461,6 +8201,101 @@ export const useGazeStore = create<GazeState>()(
 export { gazeEntityId };
 </file>
 
+<file path="src/systems/recipeRunner/handlers/utilityHandlers.ts">
+/**
+ * FILE: src/systems/recipeRunner/handlers/utilityHandlers.ts
+ *
+ * PURPOSE:
+ * Step handlers for utility, narrative, and completion steps ('serve', 'wait', 'instruction', 'speak', 'celebrate').
+ */
+
+import { worldStore } from '../../../store/worldStore';
+import { moveTortillaTo, flipTortilla, clearTortillaGaze } from '../../mascotActions';
+import type { RecipeStep } from '../../../types/RecipeStep';
+import type { RecipeRunnerContext } from '../types';
+
+type ServeStep = Extract<RecipeStep, { action: 'serve' }>;
+type WaitStep = Extract<RecipeStep, { action: 'wait' }>;
+type InstructionStep = Extract<RecipeStep, { action: 'instruction' }>;
+type SpeakStep = Extract<RecipeStep, { action: 'speak' }>;
+type CelebrateStep = Extract<RecipeStep, { action: 'celebrate' }>;
+
+export async function handleServeStep(
+  ctx: RecipeRunnerContext,
+  step: ServeStep,
+  workstationDefaultContainerId?: string
+): Promise<void> {
+  const targetContainerId = step.containerId || workstationDefaultContainerId || 'plate';
+  moveTortillaTo(targetContainerId, ctx.mascotId);
+  await ctx.wait();
+
+  // Move all cooked/prepared items from pan, bowl, or board to plate
+  const state = worldStore.getState();
+  for (const sourceCId of ['pan', 'bowl', 'board']) {
+    const container = state.containers[sourceCId];
+    if (container && container.entityIds.length > 0) {
+      [...container.entityIds].forEach((entityId) => {
+        worldStore.getState().dispatch({
+          type: 'MOVE_ENTITY',
+          payload: {
+            entityId,
+            targetContainerId: targetContainerId,
+          },
+        });
+      });
+    }
+  }
+  await ctx.wait();
+}
+
+export async function handleWaitStep(
+  ctx: RecipeRunnerContext,
+  step: WaitStep
+): Promise<void> {
+  await ctx.wait(step.durationMs);
+}
+
+export async function handleInstructionStep(
+  ctx: RecipeRunnerContext,
+  step: InstructionStep
+): Promise<void> {
+  const text = step.text || step.instruction;
+  if (text) {
+    worldStore.getState().dispatch({
+      type: 'UPDATE_ENTITY_STATE',
+      payload: {
+        entityId: step.mascotId || ctx.mascotId,
+        changes: { speechMessage: text },
+      },
+    });
+  }
+  await ctx.wait();
+}
+
+export async function handleSpeakStep(
+  ctx: RecipeRunnerContext,
+  step: SpeakStep
+): Promise<void> {
+  worldStore.getState().dispatch({
+    type: 'UPDATE_ENTITY_STATE',
+    payload: {
+      entityId: step.mascotId || ctx.mascotId,
+      changes: { speechMessage: step.message },
+    },
+  });
+  await ctx.wait();
+}
+
+export async function handleCelebrateStep(
+  ctx: RecipeRunnerContext,
+  step: CelebrateStep
+): Promise<void> {
+  flipTortilla(step.mascotId || ctx.mascotId);
+  await ctx.wait(900);
+  clearTortillaGaze(step.mascotId || ctx.mascotId);
+}
+</file>
+
 <file path="src/types/Ingredient.ts">
 /**
  * FILE: Ingredient.ts
@@ -9906,175 +9741,6 @@ export function moveEntity(
 }
 </file>
 
-<file path="src/systems/recipeRunner.test.ts">
-/**
- * FILE: recipeRunner.test.ts
- *
- * PURPOSE:
- * Unit tests for the generic RecipeRunner step-based state machine.
- */
-
-import { beforeEach, describe, expect, it } from 'vitest';
-import { worldStore } from '../store/worldStore';
-import { RecipeRunner } from './recipeRunner';
-import { concebollaRecipe, clasicaRecipe } from '../data/catalog/recipes';
-import type { Recipe } from '../types/Recipe';
-import { clearActionLog, getActionLog } from '../store/middleware/actionLog';
-
-function seedTestWorld() {
-  worldStore.setState({
-    entities: {
-      chef: { id: 'chef', name: 'Chef Tortilla 🍳', type: 'mascot', state: { gazingAt: null } },
-      onion: { id: 'onion', ingredientId: 'onion', name: 'Onion', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-      potato: { id: 'potato', ingredientId: 'potato', name: 'Potato', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-      egg: { id: 'egg', ingredientId: 'egg', name: 'Egg', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-      oil: { id: 'oil', ingredientId: 'oil', name: 'Oil', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-      salt: { id: 'salt', ingredientId: 'salt', name: 'Salt', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-      pepper: { id: 'pepper', ingredientId: 'pepper', name: 'Pepper', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-    },
-    containers: {
-      despensa: {
-        id: 'despensa',
-        name: 'Despensa',
-        type: 'storage',
-        entityIds: ['onion', 'potato', 'egg', 'oil', 'salt', 'pepper'],
-        rules: { isImmutable: true },
-      },
-      sink: {
-        id: 'sink',
-        name: 'Sink',
-        type: 'sink',
-        entityIds: [],
-        rules: { maxCapacity: 10 },
-      },
-      board: {
-        id: 'board',
-        name: 'Board',
-        type: 'board',
-        entityIds: [],
-        rules: { maxCapacity: 10 },
-      },
-      bowl: {
-        id: 'bowl',
-        name: 'Bowl',
-        type: 'bowl',
-        entityIds: [],
-        rules: { maxCapacity: 10 },
-      },
-      pan: {
-        id: 'pan',
-        name: 'Pan',
-        type: 'pan',
-        entityIds: [],
-        rules: { maxCapacity: 5 },
-      },
-      plate: {
-        id: 'plate',
-        name: 'Plate',
-        type: 'plate',
-        entityIds: [],
-        rules: { maxCapacity: 5 },
-      },
-    },
-    dispatch: worldStore.getState().dispatch,
-  });
-}
-
-describe('RecipeRunner System', () => {
-  beforeEach(() => {
-    seedTestWorld();
-    clearActionLog();
-  });
-
-  it('runs a declarative recipe and populates target container', async () => {
-    const runner = new RecipeRunner({ mascotId: 'chef', defaultTargetId: 'board', delayMs: 5 });
-    await runner.runRecipe(concebollaRecipe);
-
-    const state = worldStore.getState();
-    expect(state.containers.board.entityIds.length).toBeGreaterThanOrEqual(1);
-
-    const actionNames = getActionLog().map((a) => a.action);
-    expect(actionNames).toContain('MASCOT_MOVE');
-    expect(actionNames).toContain('MASCOT_GRAB');
-    expect(actionNames).toContain('MASCOT_DROP');
-    expect(actionNames).toContain('MASCOT_FLIP');
-  });
-
-  it('mutates existing entity state for cut/prepare without creating new entity', async () => {
-    // Move onion to board first
-    const runner = new RecipeRunner({ mascotId: 'chef', defaultTargetId: 'board', delayMs: 5 });
-    await runner.runSteps([
-      { action: 'move', ingredient: 'onion', source: 'despensa', target: 'board' },
-      { action: 'cut', ingredient: 'onion', style: 'diced', containerId: 'board' },
-    ]);
-
-    const state = worldStore.getState();
-    const boardEntities = state.containers.board.entityIds.map((id) => state.entities[id]);
-    const dicedOnion = boardEntities.find((e) => e?.ingredientId === 'onion');
-
-    expect(dicedOnion).toBeDefined();
-    // Verify entity ID was retained (no recreation!)
-    expect(dicedOnion?.state?.preparation).toBe('diced');
-
-    const actionNames = getActionLog().map((a) => a.action);
-    expect(actionNames).toContain('PREPARE_INGREDIENT');
-  });
-
-  it('mutates existing entity state for cook step', async () => {
-    const runner = new RecipeRunner({ mascotId: 'chef', defaultTargetId: 'pan', delayMs: 5 });
-    await runner.runSteps([
-      { action: 'move', ingredient: 'potato', source: 'despensa', target: 'pan' },
-      { action: 'cook', ingredient: 'potato', method: 'fried', containerId: 'pan' },
-    ]);
-
-    const state = worldStore.getState();
-    const panEntities = state.containers.pan.entityIds.map((id) => state.entities[id]);
-    const friedPotato = panEntities.find((e) => e?.ingredientId === 'potato');
-
-    expect(friedPotato).toBeDefined();
-    expect(friedPotato?.state?.cooking).toBe('fried');
-
-    const actionNames = getActionLog().map((a) => a.action);
-    expect(actionNames).toContain('COOK_INGREDIENT');
-  });
-
-  it('handles speak, wait, and celebrate steps', async () => {
-    const customRecipe: Recipe = {
-      id: 'custom-test',
-      name: 'Custom Test Recipe',
-      ingredients: [],
-      steps: [
-        { action: 'speak', message: 'Cooking initialized!' },
-        { action: 'wait', durationMs: 10 },
-        { action: 'celebrate' },
-      ],
-    };
-
-    const runner = new RecipeRunner({ mascotId: 'chef', delayMs: 5 });
-    await runner.runRecipe(customRecipe);
-
-    const state = worldStore.getState();
-    expect(state.entities.chef.state?.speechMessage).toBe('Cooking initialized!');
-    // After celebrate step, clearTortillaGaze is called → gazingAt is null.
-    expect(state.entities.chef.state?.gazingAt).toBeNull();
-  });
-
-  it('executes clasicaRecipe dictionary steps and state transformations', async () => {
-    const runner = new RecipeRunner({ mascotId: 'chef', delayMs: 5 });
-    await runner.runRecipe(clasicaRecipe);
-
-    const state = worldStore.getState();
-    const plateEntities = state.containers.plate.entityIds.map((id) => state.entities[id]);
-    expect(plateEntities.length).toBeGreaterThan(0);
-
-    const actionNames = getActionLog().map((a) => a.action);
-    expect(actionNames).toContain('PREPARE_INGREDIENT');
-    expect(actionNames).toContain('COOK_INGREDIENT');
-    expect(actionNames).toContain('MASCOT_FLIP');
-  });
-});
-</file>
-
 <file path="src/systems/recipeRunner.ts">
 /**
  * FILE: src/systems/recipeRunner.ts
@@ -10185,32 +9851,60 @@ describe('Gaze System', () => {
 });
 </file>
 
-<file path="src/systems/mascotActions.test.ts">
-import { describe, it, expect, beforeEach } from 'vitest';
-import { worldStore } from '../store/worldStore';
-import { clearActionLog, getActionLog } from '../store/middleware/actionLog';
-import {
-  flipTortilla,
-  moveTortillaTo,
-  grabIngredient,
-  dropIngredient,
-  runTortillaPotatoScript,
-  runFollowRecipeScript,
-} from './mascotActions';
+<file path="src/systems/recipeRunner.test.ts">
+/**
+ * FILE: recipeRunner.test.ts
+ *
+ * PURPOSE:
+ * Unit tests for the generic RecipeRunner step-based state machine.
+ */
 
-function seedWorld() {
+import { beforeEach, describe, expect, it } from 'vitest';
+import { worldStore } from '../store/worldStore';
+import { RecipeRunner } from './recipeRunner';
+import { concebollaRecipe, clasicaRecipe } from '../data/catalog/recipes';
+import type { Recipe } from '../types/Recipe';
+import { clearActionLog, getActionLog } from '../store/middleware/actionLog';
+
+function seedTestWorld() {
   worldStore.setState({
     entities: {
-      potato: { id: 'potato', ingredientId: 'potato', name: 'Potato', type: 'ingredient' },
-      chef: { id: 'chef', name: 'Chef Tortilla 🍳', type: 'mascot', state: {} },
+      chef: { id: 'chef', name: 'Chef Tortilla 🍳', type: 'mascot', state: { gazingAt: null } },
+      onion: { id: 'onion', ingredientId: 'onion', name: 'Onion', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+      potato: { id: 'potato', ingredientId: 'potato', name: 'Potato', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+      egg: { id: 'egg', ingredientId: 'egg', name: 'Egg', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+      oil: { id: 'oil', ingredientId: 'oil', name: 'Oil', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+      salt: { id: 'salt', ingredientId: 'salt', name: 'Salt', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+      pepper: { id: 'pepper', ingredientId: 'pepper', name: 'Pepper', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
     },
     containers: {
       despensa: {
         id: 'despensa',
         name: 'Despensa',
         type: 'storage',
-        entityIds: ['potato'],
+        entityIds: ['onion', 'potato', 'egg', 'oil', 'salt', 'pepper'],
         rules: { isImmutable: true },
+      },
+      sink: {
+        id: 'sink',
+        name: 'Sink',
+        type: 'sink',
+        entityIds: [],
+        rules: { maxCapacity: 10 },
+      },
+      board: {
+        id: 'board',
+        name: 'Board',
+        type: 'board',
+        entityIds: [],
+        rules: { maxCapacity: 10 },
+      },
+      bowl: {
+        id: 'bowl',
+        name: 'Bowl',
+        type: 'bowl',
+        entityIds: [],
+        rules: { maxCapacity: 10 },
       },
       pan: {
         id: 'pan',
@@ -10219,158 +9913,110 @@ function seedWorld() {
         entityIds: [],
         rules: { maxCapacity: 5 },
       },
-      board: {
-        id: 'board',
-        name: 'Board',
-        type: 'board',
+      plate: {
+        id: 'plate',
+        name: 'Plate',
+        type: 'plate',
         entityIds: [],
-        rules: { maxCapacity: 3 },
+        rules: { maxCapacity: 5 },
       },
     },
+    dispatch: worldStore.getState().dispatch,
   });
 }
 
-describe('mascotActions system', () => {
+describe('RecipeRunner System', () => {
   beforeEach(() => {
-    seedWorld();
+    seedTestWorld();
     clearActionLog();
   });
 
-  it('triggers flip action and logs in store action log', () => {
-    flipTortilla('chef');
+  it('runs a declarative recipe and populates target container', async () => {
+    const runner = new RecipeRunner({ mascotId: 'chef', defaultTargetId: 'board', delayMs: 5 });
+    await runner.runRecipe(concebollaRecipe);
 
     const state = worldStore.getState();
-    expect(state.entities.chef.state?.state).toBe('flipping');
-    expect(state.entities.chef.state?.isFlipping).toBe(true);
+    // New concebolla format uses a serve step that collects everything onto the plate
+    expect(state.containers.plate.entityIds.length).toBeGreaterThanOrEqual(1);
 
-    const log = getActionLog();
-    expect(log.map((l) => l.action)).toContain('MASCOT_FLIP');
+    const actionNames = getActionLog().map((a) => a.action);
+    expect(actionNames).toContain('MASCOT_MOVE');
+    expect(actionNames).toContain('MASCOT_GRAB');
+    expect(actionNames).toContain('MASCOT_DROP');
+    expect(actionNames).toContain('MASCOT_FLIP');
   });
 
-  it('moves Tortilla gaze to a specified container', () => {
-    moveTortillaTo('pan', 'chef');
-
-    const state = worldStore.getState();
-    expect(state.entities.chef.state?.gazingAt).toEqual({ type: 'entity', entityId: 'pan' });
-
-    const log = getActionLog();
-    expect(log.map((l) => l.action)).toContain('MASCOT_MOVE');
-  });
-
-  it('allows Tortilla to grab an ingredient from a container', () => {
-    grabIngredient('potato', 'despensa', 'chef');
-
-    const state = worldStore.getState();
-    expect(state.entities.chef.state?.holdingEntityId).toBe('potato');
-    expect(state.entities.chef.state?.sourceContainerId).toBe('despensa');
-
-    const log = getActionLog();
-    expect(log.map((l) => l.action)).toContain('MASCOT_GRAB');
-  });
-
-  it('allows Tortilla to drop held ingredient into a target container obeying container rules', () => {
-    // First grab potato from immutable despensa
-    grabIngredient('potato', 'despensa', 'chef');
-
-    // Then drop into pan
-    dropIngredient('pan', undefined, 'chef');
-
-    const state = worldStore.getState();
-    // Held item cleared
-    expect(state.entities.chef.state?.holdingEntityId).toBeUndefined();
-    // Pan now has a potato copy (because source was immutable despensa)
-    expect(state.containers.pan.entityIds.length).toBe(1);
-
-    const log = getActionLog();
-    const actions = log.map((l) => l.action);
-    expect(actions).toContain('MASCOT_GRAB');
-    expect(actions).toContain('MASCOT_DROP');
-  });
-
-  it('clears holdingEntityId when drop is possible and retains it when drop is blocked', () => {
-    // 1. Fill board to capacity (maxCapacity = 3)
-    worldStore.setState({
-      ...worldStore.getState(),
-      entities: {
-        ...worldStore.getState().entities,
-        i1: { id: 'i1', ingredientId: 'i1', name: 'I1', type: 'ingredient' },
-        i2: { id: 'i2', ingredientId: 'i2', name: 'I2', type: 'ingredient' },
-        i3: { id: 'i3', ingredientId: 'i3', name: 'I3', type: 'ingredient' },
-      },
-      containers: {
-        ...worldStore.getState().containers,
-        board: {
-          id: 'board',
-          name: 'Board',
-          type: 'board',
-          entityIds: ['i1', 'i2', 'i3'],
-          rules: { maxCapacity: 3 },
-        },
-      },
-    });
-
-    // 2. Grab potato from despensa
-    grabIngredient('potato', 'despensa', 'chef');
-    expect(worldStore.getState().entities.chef.state?.holdingEntityId).toBe('potato');
-
-    // 3. Attempt to drop into full board -> should be blocked and Tortilla continues grabbing/holding it
-    dropIngredient('board', undefined, 'chef');
-    expect(worldStore.getState().entities.chef.state?.holdingEntityId).toBe('potato');
-    expect(worldStore.getState().containers.board.entityIds).toEqual(['i1', 'i2', 'i3']);
-
-    // 4. Drop into non-full pan -> allowed, Tortilla stops grabbing it (holdingEntityId cleared)
-    dropIngredient('pan', undefined, 'chef');
-    expect(worldStore.getState().entities.chef.state?.holdingEntityId).toBeUndefined();
-    expect(worldStore.getState().containers.pan.entityIds.length).toBe(1);
-  });
-
-  it('runs full async script sequence: move ➔ grab ➔ move ➔ drop ➔ flip ➔ return home', async () => {
-    await runTortillaPotatoScript('chef', 10);
-
-    const state = worldStore.getState();
-    expect(state.containers.board.entityIds.length).toBe(1);
-
-    const log = getActionLog().map((l) => l.action).filter((a) => a !== 'RESET_MASCOT_FLIP');
-    expect(log).toEqual([
-      'MASCOT_MOVE',
-      'MASCOT_GRAB',
-      'MASCOT_MOVE',
-      'MASCOT_DROP',
-      'MASCOT_FLIP',
-      'MASCOT_CLEAR_GAZE', // "return home" now dispatches MASCOT_CLEAR_GAZE, not MASCOT_MOVE('')
+  it('mutates existing entity state for cut/prepare without creating new entity', async () => {
+    // Move onion to board first
+    const runner = new RecipeRunner({ mascotId: 'chef', defaultTargetId: 'board', delayMs: 5 });
+    await runner.runSteps([
+      { action: 'move', ingredient: 'onion', source: 'despensa', target: 'board' },
+      { action: 'cut', ingredient: 'onion', style: 'diced', containerId: 'board' },
     ]);
-  });
-
-  it('runs follow recipe script: brings all recipe ingredients to table one by one', async () => {
-    // Seed default entities for all recipe ingredients
-    worldStore.setState({
-      ...worldStore.getState(),
-      entities: {
-        ...worldStore.getState().entities,
-        potato: { id: 'potato', ingredientId: 'potato', name: 'Potato', type: 'ingredient' },
-        egg: { id: 'egg', ingredientId: 'egg', name: 'Egg', type: 'ingredient' },
-        oil: { id: 'oil', ingredientId: 'oil', name: 'Oil', type: 'ingredient' },
-        onion: { id: 'onion', ingredientId: 'onion', name: 'Onion', type: 'ingredient' },
-        salt: { id: 'salt', ingredientId: 'salt', name: 'Salt', type: 'ingredient' },
-        pepper: { id: 'pepper', ingredientId: 'pepper', name: 'Pepper', type: 'ingredient' },
-      },
-      containers: {
-        ...worldStore.getState().containers,
-        board: {
-          id: 'board',
-          name: 'Board',
-          type: 'board',
-          entityIds: [],
-          rules: { maxCapacity: 10 },
-        },
-      },
-    });
-
-    await runFollowRecipeScript('concebolla', 'chef', 'board', 5);
 
     const state = worldStore.getState();
-    // All 6 ingredients from concebolla recipe should now be on board
-    expect(state.containers.board.entityIds.length).toBe(6);
+    const boardEntities = state.containers.board.entityIds.map((id) => state.entities[id]);
+    const dicedOnion = boardEntities.find((e) => e?.ingredientId === 'onion');
+
+    expect(dicedOnion).toBeDefined();
+    // Verify entity ID was retained (no recreation!)
+    expect(dicedOnion?.state?.preparation).toBe('diced');
+
+    const actionNames = getActionLog().map((a) => a.action);
+    expect(actionNames).toContain('PREPARE_INGREDIENT');
+  });
+
+  it('mutates existing entity state for cook step', async () => {
+    const runner = new RecipeRunner({ mascotId: 'chef', defaultTargetId: 'pan', delayMs: 5 });
+    await runner.runSteps([
+      { action: 'move', ingredient: 'potato', source: 'despensa', target: 'pan' },
+      { action: 'cook', ingredient: 'potato', method: 'fried', containerId: 'pan' },
+    ]);
+
+    const state = worldStore.getState();
+    const panEntities = state.containers.pan.entityIds.map((id) => state.entities[id]);
+    const friedPotato = panEntities.find((e) => e?.ingredientId === 'potato');
+
+    expect(friedPotato).toBeDefined();
+    expect(friedPotato?.state?.cooking).toBe('fried');
+
+    const actionNames = getActionLog().map((a) => a.action);
+    expect(actionNames).toContain('COOK_INGREDIENT');
+  });
+
+  it('handles speak, wait, and celebrate steps', async () => {
+    const customRecipe: Recipe = {
+      id: 'custom-test',
+      name: 'Custom Test Recipe',
+      ingredients: [],
+      steps: [
+        { action: 'speak', message: 'Cooking initialized!' },
+        { action: 'wait', durationMs: 10 },
+        { action: 'celebrate' },
+      ],
+    };
+
+    const runner = new RecipeRunner({ mascotId: 'chef', delayMs: 5 });
+    await runner.runRecipe(customRecipe);
+
+    const state = worldStore.getState();
+    expect(state.entities.chef.state?.speechMessage).toBe('Cooking initialized!');
+    // After celebrate step, clearTortillaGaze is called → gazingAt is null.
+    expect(state.entities.chef.state?.gazingAt).toBeNull();
+  });
+
+  it('executes clasicaRecipe dictionary steps and state transformations', async () => {
+    const runner = new RecipeRunner({ mascotId: 'chef', delayMs: 5 });
+    await runner.runRecipe(clasicaRecipe);
+
+    const state = worldStore.getState();
+    const plateEntities = state.containers.plate.entityIds.map((id) => state.entities[id]);
+    expect(plateEntities.length).toBeGreaterThan(0);
+
+    const actionNames = getActionLog().map((a) => a.action);
+    expect(actionNames).toContain('PREPARE_INGREDIENT');
+    expect(actionNames).toContain('COOK_INGREDIENT');
+    expect(actionNames).toContain('MASCOT_FLIP');
   });
 });
 </file>
@@ -11258,6 +10904,205 @@ export function subscribeToGaze(
 }
 </file>
 
+<file path="src/systems/mascotActions.test.ts">
+import { describe, it, expect, beforeEach } from 'vitest';
+import { worldStore } from '../store/worldStore';
+import { clearActionLog, getActionLog } from '../store/middleware/actionLog';
+import {
+  flipTortilla,
+  moveTortillaTo,
+  grabIngredient,
+  dropIngredient,
+  runTortillaPotatoScript,
+  runFollowRecipeScript,
+} from './mascotActions';
+
+function seedWorld() {
+  worldStore.setState({
+    entities: {
+      potato: { id: 'potato', ingredientId: 'potato', name: 'Potato', type: 'ingredient' },
+      chef: { id: 'chef', name: 'Chef Tortilla 🍳', type: 'mascot', state: {} },
+    },
+    containers: {
+      despensa: {
+        id: 'despensa',
+        name: 'Despensa',
+        type: 'storage',
+        entityIds: ['potato'],
+        rules: { isImmutable: true },
+      },
+      pan: {
+        id: 'pan',
+        name: 'Pan',
+        type: 'pan',
+        entityIds: [],
+        rules: { maxCapacity: 5 },
+      },
+      board: {
+        id: 'board',
+        name: 'Board',
+        type: 'board',
+        entityIds: [],
+        rules: { maxCapacity: 3 },
+      },
+    },
+  });
+}
+
+describe('mascotActions system', () => {
+  beforeEach(() => {
+    seedWorld();
+    clearActionLog();
+  });
+
+  it('triggers flip action and logs in store action log', () => {
+    flipTortilla('chef');
+
+    const state = worldStore.getState();
+    expect(state.entities.chef.state?.state).toBe('flipping');
+    expect(state.entities.chef.state?.isFlipping).toBe(true);
+
+    const log = getActionLog();
+    expect(log.map((l) => l.action)).toContain('MASCOT_FLIP');
+  });
+
+  it('moves Tortilla gaze to a specified container', () => {
+    moveTortillaTo('pan', 'chef');
+
+    const state = worldStore.getState();
+    expect(state.entities.chef.state?.gazingAt).toEqual({ type: 'entity', entityId: 'pan' });
+
+    const log = getActionLog();
+    expect(log.map((l) => l.action)).toContain('MASCOT_MOVE');
+  });
+
+  it('allows Tortilla to grab an ingredient from a container', () => {
+    grabIngredient('potato', 'despensa', 'chef');
+
+    const state = worldStore.getState();
+    expect(state.entities.chef.state?.holdingEntityId).toBe('potato');
+    expect(state.entities.chef.state?.sourceContainerId).toBe('despensa');
+
+    const log = getActionLog();
+    expect(log.map((l) => l.action)).toContain('MASCOT_GRAB');
+  });
+
+  it('allows Tortilla to drop held ingredient into a target container obeying container rules', () => {
+    // First grab potato from immutable despensa
+    grabIngredient('potato', 'despensa', 'chef');
+
+    // Then drop into pan
+    dropIngredient('pan', undefined, 'chef');
+
+    const state = worldStore.getState();
+    // Held item cleared
+    expect(state.entities.chef.state?.holdingEntityId).toBeUndefined();
+    // Pan now has a potato copy (because source was immutable despensa)
+    expect(state.containers.pan.entityIds.length).toBe(1);
+
+    const log = getActionLog();
+    const actions = log.map((l) => l.action);
+    expect(actions).toContain('MASCOT_GRAB');
+    expect(actions).toContain('MASCOT_DROP');
+  });
+
+  it('clears holdingEntityId when drop is possible and retains it when drop is blocked', () => {
+    // 1. Fill board to capacity (maxCapacity = 3)
+    worldStore.setState({
+      ...worldStore.getState(),
+      entities: {
+        ...worldStore.getState().entities,
+        i1: { id: 'i1', ingredientId: 'i1', name: 'I1', type: 'ingredient' },
+        i2: { id: 'i2', ingredientId: 'i2', name: 'I2', type: 'ingredient' },
+        i3: { id: 'i3', ingredientId: 'i3', name: 'I3', type: 'ingredient' },
+      },
+      containers: {
+        ...worldStore.getState().containers,
+        board: {
+          id: 'board',
+          name: 'Board',
+          type: 'board',
+          entityIds: ['i1', 'i2', 'i3'],
+          rules: { maxCapacity: 3 },
+        },
+      },
+    });
+
+    // 2. Grab potato from despensa
+    grabIngredient('potato', 'despensa', 'chef');
+    expect(worldStore.getState().entities.chef.state?.holdingEntityId).toBe('potato');
+
+    // 3. Attempt to drop into full board -> should be blocked and Tortilla continues grabbing/holding it
+    dropIngredient('board', undefined, 'chef');
+    expect(worldStore.getState().entities.chef.state?.holdingEntityId).toBe('potato');
+    expect(worldStore.getState().containers.board.entityIds).toEqual(['i1', 'i2', 'i3']);
+
+    // 4. Drop into non-full pan -> allowed, Tortilla stops grabbing it (holdingEntityId cleared)
+    dropIngredient('pan', undefined, 'chef');
+    expect(worldStore.getState().entities.chef.state?.holdingEntityId).toBeUndefined();
+    expect(worldStore.getState().containers.pan.entityIds.length).toBe(1);
+  });
+
+  it('runs full async script sequence: move ➔ grab ➔ move ➔ drop ➔ flip ➔ return home', async () => {
+    await runTortillaPotatoScript('chef', 10);
+
+    const state = worldStore.getState();
+    expect(state.containers.board.entityIds.length).toBe(1);
+
+    const log = getActionLog().map((l) => l.action).filter((a) => a !== 'RESET_MASCOT_FLIP');
+    expect(log).toEqual([
+      'MASCOT_MOVE',
+      'MASCOT_GRAB',
+      'MASCOT_MOVE',
+      'MASCOT_DROP',
+      'MASCOT_FLIP',
+      'MASCOT_CLEAR_GAZE', // "return home" now dispatches MASCOT_CLEAR_GAZE, not MASCOT_MOVE('')
+    ]);
+  });
+
+  it('runs follow recipe script: processes all recipe ingredients through workstations', async () => {
+    // Seed default entities for all recipe ingredients
+    worldStore.setState({
+      ...worldStore.getState(),
+      entities: {
+        ...worldStore.getState().entities,
+        potato: { id: 'potato', ingredientId: 'potato', name: 'Potato', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+        egg: { id: 'egg', ingredientId: 'egg', name: 'Egg', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+        oil: { id: 'oil', ingredientId: 'oil', name: 'Oil', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+        onion: { id: 'onion', ingredientId: 'onion', name: 'Onion', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+        salt: { id: 'salt', ingredientId: 'salt', name: 'Salt', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+        pepper: { id: 'pepper', ingredientId: 'pepper', name: 'Pepper', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+      },
+      containers: {
+        ...worldStore.getState().containers,
+        board: { id: 'board', name: 'Board', type: 'board', entityIds: [], rules: { maxCapacity: 10 } },
+        sink: { id: 'sink', name: 'Sink', type: 'sink', entityIds: [], rules: { maxCapacity: 10 } },
+        bowl: { id: 'bowl', name: 'Bowl', type: 'bowl', entityIds: [], rules: { maxCapacity: 10 } },
+        pan: { id: 'pan', name: 'Pan', type: 'pan', entityIds: [], rules: { maxCapacity: 10 } },
+        plate: { id: 'plate', name: 'Plate', type: 'plate', entityIds: [], rules: { maxCapacity: 10 } },
+      },
+    });
+
+    await runFollowRecipeScript('concebolla', 'chef', 'board', 5);
+
+    const state = worldStore.getState();
+    // New concebolla routes ingredients through workstations and serves them on the plate
+    expect(state.containers.plate.entityIds.length).toBeGreaterThanOrEqual(1);
+
+    // All 6 ingredient catalog IDs should be accounted for somewhere in the kitchen
+    const ingredientIds = ['potato', 'onion', 'egg', 'oil', 'salt', 'pepper'];
+    const allEntityIds = Object.values(state.containers).flatMap((c) => c.entityIds);
+    const allIngredientCatalogIds = allEntityIds.map((id) => {
+      const e = state.entities[id];
+      return e?.ingredientId || e?.id;
+    });
+    ingredientIds.forEach((id) => {
+      expect(allIngredientCatalogIds.some((cid) => cid === id)).toBe(true);
+    });
+  });
+});
+</file>
+
 <file path="src/systems/mascotActions.ts">
 /**
  * FILE: mascotActions.ts
@@ -11453,105 +11298,6 @@ describe('Query System', () => {
 });
 </file>
 
-<file path="src/types/actions.ts">
-/**
- * FILE: actions.ts
- *
- * PURPOSE:
- * Defines world actions/events.
- *
- * RESPONSIBILITY:
- * - Creates the communication contract between systems and store.
- */
-
-import type { EntityType } from './world';
-import type { PreparationStyle, CookingMethod } from './RecipeStep';
-
-export type WorldAction =
-  | {
-      type: 'MOVE_ENTITY';
-      payload: {
-        entityId: string;
-        targetContainerId: string;
-        positionIndex?: number;
-      };
-    }
-  | {
-      type: 'ADD_ENTITY';
-      payload: {
-        entity: {
-          id: string;
-          name: string;
-          type: EntityType;
-          state?: Record<string, unknown>;
-        };
-        containerId: string;
-      };
-    }
-  | {
-      type: 'REMOVE_ENTITY';
-      payload: {
-        entityId: string;
-      };
-    }
-  | {
-      type: 'UPDATE_ENTITY_STATE';
-      payload: {
-        entityId: string;
-        changes: Record<string, unknown>;
-      };
-    }
-  | {
-      type: 'PREPARE_INGREDIENT';
-      payload: {
-        entityId: string;
-        preparation: PreparationStyle;
-      };
-    }
-  | {
-      type: 'COOK_INGREDIENT';
-      payload: {
-        entityId: string;
-        cooking: CookingMethod;
-      };
-    }
-  | {
-      type: 'MASCOT_FLIP';
-      payload: {
-        mascotId?: string;
-      };
-    }
-  | {
-      type: 'MASCOT_MOVE';
-      payload: {
-        mascotId?: string;
-        targetContainerId: string;
-      };
-    }
-  | {
-      type: 'MASCOT_GRAB';
-      payload: {
-        mascotId?: string;
-        entityId: string;
-        sourceContainerId?: string;
-      };
-    }
-  | {
-      type: 'MASCOT_DROP';
-      payload: {
-        mascotId?: string;
-        targetContainerId: string;
-        positionIndex?: number;
-      };
-    }
-  | {
-      type: 'MASCOT_CLEAR_GAZE';
-      payload: {
-        mascotId?: string;
-      };
-    };
-</file>
-
 <file path="src/components/Recipe/RecipePanel.tsx">
 /**
  * FILE: RecipePanel.tsx
@@ -11740,6 +11486,109 @@ export const getEntitiesInContainer = (state: WorldState, containerId: string): 
     .map((id) => state.entities[id])
     .filter((entity): entity is Entity => entity !== undefined);
 };
+</file>
+
+<file path="src/types/actions.ts">
+/**
+ * FILE: actions.ts
+ *
+ * PURPOSE:
+ * Defines world actions/events.
+ *
+ * RESPONSIBILITY:
+ * - Creates the communication contract between systems and store.
+ */
+
+import type { EntityType } from './world';
+import type { PreparationStyle, CookingMethod } from './RecipeStep';
+
+export type WorldAction =
+  | {
+      type: 'MOVE_ENTITY';
+      payload: {
+        entityId: string;
+        targetContainerId: string;
+        positionIndex?: number;
+      };
+    }
+  | {
+      type: 'ADD_ENTITY';
+      payload: {
+        entity: {
+          id: string;
+          name: string;
+          type: EntityType;
+          state?: Record<string, unknown>;
+        };
+        containerId: string;
+      };
+    }
+  | {
+      type: 'REMOVE_ENTITY';
+      payload: {
+        entityId: string;
+      };
+    }
+  | {
+      type: 'UPDATE_ENTITY_STATE';
+      payload: {
+        entityId: string;
+        changes: Record<string, unknown>;
+      };
+    }
+  | {
+      type: 'PREPARE_INGREDIENT';
+      payload: {
+        entityId: string;
+        preparation: PreparationStyle;
+      };
+    }
+  | {
+      type: 'COOK_INGREDIENT';
+      payload: {
+        entityId: string;
+        cooking: CookingMethod;
+      };
+    }
+  | {
+      type: 'MASCOT_FLIP';
+      payload: {
+        mascotId?: string;
+      };
+    }
+  | {
+      type: 'MASCOT_MOVE';
+      payload: {
+        mascotId?: string;
+        targetContainerId: string;
+      };
+    }
+  | {
+      type: 'MASCOT_GRAB';
+      payload: {
+        mascotId?: string;
+        entityId: string;
+        sourceContainerId?: string;
+      };
+    }
+  | {
+      type: 'MASCOT_DROP';
+      payload: {
+        mascotId?: string;
+        targetContainerId: string;
+        positionIndex?: number;
+      };
+    }
+  | {
+      type: 'MASCOT_CLEAR_GAZE';
+      payload: {
+        mascotId?: string;
+      };
+    }
+  | {
+      type: 'RESET_WORLD';
+      payload?: Record<string, never>;
+    };
 </file>
 
 <file path="docs/decisions.md">
@@ -13867,6 +13716,10 @@ export const worldStore = createStore<WorldStateStore>()(
 
             case 'MASCOT_CLEAR_GAZE':
               store.mascotClearGaze(action.payload.mascotId);
+              break;
+
+            case 'RESET_WORLD':
+              store.resetWorld();
               break;
           }
         },
