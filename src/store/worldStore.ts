@@ -13,13 +13,15 @@
 import { createStore } from 'zustand/vanilla';
 import { devtools } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
-import type { WorldAction } from '../types/world';
+import type { WorldAction, WorldEvent } from '../types/world';
 import { actionLog } from './middleware/actionLog';
 import { defaultEntities, defaultContainers } from './defaults';
 import { createEntitySlice } from './slices/entitySlice';
 import { createContainerSlice } from './slices/containerSlice';
 import { createMascotSlice } from './slices/mascotSlice';
 import type { WorldStateStore } from './types';
+
+const eventListeners = new Set<(event: WorldEvent) => void>();
 
 export const worldStore = createStore<WorldStateStore>()(
   devtools(
@@ -32,11 +34,31 @@ export const worldStore = createStore<WorldStateStore>()(
         // Deep clone initial state to avoid reference mutations
         entities: JSON.parse(JSON.stringify(defaultEntities)),
         containers: JSON.parse(JSON.stringify(defaultContainers)),
+        events: [],
+
+        emitEvent: (event: WorldEvent) => {
+          set(
+            (draft) => {
+              draft.events.push(event);
+            },
+            false,
+            event.type
+          );
+          eventListeners.forEach((listener) => listener(event));
+        },
+
+        onEvent: (listener: (event: WorldEvent) => void) => {
+          eventListeners.add(listener);
+          return () => {
+            eventListeners.delete(listener);
+          };
+        },
 
         resetWorld: () => {
           set((draft) => {
             draft.entities = JSON.parse(JSON.stringify(defaultEntities));
             draft.containers = JSON.parse(JSON.stringify(defaultContainers));
+            draft.events = [];
           }, false, 'RESET_WORLD');
         },
 
@@ -71,8 +93,8 @@ export const worldStore = createStore<WorldStateStore>()(
               store.cookIngredient(action.payload.entityId, action.payload.cooking);
               break;
 
-            case 'CONSUME_INGREDIENT':
-              store.consumeIngredient(action.payload.entityId, action.payload.consumedBy);
+            case 'USE_INGREDIENT':
+              store.useIngredient(action.payload.entityId, action.payload.usedIn);
               break;
 
             case 'MASCOT_FLIP':

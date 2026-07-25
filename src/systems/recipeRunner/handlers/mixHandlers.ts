@@ -77,13 +77,13 @@ export async function handleMixStep(
     },
   });
 
-  // 3. Consume inputs
+  // 3. Use inputs
   for (const inputId of inputEntityIds) {
     worldStore.getState().dispatch({
-      type: 'CONSUME_INGREDIENT',
+      type: 'USE_INGREDIENT',
       payload: {
         entityId: inputId,
-        consumedBy: mixtureId,
+        usedIn: mixtureId,
       },
     });
   }

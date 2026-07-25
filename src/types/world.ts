@@ -8,7 +8,7 @@
  * - Describes the game world's data model.
  */
 
-import type { WorldAction } from './actions';
+import type { WorldAction, WorldEvent } from './actions';
 import type { PreparationStyle, CookingMethod } from './RecipeStep';
 
 export type EntityType = 'ingredient' | 'tool' | 'mascot';
@@ -56,4 +56,4 @@ export interface WorldState {
   dispatch: (action: WorldAction) => void;
 }
 
-export type { WorldAction };
+export type { WorldAction, WorldEvent };

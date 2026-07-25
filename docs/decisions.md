@@ -731,6 +731,37 @@ The Recipe System executes declarative, step-based recipe state machines via `Re
 
 ---
 
+# Decision: Refactor Ingredient Usage Actions into Domain Events
+
+## Context
+Previously, `CONSUME_INGREDIENT` was dispatched directly as a user action. This mixed user intent, recipe execution logic, and entity lifecycle mutation.
+
+## Decision
+Separated player intentions from world state consequences:
+1. **User Intent Action (`USE_INGREDIENT`)**: High-level action dispatched when an ingredient is used (`{ entityId, usedIn }`).
+2. **Domain Event (`INGREDIENT_CONSUMED`)**: Reactive domain event emitted when an ingredient is consumed (`{ entityId, consumedBy }`).
+
+## Flow
+```text
+User Interaction / RecipeRunner
+           |
+           v
+    USE_INGREDIENT (Action)
+           |
+           v
+    Ingredient System / World Store
+    +--> Transfer entity to container / recipe
+    +--> Set consumed state (consumed: true, consumedBy)
+    +--> Emit INGREDIENT_CONSUMED (Domain Event)
+```
+
+## Consequences
+- Clean separation between user intent and domain event consequences.
+- Allows ingredient undo/reversion (`revertIngredientUsage`).
+- Decouples UI / RecipeRunner from direct lifecycle state mutation.
+
+---
+
 # Final Principle
 
 The rule of Tortilla World:

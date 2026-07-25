@@ -30,6 +30,8 @@ export interface EntitySlice {
   updateEntityState: (entityId: string, changes: Record<string, unknown>) => void;
   prepareIngredient: (entityId: string, preparation: PreparationStyle) => void;
   cookIngredient: (entityId: string, cooking: CookingMethod) => void;
+  useIngredient: (entityId: string, usedIn?: string) => void;
+  revertIngredientUsage: (entityId: string, previousContainerId?: string) => void;
   consumeIngredient: (entityId: string, consumedBy?: string) => void;
 }
 
@@ -143,27 +145,96 @@ export const createEntitySlice: StateCreator<
     );
   },
 
-  consumeIngredient: (entityId, consumedBy) => {
+  useIngredient: (entityId, usedIn) => {
+    const state = get();
+    const entity = state.entities[entityId];
+    if (!entity) return;
+
+    let previousContainerId: string | undefined;
+    for (const cId in state.containers) {
+      if (state.containers[cId].entityIds.includes(entityId)) {
+        previousContainerId = cId;
+        break;
+      }
+    }
+
     set(
-      (state) => {
-        const entity = state.entities[entityId];
-        if (!entity) return;
+      (draft) => {
+        const targetEntity = draft.entities[entityId];
+        if (!targetEntity) return;
 
-        entity.state = {
-          ...entity.state,
-          consumed: true,
-          consumedBy,
-          status: 'consumed',
-        };
-
-        for (const cId in state.containers) {
-          state.containers[cId].entityIds = state.containers[cId].entityIds.filter(
+        // Remove from current container(s)
+        for (const cId in draft.containers) {
+          draft.containers[cId].entityIds = draft.containers[cId].entityIds.filter(
             (id) => id !== entityId
           );
         }
+
+        // If usedIn matches an existing container ID, add to that container
+        if (usedIn && draft.containers[usedIn]) {
+          draft.containers[usedIn].entityIds.push(entityId);
+        }
+
+        // Mark consumed and update entity state
+        targetEntity.state = {
+          ...targetEntity.state,
+          consumed: true,
+          consumedBy: usedIn,
+          previousContainerId: previousContainerId || (targetEntity.state?.previousContainerId as string | undefined),
+          status: 'consumed',
+        };
       },
       false,
-      'CONSUME_INGREDIENT'
+      'USE_INGREDIENT'
     );
+
+    // Emit domain event
+    get().emitEvent({
+      type: 'INGREDIENT_CONSUMED',
+      payload: {
+        entityId,
+        consumedBy: usedIn,
+      },
+    });
+  },
+
+  revertIngredientUsage: (entityId, previousContainerId) => {
+    set(
+      (draft) => {
+        const targetEntity = draft.entities[entityId];
+        if (!targetEntity) return;
+
+        const targetContainerId =
+          previousContainerId || (targetEntity.state?.previousContainerId as string | undefined);
+
+        // Remove from current containers
+        for (const cId in draft.containers) {
+          draft.containers[cId].entityIds = draft.containers[cId].entityIds.filter(
+            (id) => id !== entityId
+          );
+        }
+
+        // Restore to previous container if valid
+        if (targetContainerId && draft.containers[targetContainerId]) {
+          draft.containers[targetContainerId].entityIds.push(entityId);
+        }
+
+        // Revert consumed state
+        if (targetEntity.state) {
+          delete targetEntity.state.consumed;
+          delete targetEntity.state.consumedBy;
+          delete targetEntity.state.previousContainerId;
+          if (targetEntity.state.status === 'consumed') {
+            delete targetEntity.state.status;
+          }
+        }
+      },
+      false,
+      'REVERT_INGREDIENT_USAGE'
+    );
+  },
+
+  consumeIngredient: (entityId, consumedBy) => {
+    get().useIngredient(entityId, consumedBy);
   },
 });
