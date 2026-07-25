@@ -114,6 +114,7 @@ src/
         moveHandlers.ts
         prepHandlers.ts
         utilityHandlers.ts
+      RecipeRunner.test.ts
       RecipeRunner.ts
       types.ts
     gaze.test.ts
@@ -251,402 +252,6 @@ Systems modify the world.
     <path fill="#08060d" fill-rule="evenodd" d="M1.893 1.98c.052.072 1.245 1.769 2.653 3.77l2.892 4.114c.183.261.333.48.333.486s-.068.089-.152.183l-.522.593-.765.867-3.597 4.087c-.375.426-.734.834-.798.905a1 1 0 0 0-.118.148c0 .01.236.017.664.017h.663l.729-.83c.4-.457.796-.906.879-.999a692 692 0 0 0 1.794-2.038c.034-.037.301-.34.594-.675l.551-.624.345-.392a7 7 0 0 1 .34-.374c.006 0 .93 1.306 2.052 2.903l2.084 2.965.045.063h2.275c1.87 0 2.273-.003 2.266-.021-.008-.02-1.098-1.572-3.894-5.547-2.013-2.862-2.28-3.246-2.273-3.266.008-.019.282-.332 2.085-2.38l2-2.274 1.567-1.782c.022-.028-.016-.03-.65-.03h-.674l-.3.342a871 871 0 0 1-1.782 2.025c-.067.075-.405.458-.75.852a100 100 0 0 1-.803.91c-.148.172-.299.344-.99 1.127-.304.343-.32.358-.345.327-.015-.019-.904-1.282-1.976-2.808L6.365 1.85H1.8zm1.782.91 8.078 11.294c.772 1.08 1.413 1.973 1.425 1.984.016.017.241.02 1.05.017l1.03-.004-2.694-3.766L7.796 5.75 5.722 2.852l-1.039-.004-1.039-.004z" clip-rule="evenodd"/>
   </symbol>
 </svg>
-</file>
-
-<file path="src/components/Ingredients/Ingredients.scss">
-/**
- * FILE: src/components/Ingredients/Ingredients.scss
- *
- * PURPOSE:
- * SCSS styles for ingredient list panels, item lists, and recipe ingredients.
- */
-
-@import '../../styles/variables';
-@import '../../styles/mixins';
-
-.ingredient-list-panel {
-  @include ceramic-card($warm-surface, $warm-border);
-  min-width: 240px;
-  padding: 16px;
-}
-
-.ingredient-list-header {
-  align-items: center;
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 12px;
-
-  h3 {
-    color: $dark-brown;
-    font-size: 1rem;
-    font-weight: 700;
-    margin: 0;
-  }
-
-  span {
-    color: $wood-muted;
-    font-size: 0.82rem;
-    font-weight: 600;
-  }
-}
-
-.ingredient-list,
-.recipe-ingredient-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.ingredient-list-item,
-.recipe-ingredient-item {
-  align-items: center;
-  background: #ffffff;
-  border: 1px solid $warm-border;
-  border-radius: $radius-md;
-  box-shadow: 0 2px 6px rgba(44, 26, 20, 0.04);
-  display: flex;
-  gap: 0.5rem;
-  padding: 8px 12px;
-  user-select: none;
-  transition: all 0.2s ease;
-
-  &:hover {
-    border-color: mix($tortilla-yellow, $warm-border, 50%);
-  }
-
-  &:active {
-    cursor: grabbing;
-  }
-}
-
-.ingredient-list-item-body {
-  align-items: center;
-  cursor: grab;
-  display: flex;
-  flex: 1;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  min-width: 0;
-
-  &:active {
-    cursor: grabbing;
-  }
-}
-
-.ingredient-remove {
-  align-items: center;
-  background: transparent;
-  border: none;
-  border-radius: $radius-sm;
-  color: $wood-muted;
-  cursor: pointer;
-  display: inline-flex;
-  flex-shrink: 0;
-  font-size: 1.15rem;
-  height: 1.75rem;
-  justify-content: center;
-  line-height: 1;
-  padding: 0;
-  width: 1.75rem;
-  transition: all 0.15s ease;
-
-  &:hover {
-    background: $warm-beige;
-    color: $terracotta;
-  }
-
-  &:focus-visible {
-    outline: 2px solid $terracotta;
-    outline-offset: 2px;
-  }
-}
-
-.recipe-ingredient-amount {
-  margin-left: auto;
-  font-size: 0.8rem;
-  color: $wood-muted;
-  font-weight: 600;
-}
-
-.scene-panel {
-  display: flex;
-  gap: 16px;
-  margin-top: 16px;
-  flex-wrap: wrap;
-}
-
-@media (max-width: 30rem) {
-  .recipe-ingredient-amount {
-    margin-left: 0;
-    width: 100%;
-  }
-}
-</file>
-
-<file path="src/components/Mascot/TortillaSvg.scss">
-/**
- * FILE: src/components/Mascot/TortillaSvg.scss
- *
- * PURPOSE:
- * Styles and animations for TortillaSvg mascot using SCSS variables and mixins.
- */
-
-@import '../../styles/variables';
-@import '../../styles/mixins';
-
-/* === Root SVG Styles & State Animations === */
-.tortilla-svg {
-  transform-origin: center;
-  overflow: visible;
-
-  &.is-idle {
-    animation: tortillaIdle 2.5s infinite ease-in-out;
-  }
-
-  &.is-flipping {
-    animation: tortillaFlip 0.8s ease-in-out forwards;
-  }
-}
-
-@keyframes tortillaIdle {
-  0%, 100% {
-    transform: translateY(0) scaleY(1);
-  }
-  50% {
-    transform: translateY(-3px) scaleY(1.02);
-  }
-}
-
-@keyframes tortillaFlip {
-  0% {
-    transform: translateY(0) rotateX(0deg) scale(1);
-  }
-  50% {
-    transform: translateY(-60px) rotateX(180deg) scale(1.15);
-  }
-  100% {
-    transform: translateY(0) rotateX(360deg) scale(1);
-  }
-}
-
-/* === Physical Movement & Wrapper Animations === */
-.mascot-card {
-  @include ceramic-card($warm-surface, $warm-border);
-  padding: 12px 16px;
-}
-
-.mascot-wrapper {
-  position: absolute;
-  top: 0;
-  left: 0;
-  transform: translate3d(var(--offset-x, 0px), var(--offset-y, 0px), 0);
-  transition: transform 0.65s cubic-bezier(0.34, 1.25, 0.64, 1), filter 0.3s ease;
-  will-change: transform, filter;
-  z-index: 1;
-
-  &.is-floating {
-    z-index: 1000;
-    filter: drop-shadow(0 14px 22px rgba(44, 26, 20, 0.25));
-  }
-
-  &.is-holding {
-    animation: mascotGrabPulse 0.4s ease-in-out;
-  }
-}
-
-@keyframes mascotGrabPulse {
-  0% { transform: translate3d(var(--offset-x, 0px), var(--offset-y, 0px), 0) scale(1); }
-  50% { transform: translate3d(var(--offset-x, 0px), var(--offset-y, 0px), 0) scale(1.1); }
-  100% { transform: translate3d(var(--offset-x, 0px), var(--offset-y, 0px), 0) scale(1); }
-}
-
-/* === Held Ingredient Badge CSS Animations === */
-.mascot-held-badge {
-  position: absolute;
-  bottom: -8px;
-  right: -12px;
-  background: #ffffff;
-  border: 2px solid $tortilla-yellow;
-  border-radius: 20px;
-  padding: 3px 8px;
-  box-shadow: 0 4px 14px rgba(44, 26, 20, 0.18);
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  font-weight: bold;
-  color: $dark-brown;
-  white-space: nowrap;
-  pointer-events: none;
-  z-index: 1001;
-  animation: heldBadgeEnter 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, heldBadgeFloat 2.5s ease-in-out infinite 0.35s;
-}
-
-@keyframes heldBadgeEnter {
-  0% {
-    opacity: 0;
-    transform: translateY(15px) scale(0);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes heldBadgeFloat {
-  0%, 100% {
-    transform: translateY(0) rotate(-2deg);
-  }
-  50% {
-    transform: translateY(-4px) rotate(3deg);
-  }
-}
-
-/* === Internal Element Animations === */
-.tortilla-blink {
-  animation: tortillaBlink 4s infinite;
-  transform-box: fill-box;
-  transform-origin: center;
-}
-
-@keyframes tortillaBlink {
-  0%, 92%, 100% {
-    transform: scaleY(0);
-    opacity: 0;
-  }
-  94%, 98% {
-    transform: scaleY(1);
-    opacity: 1;
-  }
-}
-</file>
-
-<file path="src/components/Recipe/RecipePanel.scss">
-/**
- * FILE: src/components/Recipe/RecipePanel.scss
- *
- * PURPOSE:
- * SCSS styles for the Recipe selection and execution panel.
- */
-
-@import '../../styles/variables';
-@import '../../styles/mixins';
-
-.recipe-panel {
-  @include ceramic-card($warm-surface, $warm-border);
-  padding: 12px 16px;
-  margin-bottom: 16px;
-
-  &-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 12px;
-  }
-}
-
-.recipe-selector {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.recipe-option {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: #ffffff;
-  border: 1px solid $warm-border;
-  border-radius: $radius-sm;
-  padding: 4px 8px;
-  transition: all 0.2s ease;
-
-  &.active {
-    border-color: $tortilla-yellow;
-    background: $tortilla-yellow-light;
-    box-shadow: 0 2px 6px rgba(232, 168, 56, 0.2);
-  }
-}
-
-.recipe-tab {
-  background: transparent;
-  border: none;
-  font-size: 13px;
-  font-weight: 700;
-  color: $dark-brown;
-  cursor: pointer;
-  padding: 4px 6px;
-  border-radius: $radius-sm;
-  transition: all 0.2s ease;
-
-  &:hover {
-    color: $tortilla-yellow-hover;
-  }
-
-  &.active {
-    color: $dark-brown;
-  }
-}
-
-.follow-recipe-btn {
-  @include playful-button($tortilla-yellow, #ffffff);
-  font-size: 0.78rem;
-  padding: 5px 10px;
-  white-space: nowrap;
-}
-
-.recipe-header-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.recipe-status {
-  font-size: 13px;
-  color: $wood-muted;
-  font-weight: 600;
-}
-
-.highlight-count {
-  color: $terracotta;
-  font-weight: 800;
-}
-
-.recipe-toggle-btn {
-  background: #ffffff;
-  border: 1px solid $warm-border;
-  border-radius: $radius-sm;
-  padding: 4px 10px;
-  font-size: 11px;
-  font-weight: 700;
-  color: $dark-brown;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    border-color: $olive-green;
-    color: $olive-green;
-    background: $olive-green-light;
-  }
-}
-
-.recipe-content.compact {
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px dashed $warm-border;
-}
-
-.recipe-title {
-  margin: 0 0 8px 0;
-  font-size: 14px;
-  color: $dark-brown;
-  font-weight: 700;
-}
 </file>
 
 <file path="src/data/catalog/recipes/clasica.ts">
@@ -1373,294 +978,6 @@ export const createEntitySlice: StateCreator<
 });
 </file>
 
-<file path="src/store/slices/mascotSlice.ts">
-/**
- * FILE: mascotSlice.ts
- *
- * PURPOSE:
- * Zustand slice for mascot (Chef Tortilla) state actions.
- *
- * RESPONSIBILITY:
- * - Mutates mascot gaze, flip, grab, and drop states.
- */
-
-import type { StateCreator } from 'zustand/vanilla';
-import type { Entity } from '../../types/world';
-import type { WorldStateStore } from '../types';
-import { validateContainerRules } from '../../engine/containerRules';
-
-export interface MascotSlice {
-  mascotFlip: (mascotId?: string) => void;
-  mascotMove: (targetContainerId: string, mascotId?: string) => void;
-  mascotGrab: (entityId: string, sourceContainerId?: string, mascotId?: string) => void;
-  mascotDrop: (targetContainerId: string, positionIndex?: number, mascotId?: string) => void;
-}
-
-export const createMascotSlice: StateCreator<
-  WorldStateStore,
-  [['zustand/devtools', never], ['zustand/immer', never]],
-  [],
-  MascotSlice
-> = (set, get) => ({
-  mascotFlip: (mascotId = 'chef') => {
-    set(
-      (draft) => {
-        const mascot = draft.entities[mascotId];
-        if (!mascot) return;
-        mascot.state = {
-          ...mascot.state,
-          state: 'flipping',
-          isFlipping: true,
-        };
-      },
-      false,
-      'MASCOT_FLIP'
-    );
-
-    setTimeout(() => {
-      set(
-        (draft) => {
-          const mascot = draft.entities[mascotId];
-          if (!mascot || mascot.state?.state !== 'flipping') return;
-          mascot.state = {
-            ...mascot.state,
-            state: 'idle',
-            isFlipping: false,
-          };
-        },
-        false,
-        'RESET_MASCOT_FLIP'
-      );
-    }, 800);
-  },
-
-  mascotMove: (targetContainerId, mascotId = 'chef') => {
-    set(
-      (draft) => {
-        const mascot = draft.entities[mascotId];
-        if (!mascot) return;
-        mascot.state = {
-          ...mascot.state,
-          gazingAt: targetContainerId,
-          targetContainerId,
-        };
-      },
-      false,
-      'MASCOT_MOVE'
-    );
-  },
-
-  mascotGrab: (entityId, sourceContainerId, mascotId = 'chef') => {
-    const state = get();
-    const mascot = state.entities[mascotId];
-    if (!mascot) return;
-    const grabbedEntity = state.entities[entityId];
-    if (!grabbedEntity) return;
-
-    const foundSource = sourceContainerId
-      ? state.containers[sourceContainerId]
-      : Object.values(state.containers).find((c) => c.entityIds.includes(entityId));
-
-    set(
-      (draft) => {
-        const m = draft.entities[mascotId];
-        if (!m) return;
-        m.state = {
-          ...m.state,
-          holdingEntityId: entityId,
-          sourceContainerId: foundSource?.id,
-          gazingAt: foundSource?.id || m.state?.gazingAt,
-        };
-      },
-      false,
-      'MASCOT_GRAB'
-    );
-  },
-
-  mascotDrop: (targetContainerId, positionIndex, mascotId = 'chef') => {
-    const state = get();
-    const mascot = state.entities[mascotId];
-    if (!mascot) return;
-
-    const holdingEntityId = mascot.state?.holdingEntityId as string | undefined;
-
-    if (!holdingEntityId) {
-      set(
-        (draft) => {
-          const m = draft.entities[mascotId];
-          if (m) {
-            m.state = { ...m.state, gazingAt: targetContainerId };
-          }
-        },
-        false,
-        'MASCOT_DROP'
-      );
-      return;
-    }
-
-    const entityToMove = state.entities[holdingEntityId];
-    const targetContainer = state.containers[targetContainerId];
-    if (!entityToMove || !targetContainer) return;
-
-    const sourceContainerId = mascot.state?.sourceContainerId as string | undefined;
-    const sourceContainer = sourceContainerId
-      ? state.containers[sourceContainerId]
-      : Object.values(state.containers).find((c) => c.entityIds.includes(holdingEntityId));
-
-    const isSourceImmutable =
-      sourceContainer?.rules?.isImmutable || sourceContainer?.rules?.consumesOnDrag === false;
-
-    let finalEntityId = holdingEntityId;
-    let copyEntity: Entity | undefined;
-
-    if (sourceContainer && sourceContainer.id !== targetContainerId && isSourceImmutable) {
-      const copyId = `${entityToMove.id}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
-      copyEntity = {
-        ...entityToMove,
-        id: copyId,
-        ingredientId: entityToMove.ingredientId || entityToMove.id.split('_')[0],
-      };
-
-      const currentEntities = targetContainer.entityIds
-        .map((id) => state.entities[id])
-        .filter((e): e is Entity => Boolean(e));
-      const result = validateContainerRules(targetContainer, copyEntity, currentEntities);
-      if (!result.allowed) return;
-
-      finalEntityId = copyId;
-    } else {
-      const currentEntities = targetContainer.entityIds
-        .map((id) => state.entities[id])
-        .filter((e): e is Entity => Boolean(e) && e.id !== holdingEntityId);
-      const result = validateContainerRules(targetContainer, entityToMove, currentEntities);
-      if (!result.allowed) return;
-    }
-
-    set(
-      (draft) => {
-        if (copyEntity) {
-          draft.entities[copyEntity.id] = copyEntity;
-        }
-
-        if (sourceContainer && !isSourceImmutable) {
-          draft.containers[sourceContainer.id].entityIds = draft.containers[
-            sourceContainer.id
-          ].entityIds.filter((id) => id !== holdingEntityId);
-        }
-
-        if (typeof positionIndex === 'number') {
-          draft.containers[targetContainerId].entityIds.splice(positionIndex, 0, finalEntityId);
-        } else {
-          draft.containers[targetContainerId].entityIds.push(finalEntityId);
-        }
-
-        const m = draft.entities[mascotId];
-        if (m) {
-          m.state = {
-            ...m.state,
-            holdingEntityId: undefined,
-            sourceContainerId: undefined,
-            gazingAt: targetContainerId,
-          };
-        }
-      },
-      false,
-      'MASCOT_DROP'
-    );
-  },
-});
-</file>
-
-<file path="src/store/defaults.ts">
-/**
- * FILE: defaults.ts
- *
- * PURPOSE:
- * Initial seed data for world state.
- *
- * RESPONSIBILITY:
- * - Provides default entity definitions (mascot, ingredients, tools).
- * - Provides default container definitions (despensa, sink, board, bowl, pan, plate).
- */
-
-import type { Container, Entity } from '../types/world';
-import { ingredients as catalogIngredients } from '../data/catalog/ingredients';
-import { catalogTools } from '../data/catalog/tools';
-
-export const defaultEntities: Record<string, Entity> = {
-  chef: { id: 'chef', name: 'Chef Tortilla 🍳', type: 'mascot', state: { gazingAt: 'Despensa' } },
-  ...catalogIngredients.reduce((acc, item) => {
-    acc[item.id] = {
-      id: item.id,
-      ingredientId: item.id,
-      name: `${item.icon} ${item.name}`,
-      type: 'ingredient',
-      state: {},
-    };
-    return acc;
-  }, {} as Record<string, Entity>),
-  ...catalogTools.reduce((acc, item) => {
-    acc[item.id] = {
-      id: item.id,
-      name: `${item.icon} ${item.name}`,
-      type: 'tool',
-      state: {},
-    };
-    return acc;
-  }, {} as Record<string, Entity>),
-};
-
-export const defaultContainers: Record<string, Container> = {
-  despensa: {
-    id: 'despensa',
-    name: 'Despensa (All Ingredients - Immutable Catalog)',
-    type: 'storage',
-    entityIds: [...catalogIngredients.map((i) => i.id), ...catalogTools.map((t) => t.id)],
-    rules: {
-      maxCapacity: 30,
-      allowedTypes: ['ingredient', 'tool'],
-      consumesOnDrag: false,
-      isImmutable: true,
-    },
-  },
-  sink: {
-    id: 'sink',
-    name: 'Fregadero (Sink)',
-    type: 'sink',
-    entityIds: [],
-    rules: { maxCapacity: 10, allowedTypes: ['ingredient', 'tool'] },
-  },
-  board: {
-    id: 'board',
-    name: 'Tabla (Cutting Board)',
-    type: 'board',
-    entityIds: [],
-    rules: { maxCapacity: 10, allowedTypes: ['ingredient', 'tool'] },
-  },
-  bowl: {
-    id: 'bowl',
-    name: 'Bol (Preparation Bowl)',
-    type: 'bowl',
-    entityIds: [],
-    rules: { maxCapacity: 10, allowedTypes: ['ingredient', 'tool'] },
-  },
-  pan: {
-    id: 'pan',
-    name: 'Sartén (Skillet)',
-    type: 'pan',
-    entityIds: [],
-    rules: { maxCapacity: 5, allowedTypes: ['ingredient', 'tool'] },
-  },
-  plate: {
-    id: 'plate',
-    name: 'Plato (Plate)',
-    type: 'plate',
-    entityIds: [],
-    rules: { maxCapacity: 5, allowedTypes: ['ingredient', 'tool'] },
-  },
-};
-</file>
-
 <file path="src/store/selectors.ts">
 /**
  * FILE: selectors.ts
@@ -1702,120 +1019,6 @@ export const selectContainerEntities = (containerId: string) => (state: WorldSta
 /** Selects the mascot entity */
 export const selectMascot = (mascotId: string = 'chef') => (state: WorldState): Entity | undefined =>
   state.entities[mascotId];
-</file>
-
-<file path="src/store/types.ts">
-/**
- * FILE: types.ts
- *
- * PURPOSE:
- * Type contract for Zustand world store and its slices.
- */
-
-import type { Container, Entity, WorldAction } from '../types/world';
-import type { EntitySlice } from './slices/entitySlice';
-import type { ContainerSlice } from './slices/containerSlice';
-import type { MascotSlice } from './slices/mascotSlice';
-
-export type WorldStateStore = {
-  entities: Record<string, Entity>;
-  containers: Record<string, Container>;
-  dispatch: (action: WorldAction) => void;
-} & EntitySlice &
-  ContainerSlice &
-  MascotSlice;
-</file>
-
-<file path="src/styles/_mixins.scss">
-/**
- * FILE: src/styles/_mixins.scss
- *
- * PURPOSE:
- * Reusable SCSS mixins for ceramic cards, workstation panels, and interactive elements.
- */
-
-@import './variables';
-
-// Cozy ceramic card container mixin
-@mixin ceramic-card($bg-color: $warm-surface, $border-color: $warm-border) {
-  background: $bg-color;
-  border: 1px solid $border-color;
-  border-radius: $radius-lg;
-  box-shadow: $shadow-ceramic;
-  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-// Workstation panel header styling
-@mixin workstation-header($accent-color, $text-color: $dark-brown) {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-bottom: 10px;
-  border-bottom: 2px dashed mix($accent-color, white, 35%);
-  margin-bottom: 12px;
-
-  h3 {
-    color: $text-color;
-    font-size: 1.05rem;
-    font-weight: 700;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .workstation-badge {
-    font-size: 0.75rem;
-    font-weight: 700;
-    padding: 3px 8px;
-    border-radius: $radius-sm;
-    background: mix($accent-color, white, 18%);
-    color: $accent-color;
-    border: 1px solid mix($accent-color, white, 40%);
-  }
-}
-
-// Interactive wooden/playful button mixin
-@mixin playful-button($bg: $tortilla-yellow, $text: #ffffff) {
-  background: $bg;
-  color: $text;
-  border: none;
-  border-radius: $radius-sm;
-  padding: 8px 14px;
-  font-weight: 700;
-  font-size: 0.85rem;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(44, 26, 20, 0.12);
-  transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-
-  &:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(44, 26, 20, 0.18);
-    filter: brightness(1.04);
-  }
-
-  &:active:not(:disabled) {
-    transform: translateY(0);
-    box-shadow: 0 1px 3px rgba(44, 26, 20, 0.15);
-  }
-
-  &:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
-    box-shadow: none;
-  }
-}
-
-// Flex center helper
-@mixin flex-center {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 </file>
 
 <file path="src/systems/recipeRunner/handlers/cookHandlers.ts">
@@ -2206,99 +1409,173 @@ export async function handlePrepStep(
 }
 </file>
 
-<file path="src/systems/recipeRunner/handlers/utilityHandlers.ts">
+<file path="src/systems/recipeRunner/RecipeRunner.test.ts">
 /**
- * FILE: src/systems/recipeRunner/handlers/utilityHandlers.ts
+ * FILE: recipeRunner.test.ts
  *
  * PURPOSE:
- * Step handlers for utility, narrative, and completion steps ('serve', 'wait', 'instruction', 'speak', 'celebrate').
+ * Unit tests for the generic RecipeRunner step-based state machine.
  */
 
-import { worldStore } from '../../../store/worldStore';
-import { moveTortillaTo, flipTortilla } from '../../mascotActions';
-import type { RecipeStep } from '../../../types/RecipeStep';
-import type { RecipeRunnerContext } from '../types';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { worldStore } from '../store/worldStore';
+import { RecipeRunner } from './recipeRunner';
+import { concebollaRecipe, clasicaRecipe } from '../data/catalog/recipes';
+import type { Recipe } from '../types/Recipe';
+import { clearActionLog, getActionLog } from '../store/middleware/actionLog';
 
-type ServeStep = Extract<RecipeStep, { action: 'serve' }>;
-type WaitStep = Extract<RecipeStep, { action: 'wait' }>;
-type InstructionStep = Extract<RecipeStep, { action: 'instruction' }>;
-type SpeakStep = Extract<RecipeStep, { action: 'speak' }>;
-type CelebrateStep = Extract<RecipeStep, { action: 'celebrate' }>;
-
-export async function handleServeStep(
-  ctx: RecipeRunnerContext,
-  step: ServeStep,
-  workstationDefaultContainerId?: string
-): Promise<void> {
-  const targetContainerId = step.containerId || workstationDefaultContainerId || 'plate';
-  moveTortillaTo(targetContainerId, ctx.mascotId);
-  await ctx.wait();
-
-  // Move all cooked/prepared items from pan, bowl, or board to plate
-  const state = worldStore.getState();
-  for (const sourceCId of ['pan', 'bowl', 'board']) {
-    const container = state.containers[sourceCId];
-    if (container && container.entityIds.length > 0) {
-      [...container.entityIds].forEach((entityId) => {
-        worldStore.getState().dispatch({
-          type: 'MOVE_ENTITY',
-          payload: {
-            entityId,
-            targetContainerId: targetContainerId,
-          },
-        });
-      });
-    }
-  }
-  await ctx.wait();
-}
-
-export async function handleWaitStep(
-  ctx: RecipeRunnerContext,
-  step: WaitStep
-): Promise<void> {
-  await ctx.wait(step.durationMs);
-}
-
-export async function handleInstructionStep(
-  ctx: RecipeRunnerContext,
-  step: InstructionStep
-): Promise<void> {
-  const text = step.text || (step as any).instruction;
-  if (text) {
-    worldStore.getState().dispatch({
-      type: 'UPDATE_ENTITY_STATE',
-      payload: {
-        entityId: step.mascotId || ctx.mascotId,
-        changes: { speechMessage: text },
-      },
-    });
-  }
-  await ctx.wait();
-}
-
-export async function handleSpeakStep(
-  ctx: RecipeRunnerContext,
-  step: SpeakStep
-): Promise<void> {
-  worldStore.getState().dispatch({
-    type: 'UPDATE_ENTITY_STATE',
-    payload: {
-      entityId: step.mascotId || ctx.mascotId,
-      changes: { speechMessage: step.message },
+function seedTestWorld() {
+  worldStore.setState({
+    entities: {
+      chef: { id: 'chef', name: 'Chef Tortilla 🍳', type: 'mascot', state: { gazingAt: null } },
+      onion: { id: 'onion', ingredientId: 'onion', name: 'Onion', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+      potato: { id: 'potato', ingredientId: 'potato', name: 'Potato', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+      egg: { id: 'egg', ingredientId: 'egg', name: 'Egg', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+      oil: { id: 'oil', ingredientId: 'oil', name: 'Oil', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+      salt: { id: 'salt', ingredientId: 'salt', name: 'Salt', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+      pepper: { id: 'pepper', ingredientId: 'pepper', name: 'Pepper', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
     },
+    containers: {
+      despensa: {
+        id: 'despensa',
+        name: 'Despensa',
+        type: 'storage',
+        entityIds: ['onion', 'potato', 'egg', 'oil', 'salt', 'pepper'],
+        rules: { isImmutable: true },
+      },
+      sink: {
+        id: 'sink',
+        name: 'Sink',
+        type: 'sink',
+        entityIds: [],
+        rules: { maxCapacity: 10 },
+      },
+      board: {
+        id: 'board',
+        name: 'Board',
+        type: 'board',
+        entityIds: [],
+        rules: { maxCapacity: 10 },
+      },
+      bowl: {
+        id: 'bowl',
+        name: 'Bowl',
+        type: 'bowl',
+        entityIds: [],
+        rules: { maxCapacity: 10 },
+      },
+      pan: {
+        id: 'pan',
+        name: 'Pan',
+        type: 'pan',
+        entityIds: [],
+        rules: { maxCapacity: 5 },
+      },
+      plate: {
+        id: 'plate',
+        name: 'Plate',
+        type: 'plate',
+        entityIds: [],
+        rules: { maxCapacity: 5 },
+      },
+    },
+    dispatch: worldStore.getState().dispatch,
   });
-  await ctx.wait();
 }
 
-export async function handleCelebrateStep(
-  ctx: RecipeRunnerContext,
-  step: CelebrateStep
-): Promise<void> {
-  flipTortilla(step.mascotId || ctx.mascotId);
-  await ctx.wait(900);
-  moveTortillaTo('', step.mascotId || ctx.mascotId);
-}
+describe('RecipeRunner System', () => {
+  beforeEach(() => {
+    seedTestWorld();
+    clearActionLog();
+  });
+
+  it('runs a declarative recipe and populates target container', async () => {
+    const runner = new RecipeRunner({ mascotId: 'chef', defaultTargetId: 'board', delayMs: 5 });
+    await runner.runRecipe(concebollaRecipe);
+
+    const state = worldStore.getState();
+    expect(state.containers.board.entityIds.length).toBeGreaterThanOrEqual(1);
+
+    const actionNames = getActionLog().map((a) => a.action);
+    expect(actionNames).toContain('MASCOT_MOVE');
+    expect(actionNames).toContain('MASCOT_GRAB');
+    expect(actionNames).toContain('MASCOT_DROP');
+    expect(actionNames).toContain('MASCOT_FLIP');
+  });
+
+  it('mutates existing entity state for cut/prepare without creating new entity', async () => {
+    // Move onion to board first
+    const runner = new RecipeRunner({ mascotId: 'chef', defaultTargetId: 'board', delayMs: 5 });
+    await runner.runSteps([
+      { action: 'move', ingredient: 'onion', source: 'despensa', target: 'board' },
+      { action: 'cut', ingredient: 'onion', style: 'diced', containerId: 'board' },
+    ]);
+
+    const state = worldStore.getState();
+    const boardEntities = state.containers.board.entityIds.map((id) => state.entities[id]);
+    const dicedOnion = boardEntities.find((e) => e?.ingredientId === 'onion');
+
+    expect(dicedOnion).toBeDefined();
+    // Verify entity ID was retained (no recreation!)
+    expect(dicedOnion?.state?.preparation).toBe('diced');
+
+    const actionNames = getActionLog().map((a) => a.action);
+    expect(actionNames).toContain('PREPARE_INGREDIENT');
+  });
+
+  it('mutates existing entity state for cook step', async () => {
+    const runner = new RecipeRunner({ mascotId: 'chef', defaultTargetId: 'pan', delayMs: 5 });
+    await runner.runSteps([
+      { action: 'move', ingredient: 'potato', source: 'despensa', target: 'pan' },
+      { action: 'cook', ingredient: 'potato', method: 'fried', containerId: 'pan' },
+    ]);
+
+    const state = worldStore.getState();
+    const panEntities = state.containers.pan.entityIds.map((id) => state.entities[id]);
+    const friedPotato = panEntities.find((e) => e?.ingredientId === 'potato');
+
+    expect(friedPotato).toBeDefined();
+    expect(friedPotato?.state?.cooking).toBe('fried');
+
+    const actionNames = getActionLog().map((a) => a.action);
+    expect(actionNames).toContain('COOK_INGREDIENT');
+  });
+
+  it('handles speak, wait, and celebrate steps', async () => {
+    const customRecipe: Recipe = {
+      id: 'custom-test',
+      name: 'Custom Test Recipe',
+      ingredients: [],
+      steps: [
+        { action: 'speak', message: 'Cooking initialized!' },
+        { action: 'wait', durationMs: 10 },
+        { action: 'celebrate' },
+      ],
+    };
+
+    const runner = new RecipeRunner({ mascotId: 'chef', delayMs: 5 });
+    await runner.runRecipe(customRecipe);
+
+    const state = worldStore.getState();
+    expect(state.entities.chef.state?.speechMessage).toBe('Cooking initialized!');
+    // After celebrate step, clearTortillaGaze is called → gazingAt is null.
+    expect(state.entities.chef.state?.gazingAt).toBeNull();
+  });
+
+  it('executes clasicaRecipe dictionary steps and state transformations', async () => {
+    const runner = new RecipeRunner({ mascotId: 'chef', delayMs: 5 });
+    await runner.runRecipe(clasicaRecipe);
+
+    const state = worldStore.getState();
+    const plateEntities = state.containers.plate.entityIds.map((id) => state.entities[id]);
+    expect(plateEntities.length).toBeGreaterThan(0);
+
+    const actionNames = getActionLog().map((a) => a.action);
+    expect(actionNames).toContain('PREPARE_INGREDIENT');
+    expect(actionNames).toContain('COOK_INGREDIENT');
+    expect(actionNames).toContain('MASCOT_FLIP');
+  });
+});
 </file>
 
 <file path="src/systems/recipeRunner/RecipeRunner.ts">
@@ -2591,290 +1868,6 @@ export type Workstation = {
   requiredTools?: string[];
   optionalTools?: string[];
 };
-</file>
-
-<file path="src/index.scss">
-/**
- * FILE: src/index.scss
- *
- * PURPOSE:
- * Global stylesheet for Tortilla World.
- * Establishes warm Spanish kitchen simulation theme, global CSS variables, typography, and workstation layouts.
- */
-
-@import './styles/variables';
-@import './styles/mixins';
-
-:root {
-  --text: #{$dark-brown};
-  --text-h: #{$dark-brown};
-  --text-muted: #{$wood-muted};
-  --bg: #{$warm-cream};
-  --card-bg: #{$warm-surface};
-  --border: #{$warm-border};
-  --code-bg: #{$warm-beige};
-
-  // Primary palette tokens
-  --primary: #{$tortilla-yellow};
-  --primary-hover: #{$tortilla-yellow-hover};
-  --secondary: #{$olive-green};
-  --secondary-hover: #{$olive-green-hover};
-  --accent: #{$terracotta};
-  --accent-hover: #{$terracotta-hover};
-
-  --shadow: #{$shadow-ceramic};
-  --shadow-hover: #{$shadow-ceramic-hover};
-
-  --font-sans: #{$font-family};
-  --font-mono: #{$font-mono};
-
-  font-family: var(--font-sans);
-  color-scheme: light;
-  color: var(--text);
-  background-color: var(--bg);
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-body {
-  margin: 0;
-  padding: 0;
-  background-color: var(--bg);
-  color: var(--text);
-  background-image: radial-gradient(#{$warm-border} 0.75px, transparent 0.75px);
-  background-size: 20px 20px;
-  min-height: 100vh;
-}
-
-#root {
-  max-width: 1240px;
-  margin: 0 auto;
-  padding: 20px;
-  box-sizing: border-box;
-  min-height: 100vh;
-}
-
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-sans);
-  color: var(--text-h);
-  font-weight: 700;
-  line-height: 1.25;
-}
-
-h1 {
-  font-size: 1.85rem;
-  letter-spacing: -0.02em;
-}
-
-p {
-  line-height: 1.5;
-}
-
-// === SCENE GRID LAYOUT & WORKSTATIONS ===
-.scene {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 18px;
-  width: 100%;
-  box-sizing: border-box;
-  margin-top: 20px;
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-  }
-}
-
-// === WORKSTATION CONTAINER SPECIFIC THEMES ===
-.ingredient-list {
-  @include ceramic-card($warm-surface, $warm-border);
-  padding: 16px;
-  min-height: 200px;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-
-  &.drag-over {
-    border-color: $tortilla-yellow-border !important;
-    background-color: $tortilla-yellow-light !important;
-    box-shadow: 0 0 0 3px rgba(232, 168, 56, 0.25) !important;
-  }
-
-  // Workstation header
-  .workstation-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 12px;
-    padding-bottom: 8px;
-    border-bottom: 2px dashed mix($dark-brown, white, 15%);
-
-    h3 {
-      font-size: 1rem;
-      margin: 0;
-      color: $dark-brown;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .workstation-type-badge {
-      font-size: 0.72rem;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: $radius-sm;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-    }
-  }
-
-  // Pantry Storage Theme
-  &.workstation-pantry, &.workstation-despensa {
-    background: $pantry-bg;
-    border-color: $pantry-border;
-    .workstation-type-badge {
-      background: mix($pantry-accent, white, 15%);
-      color: $pantry-accent;
-      border: 1px solid mix($pantry-accent, white, 30%);
-    }
-  }
-
-  // Washing Station Theme (Sink)
-  &.workstation-sink, &.workstation-washing_station {
-    background: $washing-bg;
-    border-color: $washing-border;
-    .workstation-type-badge {
-      background: mix($washing-accent, white, 15%);
-      color: $washing-accent;
-      border: 1px solid mix($washing-accent, white, 30%);
-    }
-  }
-
-  // Cutting Station Theme (Board)
-  &.workstation-board, &.workstation-cutting_station {
-    background: $cutting-bg;
-    border-color: $cutting-border;
-    .workstation-type-badge {
-      background: mix($cutting-accent, white, 15%);
-      color: $cutting-accent;
-      border: 1px solid mix($cutting-accent, white, 30%);
-    }
-  }
-
-  // Preparation Station Theme (Bowl)
-  &.workstation-bowl, &.workstation-preparation_station {
-    background: $mixing-bg;
-    border-color: $mixing-border;
-    .workstation-type-badge {
-      background: mix($mixing-accent, white, 15%);
-      color: $mixing-accent;
-      border: 1px solid mix($mixing-accent, white, 30%);
-    }
-  }
-
-  // Cooking Station Theme (Pan)
-  &.workstation-pan, &.workstation-cooking_station {
-    background: $cooking-bg;
-    border-color: $cooking-border;
-    .workstation-type-badge {
-      background: mix($cooking-accent, white, 15%);
-      color: $cooking-accent;
-      border: 1px solid mix($cooking-accent, white, 30%);
-    }
-  }
-
-  // Serving Station Theme (Plate)
-  &.workstation-plate, &.workstation-serving_station {
-    background: $serving-bg;
-    border-color: $serving-border;
-    .workstation-type-badge {
-      background: mix($serving-accent, white, 15%);
-      color: $serving-accent;
-      border: 1px solid mix($serving-accent, white, 30%);
-    }
-  }
-
-  .items-container {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    flex-grow: 1;
-  }
-
-  .empty-hint {
-    font-size: 0.82rem;
-    color: $wood-muted;
-    font-style: italic;
-    margin: auto;
-    text-align: center;
-    padding: 12px 0;
-    opacity: 0.7;
-  }
-}
-
-// === INGREDIENT LIST ITEM & STATE STYLES ===
-.ingredient-list-item {
-  background: #ffffff;
-  border: 1px solid $warm-border;
-  border-radius: $radius-md;
-  padding: 8px 12px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-weight: 600;
-  font-size: 0.92rem;
-  color: $dark-brown;
-  box-shadow: 0 2px 6px rgba(44, 26, 20, 0.04);
-  user-select: none;
-  touch-action: none;
-  transition: all 0.18s ease;
-
-  &:hover {
-    border-color: mix($tortilla-yellow, $warm-border, 50%);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba(44, 26, 20, 0.08);
-  }
-
-  &.dragging {
-    box-shadow: $shadow-floating;
-    opacity: 0.85;
-    transform: scale(1.02);
-  }
-
-  // === INGREDIENT STATE COLOR BADGES ===
-  .ingredient-state-badge {
-    font-size: 0.72rem;
-    font-weight: 700;
-    padding: 2px 6px;
-    border-radius: $radius-sm;
-    margin-left: 8px;
-    white-space: nowrap;
-
-    &.state-raw {
-      background: $state-raw-bg;
-      border: 1px solid $state-raw-border;
-      color: $state-raw-text;
-    }
-
-    &.state-prepared {
-      background: $state-prep-bg;
-      border: 1px solid $state-prep-border;
-      color: $state-prep-text;
-    }
-
-    &.state-cooking {
-      background: $state-cook-bg;
-      border: 1px solid $state-cook-border;
-      color: $state-cook-text;
-    }
-
-    &.state-finished {
-      background: $state-finished-bg;
-      border: 1px solid $state-finished-border;
-      color: $state-finished-text;
-    }
-  }
-}
 </file>
 
 <file path="src/repomix-output.xml">
@@ -5857,6 +4850,405 @@ export function Ingredient({ ingredient }: IngredientProps) {
 }
 </file>
 
+<file path="src/components/Ingredients/Ingredients.scss">
+/**
+ * FILE: src/components/Ingredients/Ingredients.scss
+ *
+ * PURPOSE:
+ * SCSS styles for ingredient list panels, item lists, and recipe ingredients.
+ */
+
+@use 'sass:color';
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.ingredient-list-panel {
+  @include ceramic-card($warm-surface, $warm-border);
+  min-width: 240px;
+  padding: 16px;
+}
+
+.ingredient-list-header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+
+  h3 {
+    color: $dark-brown;
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  span {
+    color: $wood-muted;
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+}
+
+.ingredient-list,
+.recipe-ingredient-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ingredient-list-item,
+.recipe-ingredient-item {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid $warm-border;
+  border-radius: $radius-md;
+  box-shadow: 0 2px 6px rgba(44, 26, 20, 0.04);
+  display: flex;
+  gap: 0.5rem;
+  padding: 8px 12px;
+  user-select: none;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: color.mix($tortilla-yellow, $warm-border, 50%);
+  }
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.ingredient-list-item-body {
+  align-items: center;
+  cursor: grab;
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  min-width: 0;
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.ingredient-remove {
+  align-items: center;
+  background: transparent;
+  border: none;
+  border-radius: $radius-sm;
+  color: $wood-muted;
+  cursor: pointer;
+  display: inline-flex;
+  flex-shrink: 0;
+  font-size: 1.15rem;
+  height: 1.75rem;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  width: 1.75rem;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: $warm-beige;
+    color: $terracotta;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $terracotta;
+    outline-offset: 2px;
+  }
+}
+
+.recipe-ingredient-amount {
+  margin-left: auto;
+  font-size: 0.8rem;
+  color: $wood-muted;
+  font-weight: 600;
+}
+
+.scene-panel {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 30rem) {
+  .recipe-ingredient-amount {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+</file>
+
+<file path="src/components/Mascot/TortillaSvg.scss">
+/**
+ * FILE: src/components/Mascot/TortillaSvg.scss
+ *
+ * PURPOSE:
+ * Styles and animations for TortillaSvg mascot using SCSS variables and mixins.
+ */
+
+@use 'sass:color';
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+/* === Root SVG Styles & State Animations === */
+.tortilla-svg {
+  transform-origin: center;
+  overflow: visible;
+
+  &.is-idle {
+    animation: tortillaIdle 2.5s infinite ease-in-out;
+  }
+
+  &.is-flipping {
+    animation: tortillaFlip 0.8s ease-in-out forwards;
+  }
+}
+
+@keyframes tortillaIdle {
+  0%, 100% {
+    transform: translateY(0) scaleY(1);
+  }
+  50% {
+    transform: translateY(-3px) scaleY(1.02);
+  }
+}
+
+@keyframes tortillaFlip {
+  0% {
+    transform: translateY(0) rotateX(0deg) scale(1);
+  }
+  50% {
+    transform: translateY(-60px) rotateX(180deg) scale(1.15);
+  }
+  100% {
+    transform: translateY(0) rotateX(360deg) scale(1);
+  }
+}
+
+/* === Physical Movement & Wrapper Animations === */
+.mascot-card {
+  @include ceramic-card($warm-surface, $warm-border);
+  padding: 12px 16px;
+}
+
+.mascot-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translate3d(var(--offset-x, 0px), var(--offset-y, 0px), 0);
+  transition: transform 0.65s cubic-bezier(0.34, 1.25, 0.64, 1), filter 0.3s ease;
+  will-change: transform, filter;
+  z-index: 1;
+
+  &.is-floating {
+    z-index: 1000;
+    filter: drop-shadow(0 14px 22px rgba(44, 26, 20, 0.25));
+  }
+
+  &.is-holding {
+    animation: mascotGrabPulse 0.4s ease-in-out;
+  }
+}
+
+@keyframes mascotGrabPulse {
+  0% { transform: translate3d(var(--offset-x, 0px), var(--offset-y, 0px), 0) scale(1); }
+  50% { transform: translate3d(var(--offset-x, 0px), var(--offset-y, 0px), 0) scale(1.1); }
+  100% { transform: translate3d(var(--offset-x, 0px), var(--offset-y, 0px), 0) scale(1); }
+}
+
+/* === Held Ingredient Badge CSS Animations === */
+.mascot-held-badge {
+  position: absolute;
+  bottom: -8px;
+  right: -12px;
+  background: #ffffff;
+  border: 2px solid $tortilla-yellow;
+  border-radius: 20px;
+  padding: 3px 8px;
+  box-shadow: 0 4px 14px rgba(44, 26, 20, 0.18);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  color: $dark-brown;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 1001;
+  animation: heldBadgeEnter 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, heldBadgeFloat 2.5s ease-in-out infinite 0.35s;
+}
+
+@keyframes heldBadgeEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(15px) scale(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes heldBadgeFloat {
+  0%, 100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-4px) rotate(3deg);
+  }
+}
+
+/* === Internal Element Animations === */
+.tortilla-blink {
+  animation: tortillaBlink 4s infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes tortillaBlink {
+  0%, 92%, 100% {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  94%, 98% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+</file>
+
+<file path="src/components/Recipe/RecipePanel.scss">
+/**
+ * FILE: src/components/Recipe/RecipePanel.scss
+ *
+ * PURPOSE:
+ * SCSS styles for the Recipe selection and execution panel.
+ */
+
+@use 'sass:color';
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.recipe-panel {
+  @include ceramic-card($warm-surface, $warm-border);
+  padding: 12px 16px;
+  margin-bottom: 16px;
+
+  &-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+}
+
+.recipe-selector {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.recipe-option {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #ffffff;
+  border: 1px solid $warm-border;
+  border-radius: $radius-sm;
+  padding: 4px 8px;
+  transition: all 0.2s ease;
+
+  &.active {
+    border-color: $tortilla-yellow;
+    background: $tortilla-yellow-light;
+    box-shadow: 0 2px 6px rgba(232, 168, 56, 0.2);
+  }
+}
+
+.recipe-tab {
+  background: transparent;
+  border: none;
+  font-size: 13px;
+  font-weight: 700;
+  color: $dark-brown;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: $radius-sm;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: $tortilla-yellow-hover;
+  }
+
+  &.active {
+    color: $dark-brown;
+  }
+}
+
+.follow-recipe-btn {
+  @include playful-button($tortilla-yellow, #ffffff);
+  font-size: 0.78rem;
+  padding: 5px 10px;
+  white-space: nowrap;
+}
+
+.recipe-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.recipe-status {
+  font-size: 13px;
+  color: $wood-muted;
+  font-weight: 600;
+}
+
+.highlight-count {
+  color: $terracotta;
+  font-weight: 800;
+}
+
+.recipe-toggle-btn {
+  background: #ffffff;
+  border: 1px solid $warm-border;
+  border-radius: $radius-sm;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: $dark-brown;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: $olive-green;
+    color: $olive-green;
+    background: $olive-green-light;
+  }
+}
+
+.recipe-content.compact {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed $warm-border;
+}
+
+.recipe-title {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  color: $dark-brown;
+  font-weight: 700;
+}
+</file>
+
 <file path="src/data/catalog/recipes/index.ts">
 /**
  * FILE: index.ts
@@ -6158,33 +5550,432 @@ export const actionLog: ActionLogMiddleware = (initializer) => (set, get, api) =
 };
 </file>
 
-<file path="src/store/gazeStore.ts">
+<file path="src/store/slices/mascotSlice.ts">
 /**
- * FILE: gazeStore.ts
+ * FILE: mascotSlice.ts
  *
  * PURPOSE:
- * Stores mascot gaze/attention state.
+ * Zustand slice for mascot (Chef Tortilla) state actions.
  *
  * RESPONSIBILITY:
- * - Tracks what the mascot is looking at.
- * - Provides gaze information to UI components.
+ * - Mutates mascot gaze, flip, grab, and drop states.
  */
 
-import { create } from 'zustand'
-import type { GazeTarget } from '../systems/gaze'
+import type { StateCreator } from 'zustand/vanilla';
+import type { Entity } from '../../types/world';
+import type { WorldStateStore } from '../types';
+import { validateContainerRules } from '../../engine/containerRules';
+import type { GazeTarget } from '../../systems/gaze';
 
-interface GazeState {
-  /** Whatever the mascot should be looking at right now, or null to fall back to the mouse. */
-  target: GazeTarget | null
-  setTarget: (target: GazeTarget | null) => void
-  clearTarget: () => void
+export interface MascotSlice {
+  mascotFlip: (mascotId?: string) => void;
+  mascotMove: (targetContainerId: string, mascotId?: string) => void;
+  mascotGrab: (entityId: string, sourceContainerId?: string, mascotId?: string) => void;
+  mascotDrop: (targetContainerId: string, positionIndex?: number, mascotId?: string) => void;
+  mascotClearGaze: (mascotId?: string) => void;
 }
 
-export const useGazeStore = create<GazeState>((set) => ({
-  target: null,
-  setTarget: (target) => set({ target }),
-  clearTarget: () => set({ target: null }),
-}))
+export const createMascotSlice: StateCreator<
+  WorldStateStore,
+  [['zustand/devtools', never], ['zustand/immer', never]],
+  [],
+  MascotSlice
+> = (set, get) => ({
+  mascotFlip: (mascotId = 'chef') => {
+    set(
+      (draft) => {
+        const mascot = draft.entities[mascotId];
+        if (!mascot) return;
+        mascot.state = {
+          ...mascot.state,
+          state: 'flipping',
+          isFlipping: true,
+        };
+      },
+      false,
+      'MASCOT_FLIP'
+    );
+
+    setTimeout(() => {
+      set(
+        (draft) => {
+          const mascot = draft.entities[mascotId];
+          if (!mascot || mascot.state?.state !== 'flipping') return;
+          mascot.state = {
+            ...mascot.state,
+            state: 'idle',
+            isFlipping: false,
+          };
+        },
+        false,
+        'RESET_MASCOT_FLIP'
+      );
+    }, 800);
+  },
+
+  mascotMove: (targetContainerId, mascotId = 'chef') => {
+    set(
+      (draft) => {
+        const mascot = draft.entities[mascotId];
+        if (!mascot) return;
+        const gaze: GazeTarget = { type: 'entity', entityId: targetContainerId };
+        mascot.state = {
+          ...mascot.state,
+          gazingAt: gaze,
+          targetContainerId,
+        };
+      },
+      false,
+      'MASCOT_MOVE'
+    );
+  },
+
+  mascotGrab: (entityId, sourceContainerId, mascotId = 'chef') => {
+    const state = get();
+    const mascot = state.entities[mascotId];
+    if (!mascot) return;
+    const grabbedEntity = state.entities[entityId];
+    if (!grabbedEntity) return;
+
+    const foundSource = sourceContainerId
+      ? state.containers[sourceContainerId]
+      : Object.values(state.containers).find((c) => c.entityIds.includes(entityId));
+
+    set(
+      (draft) => {
+        const m = draft.entities[mascotId];
+        if (!m) return;
+        const grabGaze: GazeTarget = foundSource?.id
+          ? { type: 'entity', entityId: foundSource.id }
+          : (m.state?.gazingAt as GazeTarget) ?? null;
+        m.state = {
+          ...m.state,
+          holdingEntityId: entityId,
+          sourceContainerId: foundSource?.id,
+          gazingAt: grabGaze,
+        };
+      },
+      false,
+      'MASCOT_GRAB'
+    );
+  },
+
+  mascotClearGaze: (mascotId = 'chef') => {
+    set(
+      (draft) => {
+        const mascot = draft.entities[mascotId];
+        if (!mascot) return;
+        mascot.state = { ...mascot.state, gazingAt: null, targetContainerId: undefined };
+      },
+      false,
+      'MASCOT_CLEAR_GAZE'
+    );
+  },
+
+  mascotDrop: (targetContainerId, positionIndex, mascotId = 'chef') => {
+    const state = get();
+    const mascot = state.entities[mascotId];
+    if (!mascot) return;
+
+    const holdingEntityId = mascot.state?.holdingEntityId as string | undefined;
+
+    if (!holdingEntityId) {
+      set(
+        (draft) => {
+          const m = draft.entities[mascotId];
+          if (m) {
+            m.state = { ...m.state, gazingAt: { type: 'entity', entityId: targetContainerId } };
+          }
+        },
+        false,
+        'MASCOT_DROP'
+      );
+      return;
+    }
+
+    const entityToMove = state.entities[holdingEntityId];
+    const targetContainer = state.containers[targetContainerId];
+    if (!entityToMove || !targetContainer) return;
+
+    const sourceContainerId = mascot.state?.sourceContainerId as string | undefined;
+    const sourceContainer = sourceContainerId
+      ? state.containers[sourceContainerId]
+      : Object.values(state.containers).find((c) => c.entityIds.includes(holdingEntityId));
+
+    const isSourceImmutable =
+      sourceContainer?.rules?.isImmutable || sourceContainer?.rules?.consumesOnDrag === false;
+
+    let finalEntityId = holdingEntityId;
+    let copyEntity: Entity | undefined;
+
+    if (sourceContainer && sourceContainer.id !== targetContainerId && isSourceImmutable) {
+      const copyId = `${entityToMove.id}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+      copyEntity = {
+        ...entityToMove,
+        id: copyId,
+        ingredientId: entityToMove.ingredientId || entityToMove.id.split('_')[0],
+      };
+
+      const currentEntities = targetContainer.entityIds
+        .map((id) => state.entities[id])
+        .filter((e): e is Entity => Boolean(e));
+      const result = validateContainerRules(targetContainer, copyEntity, currentEntities);
+      if (!result.allowed) return;
+
+      finalEntityId = copyId;
+    } else {
+      const currentEntities = targetContainer.entityIds
+        .map((id) => state.entities[id])
+        .filter((e): e is Entity => Boolean(e) && e.id !== holdingEntityId);
+      const result = validateContainerRules(targetContainer, entityToMove, currentEntities);
+      if (!result.allowed) return;
+    }
+
+    set(
+      (draft) => {
+        if (copyEntity) {
+          draft.entities[copyEntity.id] = copyEntity;
+        }
+
+        if (sourceContainer && !isSourceImmutable) {
+          draft.containers[sourceContainer.id].entityIds = draft.containers[
+            sourceContainer.id
+          ].entityIds.filter((id) => id !== holdingEntityId);
+        }
+
+        if (typeof positionIndex === 'number') {
+          draft.containers[targetContainerId].entityIds.splice(positionIndex, 0, finalEntityId);
+        } else {
+          draft.containers[targetContainerId].entityIds.push(finalEntityId);
+        }
+
+        const m = draft.entities[mascotId];
+        if (m) {
+          m.state = {
+            ...m.state,
+            holdingEntityId: undefined,
+            sourceContainerId: undefined,
+            gazingAt: { type: 'entity', entityId: targetContainerId } satisfies GazeTarget,
+          };
+        }
+      },
+      false,
+      'MASCOT_DROP'
+    );
+  },
+});
+</file>
+
+<file path="src/store/defaults.ts">
+/**
+ * FILE: defaults.ts
+ *
+ * PURPOSE:
+ * Initial seed data for world state.
+ *
+ * RESPONSIBILITY:
+ * - Provides default entity definitions (mascot, ingredients, tools).
+ * - Provides default container definitions (despensa, sink, board, bowl, pan, plate).
+ */
+
+import type { Container, Entity } from '../types/world';
+import type { GazeTarget } from '../systems/gaze';
+import { ingredients as catalogIngredients } from '../data/catalog/ingredients';
+import { catalogTools } from '../data/catalog/tools';
+
+export const defaultEntities: Record<string, Entity> = {
+  chef: {
+    id: 'chef',
+    name: 'Chef Tortilla 🍳',
+    type: 'mascot',
+    state: { gazingAt: { type: 'entity', entityId: 'despensa' } satisfies GazeTarget },
+  },
+  ...catalogIngredients.reduce((acc, item) => {
+    acc[item.id] = {
+      id: item.id,
+      ingredientId: item.id,
+      name: `${item.icon} ${item.name}`,
+      type: 'ingredient',
+      state: {},
+    };
+    return acc;
+  }, {} as Record<string, Entity>),
+  ...catalogTools.reduce((acc, item) => {
+    acc[item.id] = {
+      id: item.id,
+      name: `${item.icon} ${item.name}`,
+      type: 'tool',
+      state: {},
+    };
+    return acc;
+  }, {} as Record<string, Entity>),
+};
+
+export const defaultContainers: Record<string, Container> = {
+  despensa: {
+    id: 'despensa',
+    name: 'Despensa (All Ingredients - Immutable Catalog)',
+    type: 'storage',
+    entityIds: [...catalogIngredients.map((i) => i.id), ...catalogTools.map((t) => t.id)],
+    rules: {
+      maxCapacity: 30,
+      allowedTypes: ['ingredient', 'tool'],
+      consumesOnDrag: false,
+      isImmutable: true,
+    },
+  },
+  sink: {
+    id: 'sink',
+    name: 'Fregadero (Sink)',
+    type: 'sink',
+    entityIds: [],
+    rules: { maxCapacity: 10, allowedTypes: ['ingredient', 'tool'] },
+  },
+  board: {
+    id: 'board',
+    name: 'Tabla (Cutting Board)',
+    type: 'board',
+    entityIds: [],
+    rules: { maxCapacity: 10, allowedTypes: ['ingredient', 'tool'] },
+  },
+  bowl: {
+    id: 'bowl',
+    name: 'Bol (Preparation Bowl)',
+    type: 'bowl',
+    entityIds: [],
+    rules: { maxCapacity: 10, allowedTypes: ['ingredient', 'tool'] },
+  },
+  pan: {
+    id: 'pan',
+    name: 'Sartén (Skillet)',
+    type: 'pan',
+    entityIds: [],
+    rules: { maxCapacity: 5, allowedTypes: ['ingredient', 'tool'] },
+  },
+  plate: {
+    id: 'plate',
+    name: 'Plato (Plate)',
+    type: 'plate',
+    entityIds: [],
+    rules: { maxCapacity: 5, allowedTypes: ['ingredient', 'tool'] },
+  },
+};
+</file>
+
+<file path="src/store/types.ts">
+/**
+ * FILE: types.ts
+ *
+ * PURPOSE:
+ * Type contract for Zustand world store and its slices.
+ */
+
+import type { Container, Entity, WorldAction } from '../types/world';
+import type { EntitySlice } from './slices/entitySlice';
+import type { ContainerSlice } from './slices/containerSlice';
+import type { MascotSlice } from './slices/mascotSlice';
+
+export type WorldStateStore = {
+  entities: Record<string, Entity>;
+  containers: Record<string, Container>;
+  dispatch: (action: WorldAction) => void;
+  resetWorld: () => void; // <-- NEW METHOD
+} & EntitySlice &
+  ContainerSlice &
+  MascotSlice;
+</file>
+
+<file path="src/styles/_mixins.scss">
+/**
+ * FILE: src/styles/_mixins.scss
+ *
+ * PURPOSE:
+ * Reusable SCSS mixins for ceramic cards, workstation panels, and interactive elements.
+ */
+
+@use 'sass:color';
+@use './variables' as *;
+
+// Cozy ceramic card container mixin
+@mixin ceramic-card($bg-color: $warm-surface, $border-color: $warm-border) {
+  background: $bg-color;
+  border: 1px solid $border-color;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-ceramic;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+// Workstation panel header styling
+@mixin workstation-header($accent-color, $text-color: $dark-brown) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  border-bottom: 2px dashed color.mix($accent-color, white, 35%);
+  margin-bottom: 12px;
+
+  h3 {
+    color: $text-color;
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .workstation-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: $radius-sm;
+    background: color.mix($accent-color, white, 18%);
+    color: $accent-color;
+    border: 1px solid color.mix($accent-color, white, 40%);
+  }
+}
+
+// Interactive wooden/playful button mixin
+@mixin playful-button($bg: $tortilla-yellow, $text: #ffffff) {
+  background: $bg;
+  color: $text;
+  border: none;
+  border-radius: $radius-sm;
+  padding: 8px 14px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(44, 26, 20, 0.12);
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(44, 26, 20, 0.18);
+    filter: brightness(1.04);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 1px 3px rgba(44, 26, 20, 0.15);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+}
+
+// Flex center helper
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 </file>
 
 <file path="src/styles/_variables.scss">
@@ -6296,6 +6087,101 @@ $radius-sm: 8px;
 $radius-md: 12px;
 $radius-lg: 16px;
 $radius-xl: 24px;
+</file>
+
+<file path="src/systems/recipeRunner/handlers/utilityHandlers.ts">
+/**
+ * FILE: src/systems/recipeRunner/handlers/utilityHandlers.ts
+ *
+ * PURPOSE:
+ * Step handlers for utility, narrative, and completion steps ('serve', 'wait', 'instruction', 'speak', 'celebrate').
+ */
+
+import { worldStore } from '../../../store/worldStore';
+import { moveTortillaTo, flipTortilla, clearTortillaGaze } from '../../mascotActions';
+import type { RecipeStep } from '../../../types/RecipeStep';
+import type { RecipeRunnerContext } from '../types';
+
+type ServeStep = Extract<RecipeStep, { action: 'serve' }>;
+type WaitStep = Extract<RecipeStep, { action: 'wait' }>;
+type InstructionStep = Extract<RecipeStep, { action: 'instruction' }>;
+type SpeakStep = Extract<RecipeStep, { action: 'speak' }>;
+type CelebrateStep = Extract<RecipeStep, { action: 'celebrate' }>;
+
+export async function handleServeStep(
+  ctx: RecipeRunnerContext,
+  step: ServeStep,
+  workstationDefaultContainerId?: string
+): Promise<void> {
+  const targetContainerId = step.containerId || workstationDefaultContainerId || 'plate';
+  moveTortillaTo(targetContainerId, ctx.mascotId);
+  await ctx.wait();
+
+  // Move all cooked/prepared items from pan, bowl, or board to plate
+  const state = worldStore.getState();
+  for (const sourceCId of ['pan', 'bowl', 'board']) {
+    const container = state.containers[sourceCId];
+    if (container && container.entityIds.length > 0) {
+      [...container.entityIds].forEach((entityId) => {
+        worldStore.getState().dispatch({
+          type: 'MOVE_ENTITY',
+          payload: {
+            entityId,
+            targetContainerId: targetContainerId,
+          },
+        });
+      });
+    }
+  }
+  await ctx.wait();
+}
+
+export async function handleWaitStep(
+  ctx: RecipeRunnerContext,
+  step: WaitStep
+): Promise<void> {
+  await ctx.wait(step.durationMs);
+}
+
+export async function handleInstructionStep(
+  ctx: RecipeRunnerContext,
+  step: InstructionStep
+): Promise<void> {
+  const text = step.text || (step as any).instruction;
+  if (text) {
+    worldStore.getState().dispatch({
+      type: 'UPDATE_ENTITY_STATE',
+      payload: {
+        entityId: step.mascotId || ctx.mascotId,
+        changes: { speechMessage: text },
+      },
+    });
+  }
+  await ctx.wait();
+}
+
+export async function handleSpeakStep(
+  ctx: RecipeRunnerContext,
+  step: SpeakStep
+): Promise<void> {
+  worldStore.getState().dispatch({
+    type: 'UPDATE_ENTITY_STATE',
+    payload: {
+      entityId: step.mascotId || ctx.mascotId,
+      changes: { speechMessage: step.message },
+    },
+  });
+  await ctx.wait();
+}
+
+export async function handleCelebrateStep(
+  ctx: RecipeRunnerContext,
+  step: CelebrateStep
+): Promise<void> {
+  flipTortilla(step.mascotId || ctx.mascotId);
+  await ctx.wait(900);
+  clearTortillaGaze(step.mascotId || ctx.mascotId);
+}
 </file>
 
 <file path="src/systems/recipeMatcher.test.ts">
@@ -6505,6 +6391,291 @@ export interface RecipeIngredient {
   ingredientId: string
   amount: number
   unit: string
+}
+</file>
+
+<file path="src/index.scss">
+/**
+ * FILE: src/index.scss
+ *
+ * PURPOSE:
+ * Global stylesheet for Tortilla World.
+ * Establishes warm Spanish kitchen simulation theme, global CSS variables, typography, and workstation layouts.
+ */
+
+@use 'sass:color';
+@use './styles/variables' as *;
+@use './styles/mixins' as *;
+
+:root {
+  --text: #{$dark-brown};
+  --text-h: #{$dark-brown};
+  --text-muted: #{$wood-muted};
+  --bg: #{$warm-cream};
+  --card-bg: #{$warm-surface};
+  --border: #{$warm-border};
+  --code-bg: #{$warm-beige};
+
+  // Primary palette tokens
+  --primary: #{$tortilla-yellow};
+  --primary-hover: #{$tortilla-yellow-hover};
+  --secondary: #{$olive-green};
+  --secondary-hover: #{$olive-green-hover};
+  --accent: #{$terracotta};
+  --accent-hover: #{$terracotta-hover};
+
+  --shadow: #{$shadow-ceramic};
+  --shadow-hover: #{$shadow-ceramic-hover};
+
+  --font-sans: #{$font-family};
+  --font-mono: #{$font-mono};
+
+  font-family: var(--font-sans);
+  color-scheme: light;
+  color: var(--text);
+  background-color: var(--bg);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg);
+  color: var(--text);
+  background-image: radial-gradient(#{$warm-border} 0.75px, transparent 0.75px);
+  background-size: 20px 20px;
+  min-height: 100vh;
+}
+
+#root {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 20px;
+  box-sizing: border-box;
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-sans);
+  color: var(--text-h);
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+h1 {
+  font-size: 1.85rem;
+  letter-spacing: -0.02em;
+}
+
+p {
+  line-height: 1.5;
+}
+
+// === SCENE GRID LAYOUT & WORKSTATIONS ===
+.scene {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 20px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// === WORKSTATION CONTAINER SPECIFIC THEMES ===
+.ingredient-list {
+  @include ceramic-card($warm-surface, $warm-border);
+  padding: 16px;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+
+  &.drag-over {
+    border-color: $tortilla-yellow-border !important;
+    background-color: $tortilla-yellow-light !important;
+    box-shadow: 0 0 0 3px rgba(232, 168, 56, 0.25) !important;
+  }
+
+  // Workstation header
+  .workstation-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px dashed color.mix($dark-brown, white, 15%);
+
+    h3 {
+      font-size: 1rem;
+      margin: 0;
+      color: $dark-brown;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .workstation-type-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: $radius-sm;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+  }
+
+  // Pantry Storage Theme
+  &.workstation-pantry, &.workstation-despensa {
+    background: $pantry-bg;
+    border-color: $pantry-border;
+    .workstation-type-badge {
+      background: color.mix($pantry-accent, white, 15%);
+      color: $pantry-accent;
+      border: 1px solid color.mix($pantry-accent, white, 30%);
+    }
+  }
+
+  // Washing Station Theme (Sink)
+  &.workstation-sink, &.workstation-washing_station {
+    background: $washing-bg;
+    border-color: $washing-border;
+    .workstation-type-badge {
+      background: color.mix($washing-accent, white, 15%);
+      color: $washing-accent;
+      border: 1px solid color.mix($washing-accent, white, 30%);
+    }
+  }
+
+  // Cutting Station Theme (Board)
+  &.workstation-board, &.workstation-cutting_station {
+    background: $cutting-bg;
+    border-color: $cutting-border;
+    .workstation-type-badge {
+      background: color.mix($cutting-accent, white, 15%);
+      color: $cutting-accent;
+      border: 1px solid color.mix($cutting-accent, white, 30%);
+    }
+  }
+
+  // Preparation Station Theme (Bowl)
+  &.workstation-bowl, &.workstation-preparation_station {
+    background: $mixing-bg;
+    border-color: $mixing-border;
+    .workstation-type-badge {
+      background: color.mix($mixing-accent, white, 15%);
+      color: $mixing-accent;
+      border: 1px solid color.mix($mixing-accent, white, 30%);
+    }
+  }
+
+  // Cooking Station Theme (Pan)
+  &.workstation-pan, &.workstation-cooking_station {
+    background: $cooking-bg;
+    border-color: $cooking-border;
+    .workstation-type-badge {
+      background: color.mix($cooking-accent, white, 15%);
+      color: $cooking-accent;
+      border: 1px solid color.mix($cooking-accent, white, 30%);
+    }
+  }
+
+  // Serving Station Theme (Plate)
+  &.workstation-plate, &.workstation-serving_station {
+    background: $serving-bg;
+    border-color: $serving-border;
+    .workstation-type-badge {
+      background: color.mix($serving-accent, white, 15%);
+      color: $serving-accent;
+      border: 1px solid color.mix($serving-accent, white, 30%);
+    }
+  }
+
+  .items-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex-grow: 1;
+  }
+
+  .empty-hint {
+    font-size: 0.82rem;
+    color: $wood-muted;
+    font-style: italic;
+    margin: auto;
+    text-align: center;
+    padding: 12px 0;
+    opacity: 0.7;
+  }
+}
+
+// === INGREDIENT LIST ITEM & STATE STYLES ===
+.ingredient-list-item {
+  background: #ffffff;
+  border: 1px solid $warm-border;
+  border-radius: $radius-md;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: $dark-brown;
+  box-shadow: 0 2px 6px rgba(44, 26, 20, 0.04);
+  user-select: none;
+  touch-action: none;
+  transition: all 0.18s ease;
+
+  &:hover {
+    border-color: color.mix($tortilla-yellow, $warm-border, 50%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(44, 26, 20, 0.08);
+  }
+
+  &.dragging {
+    box-shadow: $shadow-floating;
+    opacity: 0.85;
+    transform: scale(1.02);
+  }
+
+  // === INGREDIENT STATE COLOR BADGES ===
+  .ingredient-state-badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: $radius-sm;
+    margin-left: 8px;
+    white-space: nowrap;
+
+    &.state-raw {
+      background: $state-raw-bg;
+      border: 1px solid $state-raw-border;
+      color: $state-raw-text;
+    }
+
+    &.state-prepared {
+      background: $state-prep-bg;
+      border: 1px solid $state-prep-border;
+      color: $state-prep-text;
+    }
+
+    &.state-cooking {
+      background: $state-cook-bg;
+      border: 1px solid $state-cook-border;
+      color: $state-cook-text;
+    }
+
+    &.state-finished {
+      background: $state-finished-bg;
+      border: 1px solid $state-finished-border;
+      color: $state-finished-text;
+    }
+  }
 }
 </file>
 
@@ -8233,172 +8404,61 @@ describe('Recipe Catalog', () => {
 });
 </file>
 
-<file path="src/systems/recipeRunner.test.ts">
+<file path="src/store/gazeStore.ts">
 /**
- * FILE: recipeRunner.test.ts
+ * FILE: gazeStore.ts
  *
  * PURPOSE:
- * Unit tests for the generic RecipeRunner step-based state machine.
+ * Stores mascot gaze/attention state.
+ *
+ * RESPONSIBILITY:
+ * - Tracks what the mascot is looking at.
+ * - Provides gaze information to UI components.
  */
 
-import { beforeEach, describe, expect, it } from 'vitest';
-import { worldStore } from '../store/worldStore';
-import { RecipeRunner } from './recipeRunner';
-import { concebollaRecipe, clasicaRecipe } from '../data/catalog/recipes';
-import type { Recipe } from '../types/Recipe';
-import { clearActionLog, getActionLog } from '../store/middleware/actionLog';
+import { create } from 'zustand';
+import { subscribeWithSelector } from 'zustand/middleware';
+import type { GazeTarget } from '../systems/gaze';
+import { gazeEntityId } from '../systems/gaze';
 
-function seedTestWorld() {
-  worldStore.setState({
-    entities: {
-      chef: { id: 'chef', name: 'Chef Tortilla 🍳', type: 'mascot', state: { gazingAt: '' } },
-      onion: { id: 'onion', ingredientId: 'onion', name: 'Onion', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-      potato: { id: 'potato', ingredientId: 'potato', name: 'Potato', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-      egg: { id: 'egg', ingredientId: 'egg', name: 'Egg', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-      oil: { id: 'oil', ingredientId: 'oil', name: 'Oil', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-      salt: { id: 'salt', ingredientId: 'salt', name: 'Salt', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-      pepper: { id: 'pepper', ingredientId: 'pepper', name: 'Pepper', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-    },
-    containers: {
-      despensa: {
-        id: 'despensa',
-        name: 'Despensa',
-        type: 'storage',
-        entityIds: ['onion', 'potato', 'egg', 'oil', 'salt', 'pepper'],
-        rules: { isImmutable: true },
-      },
-      sink: {
-        id: 'sink',
-        name: 'Sink',
-        type: 'sink',
-        entityIds: [],
-        rules: { maxCapacity: 10 },
-      },
-      board: {
-        id: 'board',
-        name: 'Board',
-        type: 'board',
-        entityIds: [],
-        rules: { maxCapacity: 10 },
-      },
-      bowl: {
-        id: 'bowl',
-        name: 'Bowl',
-        type: 'bowl',
-        entityIds: [],
-        rules: { maxCapacity: 10 },
-      },
-      pan: {
-        id: 'pan',
-        name: 'Pan',
-        type: 'pan',
-        entityIds: [],
-        rules: { maxCapacity: 5 },
-      },
-      plate: {
-        id: 'plate',
-        name: 'Plate',
-        type: 'plate',
-        entityIds: [],
-        rules: { maxCapacity: 5 },
-      },
-    },
-    dispatch: worldStore.getState().dispatch,
-  });
+interface GazeState {
+  /**
+   * Whatever the mascot should be looking at right now.
+   * null → fall back to idle eye position.
+   */
+  target: GazeTarget;
+  setTarget: (target: GazeTarget) => void;
+  clearTarget: () => void;
 }
 
-describe('RecipeRunner System', () => {
-  beforeEach(() => {
-    seedTestWorld();
-    clearActionLog();
-  });
+/**
+ * Standalone gaze store — separate from worldStore so UI components
+ * (TortillaSvg, eye-tracking overlays) can subscribe to gaze changes
+ * with fine-grained selectors and zero coupling to world state shape.
+ *
+ * Uses subscribeWithSelector middleware so callers can subscribe to
+ * slices of gaze state without triggering on unrelated updates.
+ *
+ * @example
+ *   // React component: only re-renders when entityId changes
+ *   const entityId = useGazeStore((s) => gazeEntityId(s.target));
+ *
+ *   // Outside React: subscribe to entity-gaze changes only
+ *   useGazeStore.subscribe(
+ *     (s) => gazeEntityId(s.target),
+ *     (id) => console.log('now gazing at entity', id)
+ *   );
+ */
+export const useGazeStore = create<GazeState>()(
+  subscribeWithSelector((set) => ({
+    target: null,
+    setTarget: (target) => set({ target }),
+    clearTarget: () => set({ target: null }),
+  }))
+);
 
-  it('runs a declarative recipe and populates target container', async () => {
-    const runner = new RecipeRunner({ mascotId: 'chef', defaultTargetId: 'board', delayMs: 5 });
-    await runner.runRecipe(concebollaRecipe);
-
-    const state = worldStore.getState();
-    expect(state.containers.board.entityIds.length).toBeGreaterThanOrEqual(1);
-
-    const actionNames = getActionLog().map((a) => a.action);
-    expect(actionNames).toContain('MASCOT_MOVE');
-    expect(actionNames).toContain('MASCOT_GRAB');
-    expect(actionNames).toContain('MASCOT_DROP');
-    expect(actionNames).toContain('MASCOT_FLIP');
-  });
-
-  it('mutates existing entity state for cut/prepare without creating new entity', async () => {
-    // Move onion to board first
-    const runner = new RecipeRunner({ mascotId: 'chef', defaultTargetId: 'board', delayMs: 5 });
-    await runner.runSteps([
-      { action: 'move', ingredient: 'onion', source: 'despensa', target: 'board' },
-      { action: 'cut', ingredient: 'onion', style: 'diced', containerId: 'board' },
-    ]);
-
-    const state = worldStore.getState();
-    const boardEntities = state.containers.board.entityIds.map((id) => state.entities[id]);
-    const dicedOnion = boardEntities.find((e) => e?.ingredientId === 'onion');
-
-    expect(dicedOnion).toBeDefined();
-    // Verify entity ID was retained (no recreation!)
-    expect(dicedOnion?.state?.preparation).toBe('diced');
-
-    const actionNames = getActionLog().map((a) => a.action);
-    expect(actionNames).toContain('PREPARE_INGREDIENT');
-  });
-
-  it('mutates existing entity state for cook step', async () => {
-    const runner = new RecipeRunner({ mascotId: 'chef', defaultTargetId: 'pan', delayMs: 5 });
-    await runner.runSteps([
-      { action: 'move', ingredient: 'potato', source: 'despensa', target: 'pan' },
-      { action: 'cook', ingredient: 'potato', method: 'fried', containerId: 'pan' },
-    ]);
-
-    const state = worldStore.getState();
-    const panEntities = state.containers.pan.entityIds.map((id) => state.entities[id]);
-    const friedPotato = panEntities.find((e) => e?.ingredientId === 'potato');
-
-    expect(friedPotato).toBeDefined();
-    expect(friedPotato?.state?.cooking).toBe('fried');
-
-    const actionNames = getActionLog().map((a) => a.action);
-    expect(actionNames).toContain('COOK_INGREDIENT');
-  });
-
-  it('handles speak, wait, and celebrate steps', async () => {
-    const customRecipe: Recipe = {
-      id: 'custom-test',
-      name: 'Custom Test Recipe',
-      ingredients: [],
-      steps: [
-        { action: 'speak', message: 'Cooking initialized!' },
-        { action: 'wait', durationMs: 10 },
-        { action: 'celebrate' },
-      ],
-    };
-
-    const runner = new RecipeRunner({ mascotId: 'chef', delayMs: 5 });
-    await runner.runRecipe(customRecipe);
-
-    const state = worldStore.getState();
-    expect(state.entities.chef.state?.speechMessage).toBe('Cooking initialized!');
-    expect(state.entities.chef.state?.gazingAt).toBe('');
-  });
-
-  it('executes clasicaRecipe dictionary steps and state transformations', async () => {
-    const runner = new RecipeRunner({ mascotId: 'chef', delayMs: 5 });
-    await runner.runRecipe(clasicaRecipe);
-
-    const state = worldStore.getState();
-    const plateEntities = state.containers.plate.entityIds.map((id) => state.entities[id]);
-    expect(plateEntities.length).toBeGreaterThan(0);
-
-    const actionNames = getActionLog().map((a) => a.action);
-    expect(actionNames).toContain('PREPARE_INGREDIENT');
-    expect(actionNames).toContain('COOK_INGREDIENT');
-    expect(actionNames).toContain('MASCOT_FLIP');
-  });
-});
+// Re-export the narrow helper so consumers don't need a separate import.
+export { gazeEntityId };
 </file>
 
 <file path="src/types/Ingredient.ts">
@@ -9812,6 +9872,222 @@ describe('worldStore container rule enforcement', () => {
 });
 </file>
 
+<file path="src/systems/movement.ts">
+/**
+ * FILE: movement.ts
+ *
+ * PURPOSE:
+ * Handles entity movement calculations.
+ *
+ * RESPONSIBILITY:
+ * - Calculates position changes.
+ * - Provides movement behavior.
+ */
+
+import { worldStore } from '../store/worldStore';
+
+/**
+ * Requests that an entity be moved to another container.
+ * The reducer determines the source container automatically.
+ */
+export function moveEntity(
+  entityId: string,
+  targetContainerId: string,
+  positionIndex?: number
+): void {
+  worldStore.getState().dispatch({
+    type: 'MOVE_ENTITY',
+    payload: {
+      entityId,
+      targetContainerId,
+      positionIndex,
+    },
+  });
+}
+</file>
+
+<file path="src/systems/recipeRunner.test.ts">
+/**
+ * FILE: recipeRunner.test.ts
+ *
+ * PURPOSE:
+ * Unit tests for the generic RecipeRunner step-based state machine.
+ */
+
+import { beforeEach, describe, expect, it } from 'vitest';
+import { worldStore } from '../store/worldStore';
+import { RecipeRunner } from './recipeRunner';
+import { concebollaRecipe, clasicaRecipe } from '../data/catalog/recipes';
+import type { Recipe } from '../types/Recipe';
+import { clearActionLog, getActionLog } from '../store/middleware/actionLog';
+
+function seedTestWorld() {
+  worldStore.setState({
+    entities: {
+      chef: { id: 'chef', name: 'Chef Tortilla 🍳', type: 'mascot', state: { gazingAt: null } },
+      onion: { id: 'onion', ingredientId: 'onion', name: 'Onion', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+      potato: { id: 'potato', ingredientId: 'potato', name: 'Potato', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+      egg: { id: 'egg', ingredientId: 'egg', name: 'Egg', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+      oil: { id: 'oil', ingredientId: 'oil', name: 'Oil', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+      salt: { id: 'salt', ingredientId: 'salt', name: 'Salt', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+      pepper: { id: 'pepper', ingredientId: 'pepper', name: 'Pepper', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+    },
+    containers: {
+      despensa: {
+        id: 'despensa',
+        name: 'Despensa',
+        type: 'storage',
+        entityIds: ['onion', 'potato', 'egg', 'oil', 'salt', 'pepper'],
+        rules: { isImmutable: true },
+      },
+      sink: {
+        id: 'sink',
+        name: 'Sink',
+        type: 'sink',
+        entityIds: [],
+        rules: { maxCapacity: 10 },
+      },
+      board: {
+        id: 'board',
+        name: 'Board',
+        type: 'board',
+        entityIds: [],
+        rules: { maxCapacity: 10 },
+      },
+      bowl: {
+        id: 'bowl',
+        name: 'Bowl',
+        type: 'bowl',
+        entityIds: [],
+        rules: { maxCapacity: 10 },
+      },
+      pan: {
+        id: 'pan',
+        name: 'Pan',
+        type: 'pan',
+        entityIds: [],
+        rules: { maxCapacity: 5 },
+      },
+      plate: {
+        id: 'plate',
+        name: 'Plate',
+        type: 'plate',
+        entityIds: [],
+        rules: { maxCapacity: 5 },
+      },
+    },
+    dispatch: worldStore.getState().dispatch,
+  });
+}
+
+describe('RecipeRunner System', () => {
+  beforeEach(() => {
+    seedTestWorld();
+    clearActionLog();
+  });
+
+  it('runs a declarative recipe and populates target container', async () => {
+    const runner = new RecipeRunner({ mascotId: 'chef', defaultTargetId: 'board', delayMs: 5 });
+    await runner.runRecipe(concebollaRecipe);
+
+    const state = worldStore.getState();
+    expect(state.containers.board.entityIds.length).toBeGreaterThanOrEqual(1);
+
+    const actionNames = getActionLog().map((a) => a.action);
+    expect(actionNames).toContain('MASCOT_MOVE');
+    expect(actionNames).toContain('MASCOT_GRAB');
+    expect(actionNames).toContain('MASCOT_DROP');
+    expect(actionNames).toContain('MASCOT_FLIP');
+  });
+
+  it('mutates existing entity state for cut/prepare without creating new entity', async () => {
+    // Move onion to board first
+    const runner = new RecipeRunner({ mascotId: 'chef', defaultTargetId: 'board', delayMs: 5 });
+    await runner.runSteps([
+      { action: 'move', ingredient: 'onion', source: 'despensa', target: 'board' },
+      { action: 'cut', ingredient: 'onion', style: 'diced', containerId: 'board' },
+    ]);
+
+    const state = worldStore.getState();
+    const boardEntities = state.containers.board.entityIds.map((id) => state.entities[id]);
+    const dicedOnion = boardEntities.find((e) => e?.ingredientId === 'onion');
+
+    expect(dicedOnion).toBeDefined();
+    // Verify entity ID was retained (no recreation!)
+    expect(dicedOnion?.state?.preparation).toBe('diced');
+
+    const actionNames = getActionLog().map((a) => a.action);
+    expect(actionNames).toContain('PREPARE_INGREDIENT');
+  });
+
+  it('mutates existing entity state for cook step', async () => {
+    const runner = new RecipeRunner({ mascotId: 'chef', defaultTargetId: 'pan', delayMs: 5 });
+    await runner.runSteps([
+      { action: 'move', ingredient: 'potato', source: 'despensa', target: 'pan' },
+      { action: 'cook', ingredient: 'potato', method: 'fried', containerId: 'pan' },
+    ]);
+
+    const state = worldStore.getState();
+    const panEntities = state.containers.pan.entityIds.map((id) => state.entities[id]);
+    const friedPotato = panEntities.find((e) => e?.ingredientId === 'potato');
+
+    expect(friedPotato).toBeDefined();
+    expect(friedPotato?.state?.cooking).toBe('fried');
+
+    const actionNames = getActionLog().map((a) => a.action);
+    expect(actionNames).toContain('COOK_INGREDIENT');
+  });
+
+  it('handles speak, wait, and celebrate steps', async () => {
+    const customRecipe: Recipe = {
+      id: 'custom-test',
+      name: 'Custom Test Recipe',
+      ingredients: [],
+      steps: [
+        { action: 'speak', message: 'Cooking initialized!' },
+        { action: 'wait', durationMs: 10 },
+        { action: 'celebrate' },
+      ],
+    };
+
+    const runner = new RecipeRunner({ mascotId: 'chef', delayMs: 5 });
+    await runner.runRecipe(customRecipe);
+
+    const state = worldStore.getState();
+    expect(state.entities.chef.state?.speechMessage).toBe('Cooking initialized!');
+    // After celebrate step, clearTortillaGaze is called → gazingAt is null.
+    expect(state.entities.chef.state?.gazingAt).toBeNull();
+  });
+
+  it('executes clasicaRecipe dictionary steps and state transformations', async () => {
+    const runner = new RecipeRunner({ mascotId: 'chef', delayMs: 5 });
+    await runner.runRecipe(clasicaRecipe);
+
+    const state = worldStore.getState();
+    const plateEntities = state.containers.plate.entityIds.map((id) => state.entities[id]);
+    expect(plateEntities.length).toBeGreaterThan(0);
+
+    const actionNames = getActionLog().map((a) => a.action);
+    expect(actionNames).toContain('PREPARE_INGREDIENT');
+    expect(actionNames).toContain('COOK_INGREDIENT');
+    expect(actionNames).toContain('MASCOT_FLIP');
+  });
+});
+</file>
+
+<file path="src/systems/recipeRunner.ts">
+/**
+ * FILE: src/systems/recipeRunner.ts
+ *
+ * PURPOSE:
+ * Public entry point for RecipeRunner module.
+ * Re-exports RecipeRunner class and related options/types.
+ */
+
+export { RecipeRunner } from './recipeRunner/RecipeRunner';
+export type { RecipeRunnerOptions, RecipeRunnerContext } from './recipeRunner/types';
+</file>
+
 <file path="src/systems/gaze.test.ts">
 /**
  * FILE: gaze.test.ts
@@ -9820,12 +10096,15 @@ describe('worldStore container rule enforcement', () => {
  * Unit tests for gaze system.
  *
  * RESPONSIBILITY:
- * - Validates mascot gaze target updates and idempotency.
+ * - Validates mascot gaze target updates, structural equality, and idempotency.
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { worldStore } from '../store/worldStore';
 import { updateMascotGaze, getMascotGazeTarget } from './gaze';
+import type { GazeTarget } from './gaze';
+
+const PAN_GAZE: GazeTarget = { type: 'entity', entityId: 'pan' };
 
 describe('Gaze System', () => {
   beforeEach(() => {
@@ -9867,18 +10146,41 @@ describe('Gaze System', () => {
   });
 
   it('updates mascot gaze target correctly', () => {
-    updateMascotGaze('chef', 'pan');
-    expect(getMascotGazeTarget('chef')).toBe('pan');
+    updateMascotGaze('chef', PAN_GAZE);
+    expect(getMascotGazeTarget('chef')).toEqual(PAN_GAZE);
   });
 
   it('is idempotent when gazing at the same target', () => {
-    updateMascotGaze('chef', 'pan');
+    updateMascotGaze('chef', PAN_GAZE);
     const firstState = worldStore.getState();
 
-    updateMascotGaze('chef', 'pan');
+    updateMascotGaze('chef', { type: 'entity', entityId: 'pan' }); // structurally identical
     const secondState = worldStore.getState();
 
     expect(firstState).toBe(secondState);
+  });
+
+  it('updates when gazing at a different entity', () => {
+    updateMascotGaze('chef', PAN_GAZE);
+    updateMascotGaze('chef', { type: 'entity', entityId: 'plate' });
+    expect(getMascotGazeTarget('chef')).toEqual({ type: 'entity', entityId: 'plate' });
+  });
+
+  it('can gaze at mouse', () => {
+    updateMascotGaze('chef', { type: 'mouse' });
+    expect(getMascotGazeTarget('chef')).toEqual({ type: 'mouse' });
+  });
+
+  it('can gaze at a point', () => {
+    const pointGaze: GazeTarget = { type: 'point', point: { x: 100, y: 200 } };
+    updateMascotGaze('chef', pointGaze);
+    expect(getMascotGazeTarget('chef')).toEqual(pointGaze);
+  });
+
+  it('can clear gaze to null', () => {
+    updateMascotGaze('chef', PAN_GAZE);
+    updateMascotGaze('chef', null);
+    expect(getMascotGazeTarget('chef')).toBeNull();
   });
 });
 </file>
@@ -9949,7 +10251,7 @@ describe('mascotActions system', () => {
     moveTortillaTo('pan', 'chef');
 
     const state = worldStore.getState();
-    expect(state.entities.chef.state?.gazingAt).toBe('pan');
+    expect(state.entities.chef.state?.gazingAt).toEqual({ type: 'entity', entityId: 'pan' });
 
     const log = getActionLog();
     expect(log.map((l) => l.action)).toContain('MASCOT_MOVE');
@@ -10035,7 +10337,7 @@ describe('mascotActions system', () => {
       'MASCOT_MOVE',
       'MASCOT_DROP',
       'MASCOT_FLIP',
-      'MASCOT_MOVE',
+      'MASCOT_CLEAR_GAZE', // "return home" now dispatches MASCOT_CLEAR_GAZE, not MASCOT_MOVE('')
     ]);
   });
 
@@ -10071,337 +10373,6 @@ describe('mascotActions system', () => {
     expect(state.containers.board.entityIds.length).toBe(6);
   });
 });
-</file>
-
-<file path="src/systems/movement.ts">
-/**
- * FILE: movement.ts
- *
- * PURPOSE:
- * Handles entity movement calculations.
- *
- * RESPONSIBILITY:
- * - Calculates position changes.
- * - Provides movement behavior.
- */
-
-import { worldStore } from '../store/worldStore';
-
-/**
- * Requests that an entity be moved to another container.
- * The reducer determines the source container automatically.
- */
-export function moveEntity(
-  entityId: string,
-  targetContainerId: string,
-  positionIndex?: number
-): void {
-  worldStore.getState().dispatch({
-    type: 'MOVE_ENTITY',
-    payload: {
-      entityId,
-      targetContainerId,
-      positionIndex,
-    },
-  });
-}
-</file>
-
-<file path="src/systems/recipeRunner.ts">
-/**
- * FILE: src/systems/recipeRunner.ts
- *
- * PURPOSE:
- * Public entry point for RecipeRunner module.
- * Re-exports RecipeRunner class and related options/types.
- */
-
-export { RecipeRunner } from './recipeRunner/RecipeRunner';
-export type { RecipeRunnerOptions, RecipeRunnerContext } from './recipeRunner/types';
-</file>
-
-<file path="src/types/actions.ts">
-/**
- * FILE: actions.ts
- *
- * PURPOSE:
- * Defines world actions/events.
- *
- * RESPONSIBILITY:
- * - Creates the communication contract between systems and store.
- */
-
-import type { EntityType } from './world';
-import type { PreparationStyle, CookingMethod } from './RecipeStep';
-
-export type WorldAction =
-  | {
-      type: 'MOVE_ENTITY';
-      payload: {
-        entityId: string;
-        targetContainerId: string;
-        positionIndex?: number;
-      };
-    }
-  | {
-      type: 'ADD_ENTITY';
-      payload: {
-        entity: {
-          id: string;
-          name: string;
-          type: EntityType;
-          state?: Record<string, unknown>;
-        };
-        containerId: string;
-      };
-    }
-  | {
-      type: 'REMOVE_ENTITY';
-      payload: {
-        entityId: string;
-      };
-    }
-  | {
-      type: 'UPDATE_ENTITY_STATE';
-      payload: {
-        entityId: string;
-        changes: Record<string, unknown>;
-      };
-    }
-  | {
-      type: 'PREPARE_INGREDIENT';
-      payload: {
-        entityId: string;
-        preparation: PreparationStyle;
-      };
-    }
-  | {
-      type: 'COOK_INGREDIENT';
-      payload: {
-        entityId: string;
-        cooking: CookingMethod;
-      };
-    }
-  | {
-      type: 'MASCOT_FLIP';
-      payload: {
-        mascotId?: string;
-      };
-    }
-  | {
-      type: 'MASCOT_MOVE';
-      payload: {
-        mascotId?: string;
-        targetContainerId: string;
-      };
-    }
-  | {
-      type: 'MASCOT_GRAB';
-      payload: {
-        mascotId?: string;
-        entityId: string;
-        sourceContainerId?: string;
-      };
-    }
-  | {
-      type: 'MASCOT_DROP';
-      payload: {
-        mascotId?: string;
-        targetContainerId: string;
-        positionIndex?: number;
-      };
-    };
-</file>
-
-<file path="src/systems/gaze.ts">
-/**
- * FILE: gaze.ts
- *
- * PURPOSE:
- * Calculates gaze behavior.
- *
- * RESPONSIBILITY:
- * - Determines what objects attract attention.
- * - Updates gaze-related state.
- */
-
-import { worldStore } from '../store/worldStore';
-
-export type GazeTarget = string | null;
-
-export interface GazePoint {
-  x: number;
-  y: number;
-}
-
-interface GazeState {
-  gazingAt?: GazeTarget;
-}
-
-/**
- * Updates what target a mascot is looking at.
- */
-export function updateMascotGaze(
-  mascotId: string,
-  targetId: GazeTarget
-): void {
-  const currentTarget = getMascotGazeTarget(mascotId);
-
-  if (currentTarget === targetId) {
-    return;
-  }
-
-  worldStore.getState().dispatch({
-    type: 'UPDATE_ENTITY_STATE',
-    payload: {
-      entityId: mascotId,
-      changes: {
-        gazingAt: targetId,
-      },
-    },
-  });
-}
-
-/**
- * Returns the current gaze target.
- */
-export function getMascotGazeTarget(
-  mascotId: string
-): GazeTarget {
-  const entity = worldStore.getState().entities[mascotId];
-
-  if (!entity) {
-    return null;
-  }
-
-  const state = entity.state as GazeState | undefined;
-
-  return state?.gazingAt ?? null;
-}
-</file>
-
-<file path="src/systems/mascotActions.ts">
-/**
- * FILE: mascotActions.ts
- *
- * PURPOSE:
- * Action dispatcher helpers for mascot (Tortilla) commands.
- *
- * RESPONSIBILITY:
- * - Provides reusable, generic action dispatchers for AI agents or UI triggers.
- * - Handles tortilla movement, grabbing ingredients from containers, dropping ingredients into containers, and flipping.
- */
-
-import { worldStore } from '../store/worldStore';
-import { recipes } from '../data/catalog/recipes';
-import { RecipeRunner } from './recipeRunner';
-
-/**
- * Triggers Tortilla flip animation and records action in store.
- */
-export function flipTortilla(mascotId: string = 'chef'): void {
-  worldStore.getState().dispatch({
-    type: 'MASCOT_FLIP',
-    payload: { mascotId },
-  });
-}
-
-/**
- * Moves Tortilla gaze/focus to a specific container in the world.
- */
-export function moveTortillaTo(targetContainerId: string, mascotId: string = 'chef'): void {
-  worldStore.getState().dispatch({
-    type: 'MASCOT_MOVE',
-    payload: { mascotId, targetContainerId },
-  });
-}
-
-/**
- * Commands Tortilla to grab/pick up an ingredient from a container.
- */
-export function grabIngredient(
-  entityId: string,
-  sourceContainerId?: string,
-  mascotId: string = 'chef'
-): void {
-  worldStore.getState().dispatch({
-    type: 'MASCOT_GRAB',
-    payload: { mascotId, entityId, sourceContainerId },
-  });
-}
-
-/**
- * Commands Tortilla to drop the currently held ingredient into a target container.
- */
-export function dropIngredient(
-  targetContainerId: string,
-  positionIndex?: number,
-  mascotId: string = 'chef'
-): void {
-  worldStore.getState().dispatch({
-    type: 'MASCOT_DROP',
-    payload: { mascotId, targetContainerId, positionIndex },
-  });
-}
-
-/**
- * Commands Tortilla to execute a sequence:
- * 1. Move focus to despensa
- * 2. Grab potato from despensa
- * 3. Move focus to board (tabla)
- * 4. Drop potato into board
- * 5. Flip Tortilla mascot
- */
-export async function runTortillaPotatoScript(
-  mascotId: string = 'chef',
-  delayMs: number = 600
-): Promise<void> {
-  const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-  // 1. Look at despensa
-  moveTortillaTo('despensa', mascotId);
-  await wait(delayMs);
-
-  // 2. Grab potato from despensa
-  grabIngredient('potato', 'despensa', mascotId);
-  await wait(delayMs);
-
-  // 3. Look at board (tabla)
-  moveTortillaTo('board', mascotId);
-  await wait(delayMs);
-
-  // 4. Drop potato in board
-  dropIngredient('board', undefined, mascotId);
-  await wait(delayMs);
-
-  // 5. Flip Tortilla
-  flipTortilla(mascotId);
-  await wait(900);
-
-  // 6. Return home gracefully
-  moveTortillaTo('', mascotId);
-}
-
-/**
- * Commands Tortilla to follow a recipe by running its step-based state machine.
- */
-export async function runFollowRecipeScript(
-  recipeId: string,
-  mascotId: string = 'chef',
-  targetContainerId: string = 'board',
-  delayMs: number = 600
-): Promise<void> {
-  const activeRecipe = recipes.find((r) => r.id === recipeId);
-  if (!activeRecipe) return;
-
-  const runner = new RecipeRunner({
-    mascotId,
-    defaultTargetId: targetContainerId,
-    delayMs,
-  });
-
-  await runner.runRecipe(activeRecipe);
-}
 </file>
 
 <file path="src/types/IngredientList.ts">
@@ -11189,116 +11160,236 @@ The Store remembers the result.
 ```
 </file>
 
-<file path="src/components/Recipe/RecipePanel.tsx">
+<file path="src/systems/gaze.ts">
 /**
- * FILE: RecipePanel.tsx
+ * FILE: gaze.ts
  *
  * PURPOSE:
- * Compact, unintrusive recipe selector and catalog viewer.
+ * Calculates gaze behavior.
  *
  * RESPONSIBILITY:
- * - Wires catalog recipes (Con Cebolla, Sin Cebolla) with RecipeIngredientList.
- * - Provides a "Follow the recipe" button for each recipe to automate mascot actions.
- * - Displays active recipe requirements and matches with current world state.
+ * - Determines what objects attract attention.
+ * - Updates gaze-related state.
  */
 
-import { useState } from 'react';
-import { useStore } from 'zustand';
-import { ingredients as ingredientCatalog } from '../../data/catalog/ingredients';
-import { recipes } from '../../data/catalog/recipes';
-import { RecipeIngredientList } from '../Ingredients/RecipeIngredientList';
-import { worldStore } from '../../store/worldStore';
-import { countMatchingIngredients } from '../../systems/recipeMatcher';
-import { runFollowRecipeScript } from '../../systems/mascotActions';
-import { getRecipeIngredientsArray } from '../../types/Recipe';
-import './RecipePanel.scss';
+import { worldStore } from '../store/worldStore';
 
-export function RecipePanel() {
-  const [selectedRecipeId, setSelectedRecipeId] = useState<string>(recipes[0]?.id || 'concebolla');
-  const [runningRecipeId, setRunningRecipeId] = useState<string | null>(null);
-  const [isExpanded, setIsExpanded] = useState<boolean>(false);
+export interface GazePoint {
+  x: number;
+  y: number;
+}
 
-  const activeRecipe = recipes.find((r) => r.id === selectedRecipeId) || recipes[0];
+/**
+ * Discriminated union describing what the mascot is looking at.
+ *
+ * - entity  → a specific world entity (container or ingredient) by id
+ * - mouse   → the user's cursor position (resolved by the UI layer)
+ * - point   → an explicit SVG/screen coordinate
+ * - null    → not gazing at anything; fall back to idle eye position
+ */
+export type GazeTarget =
+  | { type: 'entity'; entityId: string }
+  | { type: 'mouse' }
+  | { type: 'point'; point: GazePoint }
+  | null;
 
-  const entities = useStore(worldStore, (state) => state.entities);
-  const containers = useStore(worldStore, (state) => state.containers);
+/** Narrow helper — returns the entityId when gazing at an entity, else null. */
+export function gazeEntityId(target: GazeTarget): string | null {
+  return target?.type === 'entity' ? target.entityId : null;
+}
 
-  // Collect ingredient entities currently placed in active workspace containers
-  const activeContainerEntities = Object.values(containers)
-    .filter((c) => c.id !== 'despensa')
-    .flatMap((c) => c.entityIds)
-    .map((id) => entities[id])
-    .filter(Boolean);
+interface GazeState {
+  gazingAt?: GazeTarget;
+}
 
-  const matchResult = countMatchingIngredients(activeRecipe, activeContainerEntities);
+/**
+ * Updates what target a mascot is looking at.
+ * No-ops if the target is structurally identical to the current one.
+ */
+export function updateMascotGaze(mascotId: string, targetId: GazeTarget): void {
+  const current = getMascotGazeTarget(mascotId);
 
-  const handleFollowRecipe = async (recipeId: string) => {
-    if (runningRecipeId !== null) return;
-    setSelectedRecipeId(recipeId);
-    setRunningRecipeId(recipeId);
-    try {
-      await runFollowRecipeScript(recipeId, 'chef', 'board', 600);
-    } finally {
-      setRunningRecipeId(null);
+  // Structural equality check — avoids redundant dispatches for the same target.
+  if (JSON.stringify(current) === JSON.stringify(targetId)) return;
+
+  worldStore.getState().dispatch({
+    type: 'UPDATE_ENTITY_STATE',
+    payload: {
+      entityId: mascotId,
+      changes: { gazingAt: targetId },
+    },
+  });
+}
+
+/** Returns the current gaze target for a mascot entity. */
+export function getMascotGazeTarget(mascotId: string): GazeTarget {
+  const entity = worldStore.getState().entities[mascotId];
+  if (!entity) return null;
+  const state = entity.state as GazeState | undefined;
+  return state?.gazingAt ?? null;
+}
+
+/**
+ * Subscribes to gaze changes for a given mascot.
+ * Uses Zustand's vanilla subscribe so callers outside React can react to gaze updates
+ * without polling or re-rendering unrelated components.
+ *
+ * Returns an unsubscribe function.
+ *
+ * @example
+ *   const unsub = subscribeToGaze('chef', (target) => console.log(target));
+ *   // later:
+ *   unsub();
+ */
+export function subscribeToGaze(
+  mascotId: string,
+  callback: (target: GazeTarget) => void
+): () => void {
+  let prev = getMascotGazeTarget(mascotId);
+
+  return worldStore.subscribe((state) => {
+    const next = (state.entities[mascotId]?.state as GazeState | undefined)?.gazingAt ?? null;
+    // Only fire when the gaze actually changes (structural check).
+    if (JSON.stringify(next) !== JSON.stringify(prev)) {
+      prev = next;
+      callback(next);
     }
-  };
+  });
+}
+</file>
 
-  if (!activeRecipe) return null;
+<file path="src/systems/mascotActions.ts">
+/**
+ * FILE: mascotActions.ts
+ *
+ * PURPOSE:
+ * Action dispatcher helpers for mascot (Tortilla) commands.
+ *
+ * RESPONSIBILITY:
+ * - Provides reusable, generic action dispatchers for AI agents or UI triggers.
+ * - Handles tortilla movement, grabbing ingredients from containers, dropping ingredients into containers, and flipping.
+ */
 
-  return (
-    <div className="recipe-panel compact-recipe-panel">
-      <div className="recipe-panel-header">
-        <div className="recipe-selector">
-          {recipes.map((recipe) => (
-            <div
-              key={recipe.id}
-              className={`recipe-option ${selectedRecipeId === recipe.id ? 'active' : ''}`}
-            >
-              <button
-                type="button"
-                className={`recipe-tab ${selectedRecipeId === recipe.id ? 'active' : ''}`}
-                onClick={() => setSelectedRecipeId(recipe.id)}
-              >
-                {recipe.name}
-              </button>
-              <button
-                type="button"
-                className="follow-recipe-btn"
-                disabled={runningRecipeId !== null}
-                onClick={() => handleFollowRecipe(recipe.id)}
-                title={`Bring all ingredients for ${recipe.name} to the table`}
-              >
-                {runningRecipeId === recipe.id ? '⏳ Following...' : '👨‍🍳 Follow the recipe'}
-              </button>
-            </div>
-          ))}
-        </div>
+import { worldStore } from '../store/worldStore';
+import { recipes } from '../data/catalog/recipes';
+import { RecipeRunner } from './recipeRunner';
 
-        <div className="recipe-header-right">
-          <div className="recipe-status">
-            Match: <span className="highlight-count">{matchResult.matchingCount}</span> / {matchResult.totalCount}
-          </div>
-          <button
-            type="button"
-            className="recipe-toggle-btn"
-            onClick={() => setIsExpanded(!isExpanded)}
-            title={isExpanded ? 'Collapse ingredient list' : 'Expand ingredient list'}
-          >
-            {isExpanded ? '▲ Hide List' : '▼ Ingredients'}
-          </button>
-        </div>
-      </div>
+/**
+ * Triggers Tortilla flip animation and records action in store.
+ */
+export function flipTortilla(mascotId: string = 'chef'): void {
+  worldStore.getState().dispatch({
+    type: 'MASCOT_FLIP',
+    payload: { mascotId },
+  });
+}
 
-      {isExpanded && (
-        <div className="recipe-content compact">
-          <RecipeIngredientList
-            ingredients={getRecipeIngredientsArray(activeRecipe)}
-            ingredientCatalog={ingredientCatalog}
-          />
-        </div>
-      )}
-    </div>
-  );
+/**
+ * Moves Tortilla gaze/focus to a specific container in the world.
+ */
+export function moveTortillaTo(targetContainerId: string, mascotId: string = 'chef'): void {
+  worldStore.getState().dispatch({
+    type: 'MASCOT_MOVE',
+    payload: { mascotId, targetContainerId },
+  });
+}
+
+/**
+ * Clears Tortilla's gaze — mascot returns to idle eye position (gazingAt: null).
+ * Use instead of moveTortillaTo('') when there is no meaningful target.
+ */
+export function clearTortillaGaze(mascotId: string = 'chef'): void {
+  worldStore.getState().dispatch({
+    type: 'MASCOT_CLEAR_GAZE',
+    payload: { mascotId },
+  });
+}
+
+/**
+ * Commands Tortilla to grab/pick up an ingredient from a container.
+ */
+export function grabIngredient(
+  entityId: string,
+  sourceContainerId?: string,
+  mascotId: string = 'chef'
+): void {
+  worldStore.getState().dispatch({
+    type: 'MASCOT_GRAB',
+    payload: { mascotId, entityId, sourceContainerId },
+  });
+}
+
+/**
+ * Commands Tortilla to drop the currently held ingredient into a target container.
+ */
+export function dropIngredient(
+  targetContainerId: string,
+  positionIndex?: number,
+  mascotId: string = 'chef'
+): void {
+  worldStore.getState().dispatch({
+    type: 'MASCOT_DROP',
+    payload: { mascotId, targetContainerId, positionIndex },
+  });
+}
+
+/**
+ * Commands Tortilla to execute a sequence:
+ * 1. Move focus to despensa
+ * 2. Grab potato from despensa
+ * 3. Move focus to board (tabla)
+ * 4. Drop potato into board
+ * 5. Flip Tortilla mascot
+ */
+export async function runTortillaPotatoScript(
+  mascotId: string = 'chef',
+  delayMs: number = 600
+): Promise<void> {
+  const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  // 1. Look at despensa
+  moveTortillaTo('despensa', mascotId);
+  await wait(delayMs);
+
+  // 2. Grab potato from despensa
+  grabIngredient('potato', 'despensa', mascotId);
+  await wait(delayMs);
+
+  // 3. Look at board (tabla)
+  moveTortillaTo('board', mascotId);
+  await wait(delayMs);
+
+  // 4. Drop potato in board
+  dropIngredient('board', undefined, mascotId);
+  await wait(delayMs);
+
+  // 5. Flip Tortilla
+  flipTortilla(mascotId);
+  await wait(900);
+
+  // 6. Return home gracefully — clear gaze instead of setting an empty string target
+  clearTortillaGaze(mascotId);
+}
+
+/**
+ * Commands Tortilla to follow a recipe by running its step-based state machine.
+ */
+export async function runFollowRecipeScript(
+  recipeId: string,
+  mascotId: string = 'chef',
+  targetContainerId: string = 'board',
+  delayMs: number = 600
+): Promise<void> {
+  const activeRecipe = recipes.find((r) => r.id === recipeId);
+  if (!activeRecipe) return;
+
+  const runner = new RecipeRunner({
+    mascotId,
+    defaultTargetId: targetContainerId,
+    delayMs,
+  });
+
+  await runner.runRecipe(activeRecipe);
 }
 </file>
 
@@ -11362,75 +11453,230 @@ describe('Query System', () => {
 });
 </file>
 
-<file path="src/data/catalog/recipes/concebolla.ts">
+<file path="src/types/actions.ts">
 /**
- * FILE: concebolla.ts
+ * FILE: actions.ts
  *
  * PURPOSE:
- * Recipe definition for Tortilla con cebolla.
+ * Defines world actions/events.
  *
  * RESPONSIBILITY:
- * - Defines the ingredients, quantities, and step-by-step actions required for this recipe.
+ * - Creates the communication contract between systems and store.
  */
 
-import type { Recipe } from '../../../types/Recipe';
+import type { EntityType } from './world';
+import type { PreparationStyle, CookingMethod } from './RecipeStep';
 
-export const concebollaRecipe: Recipe = {
-  id: 'concebolla',
-  name: 'Tortilla con Cebolla',
-  ingredients: [
-    { id: 'concebolla-potato', ingredientId: 'potato', amount: 4, unit: 'pcs' },
-    { id: 'concebolla-egg', ingredientId: 'egg', amount: 6, unit: 'pcs' },
-    { id: 'concebolla-oil', ingredientId: 'oil', amount: 100, unit: 'ml' },
-    { id: 'concebolla-onion', ingredientId: 'onion', amount: 1, unit: 'pcs' },
-    { id: 'concebolla-salt', ingredientId: 'salt', amount: 1, unit: 'tsp' },
-    { id: 'concebolla-pepper', ingredientId: 'pepper', amount: 1, unit: 'pinch' },
-  ],
-  steps: [
-    { action: 'move', ingredient: 'potato', source: 'despensa', target: 'board' },
-    { action: 'move', ingredient: 'egg', source: 'despensa', target: 'board' },
-    { action: 'move', ingredient: 'oil', source: 'despensa', target: 'board' },
-    { action: 'move', ingredient: 'onion', source: 'despensa', target: 'board' },
-    { action: 'move', ingredient: 'salt', source: 'despensa', target: 'board' },
-    { action: 'move', ingredient: 'pepper', source: 'despensa', target: 'board' },
+export type WorldAction =
+  | {
+      type: 'MOVE_ENTITY';
+      payload: {
+        entityId: string;
+        targetContainerId: string;
+        positionIndex?: number;
+      };
+    }
+  | {
+      type: 'ADD_ENTITY';
+      payload: {
+        entity: {
+          id: string;
+          name: string;
+          type: EntityType;
+          state?: Record<string, unknown>;
+        };
+        containerId: string;
+      };
+    }
+  | {
+      type: 'REMOVE_ENTITY';
+      payload: {
+        entityId: string;
+      };
+    }
+  | {
+      type: 'UPDATE_ENTITY_STATE';
+      payload: {
+        entityId: string;
+        changes: Record<string, unknown>;
+      };
+    }
+  | {
+      type: 'PREPARE_INGREDIENT';
+      payload: {
+        entityId: string;
+        preparation: PreparationStyle;
+      };
+    }
+  | {
+      type: 'COOK_INGREDIENT';
+      payload: {
+        entityId: string;
+        cooking: CookingMethod;
+      };
+    }
+  | {
+      type: 'MASCOT_FLIP';
+      payload: {
+        mascotId?: string;
+      };
+    }
+  | {
+      type: 'MASCOT_MOVE';
+      payload: {
+        mascotId?: string;
+        targetContainerId: string;
+      };
+    }
+  | {
+      type: 'MASCOT_GRAB';
+      payload: {
+        mascotId?: string;
+        entityId: string;
+        sourceContainerId?: string;
+      };
+    }
+  | {
+      type: 'MASCOT_DROP';
+      payload: {
+        mascotId?: string;
+        targetContainerId: string;
+        positionIndex?: number;
+      };
+    }
+  | {
+      type: 'MASCOT_CLEAR_GAZE';
+      payload: {
+        mascotId?: string;
+      };
+    };
+</file>
 
-    { action: 'peel', ingredient: 'potato' },
-    { action: 'wash', ingredient: 'potato' },
-    { action: 'cut', ingredient: 'potato', preparation: 'sliced' },
-    { action: 'peel', ingredient: 'onion' },
-    { action: 'wash', ingredient: 'onion' },
-    { action: 'cut', ingredient: 'onion', preparation: 'diced' },
+<file path="src/components/Recipe/RecipePanel.tsx">
+/**
+ * FILE: RecipePanel.tsx
+ *
+ * PURPOSE:
+ * Compact, unintrusive recipe selector and catalog viewer.
+ *
+ * RESPONSIBILITY:
+ * - Wires catalog recipes (Con Cebolla, Sin Cebolla) with RecipeIngredientList.
+ * - Provides a "Follow the recipe" button for each recipe to automate mascot actions.
+ * - Displays active recipe requirements and matches with current world state.
+ */
 
-    { action: 'cook', ingredient: 'potato' },
-    { action: 'cook', ingredient: 'onion' },
+import { useState } from 'react';
+import { useStore } from 'zustand';
+import { ingredients as ingredientCatalog } from '../../data/catalog/ingredients';
+import { recipes } from '../../data/catalog/recipes';
+import { RecipeIngredientList } from '../Ingredients/RecipeIngredientList';
+import { worldStore } from '../../store/worldStore';
+import { countMatchingIngredients } from '../../systems/recipeMatcher';
+import { runFollowRecipeScript } from '../../systems/mascotActions';
+import { getRecipeIngredientsArray } from '../../types/Recipe';
+import './RecipePanel.scss';
 
-    { action: 'mix', ingredients: ['egg', 'salt', 'pepper'] },
-    { action: 'combine', ingredients: ['potato', 'onion', 'egg'] },
+export function RecipePanel() {
+  const [selectedRecipeId, setSelectedRecipeId] = useState<string>(recipes[0]?.id || 'concebolla');
+  const [runningRecipeId, setRunningRecipeId] = useState<string | null>(null);
+  const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
-    { action: 'cook', containerId: 'pan' },
+  const activeRecipe = recipes.find((r) => r.id === selectedRecipeId) || recipes[0];
 
-    {
-      action: 'instruction',
-      text: 'Con una espátula blanda, asegúrate de que la tortilla no se pega a la sartén.',
-    },
+  const entities = useStore(worldStore, (state) => state.entities);
+  const containers = useStore(worldStore, (state) => state.containers);
+  const dispatch = useStore(worldStore, (state) => state.dispatch);
 
-    {
-      action: 'flip',
-      instruction: 'Dale la vuelta a la tortilla.',
-    },
+  // Collect ingredient entities currently placed in active workspace containers
+  const activeContainerEntities = Object.values(containers)
+    .filter((c) => c.id !== 'despensa')
+    .flatMap((c) => c.entityIds)
+    .map((id) => entities[id])
+    .filter(Boolean);
 
-    {
-      action: 'cook',
-      duration: 5,
-      unit: 'min',
-      instruction: 'Deja cocinar por otros 5 min.',
-    },
+  const matchResult = countMatchingIngredients(activeRecipe, activeContainerEntities);
 
-    { action: 'celebrate' },
-  ],
-};
+  const handleFollowRecipe = async (recipeId: string) => {
+    if (runningRecipeId !== null) return;
+    
+    // Auto-reset the kitchen world before starting a new recipe
+    dispatch({ type: 'RESET_WORLD' });
 
-export const recipe = concebollaRecipe;
+    setSelectedRecipeId(recipeId);
+    setRunningRecipeId(recipeId);
+    try {
+      await runFollowRecipeScript(recipeId, 'chef', 'board', 600);
+    } finally {
+      setRunningRecipeId(null);
+    }
+  };
+
+  if (!activeRecipe) return null;
+
+  return (
+    <div className="recipe-panel compact-recipe-panel">
+      <div className="recipe-panel-header">
+        <div className="recipe-selector">
+          {recipes.map((recipe) => (
+            <div
+              key={recipe.id}
+              className={`recipe-option ${selectedRecipeId === recipe.id ? 'active' : ''}`}
+            >
+              <button
+                type="button"
+                className={`recipe-tab ${selectedRecipeId === recipe.id ? 'active' : ''}`}
+                onClick={() => setSelectedRecipeId(recipe.id)}
+              >
+                {recipe.name}
+              </button>
+              <button
+                type="button"
+                className="follow-recipe-btn"
+                disabled={runningRecipeId !== null}
+                onClick={() => handleFollowRecipe(recipe.id)}
+                title={`Bring all ingredients for ${recipe.name} to the table`}
+              >
+                {runningRecipeId === recipe.id ? '⏳ Following...' : '👨‍🍳 Follow the recipe'}
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <div className="recipe-header-right">
+          <div className="recipe-status">
+            Match: <span className="highlight-count">{matchResult.matchingCount}</span> / {matchResult.totalCount}
+          </div>
+          <button
+            type="button"
+            className="recipe-toggle-btn"
+            onClick={() => dispatch({ type: 'RESET_WORLD' })}
+            disabled={runningRecipeId !== null}
+            title="Clean the kitchen and start over"
+          >
+            🔄 Reset
+          </button>
+          <button
+            type="button"
+            className="recipe-toggle-btn"
+            onClick={() => setIsExpanded(!isExpanded)}
+            title={isExpanded ? 'Collapse ingredient list' : 'Expand ingredient list'}
+          >
+            {isExpanded ? '▲ Hide List' : '▼ Ingredients'}
+          </button>
+        </div>
+      </div>
+
+      {isExpanded && (
+        <div className="recipe-content compact">
+          <RecipeIngredientList
+            ingredients={getRecipeIngredientsArray(activeRecipe)}
+            ingredientCatalog={ingredientCatalog}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
 </file>
 
 <file path="src/systems/mascot.ts">
@@ -12247,6 +12493,196 @@ The Store remembers the result.
 ```
 </file>
 
+<file path="src/data/catalog/recipes/concebolla.ts">
+/**
+ * FILE: concebolla.ts
+ *
+ * PURPOSE:
+ * Recipe definition for Tortilla con cebolla.
+ *
+ * RESPONSIBILITY:
+ * - Defines the ingredients, quantities, and cooking process.
+ * - Describes recipe actions in a declarative format.
+ * - Provides a Cooklang representation for humans.
+ */
+
+import type { Recipe } from '../../../types/Recipe';
+
+export const concebollaRecipe: Recipe = {
+  id: 'concebolla',
+  
+  name: 'Tortilla con Cebolla',
+
+  ingredients: {
+    potatoes: {
+      ingredientId: 'potato',
+      amount: 4,
+      unit: 'pcs',
+    },
+    eggs: {
+      ingredientId: 'egg',
+      amount: 6,
+      unit: 'pcs',
+    },
+    oil: {
+      ingredientId: 'oil',
+      amount: 100,
+      unit: 'ml',
+    },
+    onions: {
+      ingredientId: 'onion',
+      amount: 1,
+      unit: 'pcs',
+    },
+    salt: {
+      ingredientId: 'salt',
+      amount: 1,
+      unit: 'tsp',
+    },
+    pepper: {
+      ingredientId: 'pepper',
+      amount: 1,
+      unit: 'pinch',
+    },
+  },
+
+  steps: [
+    {
+      action: 'prepare',
+      target: 'potatoes',
+      preparation: 'peeled',
+    },
+    {
+      action: 'wash',
+      target: 'potatoes',
+    },
+    {
+      action: 'prepare',
+      target: 'potatoes',
+      preparation: 'sliced',
+    },
+    {
+      action: 'prepare',
+      target: 'onions',
+      preparation: 'peeled',
+    },
+    {
+      action: 'wash',
+      target: 'onions',
+    },
+    {
+      action: 'prepare',
+      target: 'onions',
+      preparation: 'diced',
+    },
+    {
+      action: 'cook',
+      target: 'oil',
+      method: 'heat',
+    },
+    {
+      action: 'cook',
+      target: 'potatoes',
+      method: 'fry',
+    },
+    {
+      action: 'cook',
+      target: 'onions',
+      method: 'fry',
+    },
+    {
+      action: 'prepare',
+      target: 'eggs',
+      preparation: 'beaten',
+    },
+    {
+      action: 'mix',
+      inputs: [
+        'potatoes',
+        'onions',
+        'eggs',
+        'salt',
+        'pepper',
+      ],
+      output: 'mixture',
+    },
+    {
+      action: 'cook',
+      target: 'mixture',
+      method: 'fry',
+      duration: 5,
+      unit: 'min',
+    },
+    {
+      action: 'instruction',
+      text: 'Con una espátula blanda, asegúrate de que la tortilla no se pega a la sartén.',
+    },
+    {
+      action: 'flip',
+      target: 'mixture',
+      instruction: 'Dale la vuelta a la tortilla.',
+    },
+    {
+      action: 'cook',
+      target: 'mixture',
+      method: 'fry',
+      duration: 5,
+      unit: 'min',
+      instruction: 'Deja cocinar por otros 5 min.',
+    },
+    {
+      action: 'serve',
+      target: 'mixture',
+    },
+    {
+      action: 'celebrate',
+    },
+  ],
+};
+
+export const concebollaCooklang = `
+Peel the @potatoes{4%pcs}.
+
+Wash the @potatoes.
+
+Slice the @potatoes.
+
+Peel the @onions{1%pcs}.
+
+Wash the @onions.
+
+Dice the @onions.
+
+Heat the @oil{100%ml}.
+
+Fry the @potatoes until tender.
+
+Fry the @onions until golden.
+
+Beat the @eggs{6%pcs}.
+
+Add @salt{1%tsp} and @pepper{1%pinch}.
+
+Mix the fried potatoes and onions with the beaten eggs, salt and pepper.
+
+Pour the mixture into the pan.
+
+Cook for 5 minutes.
+
+With a soft spatula, make sure the tortilla does not stick to the pan.
+
+Flip the tortilla.
+
+Cook for another 5 minutes.
+
+Serve the tortilla.
+
+Celebrate.
+`;
+
+export const recipe = concebollaRecipe;
+</file>
+
 <file path="src/types/world.ts">
 /**
  * FILE: world.ts
@@ -12494,10 +12930,55 @@ export const IngredientListItem: React.FC<IngredientListItemProps> = ({ entity, 
 };
 </file>
 
+<file path="src/App.tsx">
+/**
+ * FILE: App.tsx
+ *
+ * PURPOSE:
+ * Main React application component.
+ *
+ * RESPONSIBILITY:
+ * - Creates the application layout.
+ * - Connects major UI areas together.
+ * - Acts as the entry point for the game world.
+ *
+ * SHOULD NOT:
+ * - Contain game rules.
+ * - Modify world state directly.
+ */
+
+import { Scene } from './components/Scene/Scene';
+import { Mascot } from './components/Mascot/Mascot';
+import { RecipePanel } from './components/Recipe/RecipePanel';
+
+function App() {
+  return (
+    <div className="app-container" style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px' }}>
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+        <div>
+          <h1 style={{ margin: 0, fontSize: '28px', color: 'var(--text-h)' }}>Tortilla World</h1>
+          <p style={{ margin: '4px 0 0 0', color: 'var(--text)', opacity: 0.8 }}>
+            An interactive simulation world. Drag ingredients from the immutable catalog pantry into workspace containers.
+          </p>
+        </div>
+        <Mascot />
+      </header>
+
+      <main>
+        <RecipePanel />
+        <Scene />
+      </main>
+    </div>
+  );
+}
+
+export default App;
+</file>
+
 <file path="src/components/Mascot/TortillaSvg.tsx">
 import React, { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
-import type { GazePoint } from "../../systems/gaze";
+import type { GazePoint, GazeTarget } from "../../systems/gaze";
 import type { MascotState } from "../../systems/mascot";
 import "./TortillaSvg.scss";
 
@@ -12528,7 +13009,7 @@ export interface TortillaSvgProps {
   height?: number | string;
   potatoes?: Potato[];
   toastMarks?: ToastMark[];
-  gazingAt?: string | null;
+  gazingAt?: GazeTarget;
   onDoubleClick?: (e: React.MouseEvent<SVGSVGElement>) => void;
 }
 
@@ -12968,262 +13449,6 @@ export function TortillaSvg({
 }
 </file>
 
-<file path="src/App.tsx">
-/**
- * FILE: App.tsx
- *
- * PURPOSE:
- * Main React application component.
- *
- * RESPONSIBILITY:
- * - Creates the application layout.
- * - Connects major UI areas together.
- * - Acts as the entry point for the game world.
- *
- * SHOULD NOT:
- * - Contain game rules.
- * - Modify world state directly.
- */
-
-import { Scene } from './components/Scene/Scene';
-import { Mascot } from './components/Mascot/Mascot';
-import { RecipePanel } from './components/Recipe/RecipePanel';
-
-function App() {
-  return (
-    <div className="app-container" style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px' }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
-        <div>
-          <h1 style={{ margin: 0, fontSize: '28px', color: 'var(--text-h)' }}>Tortilla World</h1>
-          <p style={{ margin: '4px 0 0 0', color: 'var(--text)', opacity: 0.8 }}>
-            An interactive simulation world. Drag ingredients from the immutable catalog pantry into workspace containers.
-          </p>
-        </div>
-        <Mascot />
-      </header>
-
-      <main>
-        <RecipePanel />
-        <Scene />
-      </main>
-    </div>
-  );
-}
-
-export default App;
-</file>
-
-<file path="src/components/Mascot/Mascot.tsx">
-/**
- * FILE: Mascot.tsx
- *
- * PURPOSE:
- * Main Tortilla mascot component with physical movement and grabbing animations.
- *
- * RESPONSIBILITY:
- * - Controls mascot visual representation.
- * - Animates physical movement to target containers across the scene.
- * - Displays held ingredient badge and grab/drop motion feedback.
- *
- * SHOULD NOT:
- * - Own world state.
- * - Contain gameplay rules.
- */
-
-import React, { useState, useEffect, useRef } from 'react';
-import { useStore } from 'zustand';
-import { worldStore } from '../../store/worldStore';
-import { TortillaSvg } from './TortillaSvg';
-import { runTortillaPotatoScript } from '../../systems/mascotActions';
-import { ingredients } from '../../data/catalog/ingredients';
-
-interface MascotProps {
-  mascotId?: string;
-}
-
-export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
-  const mascotEntity = useStore(worldStore, (state) => state.entities[mascotId]);
-  const entities = useStore(worldStore, (state) => state.entities);
-  const dispatch = useStore(worldStore, (state) => state.dispatch);
-  
-  const [isRunningScript, setIsRunningScript] = useState(false);
-  const [offset, setOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const mascotAnchorRef = useRef<HTMLDivElement>(null);
-
-  if (!mascotEntity) return null;
-
-  const gazingAt = mascotEntity.state?.gazingAt as string | undefined;
-  const targetContainerId = (mascotEntity.state?.targetContainerId || gazingAt) as string | undefined;
-  const state = (mascotEntity.state?.state as string | undefined) || 'idle';
-  const holdingEntityId = mascotEntity.state?.holdingEntityId as string | undefined;
-  const speechMessage = mascotEntity.state?.speechMessage as string | undefined;
-
-  // Resolve held entity and ingredient metadata
-  const heldEntity = holdingEntityId ? entities[holdingEntityId] : undefined;
-  const heldIngredientInfo = heldEntity
-    ? ingredients.find(
-        (i) => i.id === heldEntity.ingredientId || i.id === heldEntity.id || heldEntity.id.startsWith(i.id)
-      )
-    : undefined;
-
-  // Calculate physical DOM position offset to target container
-  useEffect(() => {
-    const updatePosition = () => {
-      if (!targetContainerId || !mascotAnchorRef.current) {
-        setOffset({ x: 0, y: 0 });
-        return;
-      }
-
-      const containerEl = document.querySelector(`[data-container-id="${targetContainerId}"]`);
-      if (!containerEl) {
-        setOffset({ x: 0, y: 0 });
-        return;
-      }
-
-      const containerRect = containerEl.getBoundingClientRect();
-      const mascotRect = mascotAnchorRef.current.getBoundingClientRect();
-
-      // Calculate translation offset so mascot hovers above the container center
-      const x = containerRect.left + containerRect.width / 2 - (mascotRect.left + mascotRect.width / 2);
-      const y = containerRect.top - mascotRect.top - 15;
-
-      setOffset({ x, y });
-    };
-
-    updatePosition();
-    window.addEventListener('resize', updatePosition);
-    window.addEventListener('scroll', updatePosition);
-    return () => {
-      window.removeEventListener('resize', updatePosition);
-      window.removeEventListener('scroll', updatePosition);
-    };
-  }, [targetContainerId]);
-
-  const handleDoubleClick = () => {
-    dispatch({ type: 'MASCOT_FLIP', payload: { mascotId } });
-  };
-
-  const handleRunScript = async () => {
-    if (isRunningScript) return;
-    setIsRunningScript(true);
-    try {
-      await runTortillaPotatoScript(mascotId, 650);
-    } finally {
-      setIsRunningScript(false);
-    }
-  };
-
-  const isFloating = offset.x !== 0 || offset.y !== 0;
-
-  return (
-    <div
-      className="mascot-card"
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '16px',
-        padding: '12px 16px',
-        background: 'var(--code-bg)',
-        border: '1px solid var(--border)',
-        borderRadius: '12px',
-        flexWrap: 'wrap',
-      }}
-    >
-      {/* Anchor box holding mascot location in layout */}
-      <div
-        ref={mascotAnchorRef}
-        style={{
-          width: '100px',
-          height: '100px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          position: 'relative',
-        }}
-      >
-        <div
-          className={`mascot-wrapper ${isFloating ? 'is-floating' : ''} ${holdingEntityId ? 'is-holding' : ''}`}
-          style={
-            {
-              '--offset-x': `${offset.x}px`,
-              '--offset-y': `${offset.y}px`,
-            } as React.CSSProperties
-          }
-        >
-          <TortillaSvg
-            state={state}
-            gazingAt={gazingAt as any}
-            onDoubleClick={handleDoubleClick}
-          />
-
-          {/* Held Ingredient Badge ("Really Grab") */}
-          {holdingEntityId && (
-            <div className="mascot-held-badge">
-              <span style={{ fontSize: '16px' }}>{heldIngredientInfo?.icon || '🥔'}</span>
-              <span>{heldEntity?.name || heldIngredientInfo?.name || holdingEntityId}</span>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div>
-        <h3 style={{ margin: 0, fontSize: '16px', color: 'var(--text-h)' }}>{mascotEntity.name}</h3>
-        {speechMessage && (
-          <div
-            className="mascot-speech-bubble"
-            style={{
-              margin: '6px 0',
-              padding: '8px 12px',
-              fontSize: '13px',
-              fontWeight: 500,
-              color: 'var(--text-h)',
-              background: 'var(--card-bg, #ffffff)',
-              border: '1px solid var(--primary, #e8b84a)',
-              borderRadius: '8px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}
-          >
-            <span>💬</span>
-            <span>{speechMessage}</span>
-          </div>
-        )}
-        <p style={{ margin: '4px 0 8px 0', fontSize: '13px', color: 'var(--text)' }}>
-          Focus / Target: <strong>{targetContainerId || gazingAt || 'Kitchen Home'}</strong>
-          {holdingEntityId && (
-            <span style={{ marginLeft: '8px', color: 'var(--primary, #e8b84a)', fontWeight: 600 }}>
-              (Carrying: {heldIngredientInfo?.icon || '🥔'} {heldEntity?.name || holdingEntityId})
-            </span>
-          )}
-        </p>
-        <button
-          onClick={handleRunScript}
-          disabled={isRunningScript}
-          style={{
-            padding: '8px 14px',
-            fontSize: '12px',
-            fontWeight: 600,
-            color: '#ffffff',
-            background: isRunningScript
-              ? 'var(--border)'
-              : 'linear-gradient(135deg, #e8b84a 0%, #d4953a 100%)',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: isRunningScript ? 'not-allowed' : 'pointer',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
-            transition: 'all 0.2s ease',
-          }}
-        >
-          {isRunningScript ? '⏳ Executing Action Script...' : '▶ Script: Grab Potato ➔ Drop in Tabla ➔ Flip'}
-        </button>
-      </div>
-    </div>
-  );
-};
-</file>
-
 <file path="src/components/Scene/Scene.tsx">
 /**
  * FILE: Scene.tsx
@@ -13325,6 +13550,223 @@ export function useSceneDragAndDrop() {
 }
 </file>
 
+<file path="src/components/Mascot/Mascot.tsx">
+/**
+ * FILE: Mascot.tsx
+ *
+ * PURPOSE:
+ * Main Tortilla mascot component with physical movement and grabbing animations.
+ *
+ * RESPONSIBILITY:
+ * - Controls mascot visual representation.
+ * - Animates physical movement to target containers across the scene.
+ * - Displays held ingredient badge and grab/drop motion feedback.
+ *
+ * SHOULD NOT:
+ * - Own world state.
+ * - Contain gameplay rules.
+ */
+
+import React, { useState, useEffect, useRef } from 'react';
+import { useStore } from 'zustand';
+import { worldStore } from '../../store/worldStore';
+import { TortillaSvg } from './TortillaSvg';
+import { runTortillaPotatoScript } from '../../systems/mascotActions';
+import { ingredients } from '../../data/catalog/ingredients';
+import type { GazeTarget } from '../../systems/gaze';
+import { gazeEntityId } from '../../systems/gaze';
+
+interface MascotProps {
+  mascotId?: string;
+}
+
+export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
+  const mascotEntity = useStore(worldStore, (state) => state.entities[mascotId]);
+  const entities = useStore(worldStore, (state) => state.entities);
+  const dispatch = useStore(worldStore, (state) => state.dispatch);
+  
+  const [isRunningScript, setIsRunningScript] = useState(false);
+  const [offset, setOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const mascotAnchorRef = useRef<HTMLDivElement>(null);
+
+  // Derived from mascotEntity.state — use optional chaining so these stay safe
+  // when mascotEntity is undefined, keeping every hook below unconditional.
+  const gazingAt = (mascotEntity?.state?.gazingAt ?? null) as GazeTarget;
+  const gazingAtEntityId = gazeEntityId(gazingAt);
+  const targetContainerId = (mascotEntity?.state?.targetContainerId as string | undefined) ?? gazingAtEntityId ?? undefined;
+  const state = (mascotEntity?.state?.state as string | undefined) || 'idle';
+  const holdingEntityId = mascotEntity?.state?.holdingEntityId as string | undefined;
+  const speechMessage = mascotEntity?.state?.speechMessage as string | undefined;
+
+  // Resolve held entity and ingredient metadata
+  const heldEntity = holdingEntityId ? entities[holdingEntityId] : undefined;
+  const heldIngredientInfo = heldEntity
+    ? ingredients.find(
+        (i) => i.id === heldEntity.ingredientId || i.id === heldEntity.id || heldEntity.id.startsWith(i.id)
+      )
+    : undefined;
+
+  // Calculate physical DOM position offset to target container
+  useEffect(() => {
+    const updatePosition = () => {
+      if (!targetContainerId || !mascotAnchorRef.current) {
+        setOffset({ x: 0, y: 0 });
+        return;
+      }
+
+      const containerEl = document.querySelector(`[data-container-id="${targetContainerId}"]`);
+      if (!containerEl) {
+        setOffset({ x: 0, y: 0 });
+        return;
+      }
+
+      const containerRect = containerEl.getBoundingClientRect();
+      const mascotRect = mascotAnchorRef.current.getBoundingClientRect();
+
+      // Calculate translation offset so mascot hovers above the container center
+      const x = containerRect.left + containerRect.width / 2 - (mascotRect.left + mascotRect.width / 2);
+      const y = containerRect.top - mascotRect.top - 15;
+
+      setOffset({ x, y });
+    };
+
+    updatePosition();
+    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition);
+    return () => {
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition);
+    };
+  }, [targetContainerId]);
+
+  // Guarded until after all hooks so hook call order never changes between renders.
+  if (!mascotEntity) return null;
+
+  const handleDoubleClick = () => {
+    dispatch({ type: 'MASCOT_FLIP', payload: { mascotId } });
+  };
+
+  const handleRunScript = async () => {
+    if (isRunningScript) return;
+    setIsRunningScript(true);
+    try {
+      await runTortillaPotatoScript(mascotId, 650);
+    } finally {
+      setIsRunningScript(false);
+    }
+  };
+
+  const isFloating = offset.x !== 0 || offset.y !== 0;
+
+  return (
+    <div
+      className="mascot-card"
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '16px',
+        padding: '12px 16px',
+        background: 'var(--code-bg)',
+        border: '1px solid var(--border)',
+        borderRadius: '12px',
+        flexWrap: 'wrap',
+      }}
+    >
+      {/* Anchor box holding mascot location in layout */}
+      <div
+        ref={mascotAnchorRef}
+        style={{
+          width: '100px',
+          height: '100px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          position: 'relative',
+        }}
+      >
+        <div
+          className={`mascot-wrapper ${isFloating ? 'is-floating' : ''} ${holdingEntityId ? 'is-holding' : ''}`}
+          style={
+            {
+              '--offset-x': `${offset.x}px`,
+              '--offset-y': `${offset.y}px`,
+            } as React.CSSProperties
+          }
+        >
+          <TortillaSvg
+            state={state}
+            gazingAt={gazingAt}
+            onDoubleClick={handleDoubleClick}
+          />
+
+          {/* Held Ingredient Badge ("Really Grab") */}
+          {holdingEntityId && (
+            <div className="mascot-held-badge">
+              <span style={{ fontSize: '16px' }}>{heldIngredientInfo?.icon || '🥔'}</span>
+              <span>{heldEntity?.name || heldIngredientInfo?.name || holdingEntityId}</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div>
+        <h3 style={{ margin: 0, fontSize: '16px', color: 'var(--text-h)' }}>{mascotEntity.name}</h3>
+        {speechMessage && (
+          <div
+            className="mascot-speech-bubble"
+            style={{
+              margin: '6px 0',
+              padding: '8px 12px',
+              fontSize: '13px',
+              fontWeight: 500,
+              color: 'var(--text-h)',
+              background: 'var(--card-bg, #ffffff)',
+              border: '1px solid var(--primary, #e8b84a)',
+              borderRadius: '8px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            <span>💬</span>
+            <span>{speechMessage}</span>
+          </div>
+        )}
+        <p style={{ margin: '4px 0 8px 0', fontSize: '13px', color: 'var(--text)' }}>
+          Focus / Target: <strong>{targetContainerId || gazingAtEntityId || 'Kitchen Home'}</strong>
+          {holdingEntityId && (
+            <span style={{ marginLeft: '8px', color: 'var(--primary, #e8b84a)', fontWeight: 600 }}>
+              (Carrying: {heldIngredientInfo?.icon || '🥔'} {heldEntity?.name || holdingEntityId})
+            </span>
+          )}
+        </p>
+        <button
+          onClick={handleRunScript}
+          disabled={isRunningScript}
+          style={{
+            padding: '8px 14px',
+            fontSize: '12px',
+            fontWeight: 600,
+            color: '#ffffff',
+            background: isRunningScript
+              ? 'var(--border)'
+              : 'linear-gradient(135deg, #e8b84a 0%, #d4953a 100%)',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: isRunningScript ? 'not-allowed' : 'pointer',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
+            transition: 'all 0.2s ease',
+          }}
+        >
+          {isRunningScript ? '⏳ Executing Action Script...' : '▶ Script: Grab Potato ➔ Drop in Tabla ➔ Flip'}
+        </button>
+      </div>
+    </div>
+  );
+};
+</file>
+
 <file path="src/store/worldStore.ts">
 /**
  * FILE: worldStore.ts
@@ -13357,8 +13799,16 @@ export const worldStore = createStore<WorldStateStore>()(
         ...createContainerSlice(set, get, api),
         ...createMascotSlice(set, get, api),
 
-        entities: defaultEntities,
-        containers: defaultContainers,
+        // Deep clone initial state to avoid reference mutations
+        entities: JSON.parse(JSON.stringify(defaultEntities)),
+        containers: JSON.parse(JSON.stringify(defaultContainers)),
+
+        resetWorld: () => {
+          set((draft) => {
+            draft.entities = JSON.parse(JSON.stringify(defaultEntities));
+            draft.containers = JSON.parse(JSON.stringify(defaultContainers));
+          }, false, 'RESET_WORLD');
+        },
 
         dispatch: (action: WorldAction) => {
           const store = get();
@@ -13413,6 +13863,10 @@ export const worldStore = createStore<WorldStateStore>()(
                 action.payload.positionIndex,
                 action.payload.mascotId
               );
+              break;
+
+            case 'MASCOT_CLEAR_GAZE':
+              store.mascotClearGaze(action.payload.mascotId);
               break;
           }
         },
