@@ -182,13 +182,10 @@ describe('mascotActions system', () => {
     // New concebolla routes ingredients through workstations and serves them on the plate
     expect(state.containers.plate.entityIds.length).toBeGreaterThanOrEqual(1);
 
-    // All 6 ingredient catalog IDs should be accounted for somewhere in the kitchen
+    // All 6 ingredient catalog IDs should be accounted for in the world state (either directly or consumed into a mixture)
     const ingredientIds = ['potato', 'onion', 'egg', 'oil', 'salt', 'pepper'];
-    const allEntityIds = Object.values(state.containers).flatMap((c) => c.entityIds);
-    const allIngredientCatalogIds = allEntityIds.map((id) => {
-      const e = state.entities[id];
-      return e?.ingredientId || e?.id;
-    });
+    const allWorldEntities = Object.values(state.entities);
+    const allIngredientCatalogIds = allWorldEntities.map((e) => e?.ingredientId || e?.id);
     ingredientIds.forEach((id) => {
       expect(allIngredientCatalogIds.some((cid) => cid === id)).toBe(true);
     });

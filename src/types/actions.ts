@@ -60,6 +60,13 @@ export type WorldAction =
       };
     }
   | {
+      type: 'CONSUME_INGREDIENT';
+      payload: {
+        entityId: string;
+        consumedBy?: string;
+      };
+    }
+  | {
       type: 'MASCOT_FLIP';
       payload: {
         mascotId?: string;

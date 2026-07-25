@@ -25,20 +25,25 @@ export async function handleServeStep(
   moveTortillaTo(targetContainerId, ctx.mascotId);
   await ctx.wait();
 
-  // Move all cooked/prepared items from pan, bowl, or board to plate
+  // Move all active (unconsumed) bound recipe entities to target container (plate)
   const state = worldStore.getState();
-  for (const sourceCId of ['pan', 'bowl', 'board']) {
-    const container = state.containers[sourceCId];
-    if (container && container.entityIds.length > 0) {
-      [...container.entityIds].forEach((entityId) => {
+  const boundEntityIds = new Set(Object.values(ctx.recipeContext.bindings));
+
+  for (const entityId of boundEntityIds) {
+    const entity = state.entities[entityId];
+    if (entity && !entity.state?.consumed) {
+      const currentContainer = Object.values(state.containers).find((c) =>
+        c.entityIds.includes(entityId)
+      );
+      if (currentContainer && currentContainer.id !== targetContainerId) {
         worldStore.getState().dispatch({
           type: 'MOVE_ENTITY',
           payload: {
             entityId,
-            targetContainerId: targetContainerId,
+            targetContainerId,
           },
         });
-      });
+      }
     }
   }
   await ctx.wait();

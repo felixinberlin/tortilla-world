@@ -71,6 +71,10 @@ export const worldStore = createStore<WorldStateStore>()(
               store.cookIngredient(action.payload.entityId, action.payload.cooking);
               break;
 
+            case 'CONSUME_INGREDIENT':
+              store.consumeIngredient(action.payload.entityId, action.payload.consumedBy);
+              break;
+
             case 'MASCOT_FLIP':
               store.mascotFlip(action.payload.mascotId);
               break;

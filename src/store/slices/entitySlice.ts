@@ -30,6 +30,7 @@ export interface EntitySlice {
   updateEntityState: (entityId: string, changes: Record<string, unknown>) => void;
   prepareIngredient: (entityId: string, preparation: PreparationStyle) => void;
   cookIngredient: (entityId: string, cooking: CookingMethod) => void;
+  consumeIngredient: (entityId: string, consumedBy?: string) => void;
 }
 
 export const createEntitySlice: StateCreator<
@@ -139,6 +140,30 @@ export const createEntitySlice: StateCreator<
       },
       false,
       'COOK_INGREDIENT'
+    );
+  },
+
+  consumeIngredient: (entityId, consumedBy) => {
+    set(
+      (state) => {
+        const entity = state.entities[entityId];
+        if (!entity) return;
+
+        entity.state = {
+          ...entity.state,
+          consumed: true,
+          consumedBy,
+          status: 'consumed',
+        };
+
+        for (const cId in state.containers) {
+          state.containers[cId].entityIds = state.containers[cId].entityIds.filter(
+            (id) => id !== entityId
+          );
+        }
+      },
+      false,
+      'CONSUME_INGREDIENT'
     );
   },
 });

@@ -7,7 +7,6 @@
 
 import { worldStore } from '../../../store/worldStore';
 import { moveTortillaTo, grabIngredient, dropIngredient } from '../../mascotActions';
-import { getIngredientCatalogId } from '../../../engine/containerRules';
 import type { RecipeStep } from '../../../types/RecipeStep';
 import type { RecipeRunnerContext } from '../types';
 
@@ -23,21 +22,18 @@ export async function handleMoveStep(
   const source = step.source || ctx.defaultSourceId;
   const target = step.target || workstationDefaultContainerId || ctx.defaultTargetId;
   const rawKey = step.ingredient || step.target;
-  const ingredientId = ctx.resolveIngredientId(rawKey) || rawKey;
+  const entityId = ctx.getBoundEntityId(rawKey);
 
-  // Check if target container already contains this ingredient
+  if (!entityId) {
+    return;
+  }
+
+  ctx.validateEntity(entityId, 'move');
+
   const state = worldStore.getState();
   const targetContainer = state.containers[target];
-  if (targetContainer && ingredientId) {
-    const currentEntities = targetContainer.entityIds
-      .map((id) => state.entities[id])
-      .filter(Boolean);
-    const alreadyPresent = currentEntities.some(
-      (e) => e.type === 'ingredient' && getIngredientCatalogId(e) === ingredientId
-    );
-    if (alreadyPresent) {
-      return; // Skip move if ingredient is already present
-    }
+  if (targetContainer && targetContainer.entityIds.includes(entityId)) {
+    return; // Skip move if entity is already in target container
   }
 
   // 1. Move mascot gaze to source container
@@ -45,10 +41,8 @@ export async function handleMoveStep(
   await ctx.wait();
 
   // 2. Grab ingredient from source container
-  if (ingredientId) {
-    grabIngredient(ingredientId, source, ctx.mascotId);
-    await ctx.wait();
-  }
+  grabIngredient(entityId, source, ctx.mascotId);
+  await ctx.wait();
 
   // 3. Move mascot gaze to target container
   moveTortillaTo(target, ctx.mascotId);
@@ -57,6 +51,16 @@ export async function handleMoveStep(
   // 4. Drop ingredient into target container
   dropIngredient(target, undefined, ctx.mascotId);
   await ctx.wait();
+
+  // Check if drop created a copy entity (from immutable storage)
+  const newState = worldStore.getState();
+  const newTargetContainer = newState.containers[target];
+  if (newTargetContainer && !newTargetContainer.entityIds.includes(entityId)) {
+    const copiedId = newTargetContainer.entityIds[newTargetContainer.entityIds.length - 1];
+    if (copiedId) {
+      ctx.updateBindingIfCopied(entityId, copiedId, rawKey);
+    }
+  }
 }
 
 export async function handleGrabStep(
@@ -64,12 +68,17 @@ export async function handleGrabStep(
   step: GrabStep
 ): Promise<void> {
   const source = step.source || ctx.defaultSourceId;
-  const ingredientId = ctx.resolveIngredientId(step.ingredient) || step.ingredient;
+  const entityId = ctx.getBoundEntityId(step.ingredient) || step.ingredient;
+
+  if (entityId) {
+    ctx.validateEntity(entityId, 'grab');
+  }
+
   moveTortillaTo(source, ctx.mascotId);
   await ctx.wait();
 
-  if (ingredientId) {
-    grabIngredient(ingredientId, source, ctx.mascotId);
+  if (entityId) {
+    grabIngredient(entityId, source, ctx.mascotId);
     await ctx.wait();
   }
 }

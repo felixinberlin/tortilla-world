@@ -164,4 +164,74 @@ describe('RecipeRunner System', () => {
     expect(actionNames).toContain('COOK_INGREDIENT');
     expect(actionNames).toContain('MASCOT_FLIP');
   });
+
+  it('binds distinct entity IDs when dropping copies from immutable despensa container', async () => {
+    const multiIngredientRecipe: Recipe = {
+      id: 'multi-potato',
+      name: 'Two Potatoes Recipe',
+      ingredients: [
+        { id: 'p1', ingredientId: 'potato', amount: 1, unit: 'unit' },
+        { id: 'p2', ingredientId: 'potato', amount: 1, unit: 'unit' },
+      ],
+      steps: [
+        { action: 'move', ingredient: 'p1', source: 'despensa', target: 'board' },
+        { action: 'cut', target: 'p1', style: 'diced', containerId: 'board' },
+        { action: 'move', ingredient: 'p2', source: 'despensa', target: 'sink' },
+        { action: 'wash', target: 'p2', containerId: 'sink' },
+      ],
+    };
+
+    const runner = new RecipeRunner({ mascotId: 'chef', delayMs: 5 });
+    await runner.runRecipe(multiIngredientRecipe);
+
+    const p1Id = runner.recipeContext.bindings['p1'];
+    const p2Id = runner.recipeContext.bindings['p2'];
+
+    expect(p1Id).toBeDefined();
+    expect(p2Id).toBeDefined();
+    expect(p1Id).not.toBe(p2Id);
+
+    const state = worldStore.getState();
+    const p1Entity = state.entities[p1Id];
+    const p2Entity = state.entities[p2Id];
+
+    expect(p1Entity?.state?.preparation).toBe('diced');
+    expect(p2Entity?.state?.preparation).toBe('washed');
+  });
+
+  it('creates a real mixture entity and consumes input ingredients on mix', async () => {
+    const mixRecipe: Recipe = {
+      id: 'mix-test',
+      name: 'Mix Test',
+      ingredients: [
+        { id: 'egg1', ingredientId: 'egg', amount: 1, unit: 'unit' },
+        { id: 'salt1', ingredientId: 'salt', amount: 1, unit: 'unit' },
+      ],
+      steps: [
+        { action: 'mix', inputs: ['egg1', 'salt1'], targetContainerId: 'bowl', output: 'batter' },
+      ],
+    };
+
+    const runner = new RecipeRunner({ mascotId: 'chef', delayMs: 5 });
+    await runner.runRecipe(mixRecipe);
+
+    const state = worldStore.getState();
+    const mixtureEntityId = runner.recipeContext.bindings['batter'];
+    expect(mixtureEntityId).toBeDefined();
+
+    const mixtureEntity = state.entities[mixtureEntityId];
+    expect(mixtureEntity).toBeDefined();
+    expect(mixtureEntity.name).toBe('batter');
+    expect(state.containers.bowl.entityIds).toContain(mixtureEntityId);
+
+    // Verify input ingredients were marked as consumed and removed from containers
+    const eggEntity = state.entities[runner.recipeContext.bindings['egg1']];
+    const saltEntity = state.entities[runner.recipeContext.bindings['salt1']];
+
+    expect(eggEntity?.state?.consumed).toBe(true);
+    expect(saltEntity?.state?.consumed).toBe(true);
+
+    expect(state.containers.bowl.entityIds).not.toContain(eggEntity.id);
+    expect(state.containers.bowl.entityIds).not.toContain(saltEntity.id);
+  });
 });

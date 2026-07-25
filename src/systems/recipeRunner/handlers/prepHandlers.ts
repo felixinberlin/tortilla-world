@@ -7,7 +7,6 @@
 
 import { worldStore } from '../../../store/worldStore';
 import { moveTortillaTo } from '../../mascotActions';
-import { getIngredientCatalogId } from '../../../engine/containerRules';
 import type { RecipeStep } from '../../../types/RecipeStep';
 import type { RecipeRunnerContext } from '../types';
 
@@ -22,9 +21,22 @@ export async function handlePrepStep(
   workstationDefaultContainerId?: string
 ): Promise<void> {
   const rawKey = step.target || step.ingredient;
-  const ingredientId = ctx.resolveIngredientId(rawKey);
-  // 'preparation' and 'style' only exist on the prepare/cut/peel/wash variant,
-  // not on rinse/drain — narrow by checking action before accessing them.
+  let entityId = ctx.getBoundEntityId(rawKey);
+
+  if (!entityId) {
+    return;
+  }
+
+  ctx.validateEntity(entityId, step.action);
+
+  const targetContainerId = step.containerId || workstationDefaultContainerId || ctx.defaultTargetId;
+
+  // Ensure bound entity is in workspace
+  entityId = await ctx.ensureEntityInWorkspace(entityId, targetContainerId);
+
+  moveTortillaTo(targetContainerId, ctx.mascotId);
+  await ctx.wait();
+
   const prepStyle = (() => {
     if ('preparation' in step && step.preparation) return step.preparation;
     if ('style' in step && step.style) return step.style;
@@ -32,45 +44,14 @@ export async function handlePrepStep(
     if (step.action === 'wash') return 'washed';
     return 'prepared';
   })();
-  const targetContainerId = step.containerId || workstationDefaultContainerId || ctx.defaultTargetId;
 
-  if (ingredientId && ingredientId !== 'mixture') {
-    await ctx.ensureIngredientInWorkspace(ingredientId, targetContainerId);
-  }
+  worldStore.getState().dispatch({
+    type: 'PREPARE_INGREDIENT',
+    payload: {
+      entityId,
+      preparation: prepStyle,
+    },
+  });
 
-  moveTortillaTo(targetContainerId, ctx.mascotId);
-  await ctx.wait();
-
-  const state = worldStore.getState();
-  let targetEntityId: string | undefined;
-
-  if (ingredientId) {
-    // Search workstation containers for the matching ingredient
-    for (const cId of [targetContainerId, 'board', 'bowl', 'pan', 'plate']) {
-      const container = state.containers[cId];
-      if (container) {
-        targetEntityId = container.entityIds.find((id) => {
-          const e = state.entities[id];
-          return e && getIngredientCatalogId(e) === ingredientId;
-        });
-        if (targetEntityId) break;
-      }
-    }
-  }
-
-  if (!targetEntityId) {
-    const mascot = state.entities[ctx.mascotId];
-    targetEntityId = mascot?.state?.holdingEntityId as string | undefined;
-  }
-
-  if (targetEntityId) {
-    worldStore.getState().dispatch({
-      type: 'PREPARE_INGREDIENT',
-      payload: {
-        entityId: targetEntityId,
-        preparation: prepStyle,
-      },
-    });
-  }
   await ctx.wait();
 }
