@@ -19,13 +19,11 @@ export const ingredients: Ingredient[] = [
     name: "Potatoes",
   },
 
-
   {
     id: "egg",
     icon: "🥚",
     name: "Eggs",
   },
-
 
   {
     id: "oil",
@@ -33,13 +31,11 @@ export const ingredients: Ingredient[] = [
     name: "Olive Oil",
   },
 
-
   {
     id: "onion",
     icon: "🧅",
     name: "Onion",
   },
-
 
   {
     id: "chorizo",
@@ -93,6 +89,62 @@ export const ingredients: Ingredient[] = [
     id: "butter",
     icon: "🧈",
     name: "Butter",
+  },
+
+  // --- Expanded Ingredients ---
+
+  {
+    id: "black_pepper",
+    icon: "🌶️",
+    name: "Black Pepper",
+  },
+
+  {
+    id: "flour",
+    icon: "🌾",
+    name: "Flour",
+  },
+
+  {
+    id: "sugar",
+    icon: "🍚",
+    name: "Sugar",
+  },
+
+  {
+    id: "rice",
+    icon: "🍚",
+    name: "Rice",
+  },
+
+  {
+    id: "chicken",
+    icon: "🍗",
+    name: "Chicken",
+  },
+
+  {
+    id: "beef",
+    icon: "🥩",
+    name: "Beef",
+  },
+
+  {
+    id: "mushroom",
+    icon: "🍄",
+    name: "Mushroom",
+  },
+
+  {
+    id: "spinach",
+    icon: "🥬",
+    name: "Spinach",
+  },
+
+  {
+    id: "lemon",
+    icon: "🍋",
+    name: "Lemon",
   },
 
 ];

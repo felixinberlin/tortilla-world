@@ -51,8 +51,8 @@ export const clasicaRecipe: Recipe = {
       unit: 'tsp',
     },
 
-    pepper: {
-      entityId: 'pepper',
+    black_pepper: {
+      entityId: 'black_pepper',
       amount: 1,
       unit: 'pinch',
     },
@@ -95,7 +95,7 @@ export const clasicaRecipe: Recipe = {
         'potatoes',
         'eggs',
         'salt',
-        'pepper',
+        'black_pepper',
       ],
       output: 'mixture',
     },
