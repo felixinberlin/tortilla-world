@@ -5,64 +5,183 @@
  * Recipe definition for Tortilla con cebolla.
  *
  * RESPONSIBILITY:
- * - Defines the ingredients, quantities, and step-by-step actions required for this recipe.
+ * - Defines the ingredients, quantities, and cooking process.
+ * - Describes recipe actions in a declarative format.
+ * - Provides a Cooklang representation for humans.
  */
 
 import type { Recipe } from '../../../types/Recipe';
 
 export const concebollaRecipe: Recipe = {
   id: 'concebolla',
+  
   name: 'Tortilla con Cebolla',
-  ingredients: [
-    { id: 'concebolla-potato', ingredientId: 'potato', amount: 4, unit: 'pcs' },
-    { id: 'concebolla-egg', ingredientId: 'egg', amount: 6, unit: 'pcs' },
-    { id: 'concebolla-oil', ingredientId: 'oil', amount: 100, unit: 'ml' },
-    { id: 'concebolla-onion', ingredientId: 'onion', amount: 1, unit: 'pcs' },
-    { id: 'concebolla-salt', ingredientId: 'salt', amount: 1, unit: 'tsp' },
-    { id: 'concebolla-pepper', ingredientId: 'pepper', amount: 1, unit: 'pinch' },
-  ],
+
+  ingredients: {
+    potatoes: {
+      ingredientId: 'potato',
+      amount: 4,
+      unit: 'pcs',
+    },
+    eggs: {
+      ingredientId: 'egg',
+      amount: 6,
+      unit: 'pcs',
+    },
+    oil: {
+      ingredientId: 'oil',
+      amount: 100,
+      unit: 'ml',
+    },
+    onions: {
+      ingredientId: 'onion',
+      amount: 1,
+      unit: 'pcs',
+    },
+    salt: {
+      ingredientId: 'salt',
+      amount: 1,
+      unit: 'tsp',
+    },
+    pepper: {
+      ingredientId: 'pepper',
+      amount: 1,
+      unit: 'pinch',
+    },
+  },
+
   steps: [
-    { action: 'move', ingredient: 'potato', source: 'despensa', target: 'board' },
-    { action: 'move', ingredient: 'egg', source: 'despensa', target: 'board' },
-    { action: 'move', ingredient: 'oil', source: 'despensa', target: 'board' },
-    { action: 'move', ingredient: 'onion', source: 'despensa', target: 'board' },
-    { action: 'move', ingredient: 'salt', source: 'despensa', target: 'board' },
-    { action: 'move', ingredient: 'pepper', source: 'despensa', target: 'board' },
-
-    { action: 'peel', ingredient: 'potato' },
-    { action: 'wash', ingredient: 'potato' },
-    { action: 'cut', ingredient: 'potato', preparation: 'sliced' },
-    { action: 'peel', ingredient: 'onion' },
-    { action: 'wash', ingredient: 'onion' },
-    { action: 'cut', ingredient: 'onion', preparation: 'diced' },
-
-    { action: 'cook', ingredient: 'potato' },
-    { action: 'cook', ingredient: 'onion' },
-
-    { action: 'mix', ingredients: ['egg', 'salt', 'pepper'] },
-    { action: 'combine', ingredients: ['potato', 'onion', 'egg'] },
-
-    { action: 'cook', containerId: 'pan' },
-
+    {
+      action: 'prepare',
+      target: 'potatoes',
+      preparation: 'peeled',
+    },
+    {
+      action: 'wash',
+      target: 'potatoes',
+    },
+    {
+      action: 'prepare',
+      target: 'potatoes',
+      preparation: 'sliced',
+    },
+    {
+      action: 'prepare',
+      target: 'onions',
+      preparation: 'peeled',
+    },
+    {
+      action: 'wash',
+      target: 'onions',
+    },
+    {
+      action: 'prepare',
+      target: 'onions',
+      preparation: 'diced',
+    },
+    {
+      action: 'cook',
+      target: 'oil',
+      method: 'heat',
+    },
+    {
+      action: 'cook',
+      target: 'potatoes',
+      method: 'fry',
+    },
+    {
+      action: 'cook',
+      target: 'onions',
+      method: 'fry',
+    },
+    {
+      action: 'prepare',
+      target: 'eggs',
+      preparation: 'beaten',
+    },
+    {
+      action: 'mix',
+      inputs: [
+        'potatoes',
+        'onions',
+        'eggs',
+        'salt',
+        'pepper',
+      ],
+      output: 'mixture',
+    },
+    {
+      action: 'cook',
+      target: 'mixture',
+      method: 'fry',
+      duration: 5,
+      unit: 'min',
+    },
     {
       action: 'instruction',
       text: 'Con una espátula blanda, asegúrate de que la tortilla no se pega a la sartén.',
     },
-
     {
       action: 'flip',
+      target: 'mixture',
       instruction: 'Dale la vuelta a la tortilla.',
     },
-
     {
       action: 'cook',
+      target: 'mixture',
+      method: 'fry',
       duration: 5,
       unit: 'min',
       instruction: 'Deja cocinar por otros 5 min.',
     },
-
-    { action: 'celebrate' },
+    {
+      action: 'serve',
+      target: 'mixture',
+    },
+    {
+      action: 'celebrate',
+    },
   ],
 };
+
+export const concebollaCooklang = `
+Peel the @potatoes{4%pcs}.
+
+Wash the @potatoes.
+
+Slice the @potatoes.
+
+Peel the @onions{1%pcs}.
+
+Wash the @onions.
+
+Dice the @onions.
+
+Heat the @oil{100%ml}.
+
+Fry the @potatoes until tender.
+
+Fry the @onions until golden.
+
+Beat the @eggs{6%pcs}.
+
+Add @salt{1%tsp} and @pepper{1%pinch}.
+
+Mix the fried potatoes and onions with the beaten eggs, salt and pepper.
+
+Pour the mixture into the pan.
+
+Cook for 5 minutes.
+
+With a soft spatula, make sure the tortilla does not stick to the pan.
+
+Flip the tortilla.
+
+Cook for another 5 minutes.
+
+Serve the tortilla.
+
+Celebrate.
+`;
 
 export const recipe = concebollaRecipe;

@@ -43,10 +43,6 @@ export const worldStore = createStore<WorldStateStore>()(
         dispatch: (action: WorldAction) => {
           const store = get();
           switch (action.type) {
-            case 'RESET_WORLD':
-              store.resetWorld();
-              break;
-
             case 'MOVE_ENTITY':
               store.moveEntity(
                 action.payload.entityId,
@@ -97,6 +93,10 @@ export const worldStore = createStore<WorldStateStore>()(
                 action.payload.positionIndex,
                 action.payload.mascotId
               );
+              break;
+
+            case 'MASCOT_CLEAR_GAZE':
+              store.mascotClearGaze(action.payload.mascotId);
               break;
           }
         },

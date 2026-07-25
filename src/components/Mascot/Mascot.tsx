@@ -20,6 +20,8 @@ import { worldStore } from '../../store/worldStore';
 import { TortillaSvg } from './TortillaSvg';
 import { runTortillaPotatoScript } from '../../systems/mascotActions';
 import { ingredients } from '../../data/catalog/ingredients';
+import type { GazeTarget } from '../../systems/gaze';
+import { gazeEntityId } from '../../systems/gaze';
 
 interface MascotProps {
   mascotId?: string;
@@ -36,8 +38,9 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
 
   // Derived from mascotEntity.state — use optional chaining so these stay safe
   // when mascotEntity is undefined, keeping every hook below unconditional.
-  const gazingAt = mascotEntity?.state?.gazingAt as string | undefined;
-  const targetContainerId = (mascotEntity?.state?.targetContainerId || gazingAt) as string | undefined;
+  const gazingAt = (mascotEntity?.state?.gazingAt ?? null) as GazeTarget;
+  const gazingAtEntityId = gazeEntityId(gazingAt);
+  const targetContainerId = (mascotEntity?.state?.targetContainerId as string | undefined) ?? gazingAtEntityId ?? undefined;
   const state = (mascotEntity?.state?.state as string | undefined) || 'idle';
   const holdingEntityId = mascotEntity?.state?.holdingEntityId as string | undefined;
   const speechMessage = mascotEntity?.state?.speechMessage as string | undefined;
@@ -139,7 +142,7 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
         >
           <TortillaSvg
             state={state}
-            gazingAt={gazingAt as any}
+            gazingAt={gazingAt}
             onDoubleClick={handleDoubleClick}
           />
 
@@ -178,7 +181,7 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
           </div>
         )}
         <p style={{ margin: '4px 0 8px 0', fontSize: '13px', color: 'var(--text)' }}>
-          Focus / Target: <strong>{targetContainerId || gazingAt || 'Kitchen Home'}</strong>
+          Focus / Target: <strong>{targetContainerId || gazingAtEntityId || 'Kitchen Home'}</strong>
           {holdingEntityId && (
             <span style={{ marginLeft: '8px', color: 'var(--primary, #e8b84a)', fontWeight: 600 }}>
               (Carrying: {heldIngredientInfo?.icon || '🥔'} {heldEntity?.name || holdingEntityId})

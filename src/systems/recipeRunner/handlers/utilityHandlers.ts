@@ -6,7 +6,7 @@
  */
 
 import { worldStore } from '../../../store/worldStore';
-import { moveTortillaTo, flipTortilla } from '../../mascotActions';
+import { moveTortillaTo, flipTortilla, clearTortillaGaze } from '../../mascotActions';
 import type { RecipeStep } from '../../../types/RecipeStep';
 import type { RecipeRunnerContext } from '../types';
 
@@ -88,5 +88,5 @@ export async function handleCelebrateStep(
 ): Promise<void> {
   flipTortilla(step.mascotId || ctx.mascotId);
   await ctx.wait(900);
-  moveTortillaTo('', step.mascotId || ctx.mascotId);
+  clearTortillaGaze(step.mascotId || ctx.mascotId);
 }

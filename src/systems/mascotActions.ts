@@ -34,6 +34,17 @@ export function moveTortillaTo(targetContainerId: string, mascotId: string = 'ch
 }
 
 /**
+ * Clears Tortilla's gaze — mascot returns to idle eye position (gazingAt: null).
+ * Use instead of moveTortillaTo('') when there is no meaningful target.
+ */
+export function clearTortillaGaze(mascotId: string = 'chef'): void {
+  worldStore.getState().dispatch({
+    type: 'MASCOT_CLEAR_GAZE',
+    payload: { mascotId },
+  });
+}
+
+/**
  * Commands Tortilla to grab/pick up an ingredient from a container.
  */
 export function grabIngredient(
@@ -95,8 +106,8 @@ export async function runTortillaPotatoScript(
   flipTortilla(mascotId);
   await wait(900);
 
-  // 6. Return home gracefully
-  moveTortillaTo('', mascotId);
+  // 6. Return home gracefully — clear gaze instead of setting an empty string target
+  clearTortillaGaze(mascotId);
 }
 
 /**

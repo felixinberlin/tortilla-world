@@ -63,7 +63,7 @@ describe('mascotActions system', () => {
     moveTortillaTo('pan', 'chef');
 
     const state = worldStore.getState();
-    expect(state.entities.chef.state?.gazingAt).toBe('pan');
+    expect(state.entities.chef.state?.gazingAt).toEqual({ type: 'entity', entityId: 'pan' });
 
     const log = getActionLog();
     expect(log.map((l) => l.action)).toContain('MASCOT_MOVE');
@@ -149,7 +149,7 @@ describe('mascotActions system', () => {
       'MASCOT_MOVE',
       'MASCOT_DROP',
       'MASCOT_FLIP',
-      'MASCOT_MOVE',
+      'MASCOT_CLEAR_GAZE', // "return home" now dispatches MASCOT_CLEAR_GAZE, not MASCOT_MOVE('')
     ]);
   });
 

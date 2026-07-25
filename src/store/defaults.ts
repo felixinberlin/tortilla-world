@@ -10,11 +10,17 @@
  */
 
 import type { Container, Entity } from '../types/world';
+import type { GazeTarget } from '../systems/gaze';
 import { ingredients as catalogIngredients } from '../data/catalog/ingredients';
 import { catalogTools } from '../data/catalog/tools';
 
 export const defaultEntities: Record<string, Entity> = {
-  chef: { id: 'chef', name: 'Chef Tortilla 🍳', type: 'mascot', state: { gazingAt: 'Despensa' } },
+  chef: {
+    id: 'chef',
+    name: 'Chef Tortilla 🍳',
+    type: 'mascot',
+    state: { gazingAt: { type: 'entity', entityId: 'despensa' } satisfies GazeTarget },
+  },
   ...catalogIngredients.reduce((acc, item) => {
     acc[item.id] = {
       id: item.id,

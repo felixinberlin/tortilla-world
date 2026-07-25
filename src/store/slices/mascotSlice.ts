@@ -12,12 +12,14 @@ import type { StateCreator } from 'zustand/vanilla';
 import type { Entity } from '../../types/world';
 import type { WorldStateStore } from '../types';
 import { validateContainerRules } from '../../engine/containerRules';
+import type { GazeTarget } from '../../systems/gaze';
 
 export interface MascotSlice {
   mascotFlip: (mascotId?: string) => void;
   mascotMove: (targetContainerId: string, mascotId?: string) => void;
   mascotGrab: (entityId: string, sourceContainerId?: string, mascotId?: string) => void;
   mascotDrop: (targetContainerId: string, positionIndex?: number, mascotId?: string) => void;
+  mascotClearGaze: (mascotId?: string) => void;
 }
 
 export const createMascotSlice: StateCreator<
@@ -63,9 +65,10 @@ export const createMascotSlice: StateCreator<
       (draft) => {
         const mascot = draft.entities[mascotId];
         if (!mascot) return;
+        const gaze: GazeTarget = { type: 'entity', entityId: targetContainerId };
         mascot.state = {
           ...mascot.state,
-          gazingAt: targetContainerId,
+          gazingAt: gaze,
           targetContainerId,
         };
       },
@@ -89,15 +92,30 @@ export const createMascotSlice: StateCreator<
       (draft) => {
         const m = draft.entities[mascotId];
         if (!m) return;
+        const grabGaze: GazeTarget = foundSource?.id
+          ? { type: 'entity', entityId: foundSource.id }
+          : (m.state?.gazingAt as GazeTarget) ?? null;
         m.state = {
           ...m.state,
           holdingEntityId: entityId,
           sourceContainerId: foundSource?.id,
-          gazingAt: foundSource?.id || m.state?.gazingAt,
+          gazingAt: grabGaze,
         };
       },
       false,
       'MASCOT_GRAB'
+    );
+  },
+
+  mascotClearGaze: (mascotId = 'chef') => {
+    set(
+      (draft) => {
+        const mascot = draft.entities[mascotId];
+        if (!mascot) return;
+        mascot.state = { ...mascot.state, gazingAt: null, targetContainerId: undefined };
+      },
+      false,
+      'MASCOT_CLEAR_GAZE'
     );
   },
 
@@ -113,7 +131,7 @@ export const createMascotSlice: StateCreator<
         (draft) => {
           const m = draft.entities[mascotId];
           if (m) {
-            m.state = { ...m.state, gazingAt: targetContainerId };
+            m.state = { ...m.state, gazingAt: { type: 'entity', entityId: targetContainerId } };
           }
         },
         false,
@@ -184,7 +202,7 @@ export const createMascotSlice: StateCreator<
             ...m.state,
             holdingEntityId: undefined,
             sourceContainerId: undefined,
-            gazingAt: targetContainerId,
+            gazingAt: { type: 'entity', entityId: targetContainerId } satisfies GazeTarget,
           };
         }
       },

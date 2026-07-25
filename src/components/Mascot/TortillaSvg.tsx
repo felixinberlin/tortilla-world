@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
-import type { GazePoint } from "../../systems/gaze";
+import type { GazePoint, GazeTarget } from "../../systems/gaze";
 import type { MascotState } from "../../systems/mascot";
 import "./TortillaSvg.scss";
 
@@ -31,7 +31,7 @@ export interface TortillaSvgProps {
   height?: number | string;
   potatoes?: Potato[];
   toastMarks?: ToastMark[];
-  gazingAt?: string | null;
+  gazingAt?: GazeTarget;
   onDoubleClick?: (e: React.MouseEvent<SVGSVGElement>) => void;
 }
 

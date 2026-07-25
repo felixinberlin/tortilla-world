@@ -12,7 +12,6 @@ import type { EntityType } from './world';
 import type { PreparationStyle, CookingMethod } from './RecipeStep';
 
 export type WorldAction =
-  | { type: 'RESET_WORLD' } // <-- NEW ACTION
   | {
       type: 'MOVE_ENTITY';
       payload: {
@@ -87,5 +86,11 @@ export type WorldAction =
         mascotId?: string;
         targetContainerId: string;
         positionIndex?: number;
+      };
+    }
+  | {
+      type: 'MASCOT_CLEAR_GAZE';
+      payload: {
+        mascotId?: string;
       };
     };
