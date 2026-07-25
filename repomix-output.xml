@@ -56,6 +56,7 @@ public/
 src/
   assets/
     hero.png
+    hero.png:Zone.Identifier
   components/
     Ingredients/
       Ingredient.tsx
@@ -71,9 +72,20 @@ src/
     Recipe/
       RecipePanel.scss
       RecipePanel.tsx
+      RecipeRequirements.tsx
+      RequirementView.tsx
     Scene/
+      RecipePlayer.scss
+      RecipePlayer.tsx
       Scene.tsx
       useSceneDragAndDrop.ts
+    World/
+      ContainerView.tsx
+      EntityIcon.tsx
+      EntityStateBadge.tsx
+      EntityView.tsx
+      rendererRegistry.ts
+      World.scss
   data/
     catalog/
       recipes/
@@ -118,6 +130,7 @@ src/
       types.ts
     gaze.test.ts
     gaze.ts
+    ingredientUsage.test.ts
     mascot.ts
     mascotActions.test.ts
     mascotActions.ts
@@ -136,6 +149,7 @@ src/
     RecipeIngredient.ts
     RecipeList.ts
     RecipeStep.ts
+    Requirement.ts
     tools.ts
     workstations.ts
     world.ts
@@ -253,181 +267,1333 @@ Systems modify the world.
 </svg>
 </file>
 
-<file path="src/data/catalog/recipes/clasica.ts">
+<file path="src/components/Recipe/RecipeRequirements.tsx">
 /**
- * FILE: clasica.ts
+ * FILE: RecipeRequirements.tsx
  *
  * PURPOSE:
- * Recipe definition for Tortilla Clásica (without onion).
+ * Displays all requirements for a recipe.
  *
  * RESPONSIBILITY:
- * - Defines the ingredients, quantities, and cooking process.
- * - Describes recipe actions in a declarative format.
- * - Provides a Cooklang representation for humans.
- *
- * NOTE:
- * Recipes describe WHAT happens.
- * The RecipeRunner decides HOW it happens:
- * - finding ingredients
- * - moving the chef
- * - animations
- * - changing entity state
- * - creating intermediate results
+ * - Renders list of required entities.
  */
 
-import type { Recipe } from '../../../types/Recipe';
+import React from 'react';
+import type { Requirement } from '../../types/Requirement';
+import { RequirementView } from './RequirementView';
 
-export const clasicaRecipe: Recipe = {
-  id: 'clasica',
+interface RecipeRequirementsProps {
+  requirements: Requirement[];
+}
 
-  name: 'Clásica',
+export const RecipeRequirements: React.FC<RecipeRequirementsProps> = ({ requirements }) => {
+  return (
+    <ul className="recipe-requirements">
+      {requirements.map((req, idx) => (
+        <RequirementView key={req.id || `${req.entityId}-${idx}`} requirement={req} />
+      ))}
+    </ul>
+  );
+};
+</file>
 
-  ingredients: {
-    potatoes: {
-      ingredientId: 'potato',
-      amount: 4,
-      unit: 'pcs',
-    },
+<file path="src/components/Recipe/RequirementView.tsx">
+/**
+ * FILE: RequirementView.tsx
+ *
+ * PURPOSE:
+ * Displays a single required entity inside a recipe.
+ *
+ * RESPONSIBILITY:
+ * - Uses EntityView in readOnly mode to visualize required entity.
+ * - Renders requirement quantity and unit.
+ */
 
-    eggs: {
-      ingredientId: 'egg',
-      amount: 6,
-      unit: 'pcs',
-    },
+import React from 'react';
+import type { Requirement } from '../../types/Requirement';
+import type { Entity } from '../../types/world';
+import { ingredients } from '../../data/catalog/ingredients';
+import { catalogTools as tools } from '../../data/catalog/tools';
+import { EntityView } from '../World/EntityView';
 
-    oil: {
-      ingredientId: 'oil',
-      amount: 100,
-      unit: 'ml',
-    },
+interface RequirementViewProps {
+  requirement: Requirement;
+}
 
-    salt: {
-      ingredientId: 'salt',
-      amount: 1,
-      unit: 'tsp',
-    },
+export const RequirementView: React.FC<RequirementViewProps> = ({ requirement }) => {
+  const catalogIng = ingredients.find((i) => i.id === requirement.entityId);
+  const catalogTool = tools.find((t: { id: string }) => t.id === requirement.entityId);
 
-    pepper: {
-      ingredientId: 'pepper',
-      amount: 1,
-      unit: 'pinch',
-    },
-  },
+  const syntheticEntity: Entity = {
+    id: `req-${requirement.entityId}`,
+    name: requirement.name || catalogIng?.name || catalogTool?.name || requirement.entityId,
+    type: catalogTool ? 'tool' : 'ingredient',
+    icon: catalogIng?.icon || catalogTool?.icon,
+    ingredientId: requirement.entityId,
+  };
 
-  steps: [
-    {
-      action: 'prepare',
-      target: 'potatoes',
-      preparation: 'peeled',
-    },
+  return (
+    <li className="requirement-view">
+      <EntityView entity={syntheticEntity} readOnly />
+      <span className="requirement-view__amount">
+        {requirement.amount} {requirement.unit}
+      </span>
+    </li>
+  );
+};
+</file>
 
-    {
-      action: 'prepare',
-      target: 'potatoes',
-      preparation: 'sliced',
-    },
+<file path="src/components/Scene/RecipePlayer.scss">
+/**
+ * FILE: RecipePlayer.scss
+ *
+ * PURPOSE:
+ * Stylesheet for RecipePlayer component.
+ * Uses warm Spanish kitchen ceramic palette with sleek interactive controls.
+ */
 
-    {
-      action: 'cook',
-      target: 'oil',
-      method: 'heat',
-    },
+@use 'sass:color';
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
 
-    {
-      action: 'cook',
-      target: 'potatoes',
-      method: 'fry',
-    },
+.recipe-player-container {
+  @include ceramic-card($warm-surface, $warm-border);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: $shadow-ceramic;
+  position: relative;
+  overflow: hidden;
 
-    {
-      action: 'prepare',
-      target: 'eggs',
-      preparation: 'beaten',
-    },
+  // Header Row
+  .player-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
 
-    {
-      action: 'mix',
-      inputs: [
-        'potatoes',
-        'eggs',
-        'salt',
-        'pepper',
-      ],
-      output: 'mixture',
-    },
+    .recipe-select-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
 
-    {
-      action: 'cook',
-      target: 'mixture',
-      method: 'fry',
-      duration: 5,
-      unit: 'min',
-    },
+      .recipe-label {
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: $dark-brown;
+      }
 
-    {
-      action: 'instruction',
-      text: 'Con una espátula blanda, asegúrate de que la tortilla no se pega a la sartén.',
-    },
+      .recipe-dropdown {
+        background: #ffffff;
+        border: 1px solid $warm-border;
+        border-radius: $radius-sm;
+        padding: 6px 12px;
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: $dark-brown;
+        cursor: pointer;
+        outline: none;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        transition: border-color 0.2s;
 
-    {
-      action: 'flip',
-      target: 'mixture',
-      instruction: 'Dale la vuelta a la tortilla.',
-    },
+        &:focus, &:hover {
+          border-color: $tortilla-yellow;
+        }
+      }
+    }
 
-    {
-      action: 'cook',
-      target: 'mixture',
-      method: 'fry',
-      duration: 5,
-      unit: 'min',
-      instruction: 'Deja cocinar por otros 5 min.',
-    },
+    .player-status-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
 
-    {
-      action: 'serve',
-      target: 'mixture',
-    },
+      .step-count {
+        font-size: 0.88rem;
+        color: $wood-muted;
+        background: $warm-beige;
+        padding: 4px 10px;
+        border-radius: $radius-sm;
+        border: 1px solid $warm-border;
 
-    {
-      action: 'celebrate',
-    },
-  ],
+        strong {
+          color: $dark-brown;
+          font-weight: 800;
+        }
+      }
+
+      .speed-badge {
+        font-size: 0.82rem;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: $radius-sm;
+        background: $olive-green-light;
+        color: $olive-green;
+        border: 1px solid $olive-green-border;
+      }
+    }
+  }
+
+  // Progress Bar Track
+  .player-progress-track {
+    width: 100%;
+    height: 6px;
+    background: $warm-beige;
+    border-radius: 999px;
+    overflow: hidden;
+    position: relative;
+
+    .player-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, $tortilla-yellow, $terracotta);
+      border-radius: 999px;
+      transition: width 0.25s ease-out;
+    }
+  }
+
+  // Active Step Description Card
+  .current-step-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: #ffffff;
+    border: 1px solid $warm-border;
+    border-radius: $radius-md;
+    padding: 12px 16px;
+    box-shadow: 0 2px 5px rgba(44, 26, 20, 0.04);
+
+    .step-icon-area {
+      font-size: 1.8rem;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: $tortilla-yellow-light;
+      border: 1px solid $tortilla-yellow-border;
+      border-radius: $radius-sm;
+      flex-shrink: 0;
+    }
+
+    .step-text-area {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      .step-action-badge {
+        display: inline-block;
+        align-self: flex-start;
+        font-size: 0.68rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 2px 6px;
+        border-radius: 4px;
+        background: $terracotta-light;
+        color: $terracotta;
+        border: 1px solid $terracotta-border;
+      }
+
+      .step-description {
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: $dark-brown;
+        line-height: 1.35;
+      }
+    }
+  }
+
+  // Controls Row
+  .player-controls-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-top: 4px;
+
+    .ctrl-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      border-radius: $radius-sm;
+      border: 1px solid $warm-border;
+      background: #ffffff;
+      color: $dark-brown;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+      transition: all 0.18s ease;
+      user-select: none;
+
+      &:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-color: $tortilla-yellow;
+      }
+
+      &:active:not(:disabled) {
+        transform: translateY(0);
+      }
+
+      &:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+        box-shadow: none;
+      }
+
+      // Primary Play Button
+      &.play-btn {
+        background: $tortilla-yellow;
+        color: #ffffff;
+        border-color: $tortilla-yellow-hover;
+        padding: 10px 22px;
+        font-size: 0.95rem;
+
+        &:hover:not(:disabled) {
+          background: $tortilla-yellow-hover;
+        }
+
+        &.is-playing {
+          background: $terracotta;
+          border-color: $terracotta-hover;
+        }
+      }
+
+      // Slow & Fast buttons
+      &.slow-btn, &.fast-btn {
+        background: $warm-surface;
+      }
+
+      // Reset button
+      &.reset-btn {
+        margin-left: auto;
+        background: $warm-beige;
+        font-size: 0.8rem;
+      }
+    }
+  }
+
+  // Footer: Speed Pills & Stepper Dots
+  .player-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-top: 6px;
+    border-top: 1px dashed $warm-border;
+
+    .speed-pills {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      .speed-title {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: $wood-muted;
+        margin-right: 2px;
+      }
+
+      .speed-pill {
+        border: 1px solid $warm-border;
+        background: #ffffff;
+        color: $dark-brown;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: $radius-sm;
+        cursor: pointer;
+        transition: all 0.15s;
+
+        &:hover {
+          border-color: $olive-green;
+        }
+
+        &.active {
+          background: $olive-green;
+          color: #ffffff;
+          border-color: $olive-green-hover;
+        }
+      }
+    }
+
+    .stepper-dots {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: wrap;
+
+      .step-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: $warm-border;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &:hover {
+          transform: scale(1.3);
+          background: $tortilla-yellow;
+        }
+
+        &.completed {
+          background: $olive-green;
+        }
+
+        &.active {
+          background: $terracotta;
+          transform: scale(1.3);
+          box-shadow: 0 0 0 2px $terracotta-light;
+        }
+      }
+    }
+  }
+}
+</file>
+
+<file path="src/components/Scene/RecipePlayer.tsx">
+/**
+ * FILE: RecipePlayer.tsx
+ *
+ * PURPOSE:
+ * Interactive recipe playback and step navigation control component.
+ *
+ * RESPONSIBILITY:
+ * - Provides play/pause, slow, fast, step up (forward), and step down (backward) controls.
+ * - Displays active recipe progress, current step index, and human-readable step description.
+ * - Manages automated execution using RecipeRunner engine.
+ * - Supports instant step navigation and timeline jumping while maintaining simulation world state.
+ */
+
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { recipes } from '../../data/catalog/recipes';
+import { RecipeRunner } from '../../systems/recipeRunner';
+import { worldStore } from '../../store/worldStore';
+import type { RecipeStep } from '../../types/RecipeStep';
+import type { Recipe } from '../../types/Recipe';
+import './RecipePlayer.scss';
+
+// Speed options and corresponding delays in ms
+const SPEED_DELAYS: Record<number, number> = {
+  0.5: 1200, // Slow
+  1: 600,    // Normal
+  2: 300,    // Fast
+  3: 150,    // Turbo
 };
 
-export const clasicaCooklang = `
-Peel the @potatoes{4%pcs}.
+/**
+ * Generates human-readable step details (icon, text label, badge) for a given RecipeStep.
+ */
+function getStepDetails(step?: RecipeStep): { icon: string; text: string; actionName: string } {
+  if (!step) {
+    return { icon: '✨', text: 'Select a recipe and press Play or Step Up to begin!', actionName: 'Ready' };
+  }
 
-Slice the @potatoes.
+  switch (step.action) {
+    case 'move':
+      return {
+        icon: '🚚',
+        text: `Move ${step.ingredient || 'ingredient'} from ${step.source || 'storage'} to ${step.target || 'workspace'}`,
+        actionName: 'Move',
+      };
+    case 'grab':
+      return {
+        icon: '🫳',
+        text: `Grab ${step.ingredient} from ${step.source || 'storage'}`,
+        actionName: 'Grab',
+      };
+    case 'drop':
+      return {
+        icon: '⬇️',
+        text: `Drop held ingredient into ${step.target || 'workspace'}`,
+        actionName: 'Drop',
+      };
+    case 'cut':
+    case 'prepare':
+    case 'peel':
+      return {
+        icon: '🔪',
+        text: `${step.action.toUpperCase()} ${step.ingredient || step.target || ''} (${step.preparation || step.style || 'prepared'})`,
+        actionName: step.action,
+      };
+    case 'wash':
+    case 'rinse':
+    case 'drain':
+      return {
+        icon: '💧',
+        text: `${step.action.toUpperCase()} ${step.ingredient || step.target || ''}`,
+        actionName: step.action,
+      };
+    case 'cook':
+      return {
+        icon: '🍳',
+        text: `Cook ${step.target || step.ingredient || ''} (${step.method || 'fry'}${step.duration ? `, ${step.duration} ${step.unit || 'min'}` : ''})`,
+        actionName: 'Cook',
+      };
+    case 'flip':
+      return {
+        icon: '🍳',
+        text: step.instruction || `Flip ${step.target || 'tortilla'} in the pan`,
+        actionName: 'Flip',
+      };
+    case 'mix':
+    case 'beat':
+    case 'combine':
+      return {
+        icon: '🥣',
+        text: `Mix ${(step.inputs || step.ingredients || []).join(', ')} -> ${step.output || 'mixture'}`,
+        actionName: step.action,
+      };
+    case 'serve':
+      return {
+        icon: '🍽️',
+        text: `Serve ${step.target || 'dish'} to ${step.containerId || 'plate'}`,
+        actionName: 'Serve',
+      };
+    case 'instruction':
+      return {
+        icon: '👨‍🍳',
+        text: step.text || step.instruction || 'Follow recipe instruction',
+        actionName: 'Instruction',
+      };
+    case 'speak':
+      return {
+        icon: '💬',
+        text: `Tortilla says: "${step.message}"`,
+        actionName: 'Speak',
+      };
+    case 'celebrate':
+      return {
+        icon: '🎉',
+        text: 'Flip celebration! Recipe completed successfully!',
+        actionName: 'Celebrate',
+      };
+    case 'wait':
+      return {
+        icon: '⏳',
+        text: `Wait for ${step.durationMs || 600}ms`,
+        actionName: 'Wait',
+      };
+    default:
+      return {
+        icon: '📝',
+        text: 'Execute recipe step',
+        actionName: 'Step',
+      };
+  }
+}
 
-Heat the @oil{100%ml}.
+export const RecipePlayer: React.FC = () => {
+  const [selectedRecipeId, setSelectedRecipeId] = useState<string>(recipes[0]?.id || 'concebolla');
+  const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [speed, setSpeed] = useState<number>(1); // 0.5, 1, 2, 3
 
-Fry the @potatoes until tender.
+  const activeRecipe: Recipe = useMemo(
+    () => recipes.find((r) => r.id === selectedRecipeId) || recipes[0],
+    [selectedRecipeId]
+  );
+  const steps: RecipeStep[] = useMemo(() => activeRecipe?.steps || [], [activeRecipe]);
+  const totalSteps = steps.length;
 
-Beat the @eggs{6%pcs}.
+  const runnerRef = useRef<RecipeRunner | null>(null);
+  const isExecutingRef = useRef<boolean>(false);
 
-Add @salt{1%tsp}.
+  // Get delay in ms based on active speed multiplier
+  const currentDelayMs = SPEED_DELAYS[speed] || 600;
 
-Add @pepper{1%pinch}.
+  // Re-sync runner context or reset when recipe changes
+  const handleRecipeChange = (newRecipeId: string) => {
+    setIsPlaying(false);
+    setSelectedRecipeId(newRecipeId);
+    setCurrentStepIndex(0);
+    runnerRef.current = null;
+    worldStore.getState().dispatch({ type: 'RESET_WORLD' });
+  };
 
-Mix the potatoes with the beaten eggs, salt and pepper.
+  // Full reset of world and player step
+  const handleReset = useCallback(() => {
+    setIsPlaying(false);
+    setCurrentStepIndex(0);
+    runnerRef.current = null;
+    worldStore.getState().dispatch({ type: 'RESET_WORLD' });
+  }, []);
 
-Pour the mixture into the pan.
+  // Jump to a specific target step index by replaying from step 0
+  const jumpToStep = useCallback(
+    async (targetIndex: number) => {
+      if (isExecutingRef.current) return;
+      setIsPlaying(false);
 
-Cook for 5 minutes.
+      const clampedTarget = Math.min(Math.max(0, targetIndex), totalSteps);
+      isExecutingRef.current = true;
 
-With a soft spatula, make sure the tortilla does not stick to the pan.
+      try {
+        // Reset world state to initial kitchen
+        worldStore.getState().dispatch({ type: 'RESET_WORLD' });
 
-Flip the tortilla.
+        // Instantiate zero-delay runner for fast-forward
+        const fastRunner = new RecipeRunner({
+          mascotId: 'chef',
+          defaultTargetId: 'board',
+          delayMs: 0,
+        });
+        fastRunner.bindRecipeContext(activeRecipe);
 
-Cook for another 5 minutes.
+        for (let i = 0; i < clampedTarget; i++) {
+          await fastRunner.executeStep(steps[i]);
+        }
 
-Serve the tortilla.
+        fastRunner.delayMs = currentDelayMs;
+        runnerRef.current = fastRunner;
+        setCurrentStepIndex(clampedTarget);
+      } catch (err) {
+        console.error('[RecipePlayer] Error jumping to step:', err);
+      } finally {
+        isExecutingRef.current = false;
+      }
+    },
+    [activeRecipe, totalSteps, steps, currentDelayMs]
+  );
 
-Celebrate.
-`;
+  // Step Up (Step forward 1 step)
+  const handleStepUp = useCallback(async () => {
+    if (isExecutingRef.current) return;
+    setIsPlaying(false);
 
-export const recipe = clasicaRecipe;
+    if (currentStepIndex >= totalSteps) return;
+
+    isExecutingRef.current = true;
+
+    try {
+      if (!runnerRef.current || currentStepIndex === 0) {
+        if (currentStepIndex === 0) {
+          worldStore.getState().dispatch({ type: 'RESET_WORLD' });
+        }
+        runnerRef.current = new RecipeRunner({
+          mascotId: 'chef',
+          defaultTargetId: 'board',
+          delayMs: currentDelayMs,
+        });
+        runnerRef.current.bindRecipeContext(activeRecipe);
+      } else {
+        runnerRef.current.delayMs = currentDelayMs;
+      }
+
+      const stepToRun = steps[currentStepIndex];
+      await runnerRef.current.executeStep(stepToRun);
+      setCurrentStepIndex((prev) => Math.min(prev + 1, totalSteps));
+    } catch (err) {
+      console.error('[RecipePlayer] Error stepping up:', err);
+    } finally {
+      isExecutingRef.current = false;
+    }
+  }, [currentStepIndex, totalSteps, activeRecipe, steps, currentDelayMs]);
+
+  // Step Down (Step back 1 step)
+  const handleStepDown = useCallback(() => {
+    if (currentStepIndex <= 0) return;
+    jumpToStep(currentStepIndex - 1);
+  }, [currentStepIndex, jumpToStep]);
+
+  // Toggle Play / Pause
+  const handleTogglePlay = () => {
+    if (isPlaying) {
+      setIsPlaying(false);
+    } else {
+      // If at end of recipe, restart from beginning
+      if (currentStepIndex >= totalSteps) {
+        handleReset();
+      }
+      setIsPlaying(true);
+    }
+  };
+
+  // Decrease speed (Slow button)
+  const handleSlow = () => {
+    if (speed === 3) setSpeed(2);
+    else if (speed === 2) setSpeed(1);
+    else if (speed === 1) setSpeed(0.5);
+    else setSpeed(0.5);
+  };
+
+  // Increase speed (Fast button)
+  const handleFast = () => {
+    if (speed === 0.5) setSpeed(1);
+    else if (speed === 1) setSpeed(2);
+    else if (speed === 2) setSpeed(3);
+    else setSpeed(3);
+  };
+
+  // Auto-play step loop effect
+  useEffect(() => {
+    if (!isPlaying) return;
+
+    let isCancelled = false;
+
+    const playNextStep = async () => {
+      if (currentStepIndex >= totalSteps) {
+        setIsPlaying(false);
+        return;
+      }
+
+      if (isExecutingRef.current) return;
+      isExecutingRef.current = true;
+
+      try {
+        if (!runnerRef.current || currentStepIndex === 0) {
+          if (currentStepIndex === 0) {
+            worldStore.getState().dispatch({ type: 'RESET_WORLD' });
+          }
+          runnerRef.current = new RecipeRunner({
+            mascotId: 'chef',
+            defaultTargetId: 'board',
+            delayMs: currentDelayMs,
+          });
+          runnerRef.current.bindRecipeContext(activeRecipe);
+        } else {
+          runnerRef.current.delayMs = currentDelayMs;
+        }
+
+        const stepToRun = steps[currentStepIndex];
+        await runnerRef.current.executeStep(stepToRun);
+
+        if (!isCancelled) {
+          const nextIndex = currentStepIndex + 1;
+          setCurrentStepIndex(nextIndex);
+          if (nextIndex >= totalSteps) {
+            setIsPlaying(false);
+          }
+        }
+      } catch (err) {
+        console.error('[RecipePlayer] Playback loop error:', err);
+        if (!isCancelled) setIsPlaying(false);
+      } finally {
+        isExecutingRef.current = false;
+      }
+    };
+
+    playNextStep();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [isPlaying, currentStepIndex, totalSteps, activeRecipe, steps, currentDelayMs]);
+
+  // Details for current step
+  const currentStep = steps[currentStepIndex < totalSteps ? currentStepIndex : totalSteps - 1];
+  const stepDetails = getStepDetails(currentStepIndex < totalSteps ? currentStep : undefined);
+  const progressPercent = totalSteps > 0 ? Math.min(100, (currentStepIndex / totalSteps) * 100) : 0;
+
+  return (
+    <div className="recipe-player-container">
+      {/* Top Header: Recipe Selector & Step Pill */}
+      <div className="player-header">
+        <div className="recipe-select-group">
+          <label htmlFor="player-recipe-select" className="recipe-label">
+            👨‍🍳 Active Recipe:
+          </label>
+          <select
+            id="player-recipe-select"
+            className="recipe-dropdown"
+            value={selectedRecipeId}
+            onChange={(e) => handleRecipeChange(e.target.value)}
+          >
+            {recipes.map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="player-status-badge">
+          <span className="step-count">
+            Step <strong>{currentStepIndex}</strong> / {totalSteps}
+          </span>
+          <span className={`speed-badge speed-${speed.toString().replace('.', '_')}`}>
+            ⚡ {speed}x
+          </span>
+        </div>
+      </div>
+
+      {/* Progress Bar */}
+      <div className="player-progress-track">
+        <div
+          className="player-progress-bar"
+          style={{ width: `${progressPercent}%` }}
+        />
+      </div>
+
+      {/* Active Step Description Card */}
+      <div className="current-step-card">
+        <div className="step-icon-area">{stepDetails.icon}</div>
+        <div className="step-text-area">
+          <div className="step-action-badge">{stepDetails.actionName}</div>
+          <p className="step-description">{stepDetails.text}</p>
+        </div>
+      </div>
+
+      {/* Main Controls Row */}
+      <div className="player-controls-bar">
+        {/* Slow Control */}
+        <button
+          type="button"
+          className="ctrl-btn slow-btn"
+          onClick={handleSlow}
+          title="Slow down playback speed (0.5x)"
+        >
+          🐢 Slow
+        </button>
+
+        {/* Step Down (Step Back) */}
+        <button
+          type="button"
+          className="ctrl-btn step-down-btn"
+          onClick={handleStepDown}
+          disabled={currentStepIndex <= 0}
+          title="Step Down: Go back to previous step"
+        >
+          ⏮ Step Down
+        </button>
+
+        {/* Play / Pause Toggle */}
+        <button
+          type="button"
+          className={`ctrl-btn play-btn ${isPlaying ? 'is-playing' : ''}`}
+          onClick={handleTogglePlay}
+          title={isPlaying ? 'Pause recipe auto-play' : 'Play recipe step-by-step'}
+        >
+          {isPlaying ? '⏸ Pause' : currentStepIndex >= totalSteps ? '🔄 Replay' : '▶ Play'}
+        </button>
+
+        {/* Step Up (Step Forward) */}
+        <button
+          type="button"
+          className="ctrl-btn step-up-btn"
+          onClick={handleStepUp}
+          disabled={currentStepIndex >= totalSteps}
+          title="Step Up: Advance to next step"
+        >
+          Step Up ⏭
+        </button>
+
+        {/* Fast Control */}
+        <button
+          type="button"
+          className="ctrl-btn fast-btn"
+          onClick={handleFast}
+          title="Speed up playback speed (2x/3x)"
+        >
+          Fast ⚡
+        </button>
+
+        {/* Kitchen Reset Button */}
+        <button
+          type="button"
+          className="ctrl-btn reset-btn"
+          onClick={handleReset}
+          title="Reset kitchen world to starting state"
+        >
+          🔄 Reset
+        </button>
+      </div>
+
+      {/* Speed Presets & Step Timeline Dots */}
+      <div className="player-footer">
+        <div className="speed-pills">
+          <span className="speed-title">Speed:</span>
+          {[0.5, 1, 2, 3].map((sp) => (
+            <button
+              key={sp}
+              type="button"
+              className={`speed-pill ${speed === sp ? 'active' : ''}`}
+              onClick={() => setSpeed(sp)}
+            >
+              {sp}x
+            </button>
+          ))}
+        </div>
+
+        {/* Interactive Step Stepper Dots */}
+        <div className="stepper-dots">
+          {steps.map((_, idx) => (
+            <button
+              key={`step-dot-${idx}`}
+              type="button"
+              className={`step-dot ${idx < currentStepIndex ? 'completed' : ''} ${
+                idx === currentStepIndex ? 'active' : ''
+              }`}
+              onClick={() => jumpToStep(idx)}
+              title={`Jump to step ${idx + 1}`}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+</file>
+
+<file path="src/components/World/ContainerView.tsx">
+/**
+ * FILE: ContainerView.tsx
+ *
+ * PURPOSE:
+ * Displays a world container and its owned entities.
+ *
+ * RESPONSIBILITY:
+ * - Renders container title and its inner entities via EntityView.
+ * - Acts as a droppable target for drag-and-drop actions.
+ */
+
+import React from 'react';
+import { useStore } from 'zustand';
+import { useDroppable } from '@dnd-kit/core';
+import { worldStore } from '../../store/worldStore';
+import type { Container, Entity } from '../../types/world';
+import { EntityView } from './EntityView';
+import './World.scss';
+
+interface ContainerViewProps {
+  key?: string | number;
+  container: Container;
+}
+
+export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
+  const entities = useStore(worldStore, (state) => state.entities);
+
+  // Set up dnd-kit droppable binding for this container
+  const { setNodeRef, isOver } = useDroppable({
+    id: container.id,
+  });
+
+  const containerEntities = container.entityIds
+    .map((id: string) => entities[id])
+    .filter((e: Entity | undefined): e is Entity => Boolean(e));
+
+  const getWorkstationBadge = (id: string) => {
+    switch (id) {
+      case 'sink': return 'Washing Area 💧';
+      case 'board': return 'Cutting Workspace 🔪';
+      case 'bowl': return 'Preparation 🥣';
+      case 'pan': return 'Cooking Heat 🍳';
+      case 'plate': return 'Serving Stage 🍽️';
+      case 'despensa': return 'Pantry 🧺';
+      default: return 'Workstation 📦';
+    }
+  };
+
+  return (
+    <div 
+      ref={setNodeRef} 
+      data-container-id={container.id}
+      className={`container-view container-view--${container.id} ${isOver ? 'container-view--drag-over' : ''}`}
+    >
+      <div className="container-view__header">
+        <h3 className="container-view__title">{container.name}</h3>
+        <span className="container-view__badge">{getWorkstationBadge(container.id)}</span>
+      </div>
+      <div className="container-view__items">
+        {containerEntities.map((entity: Entity) => (
+          <EntityView key={entity.id} entity={entity} containerId={container.id} />
+        ))}
+        {containerEntities.length === 0 && (
+          <span className="container-view__empty-hint">Drop entities here</span>
+        )}
+      </div>
+    </div>
+  );
+};
+</file>
+
+<file path="src/components/World/EntityIcon.tsx">
+/**
+ * FILE: EntityIcon.tsx
+ *
+ * PURPOSE:
+ * Visual icon representation for any entity in the world (ingredients, tools, containers, products).
+ *
+ * RESPONSIBILITY:
+ * - Renders symbol/icon based on entity data, catalog lookup, or entity type fallback.
+ */
+
+import React from 'react';
+import type { Entity } from '../../types/world';
+import { ingredients } from '../../data/catalog/ingredients';
+import { catalogTools as tools } from '../../data/catalog/tools';
+
+interface EntityIconProps {
+  entity?: Entity;
+  icon?: string;
+  entityId?: string;
+  type?: string;
+}
+
+const FALLBACK_ICONS: Record<string, string> = {
+  potato: '🥔',
+  egg: '🥚',
+  onion: '🧅',
+  oil: '🫗',
+  salt: '🧂',
+  pepper: '🌶️',
+  knife: '🔪',
+  pan: '🍳',
+  plate: '🍽️',
+  bowl: '🥣',
+  sink: '💧',
+  board: '🪵',
+  tortilla: '🫓',
+};
+
+export const EntityIcon: React.FC<EntityIconProps> = ({ entity, icon, entityId, type }) => {
+  if (icon) {
+    return <span className="entity-icon" aria-hidden="true">{icon}</span>;
+  }
+
+  if (entity?.icon) {
+    return <span className="entity-icon" aria-hidden="true">{entity.icon}</span>;
+  }
+
+  const lookupId = entity?.ingredientId || entity?.id || entityId || '';
+
+  // Catalog lookup
+  const catalogIng = ingredients.find((i) => i.id === lookupId || lookupId.startsWith(i.id));
+  if (catalogIng?.icon) {
+    return <span className="entity-icon" aria-hidden="true">{catalogIng.icon}</span>;
+  }
+
+  const catalogTool = tools.find((t) => t.id === lookupId || lookupId.startsWith(t.id));
+  if (catalogTool?.icon) {
+    return <span className="entity-icon" aria-hidden="true">{catalogTool.icon}</span>;
+  }
+
+  // Prefix key match
+  for (const [key, fallbackIcon] of Object.entries(FALLBACK_ICONS)) {
+    if (lookupId.toLowerCase().includes(key)) {
+      return <span className="entity-icon" aria-hidden="true">{fallbackIcon}</span>;
+    }
+  }
+
+  const defaultTypeIcon = type === 'tool' ? '🔧' : type === 'container' ? '📦' : '📦';
+
+  return <span className="entity-icon" aria-hidden="true">{defaultTypeIcon}</span>;
+};
+</file>
+
+<file path="src/components/World/EntityStateBadge.tsx">
+/**
+ * FILE: EntityStateBadge.tsx
+ *
+ * PURPOSE:
+ * Displays status/state indicator badges for world entities.
+ *
+ * RESPONSIBILITY:
+ * - Reflects state changes such as Raw, Prepared, Cooking, or Finished.
+ */
+
+import React from 'react';
+import type { Entity } from '../../types/world';
+
+interface EntityStateBadgeProps {
+  entity: Entity;
+  containerId?: string;
+}
+
+export const EntityStateBadge: React.FC<EntityStateBadgeProps> = ({ entity, containerId }) => {
+  const prep = entity.state?.preparation as string | undefined;
+  const cooking = entity.state?.cooking as string | undefined;
+  const status = entity.state?.status as string | undefined;
+
+  if (containerId === 'plate' || status?.includes('cooked') || status?.includes('fried') || status?.includes('tortilla')) {
+    return <span className="entity-view__state entity-view__state--finished">Finished ✨</span>;
+  }
+
+  if (cooking && cooking !== 'raw') {
+    return <span className="entity-view__state entity-view__state--cooking">Cooking 🔥</span>;
+  }
+
+  if (prep) {
+    return <span className="entity-view__state entity-view__state--prepared">{prep} 🔪</span>;
+  }
+
+  if (entity.type === 'ingredient') {
+    return <span className="entity-view__state entity-view__state--raw">Raw 🌾</span>;
+  }
+
+  return null;
+};
+</file>
+
+<file path="src/components/World/EntityView.tsx">
+/**
+ * FILE: EntityView.tsx
+ *
+ * PURPOSE:
+ * Generic entity renderer component.
+ *
+ * RESPONSIBILITY:
+ * - Renders entities based on entity type via a renderer registry.
+ * - Handles drag-and-drop interactions or static read-only presentation.
+ */
+
+import React from 'react';
+import { useDraggable } from '@dnd-kit/core';
+import type { Entity } from '../../types/world';
+import { EntityIcon } from './EntityIcon';
+import { EntityStateBadge } from './EntityStateBadge';
+import { entityRendererRegistry, type EntityRendererProps } from './rendererRegistry';
+
+/**
+ * Default Entity Renderer used when no custom renderer is registered for an entity type.
+ */
+export const DefaultEntityRenderer: React.FC<EntityRendererProps> = ({ entity, containerId }) => {
+  return (
+    <>
+      <span className="entity-view__icon">
+        <EntityIcon entity={entity} />
+      </span>
+      <span className="entity-view__name">{entity.name}</span>
+      <EntityStateBadge entity={entity} containerId={containerId} />
+    </>
+  );
+};
+
+interface EntityViewProps {
+  entity: Entity;
+  containerId?: string;
+  readOnly?: boolean;
+}
+
+export const EntityView: React.FC<EntityViewProps> = ({ entity, containerId, readOnly = false }) => {
+  // Use dnd-kit draggable hook only if interactive (!readOnly)
+  const draggable = useDraggable({
+    id: entity.id,
+    disabled: readOnly,
+  });
+
+  const { attributes, listeners, setNodeRef, transform, isDragging } = draggable;
+
+  const style: React.CSSProperties | undefined = readOnly
+    ? undefined
+    : transform
+    ? {
+        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+        opacity: isDragging ? 0.6 : 1,
+        zIndex: isDragging ? 1000 : 1,
+        cursor: 'grab',
+      }
+    : {
+        cursor: 'grab',
+      };
+
+  // Determine renderer from registry or fallback to DefaultEntityRenderer
+  const CustomRenderer = entityRendererRegistry[entity.type];
+  const RendererComponent = CustomRenderer || DefaultEntityRenderer;
+
+  const className = [
+    'entity-view',
+    `entity-view--type-${entity.type}`,
+    isDragging ? 'entity-view--dragging' : '',
+    readOnly ? 'entity-view--readonly' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  if (readOnly) {
+    return (
+      <div className={className}>
+        <RendererComponent entity={entity} containerId={containerId} readOnly />
+      </div>
+    );
+  }
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...listeners}
+      {...attributes}
+      className={className}
+    >
+      <RendererComponent entity={entity} containerId={containerId} readOnly={false} />
+    </div>
+  );
+};
+</file>
+
+<file path="src/components/World/rendererRegistry.ts">
+/**
+ * FILE: rendererRegistry.ts
+ *
+ * PURPOSE:
+ * Registry for custom entity type renderers.
+ */
+
+import React from 'react';
+import type { Entity } from '../../types/world';
+
+export interface EntityRendererProps {
+  entity: Entity;
+  containerId?: string;
+  readOnly?: boolean;
+}
+
+export type EntityRenderer = React.ComponentType<EntityRendererProps>;
+
+export const entityRendererRegistry: Record<string, EntityRenderer> = {};
+
+export function registerEntityRenderer(type: string, renderer: EntityRenderer): void {
+  entityRendererRegistry[type] = renderer;
+}
+</file>
+
+<file path="src/components/World/World.scss">
+/**
+ * FILE: World.scss
+ *
+ * PURPOSE:
+ * SCSS styles for world containers and entity views.
+ */
+
+@use 'sass:color';
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.container-view {
+  @include ceramic-card($warm-surface, $warm-border);
+  min-width: 240px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+
+  &--drag-over {
+    border-color: $tortilla-yellow;
+    background-color: color.mix($tortilla-yellow, $warm-surface, 10%);
+  }
+}
+
+.container-view__header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.container-view__title {
+  color: $dark-brown;
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.container-view__badge {
+  color: $wood-muted;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.container-view__items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  min-height: 48px;
+}
+
+.container-view__empty-hint {
+  color: $wood-muted;
+  font-size: 0.85rem;
+  font-style: italic;
+  text-align: center;
+  padding: 12px;
+  border: 1px dashed $warm-border;
+  border-radius: $radius-md;
+}
+
+.entity-view {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid $warm-border;
+  border-radius: $radius-md;
+  box-shadow: 0 2px 6px rgba(44, 26, 20, 0.04);
+  display: flex;
+  gap: 0.5rem;
+  padding: 8px 12px;
+  user-select: none;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: color.mix($tortilla-yellow, $warm-border, 50%);
+  }
+
+  &--dragging {
+    opacity: 0.6;
+    cursor: grabbing;
+  }
+
+  &--readonly {
+    cursor: default;
+    background: color.mix($warm-beige, #ffffff, 40%);
+    box-shadow: none;
+
+    &:hover {
+      border-color: $warm-border;
+    }
+  }
+}
+
+.entity-view__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.entity-view__name {
+  font-weight: 600;
+  color: $dark-brown;
+  font-size: 0.9rem;
+}
+
+.entity-view__state {
+  margin-left: auto;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: $radius-sm;
+
+  &--raw {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  &--prepared {
+    background: #e0f2fe;
+    color: #0369a1;
+  }
+
+  &--cooking {
+    background: #ffedd5;
+    color: #c2410c;
+  }
+
+  &--finished {
+    background: #dcfce7;
+    color: #15803d;
+  }
+}
 </file>
 
 <file path="src/data/catalog/tools.ts">
@@ -873,6 +2039,169 @@ export const selectMascot = (mascotId: string = 'chef') => (state: WorldState): 
   state.entities[mascotId];
 </file>
 
+<file path="src/systems/ingredientUsage.test.ts">
+/**
+ * FILE: src/systems/ingredientUsage.test.ts
+ *
+ * PURPOSE:
+ * Unit tests for ingredient usage intent actions and domain events.
+ */
+
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { worldStore } from '../store/worldStore';
+import { clearActionLog, getActionLog } from '../store/middleware/actionLog';
+
+function seedWorld() {
+  worldStore.setState({
+    entities: {
+      potato_1: { id: 'potato_1', name: 'Potato', type: 'ingredient', ingredientId: 'potato' },
+      onion_1: { id: 'onion_1', name: 'Onion', type: 'ingredient', ingredientId: 'onion' },
+      egg_1: { id: 'egg_1', name: 'Egg', type: 'ingredient', ingredientId: 'egg' },
+      oil_1: { id: 'oil_1', name: 'Oil', type: 'ingredient', ingredientId: 'oil' },
+    },
+    containers: {
+      pantry: {
+        id: 'pantry',
+        name: 'Pantry',
+        type: 'storage',
+        entityIds: ['potato_1', 'onion_1', 'egg_1', 'oil_1'],
+      },
+      recipe_1: {
+        id: 'recipe_1',
+        name: 'Tortilla Recipe',
+        type: 'plate',
+        entityIds: [],
+      },
+    },
+    events: [],
+  });
+}
+
+describe('Ingredient Usage Intent Actions & Domain Events', () => {
+  beforeEach(() => {
+    seedWorld();
+    clearActionLog();
+  });
+
+  it('Scenario 1: Using ingredient moves it to target container, marks it consumed, and emits INGREDIENT_CONSUMED event', () => {
+    const eventListener = vi.fn();
+    const unsubscribe = worldStore.getState().onEvent(eventListener);
+
+    // Dispatch USE_INGREDIENT intent action
+    worldStore.getState().dispatch({
+      type: 'USE_INGREDIENT',
+      payload: {
+        entityId: 'potato_1',
+        usedIn: 'recipe_1',
+      },
+    });
+
+    const state = worldStore.getState();
+
+    // Potato is removed from pantry
+    expect(state.containers.pantry.entityIds).not.toContain('potato_1');
+
+    // Potato is added to recipe_1
+    expect(state.containers.recipe_1.entityIds).toContain('potato_1');
+
+    // Potato state updated to consumed
+    const potato = state.entities.potato_1;
+    expect(potato.state?.consumed).toBe(true);
+    expect(potato.state?.consumedBy).toBe('recipe_1');
+    expect(potato.state?.status).toBe('consumed');
+
+    // Action logged
+    const actionLog = getActionLog();
+    expect(actionLog.some((e) => e.action === 'USE_INGREDIENT')).toBe(true);
+
+    // Event emitted
+    expect(eventListener).toHaveBeenCalledWith({
+      type: 'INGREDIENT_CONSUMED',
+      payload: {
+        entityId: 'potato_1',
+        consumedBy: 'recipe_1',
+      },
+    });
+
+    const recordedEvents = state.events;
+    expect(recordedEvents).toContainEqual({
+      type: 'INGREDIENT_CONSUMED',
+      payload: {
+        entityId: 'potato_1',
+        consumedBy: 'recipe_1',
+      },
+    });
+
+    unsubscribe();
+  });
+
+  it('Scenario 2: Undoing action restores entity to previous container and reverts consumed state', () => {
+    // Perform initial USE_INGREDIENT action
+    worldStore.getState().dispatch({
+      type: 'USE_INGREDIENT',
+      payload: {
+        entityId: 'potato_1',
+        usedIn: 'recipe_1',
+      },
+    });
+
+    // Verify it is consumed
+    let state = worldStore.getState();
+    expect(state.containers.pantry.entityIds).not.toContain('potato_1');
+    expect(state.containers.recipe_1.entityIds).toContain('potato_1');
+    expect(state.entities.potato_1.state?.consumed).toBe(true);
+
+    // Revert/undo action
+    worldStore.getState().revertIngredientUsage('potato_1');
+
+    state = worldStore.getState();
+
+    // Potato returns to previous container (pantry)
+    expect(state.containers.pantry.entityIds).toContain('potato_1');
+    expect(state.containers.recipe_1.entityIds).not.toContain('potato_1');
+
+    // Consumed state is reverted
+    expect(state.entities.potato_1.state?.consumed).toBeUndefined();
+    expect(state.entities.potato_1.state?.consumedBy).toBeUndefined();
+    expect(state.entities.potato_1.state?.status).toBeUndefined();
+  });
+
+  it('Scenario 3: Two ingredients consumed independently do not affect each other or remaining ingredients', () => {
+    // Consume potato
+    worldStore.getState().dispatch({
+      type: 'USE_INGREDIENT',
+      payload: {
+        entityId: 'potato_1',
+        usedIn: 'recipe_1',
+      },
+    });
+
+    // Consume onion
+    worldStore.getState().dispatch({
+      type: 'USE_INGREDIENT',
+      payload: {
+        entityId: 'onion_1',
+        usedIn: 'recipe_1',
+      },
+    });
+
+    const state = worldStore.getState();
+
+    // Both potato and onion are in recipe_1
+    expect(state.containers.recipe_1.entityIds).toEqual(['potato_1', 'onion_1']);
+
+    // Potato and onion are consumed
+    expect(state.entities.potato_1.state?.consumed).toBe(true);
+    expect(state.entities.onion_1.state?.consumed).toBe(true);
+
+    // Egg and oil remain untouched in pantry and not consumed
+    expect(state.containers.pantry.entityIds).toEqual(['egg_1', 'oil_1']);
+    expect(state.entities.egg_1.state?.consumed).toBeUndefined();
+    expect(state.entities.oil_1.state?.consumed).toBeUndefined();
+  });
+});
+</file>
+
 <file path="src/types/RecipeList.ts">
 /**
  * FILE: RecipeList.ts
@@ -888,6 +2217,34 @@ import type { Recipe, RecipeList as RecipeListArray } from './Recipe'
 
 export type { Recipe }
 export type RecipeList = RecipeListArray
+</file>
+
+<file path="src/types/Requirement.ts">
+/**
+ * FILE: Requirement.ts
+ *
+ * PURPOSE:
+ * Defines entity requirement usage inside recipes.
+ *
+ * RESPONSIBILITY:
+ * - Stores required entity information, quantity, and unit.
+ */
+
+export interface Requirement {
+  id?: string;
+  entityId: string;
+  amount: number;
+  unit: string;
+  name?: string;
+}
+
+export interface RequirementDictItem {
+  entityId?: string;
+  ingredientId?: string; // Legacy fallback
+  amount: number;
+  unit: string;
+  name?: string;
+}
 </file>
 
 <file path="src/types/tools.ts">
@@ -4195,132 +5552,6 @@ export function Ingredient({ ingredient }: IngredientProps) {
 }
 </file>
 
-<file path="src/components/Recipe/RecipePanel.scss">
-/**
- * FILE: src/components/Recipe/RecipePanel.scss
- *
- * PURPOSE:
- * SCSS styles for the Recipe selection and execution panel.
- */
-
-@use 'sass:color';
-@use '../../styles/variables' as *;
-@use '../../styles/mixins' as *;
-
-.recipe-panel {
-  @include ceramic-card($warm-surface, $warm-border);
-  padding: 12px 16px;
-  margin-bottom: 16px;
-
-  &-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 12px;
-  }
-}
-
-.recipe-selector {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.recipe-option {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: #ffffff;
-  border: 1px solid $warm-border;
-  border-radius: $radius-sm;
-  padding: 4px 8px;
-  transition: all 0.2s ease;
-
-  &.active {
-    border-color: $tortilla-yellow;
-    background: $tortilla-yellow-light;
-    box-shadow: 0 2px 6px rgba(232, 168, 56, 0.2);
-  }
-}
-
-.recipe-tab {
-  background: transparent;
-  border: none;
-  font-size: 13px;
-  font-weight: 700;
-  color: $dark-brown;
-  cursor: pointer;
-  padding: 4px 6px;
-  border-radius: $radius-sm;
-  transition: all 0.2s ease;
-
-  &:hover {
-    color: $tortilla-yellow-hover;
-  }
-
-  &.active {
-    color: $dark-brown;
-  }
-}
-
-.follow-recipe-btn {
-  @include playful-button($tortilla-yellow, #ffffff);
-  font-size: 0.78rem;
-  padding: 5px 10px;
-  white-space: nowrap;
-}
-
-.recipe-header-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.recipe-status {
-  font-size: 13px;
-  color: $wood-muted;
-  font-weight: 600;
-}
-
-.highlight-count {
-  color: $terracotta;
-  font-weight: 800;
-}
-
-.recipe-toggle-btn {
-  background: #ffffff;
-  border: 1px solid $warm-border;
-  border-radius: $radius-sm;
-  padding: 4px 10px;
-  font-size: 11px;
-  font-weight: 700;
-  color: $dark-brown;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    border-color: $olive-green;
-    color: $olive-green;
-    background: $olive-green-light;
-  }
-}
-
-.recipe-content.compact {
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px dashed $warm-border;
-}
-
-.recipe-title {
-  margin: 0 0 8px 0;
-  font-size: 14px;
-  color: $dark-brown;
-  font-weight: 700;
-}
-</file>
-
 <file path="src/data/catalog/recipes/index.ts">
 /**
  * FILE: index.ts
@@ -4364,107 +5595,6 @@ export {
   concebollaRecipe,
   clasicaRecipe,
 };
-</file>
-
-<file path="src/data/catalog/ingredients.ts">
-/**
- * FILE: ingredients.ts
- *
- * PURPOSE:
- * Catalog of available ingredient definitions.
- *
- * RESPONSIBILITY:
- * - Provides master list of ingredient metadata (names, icons, ids).
- */
-
-import type { Ingredient } from "../../types/Ingredient";
-
-
-export const ingredients: Ingredient[] = [
-
-  {
-    id: "potato",
-    icon: "🥔",
-    name: "Potatoes",
-  },
-
-
-  {
-    id: "egg",
-    icon: "🥚",
-    name: "Eggs",
-  },
-
-
-  {
-    id: "oil",
-    icon: "🫒",
-    name: "Olive Oil",
-  },
-
-
-  {
-    id: "onion",
-    icon: "🧅",
-    name: "Onion",
-  },
-
-
-  {
-    id: "chorizo",
-    icon: "🌭",
-    name: "Chorizo",
-  },
-
-  {
-    id: "salt",
-    icon: "🧂",
-    name: "Salt",
-  },
-
-  {
-    id: "pepper",
-    icon: "🫑",
-    name: "Bell Pepper",
-  },
-
-  {
-    id: "garlic",
-    icon: "🧄",
-    name: "Garlic",
-  },
-
-  {
-    id: "tomato",
-    icon: "🍅",
-    name: "Tomato",
-  },
-
-  {
-    id: "cheese",
-    icon: "🧀",
-    name: "Cheese",
-  },
-
-  {
-    id: "bread",
-    icon: "🍞",
-    name: "Bread",
-  },
-
-  {
-    id: "milk",
-    icon: "🥛",
-    name: "Milk",
-  },
-
-  {
-    id: "butter",
-    icon: "🧈",
-    name: "Butter",
-  },
-
-];
 </file>
 
 <file path="src/store/middleware/actionLog.test.ts">
@@ -4620,178 +5750,6 @@ export const actionLog: ActionLogMiddleware = (initializer) => (set, get, api) =
 
   return initializer(loggedSet, get, api);
 };
-</file>
-
-<file path="src/store/slices/entitySlice.ts">
-/**
- * FILE: entitySlice.ts
- *
- * PURPOSE:
- * Zustand slice for entity management (ingredients, tools, mascot entities).
- *
- * RESPONSIBILITY:
- * - Mutates entity records in world state.
- * - Handles adding, removing, updating, preparing, and cooking entities.
- */
-
-import type { StateCreator } from 'zustand/vanilla';
-import type { Entity } from '../../types/world';
-import type { PreparationStyle, CookingMethod } from '../../types/RecipeStep';
-import type { WorldStateStore } from '../types';
-import { validateContainerRules } from '../../engine/containerRules';
-import {
-  derivePreparationStatus,
-  deriveCookingStatus,
-  formatPreparedName,
-} from '../../engine/ingredientState';
-
-export interface EntitySlice {
-  entities: Record<string, Entity>;
-  addEntity: (
-    entity: { id: string; name: string; type: Entity['type']; state?: Record<string, unknown> },
-    containerId: string
-  ) => void;
-  removeEntity: (entityId: string) => void;
-  updateEntityState: (entityId: string, changes: Record<string, unknown>) => void;
-  prepareIngredient: (entityId: string, preparation: PreparationStyle) => void;
-  cookIngredient: (entityId: string, cooking: CookingMethod) => void;
-  consumeIngredient: (entityId: string, consumedBy?: string) => void;
-}
-
-export const createEntitySlice: StateCreator<
-  WorldStateStore,
-  [['zustand/devtools', never], ['zustand/immer', never]],
-  [],
-  EntitySlice
-> = (set, get) => ({
-  entities: {},
-
-  addEntity: (entity, containerId) => {
-    const targetContainer = get().containers[containerId];
-    if (!targetContainer) return;
-
-    const currentEntities = targetContainer.entityIds
-      .map((id) => get().entities[id])
-      .filter((e): e is Entity => Boolean(e));
-
-    const result = validateContainerRules(
-      targetContainer,
-      entity as Entity,
-      currentEntities
-    );
-    if (!result.allowed) return;
-
-    set(
-      (state) => {
-        state.entities[entity.id] = entity as Entity;
-        state.containers[containerId].entityIds.push(entity.id);
-      },
-      false,
-      'ADD_ENTITY'
-    );
-  },
-
-  removeEntity: (entityId) => {
-    set(
-      (state) => {
-        delete state.entities[entityId];
-        for (const cId in state.containers) {
-          state.containers[cId].entityIds = state.containers[cId].entityIds.filter(
-            (id) => id !== entityId
-          );
-        }
-      },
-      false,
-      'REMOVE_ENTITY'
-    );
-  },
-
-  updateEntityState: (entityId, changes) => {
-    set(
-      (state) => {
-        const targetEntity = state.entities[entityId];
-        if (!targetEntity) return;
-
-        targetEntity.state = {
-          ...targetEntity.state,
-          ...changes,
-        };
-      },
-      false,
-      'UPDATE_ENTITY_STATE'
-    );
-  },
-
-  prepareIngredient: (entityId, preparation) => {
-    const targetEntity = get().entities[entityId];
-    if (!targetEntity) return;
-
-    const status = derivePreparationStatus(targetEntity, preparation);
-    const updatedName = formatPreparedName(targetEntity, preparation);
-
-    set(
-      (state) => {
-        const entity = state.entities[entityId];
-        if (!entity) return;
-
-        entity.name = updatedName;
-        entity.state = {
-          ...entity.state,
-          preparation,
-          status,
-        };
-      },
-      false,
-      'PREPARE_INGREDIENT'
-    );
-  },
-
-  cookIngredient: (entityId, cooking) => {
-    const targetEntity = get().entities[entityId];
-    if (!targetEntity) return;
-
-    const status = deriveCookingStatus(targetEntity, cooking);
-
-    set(
-      (state) => {
-        const entity = state.entities[entityId];
-        if (!entity) return;
-
-        entity.state = {
-          ...entity.state,
-          cooking,
-          status,
-        };
-      },
-      false,
-      'COOK_INGREDIENT'
-    );
-  },
-
-  consumeIngredient: (entityId, consumedBy) => {
-    set(
-      (state) => {
-        const entity = state.entities[entityId];
-        if (!entity) return;
-
-        entity.state = {
-          ...entity.state,
-          consumed: true,
-          consumedBy,
-          status: 'consumed',
-        };
-
-        for (const cId in state.containers) {
-          state.containers[cId].entityIds = state.containers[cId].entityIds.filter(
-            (id) => id !== entityId
-          );
-        }
-      },
-      false,
-      'CONSUME_INGREDIENT'
-    );
-  },
-});
 </file>
 
 <file path="src/store/slices/mascotSlice.ts">
@@ -5106,29 +6064,6 @@ export const defaultContainers: Record<string, Container> = {
 };
 </file>
 
-<file path="src/store/types.ts">
-/**
- * FILE: types.ts
- *
- * PURPOSE:
- * Type contract for Zustand world store and its slices.
- */
-
-import type { Container, Entity, WorldAction } from '../types/world';
-import type { EntitySlice } from './slices/entitySlice';
-import type { ContainerSlice } from './slices/containerSlice';
-import type { MascotSlice } from './slices/mascotSlice';
-
-export type WorldStateStore = {
-  entities: Record<string, Entity>;
-  containers: Record<string, Container>;
-  dispatch: (action: WorldAction) => void;
-  resetWorld: () => void; // <-- NEW METHOD
-} & EntitySlice &
-  ContainerSlice &
-  MascotSlice;
-</file>
-
 <file path="src/styles/_mixins.scss">
 /**
  * FILE: src/styles/_mixins.scss
@@ -5333,105 +6268,6 @@ $radius-lg: 16px;
 $radius-xl: 24px;
 </file>
 
-<file path="src/systems/recipeRunner/handlers/mixHandlers.ts">
-/**
- * FILE: src/systems/recipeRunner/handlers/mixHandlers.ts
- *
- * PURPOSE:
- * Step handlers for combination steps ('mix', 'beat', 'combine').
- */
-
-import { worldStore } from '../../../store/worldStore';
-import { moveTortillaTo, flipTortilla } from '../../mascotActions';
-import type { RecipeStep } from '../../../types/RecipeStep';
-import type { RecipeRunnerContext } from '../types';
-
-type MixStep = Extract<RecipeStep, { action: 'mix' | 'beat' | 'combine' }>;
-
-export async function handleMixStep(
-  ctx: RecipeRunnerContext,
-  step: MixStep,
-  workstationDefaultContainerId?: string
-): Promise<void> {
-  const targetContainerId = step.targetContainerId || workstationDefaultContainerId || 'bowl';
-  const inputKeys = step.inputs || step.ingredients || [];
-  const inputEntityIds: string[] = [];
-
-  // 1. Resolve each input entity ID from RecipeContext and ensure it is moved to target container
-  for (const rawInput of inputKeys) {
-    const inputEntityId = ctx.getBoundEntityId(rawInput);
-    if (!inputEntityId) {
-      throw new Error(`[RecipeRunner] Cannot mix: No bound entity found for input "${rawInput}"`);
-    }
-
-    ctx.validateEntity(inputEntityId, 'mix');
-
-    // Ensure input entity is in target container (e.g. bowl)
-    const state = worldStore.getState();
-    const currentContainer = Object.values(state.containers).find((c) =>
-      c.entityIds.includes(inputEntityId)
-    );
-
-    if (currentContainer && currentContainer.id !== targetContainerId) {
-      worldStore.getState().dispatch({
-        type: 'MOVE_ENTITY',
-        payload: {
-          entityId: inputEntityId,
-          targetContainerId,
-        },
-      });
-    }
-
-    inputEntityIds.push(inputEntityId);
-  }
-
-  moveTortillaTo(targetContainerId, ctx.mascotId);
-  await ctx.wait();
-  flipTortilla(ctx.mascotId);
-  await ctx.wait();
-
-  // 2. Create real mixture entity in target container
-  const recipeId = ctx.recipeContext.recipeId || 'recipe';
-  const mixtureId = `mixture_${recipeId}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
-  const outputName = step.output || 'Mixture';
-
-  worldStore.getState().dispatch({
-    type: 'ADD_ENTITY',
-    payload: {
-      entity: {
-        id: mixtureId,
-        name: outputName,
-        type: 'ingredient',
-        state: {
-          preparation: 'mixed',
-          cooking: 'raw',
-          status: 'mixed',
-          components: inputEntityIds,
-        },
-      },
-      containerId: targetContainerId,
-    },
-  });
-
-  // 3. Consume inputs
-  for (const inputId of inputEntityIds) {
-    worldStore.getState().dispatch({
-      type: 'CONSUME_INGREDIENT',
-      payload: {
-        entityId: inputId,
-        consumedBy: mixtureId,
-      },
-    });
-  }
-
-  // 4. Bind mixture entity in RecipeContext
-  ctx.recipeContext.bindings['mixture'] = mixtureId;
-  if (step.output) {
-    ctx.recipeContext.bindings[step.output] = mixtureId;
-  }
-}
-</file>
-
 <file path="src/systems/recipeRunner/handlers/moveHandlers.ts">
 /**
  * FILE: src/systems/recipeRunner/handlers/moveHandlers.ts
@@ -5532,419 +6368,6 @@ export async function handleDropStep(
 }
 </file>
 
-<file path="src/systems/recipeRunner/RecipeRunner.ts">
-/**
- * FILE: src/systems/recipeRunner/RecipeRunner.ts
- *
- * PURPOSE:
- * Workstation and tool-driven recipe execution engine (RecipeRunner).
- *
- * RESPONSIBILITY:
- * - Iterates over declarative RecipeSteps sequentially.
- * - Dynamically determines required workstation and tools for each step.
- * - Dispatches appropriate world and mascot actions via step handlers.
- * - Modifies existing entity state for preparation/cooking without destroying/recreating entities.
- * - Preserves data-driven architecture and keeps recipes decoupled from kitchen locations.
- */
-
-import { worldStore } from '../../store/worldStore';
-import { getIngredientCatalogId } from '../../engine/containerRules';
-import { findWorkstationForStep } from '../../engine/workstations';
-import type { Recipe, RecipeIngredientDictItem } from '../../types/Recipe';
-import type { RecipeStep } from '../../types/RecipeStep';
-import type { Entity } from '../../types/world';
-import type { RecipeRunnerOptions, RecipeRunnerContext, RecipeContextData } from './types';
-import { handleMoveStep, handleGrabStep, handleDropStep } from './handlers/moveHandlers';
-import { handlePrepStep } from './handlers/prepHandlers';
-import { handleCookStep, handleFlipStep } from './handlers/cookHandlers';
-import { handleMixStep } from './handlers/mixHandlers';
-import {
-  handleServeStep,
-  handleWaitStep,
-  handleInstructionStep,
-  handleSpeakStep,
-  handleCelebrateStep,
-} from './handlers/utilityHandlers';
-
-export class RecipeRunner implements RecipeRunnerContext {
-  public mascotId: string;
-  public defaultSourceId: string;
-  public defaultTargetId: string;
-  public delayMs: number;
-  public currentRecipe?: Recipe;
-  public recipeContext: RecipeContextData;
-
-  constructor(options: RecipeRunnerOptions = {}) {
-    this.mascotId = options.mascotId || 'chef';
-    this.defaultSourceId = options.defaultSourceId || 'despensa';
-    this.defaultTargetId = options.defaultTargetId || 'board';
-    this.delayMs = options.delayMs ?? 600;
-    this.recipeContext = {
-      recipeId: '',
-      bindings: {},
-    };
-  }
-
-  public async wait(ms?: number): Promise<void> {
-    const duration = ms ?? this.delayMs;
-    if (duration <= 0) return;
-    await new Promise((resolve) => setTimeout(resolve, duration));
-  }
-
-  public bindRecipeContext(recipe: Recipe): void {
-    this.currentRecipe = recipe;
-    this.recipeContext = {
-      recipeId: recipe.id,
-      bindings: {},
-    };
-
-    const boundIds = new Set<string>();
-
-    const findOrCreateAvailableEntity = (
-      ingredientCatalogId: string,
-      aliasKey?: string
-    ): string => {
-      const state = worldStore.getState();
-      const allEntities = Object.values(state.entities);
-
-      // 1. Check for unconsumed, unbound entity in active workspace containers
-      const activeWorkspaceContainerIds = Object.values(state.containers)
-        .filter((c) => c.type !== 'storage' && c.id !== 'despensa')
-        .map((c) => c.id);
-
-      for (const cId of activeWorkspaceContainerIds) {
-        const container = state.containers[cId];
-        if (container) {
-          const workspaceCandidate = container.entityIds
-            .map((id) => state.entities[id])
-            .find((e) => {
-              if (!e || e.type !== 'ingredient' || e.state?.consumed || boundIds.has(e.id)) {
-                return false;
-              }
-              const catId = getIngredientCatalogId(e);
-              return (
-                catId === ingredientCatalogId ||
-                e.ingredientId === ingredientCatalogId ||
-                e.id === ingredientCatalogId ||
-                (aliasKey && e.id === aliasKey)
-              );
-            });
-          if (workspaceCandidate) {
-            boundIds.add(workspaceCandidate.id);
-            return workspaceCandidate.id;
-          }
-        }
-      }
-
-      // 2. Check for unconsumed, unbound entity anywhere in world
-      const unboundCandidate = allEntities.find((e) => {
-        if (!e || e.type !== 'ingredient' || e.state?.consumed || boundIds.has(e.id)) {
-          return false;
-        }
-        const catId = getIngredientCatalogId(e);
-        return (
-          catId === ingredientCatalogId ||
-          e.ingredientId === ingredientCatalogId ||
-          e.id === ingredientCatalogId ||
-          (aliasKey && e.id === aliasKey)
-        );
-      });
-
-      if (unboundCandidate) {
-        boundIds.add(unboundCandidate.id);
-        return unboundCandidate.id;
-      }
-
-      // 3. If no unbound entity exists, check for template entity in immutable storage (e.g. despensa)
-      const immutableCandidate = allEntities.find((e) => {
-        if (!e || e.type !== 'ingredient' || e.state?.consumed) return false;
-        const catId = getIngredientCatalogId(e);
-        return (
-          catId === ingredientCatalogId ||
-          e.ingredientId === ingredientCatalogId ||
-          e.id === ingredientCatalogId ||
-          (aliasKey && e.id === aliasKey)
-        );
-      });
-
-      if (immutableCandidate) {
-        return immutableCandidate.id;
-      }
-
-      // 4. Fallback: spawn new ingredient entity in despensa or board
-      const newEntityId = `${ingredientCatalogId}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
-      const newEntity: Entity = {
-        id: newEntityId,
-        name: ingredientCatalogId.charAt(0).toUpperCase() + ingredientCatalogId.slice(1),
-        type: 'ingredient',
-        ingredientId: ingredientCatalogId,
-        state: { preparation: 'whole', cooking: 'raw' },
-      };
-
-      const targetContainerId = state.containers[this.defaultSourceId] ? this.defaultSourceId : 'board';
-      worldStore.getState().dispatch({
-        type: 'ADD_ENTITY',
-        payload: {
-          entity: newEntity,
-          containerId: targetContainerId,
-        },
-      });
-
-      boundIds.add(newEntityId);
-      return newEntityId;
-    };
-
-    if (Array.isArray(recipe.ingredients)) {
-      for (const item of recipe.ingredients) {
-        const entityId = findOrCreateAvailableEntity(item.ingredientId, item.id);
-        this.recipeContext.bindings[item.ingredientId] = entityId;
-        if (item.id) {
-          this.recipeContext.bindings[item.id] = entityId;
-        }
-      }
-    } else if (recipe.ingredients && typeof recipe.ingredients === 'object') {
-      for (const [key, item] of Object.entries(
-        recipe.ingredients as Record<string, RecipeIngredientDictItem>
-      )) {
-        const entityId = findOrCreateAvailableEntity(item.ingredientId, key);
-        this.recipeContext.bindings[key] = entityId;
-        this.recipeContext.bindings[item.ingredientId] = entityId;
-      }
-    }
-
-    this.bindStepsContext(recipe.steps, boundIds);
-  }
-
-  private bindStepsContext(steps: RecipeStep[], boundIds: Set<string>): void {
-    const state = worldStore.getState();
-
-    for (const step of steps) {
-      if (step.action === 'mix' || step.action === 'beat' || step.action === 'combine') {
-        const inputs = step.inputs || step.ingredients || [];
-        for (const inputKey of inputs) {
-          if (!this.recipeContext.bindings[inputKey]) {
-            const catId = this.resolveIngredientId(inputKey) || inputKey;
-            const candidate = Object.values(state.entities).find(
-              (e) =>
-                e &&
-                e.type === 'ingredient' &&
-                !e.state?.consumed &&
-                !boundIds.has(e.id) &&
-                (getIngredientCatalogId(e) === catId || e.ingredientId === catId || e.id === inputKey)
-            );
-            if (candidate) {
-              this.recipeContext.bindings[inputKey] = candidate.id;
-              this.recipeContext.bindings[catId] = candidate.id;
-              boundIds.add(candidate.id);
-            }
-          }
-        }
-      } else if ('ingredient' in step || 'target' in step) {
-        const rawKey =
-          ('ingredient' in step ? step.ingredient : undefined) ||
-          ('target' in step ? step.target : undefined);
-        if (rawKey && rawKey !== 'mixture' && !this.recipeContext.bindings[rawKey]) {
-          const catId = this.resolveIngredientId(rawKey) || rawKey;
-          const candidate = Object.values(state.entities).find(
-            (e) =>
-              e &&
-              e.type === 'ingredient' &&
-              !e.state?.consumed &&
-              !boundIds.has(e.id) &&
-              (getIngredientCatalogId(e) === catId || e.ingredientId === catId || e.id === rawKey)
-          );
-          if (candidate) {
-            this.recipeContext.bindings[rawKey] = candidate.id;
-            this.recipeContext.bindings[catId] = candidate.id;
-            boundIds.add(candidate.id);
-          }
-        }
-      }
-    }
-  }
-
-  public getBoundEntityId(targetOrKey?: string): string | undefined {
-    if (!targetOrKey) return undefined;
-    if (this.recipeContext.bindings[targetOrKey]) {
-      return this.recipeContext.bindings[targetOrKey];
-    }
-    const resolvedCatId = this.resolveIngredientId(targetOrKey);
-    if (resolvedCatId && this.recipeContext.bindings[resolvedCatId]) {
-      return this.recipeContext.bindings[resolvedCatId];
-    }
-    return undefined;
-  }
-
-  public validateEntity(entityId: string, stepAction: string = 'step'): Entity {
-    const state = worldStore.getState();
-    const entity = state.entities[entityId];
-    if (!entity) {
-      throw new Error(
-        `[RecipeRunner] Validation failed for ${stepAction}: Entity "${entityId}" does not exist in world state.`
-      );
-    }
-    if (entity.state?.consumed) {
-      throw new Error(
-        `[RecipeRunner] Validation failed for ${stepAction}: Entity "${entityId}" (${entity.name}) has already been consumed.`
-      );
-    }
-    return entity;
-  }
-
-  public updateBindingIfCopied(
-    oldEntityId: string,
-    newEntityId: string,
-    specificKey?: string
-  ): void {
-    if (oldEntityId === newEntityId) return;
-    if (specificKey && this.recipeContext.bindings[specificKey] === oldEntityId) {
-      this.recipeContext.bindings[specificKey] = newEntityId;
-    } else {
-      for (const key in this.recipeContext.bindings) {
-        if (this.recipeContext.bindings[key] === oldEntityId) {
-          this.recipeContext.bindings[key] = newEntityId;
-        }
-      }
-    }
-  }
-
-  public async ensureEntityInWorkspace(
-    entityId: string,
-    targetContainerId: string = this.defaultTargetId
-  ): Promise<string> {
-    const state = worldStore.getState();
-    this.validateEntity(entityId, 'ensureEntityInWorkspace');
-
-    const activeWorkspaceContainerIds = Object.values(state.containers)
-      .filter((c) => c.type !== 'storage' && c.id !== 'despensa')
-      .map((c) => c.id);
-
-    for (const cId of activeWorkspaceContainerIds) {
-      const container = state.containers[cId];
-      if (container && container.entityIds.includes(entityId)) {
-        return entityId;
-      }
-    }
-
-    const mascot = state.entities[this.mascotId];
-    if (mascot?.state?.holdingEntityId === entityId) {
-      return entityId;
-    }
-
-    await handleMoveStep(
-      this,
-      {
-        action: 'move',
-        ingredient: entityId,
-        source: this.defaultSourceId,
-        target: targetContainerId,
-      },
-      targetContainerId
-    );
-
-    const updatedState = worldStore.getState();
-    const targetContainer = updatedState.containers[targetContainerId];
-    if (targetContainer) {
-      if (targetContainer.entityIds.includes(entityId)) {
-        return entityId;
-      }
-      const copyId = targetContainer.entityIds[targetContainer.entityIds.length - 1];
-      if (copyId) {
-        this.updateBindingIfCopied(entityId, copyId);
-        return copyId;
-      }
-    }
-    return entityId;
-  }
-
-  public resolveIngredientId(targetOrKey?: string): string | undefined {
-    if (!targetOrKey) return undefined;
-    if (this.currentRecipe && !Array.isArray(this.currentRecipe.ingredients)) {
-      const dict = this.currentRecipe.ingredients as Record<string, RecipeIngredientDictItem>;
-      if (dict[targetOrKey]) {
-        return dict[targetOrKey].ingredientId;
-      }
-      const match = Object.values(dict).find(
-        (item) => item.ingredientId === targetOrKey
-      );
-      if (match) {
-        return match.ingredientId;
-      }
-    }
-    return targetOrKey;
-  }
-
-  public async ensureIngredientInWorkspace(
-    ingredientCatalogId: string,
-    targetContainerId: string = this.defaultTargetId
-  ): Promise<string | undefined> {
-    const boundId = this.getBoundEntityId(ingredientCatalogId);
-    if (boundId) {
-      return this.ensureEntityInWorkspace(boundId, targetContainerId);
-    }
-    return undefined;
-  }
-
-  public async runRecipe(recipe: Recipe): Promise<void> {
-    this.bindRecipeContext(recipe);
-    await this.runSteps(recipe.steps);
-  }
-
-  public async runSteps(steps: RecipeStep[]): Promise<void> {
-    if (!this.recipeContext.recipeId) {
-      this.recipeContext.recipeId = 'steps_run';
-      this.bindStepsContext(steps, new Set<string>());
-    }
-    for (const step of steps) {
-      await this.executeStep(step);
-    }
-  }
-
-  public async executeStep(step: RecipeStep): Promise<void> {
-    const workstation = findWorkstationForStep(step);
-
-    switch (step.action) {
-      case 'move':
-        return handleMoveStep(this, step, workstation.defaultContainerId);
-      case 'grab':
-        return handleGrabStep(this, step);
-      case 'drop':
-        return handleDropStep(this, step, workstation.defaultContainerId);
-
-      case 'cut':
-      case 'prepare':
-      case 'peel':
-      case 'wash':
-      case 'rinse':
-      case 'drain':
-        return handlePrepStep(this, step, workstation.defaultContainerId);
-
-      case 'cook':
-        return handleCookStep(this, step, workstation.defaultContainerId);
-      case 'flip':
-        return handleFlipStep(this, step);
-
-      case 'mix':
-      case 'beat':
-      case 'combine':
-        return handleMixStep(this, step, workstation.defaultContainerId);
-
-      case 'serve':
-        return handleServeStep(this, step, workstation.defaultContainerId);
-
-      case 'wait':
-        return handleWaitStep(this, step);
-      case 'instruction':
-        return handleInstructionStep(this, step);
-      case 'speak':
-        return handleSpeakStep(this, step);
-      case 'celebrate':
-        return handleCelebrateStep(this, step);
-    }
-  }
-}
-</file>
-
 <file path="src/systems/recipeRunner/types.ts">
 /**
  * FILE: src/systems/recipeRunner/types.ts
@@ -6017,197 +6440,6 @@ export interface RecipeRunnerContext {
 }
 </file>
 
-<file path="src/systems/recipeMatcher.test.ts">
-import { describe, expect, it } from 'vitest'
-import { countMatchingIngredients } from './recipeMatcher'
-import type { Recipe } from '../types/Recipe'
-import type { Entity } from '../types/world'
-
-describe('countMatchingIngredients', () => {
-  const sampleRecipe: Recipe = {
-    id: 'test-recipe',
-    name: 'Test Recipe',
-    ingredients: [
-      { id: 'req-1', ingredientId: 'potato', amount: 3, unit: 'pcs' },
-      { id: 'req-2', ingredientId: 'egg', amount: 4, unit: 'pcs' },
-      { id: 'req-3', ingredientId: 'onion', amount: 1, unit: 'pcs' },
-    ],
-    steps: [],
-  }
-
-  it('returns zeros when recipe is undefined', () => {
-    const result = countMatchingIngredients(undefined, [])
-    expect(result.matchingCount).toBe(0)
-    expect(result.totalCount).toBe(0)
-    expect(result.matchingIngredientIds).toEqual([])
-    expect(result.missingIngredientIds).toEqual([])
-  })
-
-  it('returns zero matching count when workspace is empty', () => {
-    const result = countMatchingIngredients(sampleRecipe, [])
-    expect(result.matchingCount).toBe(0)
-    expect(result.totalCount).toBe(3)
-    expect(result.matchingIngredientIds).toEqual([])
-    expect(result.missingIngredientIds).toEqual(['potato', 'egg', 'onion'])
-  })
-
-  it('correctly matches entities present in workspace', () => {
-    const workspaceEntities: Entity[] = [
-      { id: 'potato_123', ingredientId: 'potato', name: 'Potato', type: 'ingredient' },
-      { id: 'egg_456', ingredientId: 'egg', name: 'Egg', type: 'ingredient' },
-    ]
-
-    const result = countMatchingIngredients(sampleRecipe, workspaceEntities)
-    expect(result.matchingCount).toBe(2)
-    expect(result.totalCount).toBe(3)
-    expect(result.matchingIngredientIds).toEqual(['potato', 'egg'])
-    expect(result.missingIngredientIds).toEqual(['onion'])
-  })
-
-  it('handles entities without explicit ingredientId field by fallback prefix parsing', () => {
-    const workspaceEntities: Entity[] = [
-      { id: 'onion_999', name: 'Onion', type: 'ingredient' },
-    ]
-
-    const result = countMatchingIngredients(sampleRecipe, workspaceEntities)
-    expect(result.matchingCount).toBe(1)
-    expect(result.matchingIngredientIds).toEqual(['onion'])
-  })
-
-  it('ignores non-ingredient entities in workspace', () => {
-    const workspaceEntities: Entity[] = [
-      { id: 'knife_1', name: 'Knife', type: 'tool' },
-      { id: 'potato_100', ingredientId: 'potato', name: 'Potato', type: 'ingredient' },
-    ]
-
-    const result = countMatchingIngredients(sampleRecipe, workspaceEntities)
-    expect(result.matchingCount).toBe(1)
-    expect(result.matchingIngredientIds).toEqual(['potato'])
-  })
-})
-</file>
-
-<file path="src/systems/recipeMatcher.ts">
-/**
- * FILE: recipeMatcher.ts
- *
- * PURPOSE:
- * Utility functions for evaluating recipe completion and matching ingredients against workspace entities.
- *
- * RESPONSIBILITY:
- * - Computes matching ingredients and counts for a recipe given active world entities.
- * - Identifies matched and missing ingredient IDs.
- */
-
-import { getRecipeIngredientsArray } from '../types/Recipe'
-import type { Recipe } from '../types/Recipe'
-import type { Entity } from '../types/world'
-import { getIngredientCatalogId } from '../engine/containerRules'
-
-export interface RecipeMatchResult {
-  matchingCount: number
-  totalCount: number
-  matchingIngredientIds: string[]
-  missingIngredientIds: string[]
-}
-
-/**
- * Calculates matching ingredient count and detailed breakdown for a given recipe
- * based on entities present in workspace containers.
- */
-export function countMatchingIngredients(
-  recipe: Recipe | undefined | null,
-  entities: Entity[]
-): RecipeMatchResult {
-  if (!recipe) {
-    return {
-      matchingCount: 0,
-      totalCount: 0,
-      matchingIngredientIds: [],
-      missingIngredientIds: [],
-    }
-  }
-
-  const recipeIngredients = getRecipeIngredientsArray(recipe)
-
-  const workspaceIngredientIds = new Set(
-    entities
-      .filter((e) => e && e.type === 'ingredient')
-      .map((e) => getIngredientCatalogId(e))
-  )
-
-  const matchingIngredientIds: string[] = []
-  const missingIngredientIds: string[] = []
-
-  for (const req of recipeIngredients) {
-    if (workspaceIngredientIds.has(req.ingredientId)) {
-      matchingIngredientIds.push(req.ingredientId)
-    } else {
-      missingIngredientIds.push(req.ingredientId)
-    }
-  }
-
-  return {
-    matchingCount: matchingIngredientIds.length,
-    totalCount: recipeIngredients.length,
-    matchingIngredientIds,
-    missingIngredientIds,
-  }
-}
-</file>
-
-<file path="src/types/Recipe.ts">
-/**
- * FILE: Recipe.ts
- *
- * PURPOSE:
- * Defines recipe data structure.
- *
- * RESPONSIBILITY:
- * - Represents a recipe with required ingredients and steps.
- * - Supports both array and key-based dictionary ingredient declarations.
- */
-
-import type { RecipeIngredient } from './RecipeIngredient';
-import type { RecipeStep } from './RecipeStep';
-
-export interface RecipeIngredientDictItem {
-  ingredientId: string;
-  amount: number;
-  unit: string;
-  name?: string;
-}
-
-export type RecipeIngredients =
-  | RecipeIngredient[]
-  | Record<string, RecipeIngredientDictItem>;
-
-export interface Recipe {
-  id: string;
-  name: string;
-  ingredients: RecipeIngredients;
-  steps: RecipeStep[];
-}
-
-export type RecipeList = Recipe[];
-
-/**
- * Normalizes a Recipe's ingredients into a standard array of RecipeIngredient.
- */
-export function getRecipeIngredientsArray(recipe: Recipe): RecipeIngredient[] {
-  if (Array.isArray(recipe.ingredients)) {
-    return recipe.ingredients;
-  }
-
-  return Object.entries(recipe.ingredients).map(([key, item]) => ({
-    id: `${recipe.id}-${key}`,
-    ingredientId: item.ingredientId,
-    amount: item.amount,
-    unit: item.unit,
-  }));
-}
-</file>
-
 <file path="src/types/RecipeIngredient.ts">
 /**
  * FILE: RecipeIngredient.ts
@@ -6224,291 +6456,6 @@ export interface RecipeIngredient {
   ingredientId: string
   amount: number
   unit: string
-}
-</file>
-
-<file path="src/index.scss">
-/**
- * FILE: src/index.scss
- *
- * PURPOSE:
- * Global stylesheet for Tortilla World.
- * Establishes warm Spanish kitchen simulation theme, global CSS variables, typography, and workstation layouts.
- */
-
-@use 'sass:color';
-@use './styles/variables' as *;
-@use './styles/mixins' as *;
-
-:root {
-  --text: #{$dark-brown};
-  --text-h: #{$dark-brown};
-  --text-muted: #{$wood-muted};
-  --bg: #{$warm-cream};
-  --card-bg: #{$warm-surface};
-  --border: #{$warm-border};
-  --code-bg: #{$warm-beige};
-
-  // Primary palette tokens
-  --primary: #{$tortilla-yellow};
-  --primary-hover: #{$tortilla-yellow-hover};
-  --secondary: #{$olive-green};
-  --secondary-hover: #{$olive-green-hover};
-  --accent: #{$terracotta};
-  --accent-hover: #{$terracotta-hover};
-
-  --shadow: #{$shadow-ceramic};
-  --shadow-hover: #{$shadow-ceramic-hover};
-
-  --font-sans: #{$font-family};
-  --font-mono: #{$font-mono};
-
-  font-family: var(--font-sans);
-  color-scheme: light;
-  color: var(--text);
-  background-color: var(--bg);
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-body {
-  margin: 0;
-  padding: 0;
-  background-color: var(--bg);
-  color: var(--text);
-  background-image: radial-gradient(#{$warm-border} 0.75px, transparent 0.75px);
-  background-size: 20px 20px;
-  min-height: 100vh;
-}
-
-#root {
-  max-width: 1240px;
-  margin: 0 auto;
-  padding: 20px;
-  box-sizing: border-box;
-  min-height: 100vh;
-}
-
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-sans);
-  color: var(--text-h);
-  font-weight: 700;
-  line-height: 1.25;
-}
-
-h1 {
-  font-size: 1.85rem;
-  letter-spacing: -0.02em;
-}
-
-p {
-  line-height: 1.5;
-}
-
-// === SCENE GRID LAYOUT & WORKSTATIONS ===
-.scene {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 18px;
-  width: 100%;
-  box-sizing: border-box;
-  margin-top: 20px;
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-  }
-}
-
-// === WORKSTATION CONTAINER SPECIFIC THEMES ===
-.ingredient-list {
-  @include ceramic-card($warm-surface, $warm-border);
-  padding: 16px;
-  min-height: 200px;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-
-  &.drag-over {
-    border-color: $tortilla-yellow-border !important;
-    background-color: $tortilla-yellow-light !important;
-    box-shadow: 0 0 0 3px rgba(232, 168, 56, 0.25) !important;
-  }
-
-  // Workstation header
-  .workstation-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 12px;
-    padding-bottom: 8px;
-    border-bottom: 2px dashed color.mix($dark-brown, white, 15%);
-
-    h3 {
-      font-size: 1rem;
-      margin: 0;
-      color: $dark-brown;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .workstation-type-badge {
-      font-size: 0.72rem;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: $radius-sm;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-    }
-  }
-
-  // Pantry Storage Theme
-  &.workstation-pantry, &.workstation-despensa {
-    background: $pantry-bg;
-    border-color: $pantry-border;
-    .workstation-type-badge {
-      background: color.mix($pantry-accent, white, 15%);
-      color: $pantry-accent;
-      border: 1px solid color.mix($pantry-accent, white, 30%);
-    }
-  }
-
-  // Washing Station Theme (Sink)
-  &.workstation-sink, &.workstation-washing_station {
-    background: $washing-bg;
-    border-color: $washing-border;
-    .workstation-type-badge {
-      background: color.mix($washing-accent, white, 15%);
-      color: $washing-accent;
-      border: 1px solid color.mix($washing-accent, white, 30%);
-    }
-  }
-
-  // Cutting Station Theme (Board)
-  &.workstation-board, &.workstation-cutting_station {
-    background: $cutting-bg;
-    border-color: $cutting-border;
-    .workstation-type-badge {
-      background: color.mix($cutting-accent, white, 15%);
-      color: $cutting-accent;
-      border: 1px solid color.mix($cutting-accent, white, 30%);
-    }
-  }
-
-  // Preparation Station Theme (Bowl)
-  &.workstation-bowl, &.workstation-preparation_station {
-    background: $mixing-bg;
-    border-color: $mixing-border;
-    .workstation-type-badge {
-      background: color.mix($mixing-accent, white, 15%);
-      color: $mixing-accent;
-      border: 1px solid color.mix($mixing-accent, white, 30%);
-    }
-  }
-
-  // Cooking Station Theme (Pan)
-  &.workstation-pan, &.workstation-cooking_station {
-    background: $cooking-bg;
-    border-color: $cooking-border;
-    .workstation-type-badge {
-      background: color.mix($cooking-accent, white, 15%);
-      color: $cooking-accent;
-      border: 1px solid color.mix($cooking-accent, white, 30%);
-    }
-  }
-
-  // Serving Station Theme (Plate)
-  &.workstation-plate, &.workstation-serving_station {
-    background: $serving-bg;
-    border-color: $serving-border;
-    .workstation-type-badge {
-      background: color.mix($serving-accent, white, 15%);
-      color: $serving-accent;
-      border: 1px solid color.mix($serving-accent, white, 30%);
-    }
-  }
-
-  .items-container {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    flex-grow: 1;
-  }
-
-  .empty-hint {
-    font-size: 0.82rem;
-    color: $wood-muted;
-    font-style: italic;
-    margin: auto;
-    text-align: center;
-    padding: 12px 0;
-    opacity: 0.7;
-  }
-}
-
-// === INGREDIENT LIST ITEM & STATE STYLES ===
-.ingredient-list-item {
-  background: #ffffff;
-  border: 1px solid $warm-border;
-  border-radius: $radius-md;
-  padding: 8px 12px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-weight: 600;
-  font-size: 0.92rem;
-  color: $dark-brown;
-  box-shadow: 0 2px 6px rgba(44, 26, 20, 0.04);
-  user-select: none;
-  touch-action: none;
-  transition: all 0.18s ease;
-
-  &:hover {
-    border-color: color.mix($tortilla-yellow, $warm-border, 50%);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba(44, 26, 20, 0.08);
-  }
-
-  &.dragging {
-    box-shadow: $shadow-floating;
-    opacity: 0.85;
-    transform: scale(1.02);
-  }
-
-  // === INGREDIENT STATE COLOR BADGES ===
-  .ingredient-state-badge {
-    font-size: 0.72rem;
-    font-weight: 700;
-    padding: 2px 6px;
-    border-radius: $radius-sm;
-    margin-left: 8px;
-    white-space: nowrap;
-
-    &.state-raw {
-      background: $state-raw-bg;
-      border: 1px solid $state-raw-border;
-      color: $state-raw-text;
-    }
-
-    &.state-prepared {
-      background: $state-prep-bg;
-      border: 1px solid $state-prep-border;
-      color: $state-prep-text;
-    }
-
-    &.state-cooking {
-      background: $state-cook-bg;
-      border: 1px solid $state-cook-border;
-      color: $state-cook-text;
-    }
-
-    &.state-finished {
-      background: $state-finished-bg;
-      border: 1px solid $state-finished-border;
-      color: $state-finished-text;
-    }
-  }
 }
 </file>
 
@@ -8182,58 +8129,724 @@ export function RecipeIngredientList({
 }
 </file>
 
-<file path="src/data/catalog/recipes/recipes.test.ts">
-import { describe, expect, it } from 'vitest';
-import { recipes, concebollaRecipe, clasicaRecipe } from './index';
-import { ingredients as ingredientCatalog } from '../ingredients';
-import type { RecipeList } from '../../../types/Recipe';
-import { getRecipeIngredientsArray } from '../../../types/Recipe';
+<file path="src/components/Recipe/RecipePanel.scss">
+/**
+ * FILE: src/components/Recipe/RecipePanel.scss
+ *
+ * PURPOSE:
+ * SCSS styles for the Recipe selection and execution panel.
+ */
 
-describe('Recipe Catalog', () => {
-  it('exports a valid RecipeList array', () => {
-    const list: RecipeList = recipes;
-    expect(Array.isArray(list)).toBe(true);
-    expect(list.length).toBeGreaterThanOrEqual(2);
-  });
+@use 'sass:color';
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
 
-  it('contains concebolla and clasica recipes', () => {
-    const ids = recipes.map((r) => r.id);
-    expect(ids).toContain('concebolla');
-    expect(ids).toContain('clasica');
-  });
+.recipe-panel {
+  @include ceramic-card($warm-surface, $warm-border);
+  padding: 12px 16px;
+  margin-bottom: 16px;
 
-  it('validates that every recipe has required properties', () => {
-    recipes.forEach((recipe) => {
-      expect(recipe.id).toBeTruthy();
-      expect(recipe.name).toBeTruthy();
-      const ingredients = getRecipeIngredientsArray(recipe);
-      expect(Array.isArray(ingredients)).toBe(true);
-      expect(ingredients.length).toBeGreaterThan(0);
+  &-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+}
+
+.recipe-selector {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.recipe-option {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #ffffff;
+  border: 1px solid $warm-border;
+  border-radius: $radius-sm;
+  padding: 4px 8px;
+  transition: all 0.2s ease;
+
+  &.active {
+    border-color: $tortilla-yellow;
+    background: $tortilla-yellow-light;
+    box-shadow: 0 2px 6px rgba(232, 168, 56, 0.2);
+  }
+}
+
+.recipe-tab {
+  background: transparent;
+  border: none;
+  font-size: 13px;
+  font-weight: 700;
+  color: $dark-brown;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: $radius-sm;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: $tortilla-yellow-hover;
+  }
+
+  &.active {
+    color: $dark-brown;
+  }
+}
+
+.follow-recipe-btn {
+  @include playful-button($tortilla-yellow, #ffffff);
+  font-size: 0.78rem;
+  padding: 5px 10px;
+  white-space: nowrap;
+}
+
+.recipe-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.recipe-status {
+  font-size: 13px;
+  color: $wood-muted;
+  font-weight: 600;
+}
+
+.highlight-count {
+  color: $terracotta;
+  font-weight: 800;
+}
+
+.recipe-toggle-btn {
+  background: #ffffff;
+  border: 1px solid $warm-border;
+  border-radius: $radius-sm;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: $dark-brown;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: $olive-green;
+    color: $olive-green;
+    background: $olive-green-light;
+  }
+}
+
+.recipe-content.compact {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed $warm-border;
+}
+
+.recipe-requirements {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.requirement-view {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+
+  &__amount {
+    font-size: 0.8rem;
+    color: $wood-muted;
+    font-weight: 600;
+  }
+}
+
+.recipe-title {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  color: $dark-brown;
+  font-weight: 700;
+}
+</file>
+
+<file path="src/data/catalog/recipes/clasica.ts">
+/**
+ * FILE: clasica.ts
+ *
+ * PURPOSE:
+ * Recipe definition for Tortilla Clásica (without onion).
+ *
+ * RESPONSIBILITY:
+ * - Defines the ingredients, quantities, and cooking process.
+ * - Describes recipe actions in a declarative format.
+ * - Provides a Cooklang representation for humans.
+ *
+ * NOTE:
+ * Recipes describe WHAT happens.
+ * The RecipeRunner decides HOW it happens:
+ * - finding ingredients
+ * - moving the chef
+ * - animations
+ * - changing entity state
+ * - creating intermediate results
+ */
+
+import type { Recipe } from '../../../types/Recipe';
+
+export const clasicaRecipe: Recipe = {
+  id: 'clasica',
+
+  name: 'Clásica',
+
+  requirements: {
+    potatoes: {
+      entityId: 'potato',
+      amount: 4,
+      unit: 'pcs',
+    },
+
+    eggs: {
+      entityId: 'egg',
+      amount: 6,
+      unit: 'pcs',
+    },
+
+    oil: {
+      entityId: 'oil',
+      amount: 100,
+      unit: 'ml',
+    },
+
+    salt: {
+      entityId: 'salt',
+      amount: 1,
+      unit: 'tsp',
+    },
+
+    black_pepper: {
+      entityId: 'black_pepper',
+      amount: 1,
+      unit: 'pinch',
+    },
+  },
+
+  steps: [
+    {
+      action: 'prepare',
+      target: 'potatoes',
+      preparation: 'peeled',
+    },
+
+    {
+      action: 'prepare',
+      target: 'potatoes',
+      preparation: 'sliced',
+    },
+
+    {
+      action: 'cook',
+      target: 'oil',
+      method: 'heat',
+    },
+
+    {
+      action: 'cook',
+      target: 'potatoes',
+      method: 'fry',
+    },
+
+    {
+      action: 'prepare',
+      target: 'eggs',
+      preparation: 'beaten',
+    },
+
+    {
+      action: 'mix',
+      inputs: [
+        'potatoes',
+        'eggs',
+        'salt',
+        'black_pepper',
+      ],
+      output: 'mixture',
+    },
+
+    {
+      action: 'cook',
+      target: 'mixture',
+      method: 'fry',
+      duration: 5,
+      unit: 'min',
+    },
+
+    {
+      action: 'instruction',
+      text: 'Con una espátula blanda, asegúrate de que la tortilla no se pega a la sartén.',
+    },
+
+    {
+      action: 'flip',
+      target: 'mixture',
+      instruction: 'Dale la vuelta a la tortilla.',
+    },
+
+    {
+      action: 'cook',
+      target: 'mixture',
+      method: 'fry',
+      duration: 5,
+      unit: 'min',
+      instruction: 'Deja cocinar por otros 5 min.',
+    },
+
+    {
+      action: 'serve',
+      target: 'mixture',
+    },
+
+    {
+      action: 'celebrate',
+    },
+  ],
+};
+
+export const clasicaCooklang = `
+Peel the @potatoes{4%pcs}.
+
+Slice the @potatoes.
+
+Heat the @oil{100%ml}.
+
+Fry the @potatoes until tender.
+
+Beat the @eggs{6%pcs}.
+
+Add @salt{1%tsp}.
+
+Add @pepper{1%pinch}.
+
+Mix the potatoes with the beaten eggs, salt and pepper.
+
+Pour the mixture into the pan.
+
+Cook for 5 minutes.
+
+With a soft spatula, make sure the tortilla does not stick to the pan.
+
+Flip the tortilla.
+
+Cook for another 5 minutes.
+
+Serve the tortilla.
+
+Celebrate.
+`;
+
+export const recipe = clasicaRecipe;
+</file>
+
+<file path="src/data/catalog/ingredients.ts">
+/**
+ * FILE: ingredients.ts
+ *
+ * PURPOSE:
+ * Catalog of available ingredient definitions.
+ *
+ * RESPONSIBILITY:
+ * - Provides master list of ingredient metadata (names, icons, ids).
+ */
+
+import type { Ingredient } from "../../types/Ingredient";
+
+
+export const ingredients: Ingredient[] = [
+
+  {
+    id: "potato",
+    icon: "🥔",
+    name: "Potatoes",
+  },
+
+  {
+    id: "egg",
+    icon: "🥚",
+    name: "Eggs",
+  },
+
+  {
+    id: "oil",
+    icon: "🫒",
+    name: "Olive Oil",
+  },
+
+  {
+    id: "onion",
+    icon: "🧅",
+    name: "Onion",
+  },
+
+  {
+    id: "chorizo",
+    icon: "🌭",
+    name: "Chorizo",
+  },
+
+  {
+    id: "salt",
+    icon: "🧂",
+    name: "Salt",
+  },
+
+  {
+    id: "pepper",
+    icon: "🫑",
+    name: "Bell Pepper",
+  },
+
+  {
+    id: "garlic",
+    icon: "🧄",
+    name: "Garlic",
+  },
+
+  {
+    id: "tomato",
+    icon: "🍅",
+    name: "Tomato",
+  },
+
+  {
+    id: "cheese",
+    icon: "🧀",
+    name: "Cheese",
+  },
+
+  {
+    id: "bread",
+    icon: "🍞",
+    name: "Bread",
+  },
+
+  {
+    id: "milk",
+    icon: "🥛",
+    name: "Milk",
+  },
+
+  {
+    id: "butter",
+    icon: "🧈",
+    name: "Butter",
+  },
+
+  // --- Expanded Ingredients ---
+
+  {
+    id: "black_pepper",
+    icon: "🌶️",
+    name: "Black Pepper",
+  },
+
+  {
+    id: "flour",
+    icon: "🌾",
+    name: "Flour",
+  },
+
+  {
+    id: "sugar",
+    icon: "🍚",
+    name: "Sugar",
+  },
+
+  {
+    id: "rice",
+    icon: "🍚",
+    name: "Rice",
+  },
+
+  {
+    id: "chicken",
+    icon: "🍗",
+    name: "Chicken",
+  },
+
+  {
+    id: "beef",
+    icon: "🥩",
+    name: "Beef",
+  },
+
+  {
+    id: "mushroom",
+    icon: "🍄",
+    name: "Mushroom",
+  },
+
+  {
+    id: "spinach",
+    icon: "🥬",
+    name: "Spinach",
+  },
+
+  {
+    id: "lemon",
+    icon: "🍋",
+    name: "Lemon",
+  },
+
+];
+</file>
+
+<file path="src/store/slices/entitySlice.ts">
+/**
+ * FILE: entitySlice.ts
+ *
+ * PURPOSE:
+ * Zustand slice for entity management (ingredients, tools, mascot entities).
+ *
+ * RESPONSIBILITY:
+ * - Mutates entity records in world state.
+ * - Handles adding, removing, updating, preparing, and cooking entities.
+ */
+
+import type { StateCreator } from 'zustand/vanilla';
+import type { Entity } from '../../types/world';
+import type { PreparationStyle, CookingMethod } from '../../types/RecipeStep';
+import type { WorldStateStore } from '../types';
+import { validateContainerRules } from '../../engine/containerRules';
+import {
+  derivePreparationStatus,
+  deriveCookingStatus,
+  formatPreparedName,
+} from '../../engine/ingredientState';
+
+export interface EntitySlice {
+  entities: Record<string, Entity>;
+  addEntity: (
+    entity: { id: string; name: string; type: Entity['type']; state?: Record<string, unknown> },
+    containerId: string
+  ) => void;
+  removeEntity: (entityId: string) => void;
+  updateEntityState: (entityId: string, changes: Record<string, unknown>) => void;
+  prepareIngredient: (entityId: string, preparation: PreparationStyle) => void;
+  cookIngredient: (entityId: string, cooking: CookingMethod) => void;
+  useIngredient: (entityId: string, usedIn?: string) => void;
+  revertIngredientUsage: (entityId: string, previousContainerId?: string) => void;
+  consumeIngredient: (entityId: string, consumedBy?: string) => void;
+}
+
+export const createEntitySlice: StateCreator<
+  WorldStateStore,
+  [['zustand/devtools', never], ['zustand/immer', never]],
+  [],
+  EntitySlice
+> = (set, get) => ({
+  entities: {},
+
+  addEntity: (entity, containerId) => {
+    const targetContainer = get().containers[containerId];
+    if (!targetContainer) return;
+
+    const currentEntities = targetContainer.entityIds
+      .map((id) => get().entities[id])
+      .filter((e): e is Entity => Boolean(e));
+
+    const result = validateContainerRules(
+      targetContainer,
+      entity as Entity,
+      currentEntities
+    );
+    if (!result.allowed) return;
+
+    set(
+      (state) => {
+        state.entities[entity.id] = entity as Entity;
+        state.containers[containerId].entityIds.push(entity.id);
+      },
+      false,
+      'ADD_ENTITY'
+    );
+  },
+
+  removeEntity: (entityId) => {
+    set(
+      (state) => {
+        delete state.entities[entityId];
+        for (const cId in state.containers) {
+          state.containers[cId].entityIds = state.containers[cId].entityIds.filter(
+            (id) => id !== entityId
+          );
+        }
+      },
+      false,
+      'REMOVE_ENTITY'
+    );
+  },
+
+  updateEntityState: (entityId, changes) => {
+    set(
+      (state) => {
+        const targetEntity = state.entities[entityId];
+        if (!targetEntity) return;
+
+        targetEntity.state = {
+          ...targetEntity.state,
+          ...changes,
+        };
+      },
+      false,
+      'UPDATE_ENTITY_STATE'
+    );
+  },
+
+  prepareIngredient: (entityId, preparation) => {
+    const targetEntity = get().entities[entityId];
+    if (!targetEntity) return;
+
+    const status = derivePreparationStatus(targetEntity, preparation);
+    const updatedName = formatPreparedName(targetEntity, preparation);
+
+    set(
+      (state) => {
+        const entity = state.entities[entityId];
+        if (!entity) return;
+
+        entity.name = updatedName;
+        entity.state = {
+          ...entity.state,
+          preparation,
+          status,
+        };
+      },
+      false,
+      'PREPARE_INGREDIENT'
+    );
+  },
+
+  cookIngredient: (entityId, cooking) => {
+    const targetEntity = get().entities[entityId];
+    if (!targetEntity) return;
+
+    const status = deriveCookingStatus(targetEntity, cooking);
+
+    set(
+      (state) => {
+        const entity = state.entities[entityId];
+        if (!entity) return;
+
+        entity.state = {
+          ...entity.state,
+          cooking,
+          status,
+        };
+      },
+      false,
+      'COOK_INGREDIENT'
+    );
+  },
+
+  useIngredient: (entityId, usedIn) => {
+    const state = get();
+    const entity = state.entities[entityId];
+    if (!entity) return;
+
+    let previousContainerId: string | undefined;
+    for (const cId in state.containers) {
+      if (state.containers[cId].entityIds.includes(entityId)) {
+        previousContainerId = cId;
+        break;
+      }
+    }
+
+    set(
+      (draft) => {
+        const targetEntity = draft.entities[entityId];
+        if (!targetEntity) return;
+
+        // Remove from current container(s)
+        for (const cId in draft.containers) {
+          draft.containers[cId].entityIds = draft.containers[cId].entityIds.filter(
+            (id) => id !== entityId
+          );
+        }
+
+        // If usedIn matches an existing container ID, add to that container
+        if (usedIn && draft.containers[usedIn]) {
+          draft.containers[usedIn].entityIds.push(entityId);
+        }
+
+        // Mark consumed and update entity state
+        targetEntity.state = {
+          ...targetEntity.state,
+          consumed: true,
+          consumedBy: usedIn,
+          previousContainerId: previousContainerId || (targetEntity.state?.previousContainerId as string | undefined),
+          status: 'consumed',
+        };
+      },
+      false,
+      'USE_INGREDIENT'
+    );
+
+    // Emit domain event
+    get().emitEvent({
+      type: 'INGREDIENT_CONSUMED',
+      payload: {
+        entityId,
+        consumedBy: usedIn,
+      },
     });
-  });
+  },
 
-  it('ensures all recipe ingredients refer to valid catalog ingredients', () => {
-    const catalogIds = ingredientCatalog.map((i) => i.id);
+  revertIngredientUsage: (entityId, previousContainerId) => {
+    set(
+      (draft) => {
+        const targetEntity = draft.entities[entityId];
+        if (!targetEntity) return;
 
-    recipes.forEach((recipe) => {
-      const ingredients = getRecipeIngredientsArray(recipe);
-      ingredients.forEach((req) => {
-        expect(req.id).toBeTruthy();
-        expect(req.ingredientId).toBeTruthy();
-        expect(catalogIds).toContain(req.ingredientId);
-        expect(req.amount).toBeGreaterThan(0);
-        expect(req.unit).toBeTruthy();
-      });
-    });
-  });
+        const targetContainerId =
+          previousContainerId || (targetEntity.state?.previousContainerId as string | undefined);
 
-  it('distinguishes concebolla (with onion) and clasica (without onion)', () => {
-    const concebollaOnion = getRecipeIngredientsArray(concebollaRecipe).find((i) => i.ingredientId === 'onion');
-    const clasicaOnion = getRecipeIngredientsArray(clasicaRecipe).find((i) => i.ingredientId === 'onion');
+        // Remove from current containers
+        for (const cId in draft.containers) {
+          draft.containers[cId].entityIds = draft.containers[cId].entityIds.filter(
+            (id) => id !== entityId
+          );
+        }
 
-    expect(concebollaOnion).toBeDefined();
-    expect(clasicaOnion).toBeUndefined();
-  });
+        // Restore to previous container if valid
+        if (targetContainerId && draft.containers[targetContainerId]) {
+          draft.containers[targetContainerId].entityIds.push(entityId);
+        }
+
+        // Revert consumed state
+        if (targetEntity.state) {
+          delete targetEntity.state.consumed;
+          delete targetEntity.state.consumedBy;
+          delete targetEntity.state.previousContainerId;
+          if (targetEntity.state.status === 'consumed') {
+            delete targetEntity.state.status;
+          }
+        }
+      },
+      false,
+      'REVERT_INGREDIENT_USAGE'
+    );
+  },
+
+  consumeIngredient: (entityId, consumedBy) => {
+    get().useIngredient(entityId, consumedBy);
+  },
 });
 </file>
 
@@ -8292,6 +8905,131 @@ export const useGazeStore = create<GazeState>()(
 
 // Re-export the narrow helper so consumers don't need a separate import.
 export { gazeEntityId };
+</file>
+
+<file path="src/store/types.ts">
+/**
+ * FILE: types.ts
+ *
+ * PURPOSE:
+ * Type contract for Zustand world store and its slices.
+ */
+
+import type { Container, Entity, WorldAction, WorldEvent } from '../types/world';
+import type { EntitySlice } from './slices/entitySlice';
+import type { ContainerSlice } from './slices/containerSlice';
+import type { MascotSlice } from './slices/mascotSlice';
+
+export type WorldStateStore = {
+  entities: Record<string, Entity>;
+  containers: Record<string, Container>;
+  events: WorldEvent[];
+  dispatch: (action: WorldAction) => void;
+  emitEvent: (event: WorldEvent) => void;
+  onEvent: (listener: (event: WorldEvent) => void) => () => void;
+  resetWorld: () => void;
+} & EntitySlice &
+  ContainerSlice &
+  MascotSlice;
+</file>
+
+<file path="src/systems/recipeRunner/handlers/mixHandlers.ts">
+/**
+ * FILE: src/systems/recipeRunner/handlers/mixHandlers.ts
+ *
+ * PURPOSE:
+ * Step handlers for combination steps ('mix', 'beat', 'combine').
+ */
+
+import { worldStore } from '../../../store/worldStore';
+import { moveTortillaTo, flipTortilla } from '../../mascotActions';
+import type { RecipeStep } from '../../../types/RecipeStep';
+import type { RecipeRunnerContext } from '../types';
+
+type MixStep = Extract<RecipeStep, { action: 'mix' | 'beat' | 'combine' }>;
+
+export async function handleMixStep(
+  ctx: RecipeRunnerContext,
+  step: MixStep,
+  workstationDefaultContainerId?: string
+): Promise<void> {
+  const targetContainerId = step.targetContainerId || workstationDefaultContainerId || 'bowl';
+  const inputKeys = step.inputs || step.ingredients || [];
+  const inputEntityIds: string[] = [];
+
+  // 1. Resolve each input entity ID from RecipeContext and ensure it is moved to target container
+  for (const rawInput of inputKeys) {
+    const inputEntityId = ctx.getBoundEntityId(rawInput);
+    if (!inputEntityId) {
+      throw new Error(`[RecipeRunner] Cannot mix: No bound entity found for input "${rawInput}"`);
+    }
+
+    ctx.validateEntity(inputEntityId, 'mix');
+
+    // Ensure input entity is in target container (e.g. bowl)
+    const state = worldStore.getState();
+    const currentContainer = Object.values(state.containers).find((c) =>
+      c.entityIds.includes(inputEntityId)
+    );
+
+    if (currentContainer && currentContainer.id !== targetContainerId) {
+      worldStore.getState().dispatch({
+        type: 'MOVE_ENTITY',
+        payload: {
+          entityId: inputEntityId,
+          targetContainerId,
+        },
+      });
+    }
+
+    inputEntityIds.push(inputEntityId);
+  }
+
+  moveTortillaTo(targetContainerId, ctx.mascotId);
+  await ctx.wait();
+  flipTortilla(ctx.mascotId);
+  await ctx.wait();
+
+  // 2. Create real mixture entity in target container
+  const recipeId = ctx.recipeContext.recipeId || 'recipe';
+  const mixtureId = `mixture_${recipeId}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+  const outputName = step.output || 'Mixture';
+
+  worldStore.getState().dispatch({
+    type: 'ADD_ENTITY',
+    payload: {
+      entity: {
+        id: mixtureId,
+        name: outputName,
+        type: 'ingredient',
+        state: {
+          preparation: 'mixed',
+          cooking: 'raw',
+          status: 'mixed',
+          components: inputEntityIds,
+        },
+      },
+      containerId: targetContainerId,
+    },
+  });
+
+  // 3. Use inputs
+  for (const inputId of inputEntityIds) {
+    worldStore.getState().dispatch({
+      type: 'USE_INGREDIENT',
+      payload: {
+        entityId: inputId,
+        usedIn: mixtureId,
+      },
+    });
+  }
+
+  // 4. Bind mixture entity in RecipeContext
+  ctx.recipeContext.bindings['mixture'] = mixtureId;
+  if (step.output) {
+    ctx.recipeContext.bindings[step.output] = mixtureId;
+  }
+}
 </file>
 
 <file path="src/systems/recipeRunner/handlers/prepHandlers.ts">
@@ -8354,6 +9092,576 @@ export async function handlePrepStep(
 }
 </file>
 
+<file path="src/systems/recipeRunner/RecipeRunner.ts">
+/**
+ * FILE: src/systems/recipeRunner/RecipeRunner.ts
+ *
+ * PURPOSE:
+ * Workstation and tool-driven recipe execution engine (RecipeRunner).
+ *
+ * RESPONSIBILITY:
+ * - Iterates over declarative RecipeSteps sequentially.
+ * - Dynamically determines required workstation and tools for each step.
+ * - Dispatches appropriate world and mascot actions via step handlers.
+ * - Modifies existing entity state for preparation/cooking without destroying/recreating entities.
+ * - Preserves data-driven architecture and keeps recipes decoupled from kitchen locations.
+ */
+
+import { worldStore } from '../../store/worldStore';
+import { getIngredientCatalogId } from '../../engine/containerRules';
+import { findWorkstationForStep } from '../../engine/workstations';
+import type { Recipe, RecipeRequirementDictItem } from '../../types/Recipe';
+import type { RecipeStep } from '../../types/RecipeStep';
+import type { Entity } from '../../types/world';
+import type { RecipeRunnerOptions, RecipeRunnerContext, RecipeContextData } from './types';
+import { handleMoveStep, handleGrabStep, handleDropStep } from './handlers/moveHandlers';
+import { handlePrepStep } from './handlers/prepHandlers';
+import { handleCookStep, handleFlipStep } from './handlers/cookHandlers';
+import { handleMixStep } from './handlers/mixHandlers';
+import {
+  handleServeStep,
+  handleWaitStep,
+  handleInstructionStep,
+  handleSpeakStep,
+  handleCelebrateStep,
+} from './handlers/utilityHandlers';
+
+export class RecipeRunner implements RecipeRunnerContext {
+  public mascotId: string;
+  public defaultSourceId: string;
+  public defaultTargetId: string;
+  public delayMs: number;
+  public currentRecipe?: Recipe;
+  public recipeContext: RecipeContextData;
+
+  constructor(options: RecipeRunnerOptions = {}) {
+    this.mascotId = options.mascotId || 'chef';
+    this.defaultSourceId = options.defaultSourceId || 'despensa';
+    this.defaultTargetId = options.defaultTargetId || 'board';
+    this.delayMs = options.delayMs ?? 600;
+    this.recipeContext = {
+      recipeId: '',
+      bindings: {},
+    };
+  }
+
+  public async wait(ms?: number): Promise<void> {
+    const duration = ms ?? this.delayMs;
+    if (duration <= 0) return;
+    await new Promise((resolve) => setTimeout(resolve, duration));
+  }
+
+  public bindRecipeContext(recipe: Recipe): void {
+    this.currentRecipe = recipe;
+    this.recipeContext = {
+      recipeId: recipe.id,
+      bindings: {},
+    };
+
+    const boundIds = new Set<string>();
+
+    const findOrCreateAvailableEntity = (
+      ingredientCatalogId: string,
+      aliasKey?: string
+    ): string => {
+      const state = worldStore.getState();
+      const allEntities = Object.values(state.entities);
+
+      // 1. Check for unconsumed, unbound entity in active workspace containers
+      const activeWorkspaceContainerIds = Object.values(state.containers)
+        .filter((c) => c.type !== 'storage' && c.id !== 'despensa')
+        .map((c) => c.id);
+
+      for (const cId of activeWorkspaceContainerIds) {
+        const container = state.containers[cId];
+        if (container) {
+          const workspaceCandidate = container.entityIds
+            .map((id) => state.entities[id])
+            .find((e) => {
+              if (!e || e.type !== 'ingredient' || e.state?.consumed || boundIds.has(e.id)) {
+                return false;
+              }
+              const catId = getIngredientCatalogId(e);
+              return (
+                catId === ingredientCatalogId ||
+                e.ingredientId === ingredientCatalogId ||
+                e.id === ingredientCatalogId ||
+                (aliasKey && e.id === aliasKey)
+              );
+            });
+          if (workspaceCandidate) {
+            boundIds.add(workspaceCandidate.id);
+            return workspaceCandidate.id;
+          }
+        }
+      }
+
+      // 2. Check for unconsumed, unbound entity anywhere in world
+      const unboundCandidate = allEntities.find((e) => {
+        if (!e || e.type !== 'ingredient' || e.state?.consumed || boundIds.has(e.id)) {
+          return false;
+        }
+        const catId = getIngredientCatalogId(e);
+        return (
+          catId === ingredientCatalogId ||
+          e.ingredientId === ingredientCatalogId ||
+          e.id === ingredientCatalogId ||
+          (aliasKey && e.id === aliasKey)
+        );
+      });
+
+      if (unboundCandidate) {
+        boundIds.add(unboundCandidate.id);
+        return unboundCandidate.id;
+      }
+
+      // 3. If no unbound entity exists, check for template entity in immutable storage (e.g. despensa)
+      const immutableCandidate = allEntities.find((e) => {
+        if (!e || e.type !== 'ingredient' || e.state?.consumed) return false;
+        const catId = getIngredientCatalogId(e);
+        return (
+          catId === ingredientCatalogId ||
+          e.ingredientId === ingredientCatalogId ||
+          e.id === ingredientCatalogId ||
+          (aliasKey && e.id === aliasKey)
+        );
+      });
+
+      if (immutableCandidate) {
+        return immutableCandidate.id;
+      }
+
+      // 4. Fallback: spawn new ingredient entity in despensa or board
+      const newEntityId = `${ingredientCatalogId}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+      const newEntity: Entity = {
+        id: newEntityId,
+        name: ingredientCatalogId.charAt(0).toUpperCase() + ingredientCatalogId.slice(1),
+        type: 'ingredient',
+        ingredientId: ingredientCatalogId,
+        state: { preparation: 'whole', cooking: 'raw' },
+      };
+
+      const targetContainerId = state.containers[this.defaultSourceId] ? this.defaultSourceId : 'board';
+      worldStore.getState().dispatch({
+        type: 'ADD_ENTITY',
+        payload: {
+          entity: newEntity,
+          containerId: targetContainerId,
+        },
+      });
+
+      boundIds.add(newEntityId);
+      return newEntityId;
+    };
+
+    const reqs = recipe.requirements || (recipe as unknown as { ingredients?: unknown }).ingredients;
+
+    if (Array.isArray(reqs)) {
+      for (const item of reqs) {
+        const rawItem = item as { entityId?: string; ingredientId?: string; id?: string };
+        const entityIdKey = rawItem.entityId || rawItem.ingredientId || '';
+        const entityId = findOrCreateAvailableEntity(entityIdKey, rawItem.id);
+        this.recipeContext.bindings[entityIdKey] = entityId;
+        if (rawItem.id) {
+          this.recipeContext.bindings[rawItem.id] = entityId;
+        }
+      }
+    } else if (reqs && typeof reqs === 'object') {
+      for (const [key, item] of Object.entries(
+        reqs as Record<string, RecipeRequirementDictItem>
+      )) {
+        const rawItem = item as { entityId?: string; ingredientId?: string };
+        const entityIdKey = rawItem.entityId || rawItem.ingredientId || key;
+        const entityId = findOrCreateAvailableEntity(entityIdKey, key);
+        this.recipeContext.bindings[key] = entityId;
+        this.recipeContext.bindings[entityIdKey] = entityId;
+      }
+    }
+
+    this.bindStepsContext(recipe.steps, boundIds);
+  }
+
+  private bindStepsContext(steps: RecipeStep[], boundIds: Set<string>): void {
+    const state = worldStore.getState();
+
+    for (const step of steps) {
+      if (step.action === 'mix' || step.action === 'beat' || step.action === 'combine') {
+        const inputs = step.inputs || step.ingredients || [];
+        for (const inputKey of inputs) {
+          if (!this.recipeContext.bindings[inputKey]) {
+            const catId = this.resolveIngredientId(inputKey) || inputKey;
+            const candidate = Object.values(state.entities).find(
+              (e) =>
+                e &&
+                e.type === 'ingredient' &&
+                !e.state?.consumed &&
+                !boundIds.has(e.id) &&
+                (getIngredientCatalogId(e) === catId || e.ingredientId === catId || e.id === inputKey)
+            );
+            if (candidate) {
+              this.recipeContext.bindings[inputKey] = candidate.id;
+              this.recipeContext.bindings[catId] = candidate.id;
+              boundIds.add(candidate.id);
+            }
+          }
+        }
+      } else if ('ingredient' in step || 'target' in step) {
+        const rawKey =
+          ('ingredient' in step ? step.ingredient : undefined) ||
+          ('target' in step ? step.target : undefined);
+        if (rawKey && rawKey !== 'mixture' && !this.recipeContext.bindings[rawKey]) {
+          const catId = this.resolveIngredientId(rawKey) || rawKey;
+          const candidate = Object.values(state.entities).find(
+            (e) =>
+              e &&
+              e.type === 'ingredient' &&
+              !e.state?.consumed &&
+              !boundIds.has(e.id) &&
+              (getIngredientCatalogId(e) === catId || e.ingredientId === catId || e.id === rawKey)
+          );
+          if (candidate) {
+            this.recipeContext.bindings[rawKey] = candidate.id;
+            this.recipeContext.bindings[catId] = candidate.id;
+            boundIds.add(candidate.id);
+          }
+        }
+      }
+    }
+  }
+
+  public getBoundEntityId(targetOrKey?: string): string | undefined {
+    if (!targetOrKey) return undefined;
+    if (this.recipeContext.bindings[targetOrKey]) {
+      return this.recipeContext.bindings[targetOrKey];
+    }
+    const resolvedCatId = this.resolveIngredientId(targetOrKey);
+    if (resolvedCatId && this.recipeContext.bindings[resolvedCatId]) {
+      return this.recipeContext.bindings[resolvedCatId];
+    }
+    return undefined;
+  }
+
+  public validateEntity(entityId: string, stepAction: string = 'step'): Entity {
+    const state = worldStore.getState();
+    const entity = state.entities[entityId];
+    if (!entity) {
+      throw new Error(
+        `[RecipeRunner] Validation failed for ${stepAction}: Entity "${entityId}" does not exist in world state.`
+      );
+    }
+    if (entity.state?.consumed) {
+      throw new Error(
+        `[RecipeRunner] Validation failed for ${stepAction}: Entity "${entityId}" (${entity.name}) has already been consumed.`
+      );
+    }
+    return entity;
+  }
+
+  public updateBindingIfCopied(
+    oldEntityId: string,
+    newEntityId: string,
+    specificKey?: string
+  ): void {
+    if (oldEntityId === newEntityId) return;
+    if (specificKey && this.recipeContext.bindings[specificKey] === oldEntityId) {
+      this.recipeContext.bindings[specificKey] = newEntityId;
+    } else {
+      for (const key in this.recipeContext.bindings) {
+        if (this.recipeContext.bindings[key] === oldEntityId) {
+          this.recipeContext.bindings[key] = newEntityId;
+        }
+      }
+    }
+  }
+
+  public async ensureEntityInWorkspace(
+    entityId: string,
+    targetContainerId: string = this.defaultTargetId
+  ): Promise<string> {
+    const state = worldStore.getState();
+    this.validateEntity(entityId, 'ensureEntityInWorkspace');
+
+    const activeWorkspaceContainerIds = Object.values(state.containers)
+      .filter((c) => c.type !== 'storage' && c.id !== 'despensa')
+      .map((c) => c.id);
+
+    for (const cId of activeWorkspaceContainerIds) {
+      const container = state.containers[cId];
+      if (container && container.entityIds.includes(entityId)) {
+        return entityId;
+      }
+    }
+
+    const mascot = state.entities[this.mascotId];
+    if (mascot?.state?.holdingEntityId === entityId) {
+      return entityId;
+    }
+
+    await handleMoveStep(
+      this,
+      {
+        action: 'move',
+        ingredient: entityId,
+        source: this.defaultSourceId,
+        target: targetContainerId,
+      },
+      targetContainerId
+    );
+
+    const updatedState = worldStore.getState();
+    const targetContainer = updatedState.containers[targetContainerId];
+    if (targetContainer) {
+      if (targetContainer.entityIds.includes(entityId)) {
+        return entityId;
+      }
+      const copyId = targetContainer.entityIds[targetContainer.entityIds.length - 1];
+      if (copyId) {
+        this.updateBindingIfCopied(entityId, copyId);
+        return copyId;
+      }
+    }
+    return entityId;
+  }
+
+  public resolveIngredientId(targetOrKey?: string): string | undefined {
+    if (!targetOrKey) return undefined;
+    const reqs = this.currentRecipe?.requirements || (this.currentRecipe as unknown as { ingredients?: unknown })?.ingredients;
+    if (reqs && !Array.isArray(reqs)) {
+      const dict = reqs as Record<string, { entityId?: string; ingredientId?: string }>;
+      if (dict[targetOrKey]) {
+        return dict[targetOrKey].entityId || dict[targetOrKey].ingredientId;
+      }
+      const match = Object.values(dict).find(
+        (item) => (item.entityId || item.ingredientId) === targetOrKey
+      );
+      if (match) {
+        return match.entityId || match.ingredientId;
+      }
+    }
+    return targetOrKey;
+  }
+
+  public async ensureIngredientInWorkspace(
+    ingredientCatalogId: string,
+    targetContainerId: string = this.defaultTargetId
+  ): Promise<string | undefined> {
+    const boundId = this.getBoundEntityId(ingredientCatalogId);
+    if (boundId) {
+      return this.ensureEntityInWorkspace(boundId, targetContainerId);
+    }
+    return undefined;
+  }
+
+  public async runRecipe(recipe: Recipe): Promise<void> {
+    this.bindRecipeContext(recipe);
+    await this.runSteps(recipe.steps);
+  }
+
+  public async runSteps(steps: RecipeStep[]): Promise<void> {
+    if (!this.recipeContext.recipeId) {
+      this.recipeContext.recipeId = 'steps_run';
+      this.bindStepsContext(steps, new Set<string>());
+    }
+    for (const step of steps) {
+      await this.executeStep(step);
+    }
+  }
+
+  public async executeStep(step: RecipeStep): Promise<void> {
+    const workstation = findWorkstationForStep(step);
+
+    switch (step.action) {
+      case 'move':
+        return handleMoveStep(this, step, workstation.defaultContainerId);
+      case 'grab':
+        return handleGrabStep(this, step);
+      case 'drop':
+        return handleDropStep(this, step, workstation.defaultContainerId);
+
+      case 'cut':
+      case 'prepare':
+      case 'peel':
+      case 'wash':
+      case 'rinse':
+      case 'drain':
+        return handlePrepStep(this, step, workstation.defaultContainerId);
+
+      case 'cook':
+        return handleCookStep(this, step, workstation.defaultContainerId);
+      case 'flip':
+        return handleFlipStep(this, step);
+
+      case 'mix':
+      case 'beat':
+      case 'combine':
+        return handleMixStep(this, step, workstation.defaultContainerId);
+
+      case 'serve':
+        return handleServeStep(this, step, workstation.defaultContainerId);
+
+      case 'wait':
+        return handleWaitStep(this, step);
+      case 'instruction':
+        return handleInstructionStep(this, step);
+      case 'speak':
+        return handleSpeakStep(this, step);
+      case 'celebrate':
+        return handleCelebrateStep(this, step);
+    }
+  }
+}
+</file>
+
+<file path="src/systems/recipeMatcher.test.ts">
+import { describe, expect, it } from 'vitest'
+import { countMatchingRequirements } from './recipeMatcher'
+import type { Recipe } from '../types/Recipe'
+import type { Entity } from '../types/world'
+
+describe('countMatchingRequirements', () => {
+  const sampleRecipe: Recipe = {
+    id: 'test-recipe',
+    name: 'Test Recipe',
+    requirements: [
+      { id: 'req-1', entityId: 'potato', amount: 3, unit: 'pcs' },
+      { id: 'req-2', entityId: 'egg', amount: 4, unit: 'pcs' },
+      { id: 'req-3', entityId: 'onion', amount: 1, unit: 'pcs' },
+    ],
+    steps: [],
+  }
+
+  it('returns zeros when recipe is undefined', () => {
+    const result = countMatchingRequirements(undefined, [])
+    expect(result.matchingCount).toBe(0)
+    expect(result.totalCount).toBe(0)
+    expect(result.matchingRequirementIds).toEqual([])
+    expect(result.missingRequirementIds).toEqual([])
+  })
+
+  it('returns zero matching count when workspace is empty', () => {
+    const result = countMatchingRequirements(sampleRecipe, [])
+    expect(result.matchingCount).toBe(0)
+    expect(result.totalCount).toBe(3)
+    expect(result.matchingRequirementIds).toEqual([])
+    expect(result.missingRequirementIds).toEqual(['potato', 'egg', 'onion'])
+  })
+
+  it('correctly matches entities present in workspace', () => {
+    const workspaceEntities: Entity[] = [
+      { id: 'potato_123', ingredientId: 'potato', name: 'Potato', type: 'ingredient' },
+      { id: 'egg_456', ingredientId: 'egg', name: 'Egg', type: 'ingredient' },
+    ]
+
+    const result = countMatchingRequirements(sampleRecipe, workspaceEntities)
+    expect(result.matchingCount).toBe(2)
+    expect(result.totalCount).toBe(3)
+    expect(result.matchingRequirementIds).toEqual(['potato', 'egg'])
+    expect(result.missingRequirementIds).toEqual(['onion'])
+  })
+
+  it('handles entities without explicit ingredientId field by fallback prefix parsing', () => {
+    const workspaceEntities: Entity[] = [
+      { id: 'onion_999', name: 'Onion', type: 'ingredient' },
+    ]
+
+    const result = countMatchingRequirements(sampleRecipe, workspaceEntities)
+    expect(result.matchingCount).toBe(1)
+    expect(result.matchingRequirementIds).toEqual(['onion'])
+  })
+
+  it('matches tool or product entities in workspace', () => {
+    const workspaceEntities: Entity[] = [
+      { id: 'knife_1', name: 'Knife', type: 'tool' },
+      { id: 'potato_100', ingredientId: 'potato', name: 'Potato', type: 'ingredient' },
+    ]
+
+    const result = countMatchingRequirements(sampleRecipe, workspaceEntities)
+    expect(result.matchingCount).toBe(1)
+    expect(result.matchingRequirementIds).toEqual(['potato'])
+  })
+})
+</file>
+
+<file path="src/systems/recipeMatcher.ts">
+/**
+ * FILE: recipeMatcher.ts
+ *
+ * PURPOSE:
+ * Utility functions for evaluating recipe completion and matching requirements against workspace entities.
+ *
+ * RESPONSIBILITY:
+ * - Computes matching requirements and counts for a recipe given active world entities.
+ * - Identifies matched and missing entity IDs.
+ */
+
+import { getRecipeRequirementsArray } from '../types/Recipe'
+import type { Recipe } from '../types/Recipe'
+import type { Entity } from '../types/world'
+import { getIngredientCatalogId } from '../engine/containerRules'
+
+export interface RecipeMatchResult {
+  matchingCount: number
+  totalCount: number
+  matchingRequirementIds: string[]
+  missingRequirementIds: string[]
+  // Backward compatibility aliases
+  matchingIngredientIds: string[]
+  missingIngredientIds: string[]
+}
+
+/**
+ * Calculates matching requirement count and detailed breakdown for a given recipe
+ * based on entities present in workspace containers.
+ */
+export function countMatchingRequirements(
+  recipe: Recipe | undefined | null,
+  entities: Entity[]
+): RecipeMatchResult {
+  if (!recipe) {
+    return {
+      matchingCount: 0,
+      totalCount: 0,
+      matchingRequirementIds: [],
+      missingRequirementIds: [],
+      matchingIngredientIds: [],
+      missingIngredientIds: [],
+    }
+  }
+
+  const requirements = getRecipeRequirementsArray(recipe)
+
+  const workspaceEntityIds = new Set(
+    entities
+      .filter((e) => Boolean(e))
+      .map((e) => e.ingredientId || getIngredientCatalogId(e) || e.id)
+  )
+
+  const matchingRequirementIds: string[] = []
+  const missingRequirementIds: string[] = []
+
+  for (const req of requirements) {
+    const reqId = req.entityId || (req as unknown as { ingredientId?: string }).ingredientId || ''
+    if (workspaceEntityIds.has(reqId)) {
+      matchingRequirementIds.push(reqId)
+    } else {
+      missingRequirementIds.push(reqId)
+    }
+  }
+
+  return {
+    matchingCount: matchingRequirementIds.length,
+    totalCount: requirements.length,
+    matchingRequirementIds,
+    missingRequirementIds,
+    matchingIngredientIds: matchingRequirementIds,
+    missingIngredientIds: missingRequirementIds,
+  }
+}
+
+/** Alias for backward compatibility */
+export const countMatchingIngredients = countMatchingRequirements
+</file>
+
 <file path="src/types/Ingredient.ts">
 /**
  * FILE: Ingredient.ts
@@ -8370,6 +9678,65 @@ export interface Ingredient {
   name: string
   icon: string
 }
+</file>
+
+<file path="src/types/Recipe.ts">
+/**
+ * FILE: Recipe.ts
+ *
+ * PURPOSE:
+ * Defines recipe data structure.
+ *
+ * RESPONSIBILITY:
+ * - Represents a recipe with required entities (requirements) and steps.
+ * - Supports both array and key-based dictionary requirement declarations.
+ */
+
+import type { Requirement, RequirementDictItem } from './Requirement';
+import type { RecipeStep } from './RecipeStep';
+
+export type RecipeRequirementDictItem = RequirementDictItem;
+
+export type RecipeRequirements =
+  | Requirement[]
+  | Record<string, RequirementDictItem>;
+
+export interface Recipe {
+  id: string;
+  name: string;
+  requirements: RecipeRequirements;
+  steps: RecipeStep[];
+}
+
+export type RecipeList = Recipe[];
+
+/**
+ * Normalizes a Recipe's requirements into a standard array of Requirement objects.
+ */
+export function getRecipeRequirementsArray(recipe: Recipe): Requirement[] {
+  const reqs = recipe.requirements;
+  if (Array.isArray(reqs)) {
+    return reqs.map((item) => ({
+      ...item,
+      entityId: item.entityId || (item as unknown as { ingredientId?: string }).ingredientId || '',
+    }));
+  }
+
+  if (reqs && typeof reqs === 'object') {
+    return Object.entries(reqs).map(([key, item]) => ({
+      id: `${recipe.id}-${key}`,
+      entityId: item.entityId || item.ingredientId || key,
+      amount: item.amount,
+      unit: item.unit,
+      name: item.name,
+    }));
+  }
+
+  return [];
+}
+
+/** Legacy alias helper for backward compatibility during transition */
+export const getRecipeIngredientsArray = getRecipeRequirementsArray;
 </file>
 
 <file path="src/types/RecipeStep.ts">
@@ -8466,6 +9833,295 @@ export type RecipeStep =
       action: 'celebrate';
       mascotId?: string;
     };
+</file>
+
+<file path="src/index.scss">
+/**
+ * FILE: src/index.scss
+ *
+ * PURPOSE:
+ * Global stylesheet for Tortilla World.
+ * Establishes warm Spanish kitchen simulation theme, global CSS variables, typography, and workstation layouts.
+ */
+
+@use 'sass:color';
+@use './styles/variables' as *;
+@use './styles/mixins' as *;
+
+:root {
+  --text: #{$dark-brown};
+  --text-h: #{$dark-brown};
+  --text-muted: #{$wood-muted};
+  --bg: #{$warm-cream};
+  --card-bg: #{$warm-surface};
+  --border: #{$warm-border};
+  --code-bg: #{$warm-beige};
+
+  // Primary palette tokens
+  --primary: #{$tortilla-yellow};
+  --primary-hover: #{$tortilla-yellow-hover};
+  --secondary: #{$olive-green};
+  --secondary-hover: #{$olive-green-hover};
+  --accent: #{$terracotta};
+  --accent-hover: #{$terracotta-hover};
+
+  --shadow: #{$shadow-ceramic};
+  --shadow-hover: #{$shadow-ceramic-hover};
+
+  --font-sans: #{$font-family};
+  --font-mono: #{$font-mono};
+
+  font-family: var(--font-sans);
+  color-scheme: light;
+  color: var(--text);
+  background-color: var(--bg);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg);
+  color: var(--text);
+  background-image: radial-gradient(#{$warm-border} 0.75px, transparent 0.75px);
+  background-size: 20px 20px;
+  min-height: 100vh;
+}
+
+#root {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 20px;
+  box-sizing: border-box;
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-sans);
+  color: var(--text-h);
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+h1 {
+  font-size: 1.85rem;
+  letter-spacing: -0.02em;
+}
+
+p {
+  line-height: 1.5;
+}
+
+// === SCENE GRID LAYOUT & WORKSTATIONS ===
+.scene-container {
+  margin-top: 20px;
+  width: 100%;
+}
+
+.scene {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+  width: 100%;
+  box-sizing: border-box;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// === WORKSTATION CONTAINER SPECIFIC THEMES ===
+.ingredient-list {
+  @include ceramic-card($warm-surface, $warm-border);
+  padding: 16px;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+
+  &.drag-over {
+    border-color: $tortilla-yellow-border !important;
+    background-color: $tortilla-yellow-light !important;
+    box-shadow: 0 0 0 3px rgba(232, 168, 56, 0.25) !important;
+  }
+
+  // Workstation header
+  .workstation-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px dashed color.mix($dark-brown, white, 15%);
+
+    h3 {
+      font-size: 1rem;
+      margin: 0;
+      color: $dark-brown;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .workstation-type-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: $radius-sm;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+  }
+
+  // Pantry Storage Theme
+  &.workstation-pantry, &.workstation-despensa {
+    background: $pantry-bg;
+    border-color: $pantry-border;
+    .workstation-type-badge {
+      background: color.mix($pantry-accent, white, 15%);
+      color: $pantry-accent;
+      border: 1px solid color.mix($pantry-accent, white, 30%);
+    }
+  }
+
+  // Washing Station Theme (Sink)
+  &.workstation-sink, &.workstation-washing_station {
+    background: $washing-bg;
+    border-color: $washing-border;
+    .workstation-type-badge {
+      background: color.mix($washing-accent, white, 15%);
+      color: $washing-accent;
+      border: 1px solid color.mix($washing-accent, white, 30%);
+    }
+  }
+
+  // Cutting Station Theme (Board)
+  &.workstation-board, &.workstation-cutting_station {
+    background: $cutting-bg;
+    border-color: $cutting-border;
+    .workstation-type-badge {
+      background: color.mix($cutting-accent, white, 15%);
+      color: $cutting-accent;
+      border: 1px solid color.mix($cutting-accent, white, 30%);
+    }
+  }
+
+  // Preparation Station Theme (Bowl)
+  &.workstation-bowl, &.workstation-preparation_station {
+    background: $mixing-bg;
+    border-color: $mixing-border;
+    .workstation-type-badge {
+      background: color.mix($mixing-accent, white, 15%);
+      color: $mixing-accent;
+      border: 1px solid color.mix($mixing-accent, white, 30%);
+    }
+  }
+
+  // Cooking Station Theme (Pan)
+  &.workstation-pan, &.workstation-cooking_station {
+    background: $cooking-bg;
+    border-color: $cooking-border;
+    .workstation-type-badge {
+      background: color.mix($cooking-accent, white, 15%);
+      color: $cooking-accent;
+      border: 1px solid color.mix($cooking-accent, white, 30%);
+    }
+  }
+
+  // Serving Station Theme (Plate)
+  &.workstation-plate, &.workstation-serving_station {
+    background: $serving-bg;
+    border-color: $serving-border;
+    .workstation-type-badge {
+      background: color.mix($serving-accent, white, 15%);
+      color: $serving-accent;
+      border: 1px solid color.mix($serving-accent, white, 30%);
+    }
+  }
+
+  .items-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex-grow: 1;
+  }
+
+  .empty-hint {
+    font-size: 0.82rem;
+    color: $wood-muted;
+    font-style: italic;
+    margin: auto;
+    text-align: center;
+    padding: 12px 0;
+    opacity: 0.7;
+  }
+}
+
+// === INGREDIENT LIST ITEM & STATE STYLES ===
+.ingredient-list-item {
+  background: #ffffff;
+  border: 1px solid $warm-border;
+  border-radius: $radius-md;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: $dark-brown;
+  box-shadow: 0 2px 6px rgba(44, 26, 20, 0.04);
+  user-select: none;
+  touch-action: none;
+  transition: all 0.18s ease;
+
+  &:hover {
+    border-color: color.mix($tortilla-yellow, $warm-border, 50%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(44, 26, 20, 0.08);
+  }
+
+  &.dragging {
+    box-shadow: $shadow-floating;
+    opacity: 0.85;
+    transform: scale(1.02);
+  }
+
+  // === INGREDIENT STATE COLOR BADGES ===
+  .ingredient-state-badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: $radius-sm;
+    margin-left: 8px;
+    white-space: nowrap;
+
+    &.state-raw {
+      background: $state-raw-bg;
+      border: 1px solid $state-raw-border;
+      color: $state-raw-text;
+    }
+
+    &.state-prepared {
+      background: $state-prep-bg;
+      border: 1px solid $state-prep-border;
+      color: $state-prep-text;
+    }
+
+    &.state-cooking {
+      background: $state-cook-bg;
+      border: 1px solid $state-cook-border;
+      color: $state-cook-text;
+    }
+
+    &.state-finished {
+      background: $state-finished-bg;
+      border: 1px solid $state-finished-border;
+      color: $state-finished-text;
+    }
+  }
+}
 </file>
 
 <file path="src/main.tsx">
@@ -9378,6 +11034,61 @@ The immediate goal is:
 > Build a stable interactive kitchen world where every object follows predictable rules.
 
 Everything else depends on this foundation.
+</file>
+
+<file path="src/data/catalog/recipes/recipes.test.ts">
+import { describe, expect, it } from 'vitest';
+import { recipes, concebollaRecipe, clasicaRecipe } from './index';
+import { ingredients as ingredientCatalog } from '../ingredients';
+import type { RecipeList } from '../../../types/Recipe';
+import { getRecipeRequirementsArray } from '../../../types/Recipe';
+
+describe('Recipe Catalog', () => {
+  it('exports a valid RecipeList array', () => {
+    const list: RecipeList = recipes;
+    expect(Array.isArray(list)).toBe(true);
+    expect(list.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('contains concebolla and clasica recipes', () => {
+    const ids = recipes.map((r) => r.id);
+    expect(ids).toContain('concebolla');
+    expect(ids).toContain('clasica');
+  });
+
+  it('validates that every recipe has required properties', () => {
+    recipes.forEach((recipe) => {
+      expect(recipe.id).toBeTruthy();
+      expect(recipe.name).toBeTruthy();
+      const requirements = getRecipeRequirementsArray(recipe);
+      expect(Array.isArray(requirements)).toBe(true);
+      expect(requirements.length).toBeGreaterThan(0);
+    });
+  });
+
+  it('ensures all recipe requirements refer to valid catalog entities', () => {
+    const catalogIds = ingredientCatalog.map((i) => i.id);
+
+    recipes.forEach((recipe) => {
+      const requirements = getRecipeRequirementsArray(recipe);
+      requirements.forEach((req) => {
+        expect(req.id).toBeTruthy();
+        expect(req.entityId).toBeTruthy();
+        expect(catalogIds).toContain(req.entityId);
+        expect(req.amount).toBeGreaterThan(0);
+        expect(req.unit).toBeTruthy();
+      });
+    });
+  });
+
+  it('distinguishes concebolla (with onion) and clasica (without onion)', () => {
+    const concebollaOnion = getRecipeRequirementsArray(concebollaRecipe).find((i) => i.entityId === 'onion');
+    const clasicaOnion = getRecipeRequirementsArray(clasicaRecipe).find((i) => i.entityId === 'onion');
+
+    expect(concebollaOnion).toBeDefined();
+    expect(clasicaOnion).toBeUndefined();
+  });
+});
 </file>
 
 <file path="src/engine/containerRules.ts">
@@ -11216,373 +12927,6 @@ describe('Query System', () => {
 });
 </file>
 
-<file path="src/systems/recipeRunner.test.ts">
-/**
- * FILE: recipeRunner.test.ts
- *
- * PURPOSE:
- * Unit tests for the generic RecipeRunner step-based state machine.
- */
-
-import { beforeEach, describe, expect, it } from 'vitest';
-import { worldStore } from '../store/worldStore';
-import { RecipeRunner } from './recipeRunner';
-import { concebollaRecipe, clasicaRecipe } from '../data/catalog/recipes';
-import type { Recipe } from '../types/Recipe';
-import { clearActionLog, getActionLog } from '../store/middleware/actionLog';
-
-function seedTestWorld() {
-  worldStore.setState({
-    entities: {
-      chef: { id: 'chef', name: 'Chef Tortilla 🍳', type: 'mascot', state: { gazingAt: null } },
-      onion: { id: 'onion', ingredientId: 'onion', name: 'Onion', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-      potato: { id: 'potato', ingredientId: 'potato', name: 'Potato', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-      egg: { id: 'egg', ingredientId: 'egg', name: 'Egg', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-      oil: { id: 'oil', ingredientId: 'oil', name: 'Oil', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-      salt: { id: 'salt', ingredientId: 'salt', name: 'Salt', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-      pepper: { id: 'pepper', ingredientId: 'pepper', name: 'Pepper', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-    },
-    containers: {
-      despensa: {
-        id: 'despensa',
-        name: 'Despensa',
-        type: 'storage',
-        entityIds: ['onion', 'potato', 'egg', 'oil', 'salt', 'pepper'],
-        rules: { isImmutable: true },
-      },
-      sink: {
-        id: 'sink',
-        name: 'Sink',
-        type: 'sink',
-        entityIds: [],
-        rules: { maxCapacity: 10 },
-      },
-      board: {
-        id: 'board',
-        name: 'Board',
-        type: 'board',
-        entityIds: [],
-        rules: { maxCapacity: 10 },
-      },
-      bowl: {
-        id: 'bowl',
-        name: 'Bowl',
-        type: 'bowl',
-        entityIds: [],
-        rules: { maxCapacity: 10 },
-      },
-      pan: {
-        id: 'pan',
-        name: 'Pan',
-        type: 'pan',
-        entityIds: [],
-        rules: { maxCapacity: 5 },
-      },
-      plate: {
-        id: 'plate',
-        name: 'Plate',
-        type: 'plate',
-        entityIds: [],
-        rules: { maxCapacity: 5 },
-      },
-    },
-    dispatch: worldStore.getState().dispatch,
-  });
-}
-
-describe('RecipeRunner System', () => {
-  beforeEach(() => {
-    seedTestWorld();
-    clearActionLog();
-  });
-
-  it('runs a declarative recipe and populates target container', async () => {
-    const runner = new RecipeRunner({ mascotId: 'chef', defaultTargetId: 'board', delayMs: 5 });
-    await runner.runRecipe(concebollaRecipe);
-
-    const state = worldStore.getState();
-    // New concebolla format uses a serve step that collects everything onto the plate
-    expect(state.containers.plate.entityIds.length).toBeGreaterThanOrEqual(1);
-
-    const actionNames = getActionLog().map((a) => a.action);
-    expect(actionNames).toContain('MASCOT_MOVE');
-    expect(actionNames).toContain('MASCOT_GRAB');
-    expect(actionNames).toContain('MASCOT_DROP');
-    expect(actionNames).toContain('MASCOT_FLIP');
-  });
-
-  it('mutates existing entity state for cut/prepare without creating new entity', async () => {
-    // Move onion to board first
-    const runner = new RecipeRunner({ mascotId: 'chef', defaultTargetId: 'board', delayMs: 5 });
-    await runner.runSteps([
-      { action: 'move', ingredient: 'onion', source: 'despensa', target: 'board' },
-      { action: 'cut', ingredient: 'onion', style: 'diced', containerId: 'board' },
-    ]);
-
-    const state = worldStore.getState();
-    const boardEntities = state.containers.board.entityIds.map((id) => state.entities[id]);
-    const dicedOnion = boardEntities.find((e) => e?.ingredientId === 'onion');
-
-    expect(dicedOnion).toBeDefined();
-    // Verify entity ID was retained (no recreation!)
-    expect(dicedOnion?.state?.preparation).toBe('diced');
-
-    const actionNames = getActionLog().map((a) => a.action);
-    expect(actionNames).toContain('PREPARE_INGREDIENT');
-  });
-
-  it('mutates existing entity state for cook step', async () => {
-    const runner = new RecipeRunner({ mascotId: 'chef', defaultTargetId: 'pan', delayMs: 5 });
-    await runner.runSteps([
-      { action: 'move', ingredient: 'potato', source: 'despensa', target: 'pan' },
-      { action: 'cook', ingredient: 'potato', method: 'fried', containerId: 'pan' },
-    ]);
-
-    const state = worldStore.getState();
-    const panEntities = state.containers.pan.entityIds.map((id) => state.entities[id]);
-    const friedPotato = panEntities.find((e) => e?.ingredientId === 'potato');
-
-    expect(friedPotato).toBeDefined();
-    expect(friedPotato?.state?.cooking).toBe('fried');
-
-    const actionNames = getActionLog().map((a) => a.action);
-    expect(actionNames).toContain('COOK_INGREDIENT');
-  });
-
-  it('handles speak, wait, and celebrate steps', async () => {
-    const customRecipe: Recipe = {
-      id: 'custom-test',
-      name: 'Custom Test Recipe',
-      ingredients: [],
-      steps: [
-        { action: 'speak', message: 'Cooking initialized!' },
-        { action: 'wait', durationMs: 10 },
-        { action: 'celebrate' },
-      ],
-    };
-
-    const runner = new RecipeRunner({ mascotId: 'chef', delayMs: 5 });
-    await runner.runRecipe(customRecipe);
-
-    const state = worldStore.getState();
-    expect(state.entities.chef.state?.speechMessage).toBe('Cooking initialized!');
-    // After celebrate step, clearTortillaGaze is called → gazingAt is null.
-    expect(state.entities.chef.state?.gazingAt).toBeNull();
-  });
-
-  it('executes clasicaRecipe dictionary steps and state transformations', async () => {
-    const runner = new RecipeRunner({ mascotId: 'chef', delayMs: 5 });
-    await runner.runRecipe(clasicaRecipe);
-
-    const state = worldStore.getState();
-    const plateEntities = state.containers.plate.entityIds.map((id) => state.entities[id]);
-    expect(plateEntities.length).toBeGreaterThan(0);
-
-    const actionNames = getActionLog().map((a) => a.action);
-    expect(actionNames).toContain('PREPARE_INGREDIENT');
-    expect(actionNames).toContain('COOK_INGREDIENT');
-    expect(actionNames).toContain('MASCOT_FLIP');
-  });
-
-  it('binds distinct entity IDs when dropping copies from immutable despensa container', async () => {
-    const multiIngredientRecipe: Recipe = {
-      id: 'multi-potato',
-      name: 'Two Potatoes Recipe',
-      ingredients: [
-        { id: 'p1', ingredientId: 'potato', amount: 1, unit: 'unit' },
-        { id: 'p2', ingredientId: 'potato', amount: 1, unit: 'unit' },
-      ],
-      steps: [
-        { action: 'move', ingredient: 'p1', source: 'despensa', target: 'board' },
-        { action: 'cut', target: 'p1', style: 'diced', containerId: 'board' },
-        { action: 'move', ingredient: 'p2', source: 'despensa', target: 'sink' },
-        { action: 'wash', target: 'p2', containerId: 'sink' },
-      ],
-    };
-
-    const runner = new RecipeRunner({ mascotId: 'chef', delayMs: 5 });
-    await runner.runRecipe(multiIngredientRecipe);
-
-    const p1Id = runner.recipeContext.bindings['p1'];
-    const p2Id = runner.recipeContext.bindings['p2'];
-
-    expect(p1Id).toBeDefined();
-    expect(p2Id).toBeDefined();
-    expect(p1Id).not.toBe(p2Id);
-
-    const state = worldStore.getState();
-    const p1Entity = state.entities[p1Id];
-    const p2Entity = state.entities[p2Id];
-
-    expect(p1Entity?.state?.preparation).toBe('diced');
-    expect(p2Entity?.state?.preparation).toBe('washed');
-  });
-
-  it('creates a real mixture entity and consumes input ingredients on mix', async () => {
-    const mixRecipe: Recipe = {
-      id: 'mix-test',
-      name: 'Mix Test',
-      ingredients: [
-        { id: 'egg1', ingredientId: 'egg', amount: 1, unit: 'unit' },
-        { id: 'salt1', ingredientId: 'salt', amount: 1, unit: 'unit' },
-      ],
-      steps: [
-        { action: 'mix', inputs: ['egg1', 'salt1'], targetContainerId: 'bowl', output: 'batter' },
-      ],
-    };
-
-    const runner = new RecipeRunner({ mascotId: 'chef', delayMs: 5 });
-    await runner.runRecipe(mixRecipe);
-
-    const state = worldStore.getState();
-    const mixtureEntityId = runner.recipeContext.bindings['batter'];
-    expect(mixtureEntityId).toBeDefined();
-
-    const mixtureEntity = state.entities[mixtureEntityId];
-    expect(mixtureEntity).toBeDefined();
-    expect(mixtureEntity.name).toBe('batter');
-    expect(state.containers.bowl.entityIds).toContain(mixtureEntityId);
-
-    // Verify input ingredients were marked as consumed and removed from containers
-    const eggEntity = state.entities[runner.recipeContext.bindings['egg1']];
-    const saltEntity = state.entities[runner.recipeContext.bindings['salt1']];
-
-    expect(eggEntity?.state?.consumed).toBe(true);
-    expect(saltEntity?.state?.consumed).toBe(true);
-
-    expect(state.containers.bowl.entityIds).not.toContain(eggEntity.id);
-    expect(state.containers.bowl.entityIds).not.toContain(saltEntity.id);
-  });
-});
-</file>
-
-<file path="src/components/Recipe/RecipePanel.tsx">
-/**
- * FILE: RecipePanel.tsx
- *
- * PURPOSE:
- * Compact, unintrusive recipe selector and catalog viewer.
- *
- * RESPONSIBILITY:
- * - Wires catalog recipes (Con Cebolla, Sin Cebolla) with RecipeIngredientList.
- * - Provides a "Follow the recipe" button for each recipe to automate mascot actions.
- * - Displays active recipe requirements and matches with current world state.
- */
-
-import { useState } from 'react';
-import { useStore } from 'zustand';
-import { ingredients as ingredientCatalog } from '../../data/catalog/ingredients';
-import { recipes } from '../../data/catalog/recipes';
-import { RecipeIngredientList } from '../Ingredients/RecipeIngredientList';
-import { worldStore } from '../../store/worldStore';
-import { countMatchingIngredients } from '../../systems/recipeMatcher';
-import { runFollowRecipeScript } from '../../systems/mascotActions';
-import { getRecipeIngredientsArray } from '../../types/Recipe';
-import './RecipePanel.scss';
-
-export function RecipePanel() {
-  const [selectedRecipeId, setSelectedRecipeId] = useState<string>(recipes[0]?.id || 'concebolla');
-  const [runningRecipeId, setRunningRecipeId] = useState<string | null>(null);
-  const [isExpanded, setIsExpanded] = useState<boolean>(false);
-
-  const activeRecipe = recipes.find((r) => r.id === selectedRecipeId) || recipes[0];
-
-  const entities = useStore(worldStore, (state) => state.entities);
-  const containers = useStore(worldStore, (state) => state.containers);
-  const dispatch = useStore(worldStore, (state) => state.dispatch);
-
-  // Collect ingredient entities currently placed in active workspace containers
-  const activeContainerEntities = Object.values(containers)
-    .filter((c) => c.id !== 'despensa')
-    .flatMap((c) => c.entityIds)
-    .map((id) => entities[id])
-    .filter(Boolean);
-
-  const matchResult = countMatchingIngredients(activeRecipe, activeContainerEntities);
-
-  const handleFollowRecipe = async (recipeId: string) => {
-    if (runningRecipeId !== null) return;
-    
-    // Auto-reset the kitchen world before starting a new recipe
-    dispatch({ type: 'RESET_WORLD' });
-
-    setSelectedRecipeId(recipeId);
-    setRunningRecipeId(recipeId);
-    try {
-      await runFollowRecipeScript(recipeId, 'chef', 'board', 600);
-    } finally {
-      setRunningRecipeId(null);
-    }
-  };
-
-  if (!activeRecipe) return null;
-
-  return (
-    <div className="recipe-panel compact-recipe-panel">
-      <div className="recipe-panel-header">
-        <div className="recipe-selector">
-          {recipes.map((recipe) => (
-            <div
-              key={recipe.id}
-              className={`recipe-option ${selectedRecipeId === recipe.id ? 'active' : ''}`}
-            >
-              <button
-                type="button"
-                className={`recipe-tab ${selectedRecipeId === recipe.id ? 'active' : ''}`}
-                onClick={() => setSelectedRecipeId(recipe.id)}
-              >
-                {recipe.name}
-              </button>
-              <button
-                type="button"
-                className="follow-recipe-btn"
-                disabled={runningRecipeId !== null}
-                onClick={() => handleFollowRecipe(recipe.id)}
-                title={`Bring all ingredients for ${recipe.name} to the table`}
-              >
-                {runningRecipeId === recipe.id ? '⏳ Following...' : '👨‍🍳 Follow the recipe'}
-              </button>
-            </div>
-          ))}
-        </div>
-
-        <div className="recipe-header-right">
-          <div className="recipe-status">
-            Match: <span className="highlight-count">{matchResult.matchingCount}</span> / {matchResult.totalCount}
-          </div>
-          <button
-            type="button"
-            className="recipe-toggle-btn"
-            onClick={() => dispatch({ type: 'RESET_WORLD' })}
-            disabled={runningRecipeId !== null}
-            title="Clean the kitchen and start over"
-          >
-            🔄 Reset
-          </button>
-          <button
-            type="button"
-            className="recipe-toggle-btn"
-            onClick={() => setIsExpanded(!isExpanded)}
-            title={isExpanded ? 'Collapse ingredient list' : 'Expand ingredient list'}
-          >
-            {isExpanded ? '▲ Hide List' : '▼ Ingredients'}
-          </button>
-        </div>
-      </div>
-
-      {isExpanded && (
-        <div className="recipe-content compact">
-          <RecipeIngredientList
-            ingredients={getRecipeIngredientsArray(activeRecipe)}
-            ingredientCatalog={ingredientCatalog}
-          />
-        </div>
-      )}
-    </div>
-  );
-}
-</file>
-
 <file path="src/systems/mascot.ts">
 /**
  * FILE: mascot.ts
@@ -11840,6 +13184,412 @@ export const getEntitiesInContainer = (state: WorldState, containerId: string): 
     .map((id) => state.entities[id])
     .filter((entity): entity is Entity => entity !== undefined);
 };
+</file>
+
+<file path="src/systems/recipeRunner.test.ts">
+/**
+ * FILE: recipeRunner.test.ts
+ *
+ * PURPOSE:
+ * Unit tests for the generic RecipeRunner step-based state machine.
+ */
+
+import { beforeEach, describe, expect, it } from 'vitest';
+import { worldStore } from '../store/worldStore';
+import { RecipeRunner } from './recipeRunner';
+import { concebollaRecipe, clasicaRecipe } from '../data/catalog/recipes';
+import type { Recipe } from '../types/Recipe';
+import { clearActionLog, getActionLog } from '../store/middleware/actionLog';
+
+function seedTestWorld() {
+  worldStore.setState({
+    entities: {
+      chef: { id: 'chef', name: 'Chef Tortilla 🍳', type: 'mascot', state: { gazingAt: null } },
+      onion: { id: 'onion', ingredientId: 'onion', name: 'Onion', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+      potato: { id: 'potato', ingredientId: 'potato', name: 'Potato', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+      egg: { id: 'egg', ingredientId: 'egg', name: 'Egg', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+      oil: { id: 'oil', ingredientId: 'oil', name: 'Oil', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+      salt: { id: 'salt', ingredientId: 'salt', name: 'Salt', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+      pepper: { id: 'pepper', ingredientId: 'pepper', name: 'Pepper', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+    },
+    containers: {
+      despensa: {
+        id: 'despensa',
+        name: 'Despensa',
+        type: 'storage',
+        entityIds: ['onion', 'potato', 'egg', 'oil', 'salt', 'pepper'],
+        rules: { isImmutable: true },
+      },
+      sink: {
+        id: 'sink',
+        name: 'Sink',
+        type: 'sink',
+        entityIds: [],
+        rules: { maxCapacity: 10 },
+      },
+      board: {
+        id: 'board',
+        name: 'Board',
+        type: 'board',
+        entityIds: [],
+        rules: { maxCapacity: 10 },
+      },
+      bowl: {
+        id: 'bowl',
+        name: 'Bowl',
+        type: 'bowl',
+        entityIds: [],
+        rules: { maxCapacity: 10 },
+      },
+      pan: {
+        id: 'pan',
+        name: 'Pan',
+        type: 'pan',
+        entityIds: [],
+        rules: { maxCapacity: 5 },
+      },
+      plate: {
+        id: 'plate',
+        name: 'Plate',
+        type: 'plate',
+        entityIds: [],
+        rules: { maxCapacity: 5 },
+      },
+    },
+    dispatch: worldStore.getState().dispatch,
+  });
+}
+
+describe('RecipeRunner System', () => {
+  beforeEach(() => {
+    seedTestWorld();
+    clearActionLog();
+  });
+
+  it('runs a declarative recipe and populates target container', async () => {
+    const runner = new RecipeRunner({ mascotId: 'chef', defaultTargetId: 'board', delayMs: 5 });
+    await runner.runRecipe(concebollaRecipe);
+
+    const state = worldStore.getState();
+    // New concebolla format uses a serve step that collects everything onto the plate
+    expect(state.containers.plate.entityIds.length).toBeGreaterThanOrEqual(1);
+
+    const actionNames = getActionLog().map((a) => a.action);
+    expect(actionNames).toContain('MASCOT_MOVE');
+    expect(actionNames).toContain('MASCOT_GRAB');
+    expect(actionNames).toContain('MASCOT_DROP');
+    expect(actionNames).toContain('MASCOT_FLIP');
+  });
+
+  it('mutates existing entity state for cut/prepare without creating new entity', async () => {
+    // Move onion to board first
+    const runner = new RecipeRunner({ mascotId: 'chef', defaultTargetId: 'board', delayMs: 5 });
+    await runner.runSteps([
+      { action: 'move', ingredient: 'onion', source: 'despensa', target: 'board' },
+      { action: 'cut', ingredient: 'onion', style: 'diced', containerId: 'board' },
+    ]);
+
+    const state = worldStore.getState();
+    const boardEntities = state.containers.board.entityIds.map((id) => state.entities[id]);
+    const dicedOnion = boardEntities.find((e) => e?.ingredientId === 'onion');
+
+    expect(dicedOnion).toBeDefined();
+    // Verify entity ID was retained (no recreation!)
+    expect(dicedOnion?.state?.preparation).toBe('diced');
+
+    const actionNames = getActionLog().map((a) => a.action);
+    expect(actionNames).toContain('PREPARE_INGREDIENT');
+  });
+
+  it('mutates existing entity state for cook step', async () => {
+    const runner = new RecipeRunner({ mascotId: 'chef', defaultTargetId: 'pan', delayMs: 5 });
+    await runner.runSteps([
+      { action: 'move', ingredient: 'potato', source: 'despensa', target: 'pan' },
+      { action: 'cook', ingredient: 'potato', method: 'fried', containerId: 'pan' },
+    ]);
+
+    const state = worldStore.getState();
+    const panEntities = state.containers.pan.entityIds.map((id) => state.entities[id]);
+    const friedPotato = panEntities.find((e) => e?.ingredientId === 'potato');
+
+    expect(friedPotato).toBeDefined();
+    expect(friedPotato?.state?.cooking).toBe('fried');
+
+    const actionNames = getActionLog().map((a) => a.action);
+    expect(actionNames).toContain('COOK_INGREDIENT');
+  });
+
+  it('handles speak, wait, and celebrate steps', async () => {
+    const customRecipe: Recipe = {
+      id: 'custom-test',
+      name: 'Custom Test Recipe',
+      requirements: [],
+      steps: [
+        { action: 'speak', message: 'Cooking initialized!' },
+        { action: 'wait', durationMs: 10 },
+        { action: 'celebrate' },
+      ],
+    };
+
+    const runner = new RecipeRunner({ mascotId: 'chef', delayMs: 5 });
+    await runner.runRecipe(customRecipe);
+
+    const state = worldStore.getState();
+    expect(state.entities.chef.state?.speechMessage).toBe('Cooking initialized!');
+    // After celebrate step, clearTortillaGaze is called → gazingAt is null.
+    expect(state.entities.chef.state?.gazingAt).toBeNull();
+  });
+
+  it('executes clasicaRecipe dictionary steps and state transformations', async () => {
+    const runner = new RecipeRunner({ mascotId: 'chef', delayMs: 5 });
+    await runner.runRecipe(clasicaRecipe);
+
+    const state = worldStore.getState();
+    const plateEntities = state.containers.plate.entityIds.map((id) => state.entities[id]);
+    expect(plateEntities.length).toBeGreaterThan(0);
+
+    const actionNames = getActionLog().map((a) => a.action);
+    expect(actionNames).toContain('PREPARE_INGREDIENT');
+    expect(actionNames).toContain('COOK_INGREDIENT');
+    expect(actionNames).toContain('MASCOT_FLIP');
+  });
+
+  it('binds distinct entity IDs when dropping copies from immutable despensa container', async () => {
+    const multiIngredientRecipe: Recipe = {
+      id: 'multi-potato',
+      name: 'Two Potatoes Recipe',
+      requirements: [
+        { id: 'p1', entityId: 'potato', amount: 1, unit: 'unit' },
+        { id: 'p2', entityId: 'potato', amount: 1, unit: 'unit' },
+      ],
+      steps: [
+        { action: 'move', ingredient: 'p1', source: 'despensa', target: 'board' },
+        { action: 'cut', target: 'p1', style: 'diced', containerId: 'board' },
+        { action: 'move', ingredient: 'p2', source: 'despensa', target: 'sink' },
+        { action: 'wash', target: 'p2', containerId: 'sink' },
+      ],
+    };
+
+    const runner = new RecipeRunner({ mascotId: 'chef', delayMs: 5 });
+    await runner.runRecipe(multiIngredientRecipe);
+
+    const p1Id = runner.recipeContext.bindings['p1'];
+    const p2Id = runner.recipeContext.bindings['p2'];
+
+    expect(p1Id).toBeDefined();
+    expect(p2Id).toBeDefined();
+    expect(p1Id).not.toBe(p2Id);
+
+    const state = worldStore.getState();
+    const p1Entity = state.entities[p1Id];
+    const p2Entity = state.entities[p2Id];
+
+    expect(p1Entity?.state?.preparation).toBe('diced');
+    expect(p2Entity?.state?.preparation).toBe('washed');
+  });
+
+  it('creates a real mixture entity and consumes input ingredients on mix', async () => {
+    const mixRecipe: Recipe = {
+      id: 'mix-test',
+      name: 'Mix Test',
+      requirements: [
+        { id: 'egg1', entityId: 'egg', amount: 1, unit: 'unit' },
+        { id: 'salt1', entityId: 'salt', amount: 1, unit: 'unit' },
+      ],
+      steps: [
+        { action: 'mix', inputs: ['egg1', 'salt1'], targetContainerId: 'bowl', output: 'batter' },
+      ],
+    };
+
+    const runner = new RecipeRunner({ mascotId: 'chef', delayMs: 5 });
+    await runner.runRecipe(mixRecipe);
+
+    const state = worldStore.getState();
+    const mixtureEntityId = runner.recipeContext.bindings['batter'];
+    expect(mixtureEntityId).toBeDefined();
+
+    const mixtureEntity = state.entities[mixtureEntityId];
+    expect(mixtureEntity).toBeDefined();
+    expect(mixtureEntity.name).toBe('batter');
+    expect(state.containers.bowl.entityIds).toContain(mixtureEntityId);
+
+    // Verify input ingredients were marked as consumed and removed from containers
+    const eggEntity = state.entities[runner.recipeContext.bindings['egg1']];
+    const saltEntity = state.entities[runner.recipeContext.bindings['salt1']];
+
+    expect(eggEntity?.state?.consumed).toBe(true);
+    expect(saltEntity?.state?.consumed).toBe(true);
+
+    expect(state.containers.bowl.entityIds).not.toContain(eggEntity.id);
+    expect(state.containers.bowl.entityIds).not.toContain(saltEntity.id);
+  });
+});
+</file>
+
+<file path="src/components/Recipe/RecipePanel.tsx">
+/**
+ * FILE: RecipePanel.tsx
+ *
+ * PURPOSE:
+ * Compact, unintrusive recipe selector and catalog viewer.
+ *
+ * RESPONSIBILITY:
+ * - Wires catalog recipes (Con Cebolla, Sin Cebolla) with RecipeRequirements.
+ * - Provides a "Follow the recipe" button for each recipe to automate mascot actions.
+ * - Displays active recipe requirements and matches with current world state.
+ */
+
+import { useState } from 'react';
+import { useStore } from 'zustand';
+import { recipes } from '../../data/catalog/recipes';
+import { RecipeRequirements } from './RecipeRequirements';
+import { worldStore } from '../../store/worldStore';
+import { countMatchingRequirements } from '../../systems/recipeMatcher';
+import { runFollowRecipeScript } from '../../systems/mascotActions';
+import { getRecipeRequirementsArray } from '../../types/Recipe';
+import './RecipePanel.scss';
+
+export function RecipePanel() {
+  const [selectedRecipeId, setSelectedRecipeId] = useState<string>(recipes[0]?.id || 'concebolla');
+  const [runningRecipeId, setRunningRecipeId] = useState<string | null>(null);
+  const [isExpanded, setIsExpanded] = useState<boolean>(false);
+
+  const activeRecipe = recipes.find((r) => r.id === selectedRecipeId) || recipes[0];
+
+  const entities = useStore(worldStore, (state) => state.entities);
+  const containers = useStore(worldStore, (state) => state.containers);
+  const dispatch = useStore(worldStore, (state) => state.dispatch);
+
+  // Collect entities currently placed in active workspace containers
+  const activeContainerEntities = Object.values(containers)
+    .filter((c) => c.id !== 'despensa')
+    .flatMap((c) => c.entityIds)
+    .map((id) => entities[id])
+    .filter(Boolean);
+
+  const matchResult = countMatchingRequirements(activeRecipe, activeContainerEntities);
+
+  const handleFollowRecipe = async (recipeId: string) => {
+    if (runningRecipeId !== null) return;
+    
+    // Auto-reset the kitchen world before starting a new recipe
+    dispatch({ type: 'RESET_WORLD' });
+
+    setSelectedRecipeId(recipeId);
+    setRunningRecipeId(recipeId);
+    try {
+      await runFollowRecipeScript(recipeId, 'chef', 'board', 600);
+    } finally {
+      setRunningRecipeId(null);
+    }
+  };
+
+  if (!activeRecipe) return null;
+
+  return (
+    <div className="recipe-panel compact-recipe-panel">
+      <div className="recipe-panel-header">
+        <div className="recipe-selector">
+          {recipes.map((recipe) => (
+            <div
+              key={recipe.id}
+              className={`recipe-option ${selectedRecipeId === recipe.id ? 'active' : ''}`}
+            >
+              <button
+                type="button"
+                className={`recipe-tab ${selectedRecipeId === recipe.id ? 'active' : ''}`}
+                onClick={() => setSelectedRecipeId(recipe.id)}
+              >
+                {recipe.name}
+              </button>
+              <button
+                type="button"
+                className="follow-recipe-btn"
+                disabled={runningRecipeId !== null}
+                onClick={() => handleFollowRecipe(recipe.id)}
+                title={`Bring all requirements for ${recipe.name} to the table`}
+              >
+                {runningRecipeId === recipe.id ? '⏳ Following...' : '👨‍🍳 Follow the recipe'}
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <div className="recipe-header-right">
+          <div className="recipe-status">
+            Match: <span className="highlight-count">{matchResult.matchingCount}</span> / {matchResult.totalCount}
+          </div>
+          <button
+            type="button"
+            className="recipe-toggle-btn"
+            onClick={() => dispatch({ type: 'RESET_WORLD' })}
+            disabled={runningRecipeId !== null}
+            title="Clean the kitchen and start over"
+          >
+            🔄 Reset
+          </button>
+          <button
+            type="button"
+            className="recipe-toggle-btn"
+            onClick={() => setIsExpanded(!isExpanded)}
+            title={isExpanded ? 'Collapse requirements' : 'Expand requirements'}
+          >
+            {isExpanded ? '▲ Hide Requirements' : '▼ Requirements'}
+          </button>
+        </div>
+      </div>
+
+      {isExpanded && (
+        <div className="recipe-content compact">
+          <RecipeRequirements requirements={getRecipeRequirementsArray(activeRecipe)} />
+        </div>
+      )}
+    </div>
+  );
+}
+</file>
+
+<file path="package.json">
+{
+  "name": "tortilla-world",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
+    "framer-motion": "^12.42.2",
+    "immer": "^11.1.15",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "zustand": "^5.0.14"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.13.2",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.3",
+    "eslint": "^10.6.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.3",
+    "globals": "^17.7.0",
+    "repomix": "^1.16.1",
+    "sass-embedded": "^1.100.0",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.62.0",
+    "vite": "^8.1.1",
+    "vitest": "^4.1.10"
+  }
+}
 </file>
 
 <file path="docs/decisions.md">
@@ -12576,6 +14326,37 @@ The Recipe System executes declarative, step-based recipe state machines via `Re
 
 ---
 
+# Decision: Refactor Ingredient Usage Actions into Domain Events
+
+## Context
+Previously, `CONSUME_INGREDIENT` was dispatched directly as a user action. This mixed user intent, recipe execution logic, and entity lifecycle mutation.
+
+## Decision
+Separated player intentions from world state consequences:
+1. **User Intent Action (`USE_INGREDIENT`)**: High-level action dispatched when an ingredient is used (`{ entityId, usedIn }`).
+2. **Domain Event (`INGREDIENT_CONSUMED`)**: Reactive domain event emitted when an ingredient is consumed (`{ entityId, consumedBy }`).
+
+## Flow
+```text
+User Interaction / RecipeRunner
+           |
+           v
+    USE_INGREDIENT (Action)
+           |
+           v
+    Ingredient System / World Store
+    +--> Transfer entity to container / recipe
+    +--> Set consumed state (consumed: true, consumedBy)
+    +--> Emit INGREDIENT_CONSUMED (Domain Event)
+```
+
+## Consequences
+- Clean separation between user intent and domain event consequences.
+- Allows ingredient undo/reversion (`revertIngredientUsage`).
+- Decouples UI / RecipeRunner from direct lifecycle state mutation.
+
+---
+
 # Final Principle
 
 The rule of Tortilla World:
@@ -12591,6 +14372,76 @@ Actions describe intentions.
 
 The Store remembers the result.
 ```
+</file>
+
+<file path="src/components/Ingredients/IngredientList.tsx">
+/**
+ * FILE: IngredientList.tsx
+ *
+ * PURPOSE:
+ * Displays a collection/container of ingredients.
+ *
+ * RESPONSIBILITY:
+ * - Renders container title and its inner entities.
+ * - Acts as a droppable target for drag-and-drop.
+ */
+
+import { useStore } from 'zustand';
+import { useDroppable } from '@dnd-kit/core';
+import { worldStore } from '../../store/worldStore';
+import type { Container, Entity } from '../../types/world';
+import { IngredientListItem } from './IngredientListItem';
+
+interface IngredientListProps {
+  key?: string | number;
+  container: Container;
+}
+
+export function IngredientList({ container }: IngredientListProps) {
+  const entities = useStore(worldStore, (state) => state.entities);
+
+  // Set up dnd-kit droppable binding for this container
+  const { setNodeRef, isOver } = useDroppable({
+    id: container.id,
+  });
+
+  const containerEntities = container.entityIds
+    .map((id: string) => entities[id])
+    .filter((e: Entity | undefined): e is Entity => Boolean(e));
+
+  const getWorkstationBadge = (id: string) => {
+    switch (id) {
+      case 'sink': return 'Washing Area 💧';
+      case 'board': return 'Cutting Workspace 🔪';
+      case 'bowl': return 'Preparation 🥣';
+      case 'pan': return 'Cooking Heat 🍳';
+      case 'plate': return 'Serving Stage 🍽️';
+      case 'despensa': return 'Pantry 🧺';
+      default: return 'Workstation 🍳';
+    }
+  };
+
+  return (
+    <div 
+      ref={setNodeRef} 
+      data-container-id={container.id}
+      className={`ingredient-list workstation-${container.id} ${isOver ? 'drag-over' : ''}`}
+    >
+      <div className="workstation-header">
+        <h3>{container.name}</h3>
+        <span className="workstation-type-badge">{getWorkstationBadge(container.id)}</span>
+      </div>
+      <div className="items-container">
+        {containerEntities.map((entity: Entity) => (
+          <IngredientListItem key={entity.id} entity={entity} containerId={container.id} />
+        ))}
+        {containerEntities.length === 0 && (
+          <span className="empty-hint">Drop ingredients here</span>
+        )}
+      </div>
+    </div>
+  );
+}
 </file>
 
 <file path="src/data/catalog/recipes/concebolla.ts">
@@ -12613,34 +14464,34 @@ export const concebollaRecipe: Recipe = {
   
   name: 'Tortilla con Cebolla',
 
-  ingredients: {
+  requirements: {
     potatoes: {
-      ingredientId: 'potato',
+      entityId: 'potato',
       amount: 4,
       unit: 'pcs',
     },
     eggs: {
-      ingredientId: 'egg',
+      entityId: 'egg',
       amount: 6,
       unit: 'pcs',
     },
     oil: {
-      ingredientId: 'oil',
+      entityId: 'oil',
       amount: 100,
       unit: 'ml',
     },
     onions: {
-      ingredientId: 'onion',
+      entityId: 'onion',
       amount: 1,
       unit: 'pcs',
     },
     salt: {
-      ingredientId: 'salt',
+      entityId: 'salt',
       amount: 1,
       unit: 'tsp',
     },
     pepper: {
-      ingredientId: 'pepper',
+      entityId: 'pepper',
       amount: 1,
       unit: 'pinch',
     },
@@ -12799,273 +14650,107 @@ import type { PreparationStyle, CookingMethod } from './RecipeStep';
 
 export type WorldAction =
   | {
-      type: 'MOVE_ENTITY';
-      payload: {
-        entityId: string;
-        targetContainerId: string;
-        positionIndex?: number;
-      };
-    }
-  | {
-      type: 'ADD_ENTITY';
-      payload: {
-        entity: {
-          id: string;
-          name: string;
-          type: EntityType;
-          state?: Record<string, unknown>;
-        };
-        containerId: string;
-      };
-    }
-  | {
-      type: 'REMOVE_ENTITY';
-      payload: {
-        entityId: string;
-      };
-    }
-  | {
-      type: 'UPDATE_ENTITY_STATE';
-      payload: {
-        entityId: string;
-        changes: Record<string, unknown>;
-      };
-    }
-  | {
-      type: 'PREPARE_INGREDIENT';
-      payload: {
-        entityId: string;
-        preparation: PreparationStyle;
-      };
-    }
-  | {
-      type: 'COOK_INGREDIENT';
-      payload: {
-        entityId: string;
-        cooking: CookingMethod;
-      };
-    }
-  | {
-      type: 'CONSUME_INGREDIENT';
-      payload: {
-        entityId: string;
-        consumedBy?: string;
-      };
-    }
-  | {
-      type: 'MASCOT_FLIP';
-      payload: {
-        mascotId?: string;
-      };
-    }
-  | {
-      type: 'MASCOT_MOVE';
-      payload: {
-        mascotId?: string;
-        targetContainerId: string;
-      };
-    }
-  | {
-      type: 'MASCOT_GRAB';
-      payload: {
-        mascotId?: string;
-        entityId: string;
-        sourceContainerId?: string;
-      };
-    }
-  | {
-      type: 'MASCOT_DROP';
-      payload: {
-        mascotId?: string;
-        targetContainerId: string;
-        positionIndex?: number;
-      };
-    }
-  | {
-      type: 'MASCOT_CLEAR_GAZE';
-      payload: {
-        mascotId?: string;
-      };
-    }
-  | {
-      type: 'RESET_WORLD';
-      payload?: Record<string, never>;
+    type: 'MOVE_ENTITY';
+    payload: {
+      entityId: string;
+      targetContainerId: string;
+      positionIndex?: number;
     };
-</file>
-
-<file path="src/types/world.ts">
-/**
- * FILE: world.ts
- *
- * PURPOSE:
- * Defines complete world state structures.
- *
- * RESPONSIBILITY:
- * - Describes the game world's data model.
- */
-
-import type { WorldAction } from './actions';
-import type { PreparationStyle, CookingMethod } from './RecipeStep';
-
-export type EntityType = 'ingredient' | 'tool' | 'mascot';
-export type ContainerType = 'storage' | 'pan' | 'board' | 'plate' | 'trash' | 'bowl' | 'sink';
-
-export interface IngredientState {
-  preparation?: PreparationStyle;
-  cooking?: CookingMethod;
-  status?: string;
-  [key: string]: unknown;
-}
-
-export interface Entity {
-  id: string;
-  name: string;
-  type: EntityType;
-  ingredientId?: string;
-  state?: IngredientState;
-}
-
-export interface ContainerRules {
-  maxCapacity?: number;
-  allowedTypes?: EntityType[];
-  uniqueTypesOnly?: boolean;
-  consumesOnDrag?: boolean;
-  isImmutable?: boolean;
-  customValidator?: ( 
-    container: Container,
-    entity: Entity,
-    currentEntities: Entity[]
-  ) => boolean;
-}
-
-export interface Container {
-  id: string;
-  name: string;
-  type: ContainerType;
-  entityIds: string[];
-  rules?: ContainerRules;
-}
-
-export interface WorldState {
-  entities: Record<string, Entity>;
-  containers: Record<string, Container>;
-  dispatch: (action: WorldAction) => void;
-}
-
-export type { WorldAction };
-</file>
-
-<file path="package.json">
-{
-  "name": "tortilla-world",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview",
-    "test": "vitest run"
-  },
-  "dependencies": {
-    "@dnd-kit/core": "^6.3.1",
-    "@dnd-kit/sortable": "^10.0.0",
-    "@dnd-kit/utilities": "^3.2.2",
-    "framer-motion": "^12.42.2",
-    "immer": "^11.1.15",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7",
-    "zustand": "^5.0.14"
-  },
-  "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "@types/node": "^24.13.2",
-    "@types/react": "^19.2.17",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^6.0.3",
-    "eslint": "^10.6.0",
-    "eslint-plugin-react-hooks": "^7.1.1",
-    "eslint-plugin-react-refresh": "^0.5.3",
-    "globals": "^17.7.0",
-    "repomix": "^1.16.1",
-    "sass-embedded": "^1.100.0",
-    "typescript": "~6.0.2",
-    "typescript-eslint": "^8.62.0",
-    "vite": "^8.1.1",
-    "vitest": "^4.1.10"
   }
-}
-</file>
-
-<file path="src/components/Ingredients/IngredientList.tsx">
-/**
- * FILE: IngredientList.tsx
- *
- * PURPOSE:
- * Displays a collection/container of ingredients.
- *
- * RESPONSIBILITY:
- * - Renders container title and its inner entities.
- * - Acts as a droppable target for drag-and-drop.
- */
-
-import { useStore } from 'zustand';
-import { useDroppable } from '@dnd-kit/core';
-import { worldStore } from '../../store/worldStore';
-import type { Container, Entity } from '../../types/world';
-import { IngredientListItem } from './IngredientListItem';
-
-interface IngredientListProps {
-  key?: string | number;
-  container: Container;
-}
-
-export function IngredientList({ container }: IngredientListProps) {
-  const entities = useStore(worldStore, (state) => state.entities);
-
-  // Set up dnd-kit droppable binding for this container
-  const { setNodeRef, isOver } = useDroppable({
-    id: container.id,
-  });
-
-  const containerEntities = container.entityIds
-    .map((id: string) => entities[id])
-    .filter((e: Entity | undefined): e is Entity => Boolean(e));
-
-  const getWorkstationBadge = (id: string) => {
-    switch (id) {
-      case 'sink': return 'Washing Area 💧';
-      case 'board': return 'Cutting Workspace 🔪';
-      case 'bowl': return 'Preparation 🥣';
-      case 'pan': return 'Cooking Heat 🍳';
-      case 'plate': return 'Serving Stage 🍽️';
-      case 'despensa': return 'Pantry 🧺';
-      default: return 'Workstation 🍳';
-    }
+  | {
+    type: 'ADD_ENTITY';
+    payload: {
+      entity: {
+        id: string;
+        name: string;
+        type: EntityType;
+        state?: Record<string, unknown>;
+      };
+      containerId: string;
+    };
+  }
+  | {
+    type: 'REMOVE_ENTITY';
+    payload: {
+      entityId: string;
+    };
+  }
+  | {
+    type: 'UPDATE_ENTITY_STATE';
+    payload: {
+      entityId: string;
+      changes: Record<string, unknown>;
+    };
+  }
+  | {
+    type: 'PREPARE_INGREDIENT';
+    payload: {
+      entityId: string;
+      preparation: PreparationStyle;
+    };
+  }
+  | {
+    type: 'COOK_INGREDIENT';
+    payload: {
+      entityId: string;
+      cooking: CookingMethod;
+    };
+  }
+  | {
+    type: 'USE_INGREDIENT';
+    payload: {
+      entityId: string;
+      usedIn?: string;
+    };
+  }
+  | {
+    type: 'MASCOT_FLIP';
+    payload: {
+      mascotId?: string;
+    };
+  }
+  | {
+    type: 'MASCOT_MOVE';
+    payload: {
+      mascotId?: string;
+      targetContainerId: string;
+    };
+  }
+  | {
+    type: 'MASCOT_GRAB';
+    payload: {
+      mascotId?: string;
+      entityId: string;
+      sourceContainerId?: string;
+    };
+  }
+  | {
+    type: 'MASCOT_DROP';
+    payload: {
+      mascotId?: string;
+      targetContainerId: string;
+      positionIndex?: number;
+    };
+  }
+  | {
+    type: 'MASCOT_CLEAR_GAZE';
+    payload: {
+      mascotId?: string;
+    };
+  }
+  | {
+    type: 'RESET_WORLD';
+    payload?: Record<string, never>;
   };
 
-  return (
-    <div 
-      ref={setNodeRef} 
-      data-container-id={container.id}
-      className={`ingredient-list workstation-${container.id} ${isOver ? 'drag-over' : ''}`}
-    >
-      <div className="workstation-header">
-        <h3>{container.name}</h3>
-        <span className="workstation-type-badge">{getWorkstationBadge(container.id)}</span>
-      </div>
-      <div className="items-container">
-        {containerEntities.map((entity: Entity) => (
-          <IngredientListItem key={entity.id} entity={entity} containerId={container.id} />
-        ))}
-        {containerEntities.length === 0 && (
-          <span className="empty-hint">Drop ingredients here</span>
-        )}
-      </div>
-    </div>
-  );
-}
+export type WorldEvent =
+  | {
+    type: 'INGREDIENT_CONSUMED';
+    payload: {
+      entityId: string;
+      consumedBy?: string;
+    };
+  };
 </file>
 
 <file path="src/components/Ingredients/IngredientListItem.tsx">
@@ -13140,49 +14825,67 @@ export const IngredientListItem: React.FC<IngredientListItemProps> = ({ entity, 
 };
 </file>
 
-<file path="src/App.tsx">
+<file path="src/types/world.ts">
 /**
- * FILE: App.tsx
+ * FILE: world.ts
  *
  * PURPOSE:
- * Main React application component.
+ * Defines complete world state structures.
  *
  * RESPONSIBILITY:
- * - Creates the application layout.
- * - Connects major UI areas together.
- * - Acts as the entry point for the game world.
- *
- * SHOULD NOT:
- * - Contain game rules.
- * - Modify world state directly.
+ * - Describes the game world's data model.
  */
 
-import { Scene } from './components/Scene/Scene';
-import { Mascot } from './components/Mascot/Mascot';
-import { RecipePanel } from './components/Recipe/RecipePanel';
+import type { WorldAction, WorldEvent } from './actions';
+import type { PreparationStyle, CookingMethod } from './RecipeStep';
 
-function App() {
-  return (
-    <div className="app-container" style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px' }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
-        <div>
-          <h1 style={{ margin: 0, fontSize: '28px', color: 'var(--text-h)' }}>Tortilla World</h1>
-          <p style={{ margin: '4px 0 0 0', color: 'var(--text)', opacity: 0.8 }}>
-            An interactive simulation world. Drag ingredients from the immutable catalog pantry into workspace containers.
-          </p>
-        </div>
-        <Mascot />
-      </header>
+export type EntityType = 'ingredient' | 'tool' | 'product' | 'mascot' | 'container' | string;
+export type ContainerType = 'storage' | 'pan' | 'board' | 'plate' | 'trash' | 'bowl' | 'sink';
 
-      <main>
-        <RecipePanel />
-        <Scene />
-      </main>
-    </div>
-  );
+export interface IngredientState {
+  preparation?: PreparationStyle;
+  cooking?: CookingMethod;
+  status?: string;
+  [key: string]: unknown;
 }
 
-export default App;
+export interface Entity {
+  id: string;
+  name: string;
+  type: EntityType;
+  icon?: string;
+  ingredientId?: string;
+  state?: IngredientState;
+}
+
+export interface ContainerRules {
+  maxCapacity?: number;
+  allowedTypes?: EntityType[];
+  uniqueTypesOnly?: boolean;
+  consumesOnDrag?: boolean;
+  isImmutable?: boolean;
+  customValidator?: ( 
+    container: Container,
+    entity: Entity,
+    currentEntities: Entity[]
+  ) => boolean;
+}
+
+export interface Container {
+  id: string;
+  name: string;
+  type: ContainerType;
+  entityIds: string[];
+  rules?: ContainerRules;
+}
+
+export interface WorldState {
+  entities: Record<string, Entity>;
+  containers: Record<string, Container>;
+  dispatch: (action: WorldAction) => void;
+}
+
+export type { WorldAction, WorldEvent };
 </file>
 
 <file path="src/components/Mascot/TortillaSvg.tsx">
@@ -13659,50 +15362,49 @@ export function TortillaSvg({
 }
 </file>
 
-<file path="src/components/Scene/Scene.tsx">
+<file path="src/App.tsx">
 /**
- * FILE: Scene.tsx
+ * FILE: App.tsx
  *
  * PURPOSE:
- * Main game scene renderer.
+ * Main React application component.
  *
  * RESPONSIBILITY:
- * - Displays entities in the world.
- * - Connects world state with visual components.
+ * - Creates the application layout.
+ * - Connects major UI areas together.
+ * - Acts as the entry point for the game world.
  *
- * DOMAIN:
- * The bridge between game world and React UI.
+ * SHOULD NOT:
+ * - Contain game rules.
+ * - Modify world state directly.
  */
 
-import React from 'react';
-import { useStore } from 'zustand';
-import { DndContext } from '@dnd-kit/core';
-import { worldStore } from '../../store/worldStore';
-import { IngredientList } from '../Ingredients/IngredientList';
-import { useSceneDragAndDrop } from './useSceneDragAndDrop';
+import { Scene } from './components/Scene/Scene';
+import { Mascot } from './components/Mascot/Mascot';
+import { RecipePanel } from './components/Recipe/RecipePanel';
 
-export const Scene: React.FC = () => {
-  // 1. Mount the drag-and-drop input listeners and dispatch handler
-  const { sensors, handleDragEnd } = useSceneDragAndDrop();
-
-  // 2. Query the pure simulation state for rendering (hiding despensa container from UI view)
-  const containersMap = useStore(worldStore, (state) => state.containers);
-  const containers = Object.values(containersMap).filter((c) => c.id !== 'despensa');
-
+function App() {
   return (
-    // 3. The DndContext wrapper acts as the physical input boundary
-    <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-      <div className="scene">
-        {containers.map((container) => (
-  <IngredientList
-    key={container.id}
-    container={container}
-  />
-))}
-      </div>
-    </DndContext>
+    <div className="app-container" style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px' }}>
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+        <div>
+          <h1 style={{ margin: 0, fontSize: '28px', color: 'var(--text-h)' }}>Tortilla World</h1>
+          <p style={{ margin: '4px 0 0 0', color: 'var(--text)', opacity: 0.8 }}>
+            An interactive simulation world. Drag entities from the immutable catalog pantry into workspace containers.
+          </p>
+        </div>
+        <Mascot />
+      </header>
+
+      <main>
+        <RecipePanel />
+        <Scene />
+      </main>
+    </div>
   );
-};
+}
+
+export default App;
 </file>
 
 <file path="src/components/Scene/useSceneDragAndDrop.ts">
@@ -13977,6 +15679,56 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
 };
 </file>
 
+<file path="src/components/Scene/Scene.tsx">
+/**
+ * FILE: Scene.tsx
+ *
+ * PURPOSE:
+ * Main game scene renderer.
+ *
+ * RESPONSIBILITY:
+ * - Displays entities in the world.
+ * - Connects world state with visual components.
+ *
+ * DOMAIN:
+ * The bridge between game world and React UI.
+ */
+
+import React from 'react';
+import { useStore } from 'zustand';
+import { DndContext } from '@dnd-kit/core';
+import { worldStore } from '../../store/worldStore';
+import { ContainerView } from '../World/ContainerView';
+import { useSceneDragAndDrop } from './useSceneDragAndDrop';
+import { RecipePlayer } from './RecipePlayer';
+
+export const Scene: React.FC = () => {
+  // 1. Mount the drag-and-drop input listeners and dispatch handler
+  const { sensors, handleDragEnd } = useSceneDragAndDrop();
+
+  // 2. Query the pure simulation state for rendering (hiding despensa container from UI view)
+  const containersMap = useStore(worldStore, (state) => state.containers);
+  const containers = Object.values(containersMap).filter((c) => c.id !== 'despensa');
+
+  return (
+    // 3. The DndContext wrapper acts as the physical input boundary
+    <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+      <div className="scene-container">
+        <RecipePlayer />
+        <div className="scene">
+          {containers.map((container) => (
+            <ContainerView
+              key={container.id}
+              container={container}
+            />
+          ))}
+        </div>
+      </div>
+    </DndContext>
+  );
+};
+</file>
+
 <file path="src/store/worldStore.ts">
 /**
  * FILE: worldStore.ts
@@ -13993,13 +15745,15 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
 import { createStore } from 'zustand/vanilla';
 import { devtools } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
-import type { WorldAction } from '../types/world';
+import type { WorldAction, WorldEvent } from '../types/world';
 import { actionLog } from './middleware/actionLog';
 import { defaultEntities, defaultContainers } from './defaults';
 import { createEntitySlice } from './slices/entitySlice';
 import { createContainerSlice } from './slices/containerSlice';
 import { createMascotSlice } from './slices/mascotSlice';
 import type { WorldStateStore } from './types';
+
+const eventListeners = new Set<(event: WorldEvent) => void>();
 
 export const worldStore = createStore<WorldStateStore>()(
   devtools(
@@ -14012,11 +15766,31 @@ export const worldStore = createStore<WorldStateStore>()(
         // Deep clone initial state to avoid reference mutations
         entities: JSON.parse(JSON.stringify(defaultEntities)),
         containers: JSON.parse(JSON.stringify(defaultContainers)),
+        events: [],
+
+        emitEvent: (event: WorldEvent) => {
+          set(
+            (draft) => {
+              draft.events.push(event);
+            },
+            false,
+            event.type
+          );
+          eventListeners.forEach((listener) => listener(event));
+        },
+
+        onEvent: (listener: (event: WorldEvent) => void) => {
+          eventListeners.add(listener);
+          return () => {
+            eventListeners.delete(listener);
+          };
+        },
 
         resetWorld: () => {
           set((draft) => {
             draft.entities = JSON.parse(JSON.stringify(defaultEntities));
             draft.containers = JSON.parse(JSON.stringify(defaultContainers));
+            draft.events = [];
           }, false, 'RESET_WORLD');
         },
 
@@ -14051,8 +15825,8 @@ export const worldStore = createStore<WorldStateStore>()(
               store.cookIngredient(action.payload.entityId, action.payload.cooking);
               break;
 
-            case 'CONSUME_INGREDIENT':
-              store.consumeIngredient(action.payload.entityId, action.payload.consumedBy);
+            case 'USE_INGREDIENT':
+              store.useIngredient(action.payload.entityId, action.payload.usedIn);
               break;
 
             case 'MASCOT_FLIP':
