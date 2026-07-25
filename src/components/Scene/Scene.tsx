@@ -18,6 +18,7 @@ import { DndContext } from '@dnd-kit/core';
 import { worldStore } from '../../store/worldStore';
 import { ContainerView } from '../World/ContainerView';
 import { useSceneDragAndDrop } from './useSceneDragAndDrop';
+import { RecipePlayer } from './RecipePlayer';
 
 export const Scene: React.FC = () => {
   // 1. Mount the drag-and-drop input listeners and dispatch handler
@@ -30,13 +31,16 @@ export const Scene: React.FC = () => {
   return (
     // 3. The DndContext wrapper acts as the physical input boundary
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-      <div className="scene">
-        {containers.map((container) => (
-          <ContainerView
-            key={container.id}
-            container={container}
-          />
-        ))}
+      <div className="scene-container">
+        <RecipePlayer />
+        <div className="scene">
+          {containers.map((container) => (
+            <ContainerView
+              key={container.id}
+              container={container}
+            />
+          ))}
+        </div>
       </div>
     </DndContext>
   );

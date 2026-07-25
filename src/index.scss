@@ -77,13 +77,17 @@ p {
 }
 
 // === SCENE GRID LAYOUT & WORKSTATIONS ===
+.scene-container {
+  margin-top: 20px;
+  width: 100%;
+}
+
 .scene {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 18px;
   width: 100%;
   box-sizing: border-box;
-  margin-top: 20px;
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
