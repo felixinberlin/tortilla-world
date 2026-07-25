@@ -15,7 +15,7 @@
 import { worldStore } from '../../store/worldStore';
 import { getIngredientCatalogId } from '../../engine/containerRules';
 import { findWorkstationForStep } from '../../engine/workstations';
-import type { Recipe, RecipeIngredientDictItem } from '../../types/Recipe';
+import type { Recipe, RecipeRequirementDictItem } from '../../types/Recipe';
 import type { RecipeStep } from '../../types/RecipeStep';
 import type { Entity } from '../../types/world';
 import type { RecipeRunnerOptions, RecipeRunnerContext, RecipeContextData } from './types';
@@ -159,21 +159,27 @@ export class RecipeRunner implements RecipeRunnerContext {
       return newEntityId;
     };
 
-    if (Array.isArray(recipe.ingredients)) {
-      for (const item of recipe.ingredients) {
-        const entityId = findOrCreateAvailableEntity(item.ingredientId, item.id);
-        this.recipeContext.bindings[item.ingredientId] = entityId;
-        if (item.id) {
-          this.recipeContext.bindings[item.id] = entityId;
+    const reqs = recipe.requirements || (recipe as unknown as { ingredients?: unknown }).ingredients;
+
+    if (Array.isArray(reqs)) {
+      for (const item of reqs) {
+        const rawItem = item as { entityId?: string; ingredientId?: string; id?: string };
+        const entityIdKey = rawItem.entityId || rawItem.ingredientId || '';
+        const entityId = findOrCreateAvailableEntity(entityIdKey, rawItem.id);
+        this.recipeContext.bindings[entityIdKey] = entityId;
+        if (rawItem.id) {
+          this.recipeContext.bindings[rawItem.id] = entityId;
         }
       }
-    } else if (recipe.ingredients && typeof recipe.ingredients === 'object') {
+    } else if (reqs && typeof reqs === 'object') {
       for (const [key, item] of Object.entries(
-        recipe.ingredients as Record<string, RecipeIngredientDictItem>
+        reqs as Record<string, RecipeRequirementDictItem>
       )) {
-        const entityId = findOrCreateAvailableEntity(item.ingredientId, key);
+        const rawItem = item as { entityId?: string; ingredientId?: string };
+        const entityIdKey = rawItem.entityId || rawItem.ingredientId || key;
+        const entityId = findOrCreateAvailableEntity(entityIdKey, key);
         this.recipeContext.bindings[key] = entityId;
-        this.recipeContext.bindings[item.ingredientId] = entityId;
+        this.recipeContext.bindings[entityIdKey] = entityId;
       }
     }
 
@@ -324,16 +330,17 @@ export class RecipeRunner implements RecipeRunnerContext {
 
   public resolveIngredientId(targetOrKey?: string): string | undefined {
     if (!targetOrKey) return undefined;
-    if (this.currentRecipe && !Array.isArray(this.currentRecipe.ingredients)) {
-      const dict = this.currentRecipe.ingredients as Record<string, RecipeIngredientDictItem>;
+    const reqs = this.currentRecipe?.requirements || (this.currentRecipe as unknown as { ingredients?: unknown })?.ingredients;
+    if (reqs && !Array.isArray(reqs)) {
+      const dict = reqs as Record<string, { entityId?: string; ingredientId?: string }>;
       if (dict[targetOrKey]) {
-        return dict[targetOrKey].ingredientId;
+        return dict[targetOrKey].entityId || dict[targetOrKey].ingredientId;
       }
       const match = Object.values(dict).find(
-        (item) => item.ingredientId === targetOrKey
+        (item) => (item.entityId || item.ingredientId) === targetOrKey
       );
       if (match) {
-        return match.ingredientId;
+        return match.entityId || match.ingredientId;
       }
     }
     return targetOrKey;

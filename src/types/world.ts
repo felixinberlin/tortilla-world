@@ -11,7 +11,7 @@
 import type { WorldAction, WorldEvent } from './actions';
 import type { PreparationStyle, CookingMethod } from './RecipeStep';
 
-export type EntityType = 'ingredient' | 'tool' | 'mascot';
+export type EntityType = 'ingredient' | 'tool' | 'product' | 'mascot' | 'container' | string;
 export type ContainerType = 'storage' | 'pan' | 'board' | 'plate' | 'trash' | 'bowl' | 'sink';
 
 export interface IngredientState {
@@ -25,6 +25,7 @@ export interface Entity {
   id: string;
   name: string;
   type: EntityType;
+  icon?: string;
   ingredientId?: string;
   state?: IngredientState;
 }
