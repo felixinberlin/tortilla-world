@@ -82,6 +82,7 @@ export const clasicaRecipe: Recipe = {
       action: 'cook',
       target: 'potatoes',
       method: 'fry',
+      cooking_area: 'cooking_area_sarten',
     },
 
     {

@@ -28,7 +28,7 @@ export async function handleCookStep(
   ctx.validateEntity(entityId, 'cook');
 
   const cookingMethod = step.method || 'cooked';
-  const containerId = step.containerId || workstationDefaultContainerId || 'pan';
+  const containerId = step.containerId || step.cooking_area || workstationDefaultContainerId  || '';
 
   if (step.instruction) {
     worldStore.getState().dispatch({

@@ -49,4 +49,108 @@ describe('Recipe Catalog', () => {
     expect(concebollaOnion).toBeDefined();
     expect(clasicaOnion).toBeUndefined();
   });
+
+it('you can use the small pan', () => {
+    const step = {
+      action: 'cook',
+      target: 'potatoes',
+      method: 'fry',
+      cooking_area: 'cooking_area_sarten',
+    };
+
+    const cooking_area_sarten = {
+      id: 'cooking_area_sarten',
+      name: 'Sartén (Skillet)',
+      type: 'pan',
+      entityIds: [],
+      rules: { maxCapacity: 5, allowedTypes: ['ingredient', 'tool'] },
+    };
+
+    expect(step.cooking_area).toBe(cooking_area_sarten.id);
+    expect(cooking_area_sarten.type).toBe('pan');
+  });
+  it('you can use the big pan', () => {
+    const step = {
+      action: 'cook',
+      target: 'potatoes',
+      method: 'fry',
+      cooking_area: 'cooking_area_sarten_grande',
+    };
+
+    const cooking_area_sarten_grande = {
+      id: 'cooking_area_sarten_grande',
+      name: 'Sartén (Skillet)',
+      type: 'pan',
+      entityIds: [],
+      rules: { maxCapacity: 5, allowedTypes: ['ingredient', 'tool'] },
+    };
+
+    expect(step.cooking_area).toBe(cooking_area_sarten_grande.id);
+    expect(cooking_area_sarten_grande.type).toBe('pan');
+  });
+
+  it('concebolla uses the small pan', () => {
+    const step = {
+      action: 'cook',
+      target: 'oil',
+      method: 'heat',
+      cooking_area: 'cooking_area_sarten',
+    };
+
+    const cooking_area_sarten = {
+      id: 'cooking_area_sarten',
+      name: 'Sartén (Skillet)',
+      type: 'pan',
+      entityIds: [],
+      rules: { maxCapacity: 5, allowedTypes: ['ingredient', 'tool'] },
+    };
+
+    const concebollasteps = concebollaRecipe.steps;
+
+    expect(concebollasteps).toContainEqual(step);
+    expect(step.cooking_area).toBe(cooking_area_sarten.id);
+    expect(cooking_area_sarten.type).toBe('pan');
+  });
+  it('concebolla uses both pans', () => {
+    const stepLarge = {
+      action: 'cook',
+      target: 'oil',
+      method: 'heat',
+      cooking_area: 'cooking_area_sarten_grande',
+    };
+
+    const stepSmall = {
+      action: 'cook',
+      target: 'oil',
+      method: 'heat',
+      cooking_area: 'cooking_area_sarten',
+    };
+
+    const cooking_area_sarten_grande = {
+      id: 'cooking_area_sarten_grande',
+      name: 'Sartén (Skillet)',
+      type: 'pan',
+      entityIds: [],
+      rules: { maxCapacity: 5, allowedTypes: ['ingredient', 'tool'] },
+    };
+
+    const cooking_area_sarten = {
+      id: 'cooking_area_sarten',
+      name: 'Sartén (Skillet)',
+      type: 'pan',
+      entityIds: [],
+      rules: { maxCapacity: 5, allowedTypes: ['ingredient', 'tool'] },
+    };
+
+    const concebollasteps = concebollaRecipe.steps;
+
+    expect(concebollasteps).toContainEqual(stepLarge);
+    expect(concebollasteps).toContainEqual(stepSmall);
+    
+    expect(stepLarge.cooking_area).toBe(cooking_area_sarten_grande.id);
+    expect(cooking_area_sarten_grande.type).toBe('pan');
+
+    expect(stepSmall.cooking_area).toBe(cooking_area_sarten.id);
+    expect(cooking_area_sarten.type).toBe('pan');
+  });
 });

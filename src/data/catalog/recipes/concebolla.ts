@@ -83,16 +83,25 @@ export const concebollaRecipe: Recipe = {
       action: 'cook',
       target: 'oil',
       method: 'heat',
+      cooking_area: 'cooking_area_sarten_grande',
+    },
+    {
+      action: 'cook',
+      target: 'oil',
+      method: 'heat',
+      cooking_area: 'cooking_area_sarten',
     },
     {
       action: 'cook',
       target: 'potatoes',
       method: 'fry',
+      cooking_area: 'cooking_area_sarten_grande',
     },
     {
       action: 'cook',
       target: 'onions',
       method: 'fry',
+      cooking_area: 'cooking_area_sarten',
     },
     {
       action: 'prepare',
