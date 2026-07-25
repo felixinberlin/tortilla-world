@@ -93,4 +93,8 @@ export type WorldAction =
       payload: {
         mascotId?: string;
       };
+    }
+  | {
+      type: 'RESET_WORLD';
+      payload?: Record<string, never>;
     };

@@ -98,6 +98,10 @@ export const worldStore = createStore<WorldStateStore>()(
             case 'MASCOT_CLEAR_GAZE':
               store.mascotClearGaze(action.payload.mascotId);
               break;
+
+            case 'RESET_WORLD':
+              store.resetWorld();
+              break;
           }
         },
       }))
