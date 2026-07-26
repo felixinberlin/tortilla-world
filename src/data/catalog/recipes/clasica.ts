@@ -80,13 +80,27 @@ export const clasicaRecipe: Recipe = {
     {
       action: 'prepare',
       target: 'garlic',
-      preparation: 'peeled',
+      preparation: 'in half heads',
     },
 
     {
       action: 'prepare',
       target: 'garlic',
-      preparation: 'in half heads',
+      preparation: 'peeled',
+    },
+
+    {
+      action: 'cook',
+      target: 'garlic',
+      method: 'fry',
+      instruction: 'Que no se quemen.',
+    },
+
+    {
+      action: 'move',
+      ingredient: 'garlic',
+      target: 'pantry',
+      source: 'pan',
     },
 
     {
@@ -99,20 +113,6 @@ export const clasicaRecipe: Recipe = {
       action: 'cook',
       target: 'potatoes',
       method: 'fry',
-    },
-
-    {
-      action: 'cook',
-      target: 'garlic',
-      method: 'fry',
-      instruction: 'Que no se quemen.',
-    },
-
-    {
-      action: 'move', 
-      ingredient: 'garlic',
-      target: 'pantry',
-      source: 'pan', 
     },
 
     {
