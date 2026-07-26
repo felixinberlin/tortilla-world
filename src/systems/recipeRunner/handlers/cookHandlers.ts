@@ -68,8 +68,37 @@ export async function handleCookStep(
   });
 
   // Consume cooking medium helper ingredients currently in the cooking container (e.g. oil)
+    /**
+   * IMPORTANT: Distinguish between oil as the primary cooking target vs oil as a cooking medium.
+   *
+   * Scenario 1: Oil is the target (method='heat')
+   *   Step: { action: 'cook', target: 'oil', method: 'heat' }
+   *   Expected: Oil is heated, NOT consumed
+   *   Reason: Oil is the subject being cooked, not a helper ingredient
+   *
+   * Scenario 2: Oil is a cooking medium
+   *   Step: { action: 'cook', target: 'potatoes', method: 'fry' }
+   *   Expected: Oil in the container IS consumed (used for frying)
+   *   Reason: Oil is helping to cook the potatoes
+   * 
+   *   Scenario 3: Oil as dressing
+   *   Step: { action: 'serve', target: 'mixture', method: 'dress' }
+   *   Expected: fresh Oil in the container where the finished tortilla is
+   *   Reason: Oil is dressiing for the tortilla
+   *
+   * Without this check, oil gets consumed even when it's the cooking target,
+   * preventing oil reuse and causing "Heat Olive Oil" name change in Required Materials.
+   */
   const cookingContainer = worldStore.getState().containers[containerId];
-  if (cookingContainer) {
+
+  // Only consume helper ingredients (like oil) if they are NOT the target of THIS cooking step
+  const isOilTheTarget =
+    rawKey === 'oil' ||
+    rawKey?.toLowerCase().includes('oil') ||
+    rawKey?.toLowerCase().includes('aceite');
+
+  if (!isOilTheTarget && cookingContainer) {
+    // Consume cooking medium helper ingredients currently in the cooking container (e.g. oil)
     const otherEntityIds = cookingContainer.entityIds.filter((id) => id !== entityId);
     for (const otherId of otherEntityIds) {
       const otherEntity = worldStore.getState().entities[otherId];
