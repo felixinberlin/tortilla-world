@@ -37,18 +37,15 @@ interface EntityViewProps {
   readOnly?: boolean;
 }
 
-export const EntityView: React.FC<EntityViewProps> = ({ entity, containerId, readOnly = false }) => {
-  // Use dnd-kit draggable hook only if interactive (!readOnly)
-  const draggable = useDraggable({
+/**
+ * Inner component for interactive draggable entities (must be used inside a DndContext).
+ */
+const DraggableEntityView: React.FC<EntityViewProps> = ({ entity, containerId }) => {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: entity.id,
-    disabled: readOnly,
   });
 
-  const { attributes, listeners, setNodeRef, transform, isDragging } = draggable;
-
-  const style: React.CSSProperties | undefined = readOnly
-    ? undefined
-    : transform
+  const style: React.CSSProperties = transform
     ? {
         transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
         opacity: isDragging ? 0.6 : 1,
@@ -59,7 +56,6 @@ export const EntityView: React.FC<EntityViewProps> = ({ entity, containerId, rea
         cursor: 'grab',
       };
 
-  // Determine renderer from registry or fallback to DefaultEntityRenderer
   const CustomRenderer = entityRendererRegistry[entity.type];
   const RendererComponent = CustomRenderer || DefaultEntityRenderer;
 
@@ -67,18 +63,9 @@ export const EntityView: React.FC<EntityViewProps> = ({ entity, containerId, rea
     'entity-view',
     `entity-view--type-${entity.type}`,
     isDragging ? 'entity-view--dragging' : '',
-    readOnly ? 'entity-view--readonly' : '',
   ]
     .filter(Boolean)
     .join(' ');
-
-  if (readOnly) {
-    return (
-      <div className={className}>
-        <RendererComponent entity={entity} containerId={containerId} readOnly />
-      </div>
-    );
-  }
 
   return (
     <div
@@ -86,9 +73,38 @@ export const EntityView: React.FC<EntityViewProps> = ({ entity, containerId, rea
       style={style}
       {...listeners}
       {...attributes}
+      data-entity-id={entity.id}
+      data-ingredient-id={entity.ingredientId || entity.id}
       className={className}
     >
       <RendererComponent entity={entity} containerId={containerId} readOnly={false} />
     </div>
   );
+};
+
+export const EntityView: React.FC<EntityViewProps> = ({ entity, containerId, readOnly = false }) => {
+  if (readOnly) {
+    const CustomRenderer = entityRendererRegistry[entity.type];
+    const RendererComponent = CustomRenderer || DefaultEntityRenderer;
+
+    const className = [
+      'entity-view',
+      `entity-view--type-${entity.type}`,
+      'entity-view--readonly',
+    ]
+      .filter(Boolean)
+      .join(' ');
+
+    return (
+      <div
+        data-entity-id={entity.id}
+        data-ingredient-id={entity.ingredientId || entity.id}
+        className={className}
+      >
+        <RendererComponent entity={entity} containerId={containerId} readOnly />
+      </div>
+    );
+  }
+
+  return <DraggableEntityView entity={entity} containerId={containerId} />;
 };

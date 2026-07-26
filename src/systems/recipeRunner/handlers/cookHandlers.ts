@@ -67,6 +67,30 @@ export async function handleCookStep(
     },
   });
 
+  // Consume cooking medium helper ingredients currently in the cooking container (e.g. oil)
+  const cookingContainer = worldStore.getState().containers[containerId];
+  if (cookingContainer) {
+    const otherEntityIds = cookingContainer.entityIds.filter((id) => id !== entityId);
+    for (const otherId of otherEntityIds) {
+      const otherEntity = worldStore.getState().entities[otherId];
+      const isOil =
+        otherEntity?.ingredientId === 'oil' ||
+        otherEntity?.id?.includes('oil') ||
+        otherEntity?.name?.toLowerCase().includes('oil') ||
+        otherEntity?.name?.toLowerCase().includes('aceite');
+
+      if (otherEntity && otherEntity.type === 'ingredient' && !otherEntity.state?.consumed && isOil) {
+        worldStore.getState().dispatch({
+          type: 'USE_INGREDIENT',
+          payload: {
+            entityId: otherId,
+            usedIn: entityId,
+          },
+        });
+      }
+    }
+  }
+
   await ctx.wait();
 }
 

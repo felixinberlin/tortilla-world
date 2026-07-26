@@ -22,6 +22,11 @@
     border-color: $tortilla-yellow;
     background-color: color.mix($tortilla-yellow, $warm-surface, 10%);
   }
+
+  &--mixture {
+    border-color: $tortilla-yellow;
+    box-shadow: 0 0 16px rgba(245, 180, 50, 0.35);
+  }
 }
 
 .container-view__header {

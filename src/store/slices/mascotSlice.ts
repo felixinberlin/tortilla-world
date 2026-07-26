@@ -92,9 +92,7 @@ export const createMascotSlice: StateCreator<
       (draft) => {
         const m = draft.entities[mascotId];
         if (!m) return;
-        const grabGaze: GazeTarget = foundSource?.id
-          ? { type: 'entity', entityId: foundSource.id }
-          : (m.state?.gazingAt as GazeTarget) ?? null;
+        const grabGaze: GazeTarget = { type: 'entity', entityId };
         m.state = {
           ...m.state,
           holdingEntityId: entityId,

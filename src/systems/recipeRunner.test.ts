@@ -234,4 +234,60 @@ describe('RecipeRunner System', () => {
     expect(state.containers.bowl.entityIds).not.toContain(eggEntity.id);
     expect(state.containers.bowl.entityIds).not.toContain(saltEntity.id);
   });
+
+  it('ensures cooked sliced potatoes appear in the bowl before creating mixture entity during mix step', async () => {
+    worldStore.getState().dispatch({
+      type: 'ADD_ENTITY',
+      payload: {
+        entity: {
+          id: 'cooked_potato_test',
+          ingredientId: 'potato',
+          name: 'Potato',
+          type: 'ingredient',
+          state: { preparation: 'sliced', cooking: 'fried' },
+        },
+        containerId: 'pan',
+      },
+    });
+
+    const runner = new RecipeRunner({ mascotId: 'chef', delayMs: 1 });
+    runner.bindRecipeContext(clasicaRecipe);
+
+    let cookedSlicedPotatoInBowlBeforeMixture = false;
+    let potatoStateInBowl: Record<string, unknown> | undefined;
+
+    const unsubscribe = worldStore.subscribe((currState) => {
+      const bowlEntityIds = currState.containers.bowl?.entityIds || [];
+      const mixtureExists = bowlEntityIds.some((id) => id.startsWith('mixture'));
+      const potatoIdInBowl = bowlEntityIds.find((id) => {
+        const e = currState.entities[id];
+        return e && (e.ingredientId === 'potato' || e.id.includes('potato'));
+      });
+
+      if (potatoIdInBowl && !mixtureExists) {
+        cookedSlicedPotatoInBowlBeforeMixture = true;
+        potatoStateInBowl = currState.entities[potatoIdInBowl]?.state;
+      }
+    });
+
+    await runner.runSteps([
+      {
+        action: 'mix',
+        inputs: ['potatoes', 'eggs', 'salt', 'black_pepper'],
+        targetContainerId: 'bowl',
+        output: 'mixture',
+      },
+    ]);
+
+    unsubscribe();
+
+    expect(cookedSlicedPotatoInBowlBeforeMixture).toBe(true);
+    expect(potatoStateInBowl).toBeDefined();
+    expect(potatoStateInBowl?.preparation).toBe('sliced');
+    expect(potatoStateInBowl?.cooking).toBe('fried');
+
+    const finalBowlEntityIds = worldStore.getState().containers.bowl.entityIds;
+    const mixtureId = runner.recipeContext.bindings['mixture'];
+    expect(finalBowlEntityIds).toContain(mixtureId);
+  });
 });

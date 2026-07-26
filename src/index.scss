@@ -82,11 +82,24 @@ p {
   width: 100%;
 }
 
+.scene-workspace {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  width: 100%;
+  margin-top: 16px;
+
+  @media (max-width: 860px) {
+    flex-direction: column;
+  }
+}
+
 .scene {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 18px;
   width: 100%;
+  flex: 1;
   box-sizing: border-box;
 
   @media (max-width: 768px) {

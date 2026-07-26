@@ -22,7 +22,7 @@ import { RecipePlayer } from './RecipePlayer';
 
 export const Scene: React.FC = () => {
   // 1. Mount the drag-and-drop input listeners and dispatch handler
-  const { sensors, handleDragEnd } = useSceneDragAndDrop();
+  const { sensors, handleDragStart, handleDragOver, handleDragEnd } = useSceneDragAndDrop();
 
   // 2. Query the pure simulation state for rendering (hiding despensa container from UI view)
   const containersMap = useStore(worldStore, (state) => state.containers);
@@ -30,17 +30,28 @@ export const Scene: React.FC = () => {
 
   return (
     // 3. The DndContext wrapper acts as the physical input boundary
-    <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+    <DndContext
+      sensors={sensors}
+      onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
+      onDragEnd={handleDragEnd}
+    >
       <div className="scene-container">
-        <RecipePlayer />
-        <div className="scene">
-          {containers.map((container) => (
-            <ContainerView
-              key={container.id}
-              container={container}
-            />
-          ))}
-        </div>
+        <RecipePlayer
+          renderWorkspace={(requirementsNode) => (
+            <div className="scene-workspace">
+              {requirementsNode}
+              <div className="scene">
+                {containers.map((container) => (
+                  <ContainerView
+                    key={container.id}
+                    container={container}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        />
       </div>
     </DndContext>
   );

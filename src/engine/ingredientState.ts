@@ -71,3 +71,29 @@ export function formatPreparedName(targetEntity: Entity, preparation: string): s
   const capitalizedPrep = preparation.charAt(0).toUpperCase() + preparation.slice(1);
   return `${icon} ${capitalizedPrep} ${baseName}`.trim();
 }
+
+/**
+ * Formats an ingredient entity's display name after cooking.
+ */
+export function formatCookedName(targetEntity: Entity, cooking: string): string {
+  if (
+    targetEntity.id.startsWith('mixture_') ||
+    targetEntity.ingredientId === 'mixture' ||
+    targetEntity.name.toLowerCase().includes('mixture')
+  ) {
+    return targetEntity.name;
+  }
+
+  const singularKey = getIngredientSingularKey(targetEntity);
+  const baseKey = (targetEntity.ingredientId || targetEntity.id.split('_')[0] || 'ingredient').toLowerCase();
+  const catalogItem = catalogIngredients.find(
+    (i) => i.id === targetEntity.ingredientId || i.id === baseKey || i.id === singularKey
+  );
+  const icon = catalogItem?.icon || (targetEntity.name.match(/^(\p{Emoji}|\p{Extended_Pictographic})/u)?.[0] ?? '');
+  const baseName = catalogItem?.name || targetEntity.name.replace(/^(\p{Emoji}|\p{Extended_Pictographic})\s*/u, '');
+
+  const cookingWord = cooking === 'fry' || cooking === 'fried' ? 'Cooked' : cooking.charAt(0).toUpperCase() + cooking.slice(1);
+  const prep = targetEntity.state?.preparation;
+  const prepWord = prep && prep !== 'whole' && prep !== 'raw' ? prep.charAt(0).toUpperCase() + prep.slice(1) + ' ' : '';
+  return `${icon} ${cookingWord} ${prepWord}${baseName}`.trim();
+}

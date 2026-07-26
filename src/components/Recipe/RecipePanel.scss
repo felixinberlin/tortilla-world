@@ -30,48 +30,30 @@
   align-items: center;
 }
 
-.recipe-option {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+.recipe-tab {
   background: #ffffff;
   border: 1px solid $warm-border;
-  border-radius: $radius-sm;
-  padding: 4px 8px;
-  transition: all 0.2s ease;
-
-  &.active {
-    border-color: $tortilla-yellow;
-    background: $tortilla-yellow-light;
-    box-shadow: 0 2px 6px rgba(232, 168, 56, 0.2);
-  }
-}
-
-.recipe-tab {
-  background: transparent;
-  border: none;
   font-size: 13px;
   font-weight: 700;
   color: $dark-brown;
   cursor: pointer;
-  padding: 4px 6px;
+  padding: 6px 14px;
   border-radius: $radius-sm;
   transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 
   &:hover {
-    color: $tortilla-yellow-hover;
+    border-color: $tortilla-yellow;
+    color: $dark-brown;
+    background: $tortilla-yellow-light;
   }
 
   &.active {
-    color: $dark-brown;
+    background: $tortilla-yellow;
+    color: #ffffff;
+    border-color: $tortilla-yellow-hover;
+    box-shadow: 0 2px 6px rgba(232, 168, 56, 0.3);
   }
-}
-
-.follow-recipe-btn {
-  @include playful-button($tortilla-yellow, #ffffff);
-  font-size: 0.78rem;
-  padding: 5px 10px;
-  white-space: nowrap;
 }
 
 .recipe-header-right {
@@ -89,6 +71,30 @@
 .highlight-count {
   color: $terracotta;
   font-weight: 800;
+}
+
+.recipe-reset-btn {
+  background: #ffffff;
+  border: 2px solid $terracotta;
+  border-radius: $radius-sm;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 800;
+  color: $terracotta;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
+  &:hover {
+    background: $terracotta;
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
 }
 
 .recipe-toggle-btn {

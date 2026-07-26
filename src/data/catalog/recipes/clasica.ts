@@ -152,9 +152,9 @@ Beat the @eggs{6%pcs}.
 
 Add @salt{1%tsp}.
 
-Add @pepper{1%pinch}.
+Add @black_pepper{1%pinch}.
 
-Mix the potatoes with the beaten eggs, salt and pepper.
+Mix the potatoes with the beaten eggs, salt and black_pepper.
 
 Pour the mixture into the pan.
 

@@ -25,24 +25,43 @@ export async function handleServeStep(
   moveTortillaTo(targetContainerId, ctx.mascotId);
   await ctx.wait();
 
-  // Move all active (unconsumed) bound recipe entities to target container (plate)
   const state = worldStore.getState();
-  const boundEntityIds = new Set(Object.values(ctx.recipeContext.bindings));
 
-  for (const entityId of boundEntityIds) {
-    const entity = state.entities[entityId];
-    if (entity && !entity.state?.consumed) {
+  if (step.target) {
+    const targetEntityId = ctx.getBoundEntityId(step.target);
+    if (targetEntityId) {
       const currentContainer = Object.values(state.containers).find((c) =>
-        c.entityIds.includes(entityId)
+        c.entityIds.includes(targetEntityId)
       );
       if (currentContainer && currentContainer.id !== targetContainerId) {
         worldStore.getState().dispatch({
           type: 'MOVE_ENTITY',
           payload: {
-            entityId,
+            entityId: targetEntityId,
             targetContainerId,
           },
         });
+      }
+    }
+  } else {
+    // Move all active (unconsumed) bound recipe entities to target container (plate)
+    const boundEntityIds = new Set(Object.values(ctx.recipeContext.bindings));
+
+    for (const entityId of boundEntityIds) {
+      const entity = state.entities[entityId];
+      if (entity && !entity.state?.consumed) {
+        const currentContainer = Object.values(state.containers).find((c) =>
+          c.entityIds.includes(entityId)
+        );
+        if (currentContainer && currentContainer.id !== targetContainerId) {
+          worldStore.getState().dispatch({
+            type: 'MOVE_ENTITY',
+            payload: {
+              entityId,
+              targetContainerId,
+            },
+          });
+        }
       }
     }
   }

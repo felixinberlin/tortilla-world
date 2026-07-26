@@ -32,29 +32,67 @@
     .recipe-select-group {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
 
       .recipe-label {
-        font-weight: 700;
+        font-weight: 800;
         font-size: 0.9rem;
         color: $dark-brown;
       }
 
-      .recipe-dropdown {
-        background: #ffffff;
-        border: 1px solid $warm-border;
-        border-radius: $radius-sm;
-        padding: 6px 12px;
-        font-size: 0.88rem;
-        font-weight: 600;
-        color: $dark-brown;
-        cursor: pointer;
-        outline: none;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-        transition: border-color 0.2s;
+      .recipe-buttons {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
 
-        &:focus, &:hover {
-          border-color: $tortilla-yellow;
+        .recipe-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          background: #ffffff;
+          border: 2px solid $warm-border;
+          border-radius: $radius-sm;
+          padding: 6px 14px;
+          font-size: 0.88rem;
+          font-weight: 700;
+          color: $dark-brown;
+          cursor: pointer;
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          box-shadow: 0 2px 4px rgba(44, 26, 20, 0.04);
+          user-select: none;
+
+          .recipe-btn-icon {
+            font-size: 1.1rem;
+            line-height: 1;
+            transition: transform 0.2s ease;
+          }
+
+          &:hover {
+            border-color: $tortilla-yellow;
+            background: $tortilla-yellow-light;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(232, 168, 56, 0.2);
+
+            .recipe-btn-icon {
+              transform: scale(1.2) rotate(-5deg);
+            }
+          }
+
+          &:active {
+            transform: translateY(0);
+          }
+
+          &.active {
+            background: linear-gradient(135deg, $tortilla-yellow, $tortilla-yellow-hover);
+            color: #ffffff;
+            border-color: $tortilla-yellow-hover;
+            box-shadow: 0 4px 10px rgba(232, 168, 56, 0.35);
+
+            .recipe-btn-icon {
+              transform: scale(1.15);
+            }
+          }
         }
       }
     }
@@ -86,6 +124,92 @@
         background: $olive-green-light;
         color: $olive-green;
         border: 1px solid $olive-green-border;
+      }
+    }
+  }
+
+  // Recipe Requirements Section (Left Sidebar Panel)
+  .recipe-requirements-section {
+    width: 260px;
+    min-width: 230px;
+    flex-shrink: 0;
+    background: #ffffff;
+    border: 1px solid $warm-border;
+    border-radius: $radius-md;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: $shadow-ceramic;
+    box-sizing: border-box;
+
+    @media (max-width: 860px) {
+      width: 100%;
+    }
+
+    .requirements-header {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding-bottom: 8px;
+      border-bottom: 2px dashed color.mix($dark-brown, white, 15%);
+
+      .requirements-title {
+        font-size: 0.85rem;
+        font-weight: 800;
+        color: $dark-brown;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .requirements-subtitle {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: $wood-muted;
+      }
+    }
+
+    .recipe-requirements {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      width: 100%;
+
+      .requirement-view {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: $warm-surface;
+        border: 1px solid $warm-border;
+        border-radius: $radius-md;
+        padding: 8px 12px;
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: $dark-brown;
+        box-shadow: 0 1px 3px rgba(44, 26, 20, 0.04);
+        width: 100%;
+        box-sizing: border-box;
+        transition: all 0.2s ease;
+
+        &:hover {
+          border-color: $tortilla-yellow;
+          box-shadow: 0 3px 6px rgba(232, 168, 56, 0.15);
+          transform: translateX(2px);
+        }
+
+        &__amount {
+          font-size: 0.8rem;
+          font-weight: 800;
+          color: $terracotta;
+          background: $terracotta-light;
+          padding: 3px 8px;
+          border-radius: 6px;
+          border: 1px solid $terracotta-border;
+          white-space: nowrap;
+        }
       }
     }
   }
@@ -227,8 +351,19 @@
       // Reset button
       &.reset-btn {
         margin-left: auto;
-        background: $warm-beige;
-        font-size: 0.8rem;
+        background: #ffffff;
+        border: 2px solid $terracotta;
+        color: $terracotta;
+        font-size: 0.9rem;
+        font-weight: 800;
+        padding: 9px 18px;
+
+        &:hover:not(:disabled) {
+          background: $terracotta;
+          color: #ffffff;
+          border-color: $terracotta-hover;
+          box-shadow: 0 4px 8px rgba(217, 83, 79, 0.25);
+        }
       }
     }
   }

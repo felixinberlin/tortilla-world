@@ -18,6 +18,7 @@ import {
   derivePreparationStatus,
   deriveCookingStatus,
   formatPreparedName,
+  formatCookedName,
 } from '../../engine/ingredientState';
 
 export interface EntitySlice {
@@ -128,12 +129,14 @@ export const createEntitySlice: StateCreator<
     if (!targetEntity) return;
 
     const status = deriveCookingStatus(targetEntity, cooking);
+    const updatedName = formatCookedName(targetEntity, cooking);
 
     set(
       (state) => {
         const entity = state.entities[entityId];
         if (!entity) return;
 
+        entity.name = updatedName;
         entity.state = {
           ...entity.state,
           cooking,

@@ -243,6 +243,10 @@ export class RecipeRunner implements RecipeRunnerContext {
     if (resolvedCatId && this.recipeContext.bindings[resolvedCatId]) {
       return this.recipeContext.bindings[resolvedCatId];
     }
+    const state = worldStore.getState();
+    if (state.entities[targetOrKey]) {
+      return targetOrKey;
+    }
     return undefined;
   }
 
@@ -286,15 +290,9 @@ export class RecipeRunner implements RecipeRunnerContext {
     const state = worldStore.getState();
     this.validateEntity(entityId, 'ensureEntityInWorkspace');
 
-    const activeWorkspaceContainerIds = Object.values(state.containers)
-      .filter((c) => c.type !== 'storage' && c.id !== 'despensa')
-      .map((c) => c.id);
-
-    for (const cId of activeWorkspaceContainerIds) {
-      const container = state.containers[cId];
-      if (container && container.entityIds.includes(entityId)) {
-        return entityId;
-      }
+    const targetContainer = state.containers[targetContainerId];
+    if (targetContainer && targetContainer.entityIds.includes(entityId)) {
+      return entityId;
     }
 
     const mascot = state.entities[this.mascotId];
@@ -302,24 +300,32 @@ export class RecipeRunner implements RecipeRunnerContext {
       return entityId;
     }
 
+    let currentContainerId = this.defaultSourceId;
+    for (const container of Object.values(state.containers)) {
+      if (container.entityIds.includes(entityId)) {
+        currentContainerId = container.id;
+        break;
+      }
+    }
+
     await handleMoveStep(
       this,
       {
         action: 'move',
         ingredient: entityId,
-        source: this.defaultSourceId,
+        source: currentContainerId,
         target: targetContainerId,
       },
       targetContainerId
     );
 
     const updatedState = worldStore.getState();
-    const targetContainer = updatedState.containers[targetContainerId];
-    if (targetContainer) {
-      if (targetContainer.entityIds.includes(entityId)) {
+    const updatedTargetContainer = updatedState.containers[targetContainerId];
+    if (updatedTargetContainer) {
+      if (updatedTargetContainer.entityIds.includes(entityId)) {
         return entityId;
       }
-      const copyId = targetContainer.entityIds[targetContainer.entityIds.length - 1];
+      const copyId = updatedTargetContainer.entityIds[updatedTargetContainer.entityIds.length - 1];
       if (copyId) {
         this.updateBindingIfCopied(entityId, copyId);
         return copyId;

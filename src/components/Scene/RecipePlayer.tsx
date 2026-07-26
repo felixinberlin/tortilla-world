@@ -13,10 +13,14 @@
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { recipes } from '../../data/catalog/recipes';
+import { ingredients } from '../../data/catalog/ingredients';
+import { catalogTools as tools } from '../../data/catalog/tools';
 import { RecipeRunner } from '../../systems/recipeRunner';
 import { worldStore } from '../../store/worldStore';
 import type { RecipeStep } from '../../types/RecipeStep';
 import type { Recipe } from '../../types/Recipe';
+import { getRecipeRequirementsArray } from '../../types/Recipe';
+import { RecipeRequirements } from '../Recipe/RecipeRequirements';
 import './RecipePlayer.scss';
 
 // Speed options and corresponding delays in ms
@@ -26,6 +30,64 @@ const SPEED_DELAYS: Record<number, number> = {
   2: 300,    // Fast
   3: 150,    // Turbo
 };
+
+/**
+ * Formats an ingredient key with its current preparation and cooking state from worldStore.
+ */
+function formatIngredientWithState(inputKey: string): string {
+  const store = worldStore.getState();
+
+  const singularKey =
+    inputKey.endsWith('es') && inputKey.length > 3
+      ? inputKey.slice(0, -2)
+      : inputKey.endsWith('s') && inputKey.length > 2
+      ? inputKey.slice(0, -1)
+      : inputKey;
+
+  const entity = Object.values(store.entities).find(
+    (e) =>
+      e &&
+      (e.id === inputKey ||
+        e.ingredientId === inputKey ||
+        e.ingredientId === singularKey ||
+        e.id.startsWith(inputKey + '_') ||
+        e.id.startsWith(singularKey + '_'))
+  );
+
+  const parts: string[] = [];
+
+  if (entity?.state) {
+    // Cooking state
+    const cooking = entity.state.cooking as string | undefined;
+    if (cooking && cooking !== 'raw') {
+      if (cooking === 'fry' || cooking === 'fried' || cooking === 'cooked') {
+        parts.push('cooked');
+      } else {
+        parts.push(cooking);
+      }
+    }
+
+    // Preparation state
+    const prep = entity.state.preparation as string | undefined;
+    if (prep && prep !== 'whole' && prep !== 'raw') {
+      parts.push(prep);
+    }
+  }
+
+  // Fallback defaults for recipe step descriptions when state is not yet populated
+  if (parts.length === 0) {
+    if (inputKey === 'potatoes') {
+      parts.push('cooked', 'sliced');
+    } else if (inputKey === 'eggs') {
+      parts.push('beaten');
+    } else if (inputKey === 'onions') {
+      parts.push('cooked', 'diced');
+    }
+  }
+
+  parts.push(inputKey);
+  return parts.join(' ');
+}
 
 /**
  * Generates human-readable step details (icon, text label, badge) for a given RecipeStep.
@@ -84,12 +146,19 @@ function getStepDetails(step?: RecipeStep): { icon: string; text: string; action
       };
     case 'mix':
     case 'beat':
-    case 'combine':
+    case 'combine': {
+      const formattedInputs = (step.inputs || step.ingredients || []).map(formatIngredientWithState);
+      const targetContainer = step.targetContainerId;
+      const containerName =
+        !targetContainer || targetContainer === 'bowl' || targetContainer === 'preparation_bowl'
+          ? 'preparation bowl'
+          : targetContainer.replace('_', ' ');
       return {
         icon: '🥣',
-        text: `Mix ${(step.inputs || step.ingredients || []).join(', ')} -> ${step.output || 'mixture'}`,
+        text: `Mix ${formattedInputs.join(', ')} in the ${containerName} -> ${step.output || 'mixture'}`,
         actionName: step.action,
       };
+    }
     case 'serve':
       return {
         icon: '🍽️',
@@ -129,7 +198,11 @@ function getStepDetails(step?: RecipeStep): { icon: string; text: string; action
   }
 }
 
-export const RecipePlayer: React.FC = () => {
+interface RecipePlayerProps {
+  renderWorkspace?: (requirementsNode: React.ReactNode) => React.ReactNode;
+}
+
+export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) => {
   const [selectedRecipeId, setSelectedRecipeId] = useState<string>(recipes[0]?.id || 'concebolla');
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
@@ -147,6 +220,33 @@ export const RecipePlayer: React.FC = () => {
 
   // Get delay in ms based on active speed multiplier
   const currentDelayMs = SPEED_DELAYS[speed] || 600;
+
+  // Synchronize required materials for active recipe in despensa container
+  useEffect(() => {
+    const store = worldStore.getState();
+    const reqs = getRecipeRequirementsArray(activeRecipe);
+    reqs.forEach((req) => {
+      const existing = store.entities[req.entityId];
+      if (!existing) {
+        const catalogIng = ingredients.find((i) => i.id === req.entityId);
+        const catalogTool = tools.find((t: { id: string }) => t.id === req.entityId);
+        store.dispatch({
+          type: 'ADD_ENTITY',
+          payload: {
+            entity: {
+              id: req.entityId,
+              name: req.name || catalogIng?.name || catalogTool?.name || req.entityId,
+              type: (catalogTool ? 'tool' : 'ingredient') as 'tool' | 'ingredient',
+              icon: catalogIng?.icon || catalogTool?.icon,
+              ingredientId: req.entityId,
+              state: {},
+            },
+            containerId: 'despensa',
+          },
+        });
+      }
+    });
+  }, [activeRecipe]);
 
   // Re-sync runner context or reset when recipe changes
   const handleRecipeChange = (newRecipeId: string) => {
@@ -331,151 +431,169 @@ export const RecipePlayer: React.FC = () => {
   const stepDetails = getStepDetails(currentStepIndex < totalSteps ? currentStep : undefined);
   const progressPercent = totalSteps > 0 ? Math.min(100, (currentStepIndex / totalSteps) * 100) : 0;
 
-  return (
-    <div className="recipe-player-container">
-      {/* Top Header: Recipe Selector & Step Pill */}
-      <div className="player-header">
-        <div className="recipe-select-group">
-          <label htmlFor="player-recipe-select" className="recipe-label">
-            👨‍🍳 Active Recipe:
-          </label>
-          <select
-            id="player-recipe-select"
-            className="recipe-dropdown"
-            value={selectedRecipeId}
-            onChange={(e) => handleRecipeChange(e.target.value)}
-          >
-            {recipes.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="player-status-badge">
-          <span className="step-count">
-            Step <strong>{currentStepIndex}</strong> / {totalSteps}
-          </span>
-          <span className={`speed-badge speed-${speed.toString().replace('.', '_')}`}>
-            ⚡ {speed}x
-          </span>
-        </div>
+  const requirementsNode = (
+    <div className="recipe-requirements-section" data-container-id="despensa">
+      <div className="requirements-header">
+        <span className="requirements-title">📋 Required Materials</span>
+        <span className="requirements-subtitle">(Drag items to workstation)</span>
       </div>
-
-      {/* Progress Bar */}
-      <div className="player-progress-track">
-        <div
-          className="player-progress-bar"
-          style={{ width: `${progressPercent}%` }}
-        />
-      </div>
-
-      {/* Active Step Description Card */}
-      <div className="current-step-card">
-        <div className="step-icon-area">{stepDetails.icon}</div>
-        <div className="step-text-area">
-          <div className="step-action-badge">{stepDetails.actionName}</div>
-          <p className="step-description">{stepDetails.text}</p>
-        </div>
-      </div>
-
-      {/* Main Controls Row */}
-      <div className="player-controls-bar">
-        {/* Slow Control */}
-        <button
-          type="button"
-          className="ctrl-btn slow-btn"
-          onClick={handleSlow}
-          title="Slow down playback speed (0.5x)"
-        >
-          🐢 Slow
-        </button>
-
-        {/* Step Down (Step Back) */}
-        <button
-          type="button"
-          className="ctrl-btn step-down-btn"
-          onClick={handleStepDown}
-          disabled={currentStepIndex <= 0}
-          title="Step Down: Go back to previous step"
-        >
-          ⏮ Step Down
-        </button>
-
-        {/* Play / Pause Toggle */}
-        <button
-          type="button"
-          className={`ctrl-btn play-btn ${isPlaying ? 'is-playing' : ''}`}
-          onClick={handleTogglePlay}
-          title={isPlaying ? 'Pause recipe auto-play' : 'Play recipe step-by-step'}
-        >
-          {isPlaying ? '⏸ Pause' : currentStepIndex >= totalSteps ? '🔄 Replay' : '▶ Play'}
-        </button>
-
-        {/* Step Up (Step Forward) */}
-        <button
-          type="button"
-          className="ctrl-btn step-up-btn"
-          onClick={handleStepUp}
-          disabled={currentStepIndex >= totalSteps}
-          title="Step Up: Advance to next step"
-        >
-          Step Up ⏭
-        </button>
-
-        {/* Fast Control */}
-        <button
-          type="button"
-          className="ctrl-btn fast-btn"
-          onClick={handleFast}
-          title="Speed up playback speed (2x/3x)"
-        >
-          Fast ⚡
-        </button>
-
-        {/* Kitchen Reset Button */}
-        <button
-          type="button"
-          className="ctrl-btn reset-btn"
-          onClick={handleReset}
-          title="Reset kitchen world to starting state"
-        >
-          🔄 Reset
-        </button>
-      </div>
-
-      {/* Speed Presets & Step Timeline Dots */}
-      <div className="player-footer">
-        <div className="speed-pills">
-          <span className="speed-title">Speed:</span>
-          {[0.5, 1, 2, 3].map((sp) => (
-            <button
-              key={sp}
-              type="button"
-              className={`speed-pill ${speed === sp ? 'active' : ''}`}
-              onClick={() => setSpeed(sp)}
-            >
-              {sp}x
-            </button>
-          ))}
-        </div>
-
-        {/* Interactive Step Stepper Dots */}
-        <div className="stepper-dots">
-          {steps.map((_, idx) => (
-            <button
-              key={`step-dot-${idx}`}
-              type="button"
-              className={`step-dot ${idx < currentStepIndex ? 'completed' : ''} ${
-                idx === currentStepIndex ? 'active' : ''
-              }`}
-              onClick={() => jumpToStep(idx)}
-              title={`Jump to step ${idx + 1}`}
-            />
-          ))}
-        </div>
-      </div>
+      <RecipeRequirements requirements={getRecipeRequirementsArray(activeRecipe)} />
     </div>
+  );
+
+  return (
+    <>
+      <div className="recipe-player-container">
+        {/* Header Row */}
+        <div className="player-header">
+          <div className="recipe-select-group">
+            <span className="recipe-label">Recipe:</span>
+            <div className="recipe-buttons">
+              {recipes.map((r) => {
+                const isActive = r.id === selectedRecipeId;
+                const recipeIcon = r.id === 'concebolla' ? '🧅' : '🥔';
+                return (
+                  <button
+                    key={r.id}
+                    type="button"
+                    className={`recipe-btn ${isActive ? 'active' : ''}`}
+                    onClick={() => handleRecipeChange(r.id)}
+                  >
+                    <span className="recipe-btn-icon">{recipeIcon}</span>
+                    <span className="recipe-btn-text">{r.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="player-status-badge">
+            <span className="step-count">
+              Step <strong>{currentStepIndex}</strong> / {totalSteps}
+            </span>
+            <span className={`speed-badge speed-${speed.toString().replace('.', '_')}`}>
+              ⚡ {speed}x
+            </span>
+          </div>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="player-progress-track">
+          <div
+            className="player-progress-bar"
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
+
+        {/* Active Step Description Card */}
+        <div className="current-step-card">
+          <div className="step-icon-area">{stepDetails.icon}</div>
+          <div className="step-text-area">
+            <div className="step-action-badge">{stepDetails.actionName}</div>
+            <p className="step-description">{stepDetails.text}</p>
+          </div>
+        </div>
+
+        {/* Main Controls Row */}
+        <div className="player-controls-bar">
+          {/* Slow Control */}
+          <button
+            type="button"
+            className="ctrl-btn slow-btn"
+            onClick={handleSlow}
+            title="Slow down playback speed (0.5x)"
+          >
+            🐢 Slow
+          </button>
+
+          {/* Step Down (Step Back) */}
+          <button
+            type="button"
+            className="ctrl-btn step-down-btn"
+            onClick={handleStepDown}
+            disabled={currentStepIndex <= 0}
+            title="Step Down: Go back to previous step"
+          >
+            ⏮ Step Down
+          </button>
+
+          {/* Play / Pause Toggle */}
+          <button
+            type="button"
+            className={`ctrl-btn play-btn ${isPlaying ? 'is-playing' : ''}`}
+            onClick={handleTogglePlay}
+            title={isPlaying ? 'Pause recipe auto-play' : 'Play recipe step-by-step'}
+          >
+            {isPlaying ? '⏸ Pause' : currentStepIndex >= totalSteps ? '🔄 Replay' : '▶ Play'}
+          </button>
+
+          {/* Step Up (Step Forward) */}
+          <button
+            type="button"
+            className="ctrl-btn step-up-btn"
+            onClick={handleStepUp}
+            disabled={currentStepIndex >= totalSteps}
+            title="Step Up: Advance to next step"
+          >
+            Step Up ⏭
+          </button>
+
+          {/* Fast Control */}
+          <button
+            type="button"
+            className="ctrl-btn fast-btn"
+            onClick={handleFast}
+            title="Speed up playback speed (2x/3x)"
+          >
+            Fast ⚡
+          </button>
+
+          {/* Kitchen Reset Button */}
+          <button
+            type="button"
+            className="ctrl-btn reset-btn"
+            onClick={handleReset}
+            title="Reset kitchen world to starting state"
+          >
+            🔄 Reset
+          </button>
+        </div>
+
+        {/* Speed Presets & Step Timeline Dots */}
+        <div className="player-footer">
+          <div className="speed-pills">
+            <span className="speed-title">Speed:</span>
+            {[0.5, 1, 2, 3].map((sp) => (
+              <button
+                key={sp}
+                type="button"
+                className={`speed-pill ${speed === sp ? 'active' : ''}`}
+                onClick={() => setSpeed(sp)}
+              >
+                {sp}x
+              </button>
+            ))}
+          </div>
+
+          {/* Interactive Step Stepper Dots */}
+          <div className="stepper-dots">
+            {steps.map((_, idx) => (
+              <button
+                key={`step-dot-${idx}`}
+                type="button"
+                className={`step-dot ${idx < currentStepIndex ? 'completed' : ''} ${
+                  idx === currentStepIndex ? 'active' : ''
+                }`}
+                onClick={() => jumpToStep(idx)}
+                title={`Jump to step ${idx + 1}`}
+              />
+            ))}
+          </div>
+        </div>
+
+        {!renderWorkspace && requirementsNode}
+      </div>
+      {renderWorkspace && renderWorkspace(requirementsNode)}
+    </>
   );
 };

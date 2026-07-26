@@ -60,11 +60,12 @@ export function TortillaSvg({
   height = 100,
   potatoes = DEFAULT_POTATOES,
   toastMarks = DEFAULT_TOAST_MARKS,
+  gazingAt,
   onDoubleClick,
 }: TortillaSvgProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [isFlipping, setIsFlipping] = useState(false);
-  const [mouseOffset, setMouseOffset] = useState<{ left: GazePoint; right: GazePoint }>({
+  const [targetOffset, setTargetOffset] = useState<{ left: GazePoint; right: GazePoint }>({
     left: { x: 0, y: 0 },
     right: { x: 0, y: 0 },
   });
@@ -82,34 +83,89 @@ export function TortillaSvg({
   useEffect(() => {
     if (externalPupilOffset) return;
 
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!svgRef.current) return;
+    const computeOffsetFromPoint = (targetX: number, targetY: number) => {
+      if (!svgRef.current) return { x: 0, y: 0 };
       const rect = svgRef.current.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;
 
-      const dx = e.clientX - centerX;
-      const dy = e.clientY - centerY;
+      const dx = targetX - centerX;
+      const dy = targetY - centerY;
       const distance = Math.sqrt(dx * dx + dy * dy);
-      const angle = Math.atan2(dy, dx);
+      if (distance < 1) return { x: 0, y: 0 };
 
+      const angle = Math.atan2(dy, dx);
       const maxOffset = 3.5;
       const offsetDist = Math.min(distance / 60, 1) * maxOffset;
 
       const ox = Math.cos(angle) * offsetDist;
       const oy = Math.sin(angle) * offsetDist;
 
-      setMouseOffset({
-        left: { x: ox, y: oy },
-        right: { x: ox, y: oy },
-      });
+      return { x: ox, y: oy };
     };
 
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [externalPupilOffset]);
+    if (gazingAt?.type === "mouse") {
+      const handleMouseMove = (e: MouseEvent) => {
+        const offset = computeOffsetFromPoint(e.clientX, e.clientY);
+        setTargetOffset({ left: offset, right: offset });
+      };
+      window.addEventListener("mousemove", handleMouseMove);
+      return () => window.removeEventListener("mousemove", handleMouseMove);
+    }
 
-  const pupilOffset = externalPupilOffset || mouseOffset;
+    let animFrameId: number;
+
+    const updateGaze = () => {
+      if (!gazingAt) {
+        setTargetOffset({ left: { x: 0, y: 0 }, right: { x: 0, y: 0 } });
+        return;
+      }
+
+      if (gazingAt.type === "entity") {
+        const entityId = gazingAt.entityId;
+        if (!entityId) {
+          setTargetOffset({ left: { x: 0, y: 0 }, right: { x: 0, y: 0 } });
+          return;
+        }
+
+        // Search for element or container in DOM
+        const el =
+          document.querySelector(`[data-entity-id="${entityId}"]`) ||
+          document.querySelector(`[data-ingredient-id="${entityId}"]`) ||
+          document.querySelector(`[data-container-id="${entityId}"]`) ||
+          document.getElementById(entityId);
+
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          const offset = computeOffsetFromPoint(
+            rect.left + rect.width / 2,
+            rect.top + rect.height / 2
+          );
+          setTargetOffset({ left: offset, right: offset });
+        } else {
+          setTargetOffset({ left: { x: 0, y: 0 }, right: { x: 0, y: 0 } });
+        }
+      } else if (gazingAt.type === "point") {
+        const offset = computeOffsetFromPoint(gazingAt.point.x, gazingAt.point.y);
+        setTargetOffset({ left: offset, right: offset });
+      } else {
+        setTargetOffset({ left: { x: 0, y: 0 }, right: { x: 0, y: 0 } });
+      }
+    };
+
+    const loop = () => {
+      updateGaze();
+      animFrameId = requestAnimationFrame(loop);
+    };
+
+    loop();
+
+    return () => {
+      if (animFrameId) cancelAnimationFrame(animFrameId);
+    };
+  }, [externalPupilOffset, gazingAt]);
+
+  const pupilOffset = externalPupilOffset || targetOffset;
   const r = radius ?? 28;
   const effectiveState = isFlipping ? "flipping" : state;
 

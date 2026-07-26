@@ -28,30 +28,65 @@ export async function handleMixStep(
       throw new Error(`[RecipeRunner] Cannot mix: No bound entity found for input "${rawInput}"`);
     }
 
-    ctx.validateEntity(inputEntityId, 'mix');
+    const realEntityId = await ctx.ensureEntityInWorkspace(inputEntityId, targetContainerId);
+    inputEntityIds.push(realEntityId);
+  }
 
-    // Ensure input entity is in target container (e.g. bowl)
-    const state = worldStore.getState();
-    const currentContainer = Object.values(state.containers).find((c) =>
-      c.entityIds.includes(inputEntityId)
-    );
+  // Format descriptive speech message for mascot speech bubble and Zustand store state
+  const formattedInputs = inputKeys.map((key) => {
+    const boundId = ctx.getBoundEntityId(key);
+    const entity = boundId ? worldStore.getState().entities[boundId] : undefined;
 
-    if (currentContainer && currentContainer.id !== targetContainerId) {
-      worldStore.getState().dispatch({
-        type: 'MOVE_ENTITY',
-        payload: {
-          entityId: inputEntityId,
-          targetContainerId,
-        },
-      });
+    const parts: string[] = [];
+    if (entity?.state) {
+      const cooking = entity.state.cooking as string | undefined;
+      if (cooking && cooking !== 'raw') {
+        if (cooking === 'fry' || cooking === 'fried' || cooking === 'cooked') {
+          parts.push('cooked');
+        } else {
+          parts.push(cooking);
+        }
+      }
+      const prep = entity.state.preparation as string | undefined;
+      if (prep && prep !== 'whole' && prep !== 'raw') {
+        parts.push(prep);
+      }
     }
 
-    inputEntityIds.push(inputEntityId);
-  }
+    if (parts.length === 0) {
+      if (key === 'potatoes') {
+        parts.push('cooked', 'sliced');
+      } else if (key === 'eggs') {
+        parts.push('beaten');
+      } else if (key === 'onions') {
+        parts.push('cooked', 'diced');
+      }
+    }
+
+    parts.push(key);
+    return parts.join(' ');
+  });
+
+  const containerName =
+    targetContainerId === 'bowl' || targetContainerId === 'preparation_bowl'
+      ? 'preparation bowl'
+      : targetContainerId.replace('_', ' ');
+  const mixMessage = `Mix ${formattedInputs.join(', ')} in the ${containerName} -> ${step.output || 'mixture'}`;
+
+  worldStore.getState().dispatch({
+    type: 'UPDATE_ENTITY_STATE',
+    payload: {
+      entityId: ctx.mascotId,
+      changes: { speechMessage: mixMessage },
+    },
+  });
 
   moveTortillaTo(targetContainerId, ctx.mascotId);
   await ctx.wait();
   flipTortilla(ctx.mascotId);
+  await ctx.wait();
+
+  // Wait for a moment while mixing before creating the mixture
   await ctx.wait();
 
   // 2. Create real mixture entity in target container
