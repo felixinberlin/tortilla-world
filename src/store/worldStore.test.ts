@@ -27,10 +27,10 @@ function seed() {
         type: 'storage',
         entityIds: ['potato', 'onion', 'knife'],
       },
-      pan: {
-        id: 'pan',
-        name: 'Pan',
-        type: 'pan',
+      burner1: {
+        id: 'burner1',
+        name: 'burner1',
+        type: 'burner',
         entityIds: [],
         rules: { maxCapacity: 1 },
       },
@@ -61,26 +61,26 @@ describe('worldStore container rule enforcement', () => {
   it('allows a move that satisfies the target container rules', () => {
     worldStore.getState().dispatch({
       type: 'MOVE_ENTITY',
-      payload: { entityId: 'potato', targetContainerId: 'pan' },
+      payload: { entityId: 'potato', targetContainerId: 'burner1' },
     });
 
     const state = worldStore.getState();
-    expect(state.containers.pan.entityIds).toEqual(['potato']);
+    expect(state.containers.burner1.entityIds).toEqual(['potato']);
     expect(state.containers.kitchen.entityIds).not.toContain('potato');
   });
 
   it('blocks a move once the target container is at capacity', () => {
     worldStore.getState().dispatch({
       type: 'MOVE_ENTITY',
-      payload: { entityId: 'potato', targetContainerId: 'pan' },
+      payload: { entityId: 'potato', targetContainerId: 'burner1' },
     });
     worldStore.getState().dispatch({
       type: 'MOVE_ENTITY',
-      payload: { entityId: 'onion', targetContainerId: 'pan' },
+      payload: { entityId: 'onion', targetContainerId: 'burner1' },
     });
 
     const state = worldStore.getState();
-    expect(state.containers.pan.entityIds).toEqual(['potato']);
+    expect(state.containers.burner1.entityIds).toEqual(['potato']);
     expect(state.containers.kitchen.entityIds).toContain('onion');
   });
 
@@ -125,12 +125,12 @@ describe('worldStore container rule enforcement', () => {
   });
 
   it('is a no-op when the entity does not exist', () => {
-    const before = worldStore.getState().containers.pan.entityIds;
+    const before = worldStore.getState().containers.burner1.entityIds;
     worldStore.getState().dispatch({
       type: 'MOVE_ENTITY',
-      payload: { entityId: 'ghost', targetContainerId: 'pan' },
+      payload: { entityId: 'ghost', targetContainerId: 'burner1' },
     });
-    expect(worldStore.getState().containers.pan.entityIds).toEqual(before);
+    expect(worldStore.getState().containers.burner1.entityIds).toEqual(before);
   });
 
   it('enforces the same rules on ADD_ENTITY', () => {
@@ -150,7 +150,7 @@ describe('worldStore container rule enforcement', () => {
   it('logs a labelled entry into the action log for each dispatch', () => {
     worldStore.getState().dispatch({
       type: 'MOVE_ENTITY',
-      payload: { entityId: 'potato', targetContainerId: 'pan' },
+      payload: { entityId: 'potato', targetContainerId: 'burner1' },
     });
 
     const log = getActionLog();
@@ -172,10 +172,10 @@ describe('worldStore container rule enforcement', () => {
           entityIds: ['potato'],
           rules: { isImmutable: true },
         },
-        pan: {
-          id: 'pan',
-          name: 'Pan',
-          type: 'pan',
+        burner1: {
+          id: 'burner1',
+          name: 'burner1',
+          type: 'burner',
           entityIds: [],
         },
       },
@@ -183,15 +183,15 @@ describe('worldStore container rule enforcement', () => {
 
     worldStore.getState().dispatch({
       type: 'MOVE_ENTITY',
-      payload: { entityId: 'potato', targetContainerId: 'pan' },
+      payload: { entityId: 'potato', targetContainerId: 'burner1' },
     });
 
     const state = worldStore.getState();
     // Source container retains original entity
     expect(state.containers.pantry.entityIds).toEqual(['potato']);
     // Target container gets a copy instance
-    expect(state.containers.pan.entityIds.length).toBe(1);
-    const copyId = state.containers.pan.entityIds[0];
+    expect(state.containers.burner1.entityIds.length).toBe(1);
+    const copyId = state.containers.burner1.entityIds[0];
     expect(copyId).not.toBe('potato');
     expect(state.entities[copyId].name).toBe('Potato');
   });
@@ -210,10 +210,10 @@ describe('worldStore container rule enforcement', () => {
           entityIds: ['potato_copy'],
           rules: { isImmutable: true },
         },
-        pan: {
-          id: 'pan',
-          name: 'Pan',
-          type: 'pan',
+        burner1: {
+          id: 'burner1',
+          name: 'burner1',
+          type: 'burner',
           entityIds: ['potato'],
         },
       },
@@ -221,12 +221,12 @@ describe('worldStore container rule enforcement', () => {
 
     worldStore.getState().dispatch({
       type: 'MOVE_ENTITY',
-      payload: { entityId: 'potato_copy', targetContainerId: 'pan' },
+      payload: { entityId: 'potato_copy', targetContainerId: 'burner1' },
     });
 
     const state = worldStore.getState();
-    // Pan should still only have 1 potato because duplicate ingredient is blocked
-    expect(state.containers.pan.entityIds).toEqual(['potato']);
+    // burner1 should still only have 1 potato because duplicate ingredient is blocked
+    expect(state.containers.burner1.entityIds).toEqual(['potato']);
   });
 
   it('updates ingredient status to peeled when preparation is peeled', () => {

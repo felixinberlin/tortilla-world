@@ -51,6 +51,7 @@ export const KITCHEN_WORKSTATIONS: Record<WorkstationId, Workstation> = {
     defaultContainerId: 'pan',
     requiredTools: ['pan'],
     optionalTools: ['pot', 'spatula'],
+    isOn: false,
   },
   serving_station: {
     id: 'serving_station',

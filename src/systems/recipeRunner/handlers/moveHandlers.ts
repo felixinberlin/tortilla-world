@@ -23,19 +23,10 @@ export async function handleMoveStep(
   const target = step.target || workstationDefaultContainerId || ctx.defaultTargetId;
   const rawKey = step.ingredient || step.target;
 
-  console.log('🔧 [moveHandlers] Starting move step', {
-    rawKey,
-    source,
-    target,
-    step,
-  });
-
 
   const entityId = ctx.getBoundEntityId(rawKey);
-  console.log('🔧 [moveHandlers] Bound entity ID:', entityId);
 
   if (!entityId) {
-    console.warn('⚠️ [moveHandlers] No entity bound for:', rawKey);
     return;
   }
 
@@ -43,9 +34,6 @@ export async function handleMoveStep(
 
   const state = worldStore.getState();
   const targetContainer = state.containers[target];
-
-  console.log('🔧 [moveHandlers] Target container:', target, targetContainer);
-  console.log('🔧 [moveHandlers] Source container:', source, state.containers[source]);
 
 
   if (targetContainer && targetContainer.entityIds.includes(entityId)) {

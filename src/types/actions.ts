@@ -13,106 +13,113 @@ import type { PreparationStyle, CookingMethod } from './RecipeStep';
 
 export type WorldAction =
   | {
-      type: 'MOVE_ENTITY';
-      payload: {
-        entityId: string;
-        targetContainerId: string;
-        positionIndex?: number;
-      };
-    }
-  | {
-      type: 'ADD_ENTITY';
-      payload: {
-        entity: {
-          id: string;
-          name: string;
-          type: EntityType;
-          icon?: string;
-          ingredientId?: string;
-          state?: Record<string, unknown>;
-        };
-        containerId: string;
-      };
-    }
-  | {
-      type: 'REMOVE_ENTITY';
-      payload: {
-        entityId: string;
-      };
-    }
-  | {
-      type: 'UPDATE_ENTITY_STATE';
-      payload: {
-        entityId: string;
-        changes: Record<string, unknown>;
-      };
-    }
-  | {
-      type: 'PREPARE_INGREDIENT';
-      payload: {
-        entityId: string;
-        preparation: PreparationStyle;
-      };
-    }
-  | {
-      type: 'COOK_INGREDIENT';
-      payload: {
-        entityId: string;
-        cooking: CookingMethod;
-      };
-    }
-  | {
-      type: 'USE_INGREDIENT';
-      payload: {
-        entityId: string;
-        usedIn?: string;
-      };
-    }
-  | {
-      type: 'MASCOT_FLIP';
-      payload: {
-        mascotId?: string;
-      };
-    }
-  | {
-      type: 'MASCOT_MOVE';
-      payload: {
-        mascotId?: string;
-        targetContainerId: string;
-      };
-    }
-  | {
-      type: 'MASCOT_GRAB';
-      payload: {
-        mascotId?: string;
-        entityId: string;
-        sourceContainerId?: string;
-      };
-    }
-  | {
-      type: 'MASCOT_DROP';
-      payload: {
-        mascotId?: string;
-        targetContainerId: string;
-        positionIndex?: number;
-      };
-    }
-  | {
-      type: 'MASCOT_CLEAR_GAZE';
-      payload: {
-        mascotId?: string;
-      };
-    }
-  | {
-      type: 'RESET_WORLD';
-      payload?: Record<string, never>;
+    type: 'MOVE_ENTITY';
+    payload: {
+      entityId: string;
+      targetContainerId: string;
+      positionIndex?: number;
     };
+  }
+  | {
+    type: 'ADD_ENTITY';
+    payload: {
+      entity: {
+        id: string;
+        name: string;
+        type: EntityType;
+        icon?: string;
+        ingredientId?: string;
+        state?: Record<string, unknown>;
+      };
+      containerId: string;
+    };
+  }
+  | {
+    type: 'TOGGLE_BURNER';
+    payload: {
+      workstationId: string,
+    };
+  }
+  | {
+    type: 'REMOVE_ENTITY';
+    payload: {
+      entityId: string;
+    };
+  }
+  | {
+    type: 'UPDATE_ENTITY_STATE';
+    payload: {
+      entityId: string;
+      changes: Record<string, unknown>;
+    };
+  }
+  | {
+    type: 'PREPARE_INGREDIENT';
+    payload: {
+      entityId: string;
+      preparation: PreparationStyle;
+    };
+  }
+  | {
+    type: 'COOK_INGREDIENT';
+    payload: {
+      entityId: string;
+      cooking: CookingMethod;
+    };
+  }
+  | {
+    type: 'USE_INGREDIENT';
+    payload: {
+      entityId: string;
+      usedIn?: string;
+    };
+  }
+  | {
+    type: 'MASCOT_FLIP';
+    payload: {
+      mascotId?: string;
+    };
+  }
+  | {
+    type: 'MASCOT_MOVE';
+    payload: {
+      mascotId?: string;
+      targetContainerId: string;
+    };
+  }
+  | {
+    type: 'MASCOT_GRAB';
+    payload: {
+      mascotId?: string;
+      entityId: string;
+      sourceContainerId?: string;
+    };
+  }
+  | {
+    type: 'MASCOT_DROP';
+    payload: {
+      mascotId?: string;
+      targetContainerId: string;
+      positionIndex?: number;
+    };
+  }
+  | {
+    type: 'MASCOT_CLEAR_GAZE';
+    payload: {
+      mascotId?: string;
+    };
+  }
+  | {
+    type: 'RESET_WORLD';
+    payload?: Record<string, never>;
+  };
+
 
 export type WorldEvent =
   | {
-      type: 'INGREDIENT_CONSUMED';
-      payload: {
-        entityId: string;
-        consumedBy?: string;
-      };
+    type: 'INGREDIENT_CONSUMED';
+    payload: {
+      entityId: string;
+      consumedBy?: string;
     };
+  };

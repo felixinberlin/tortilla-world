@@ -60,10 +60,10 @@ describe('mascotActions system', () => {
   });
 
   it('moves Tortilla gaze to a specified container', () => {
-    moveTortillaTo(' burner1', 'chef');
+    moveTortillaTo('burner1', 'chef');
 
     const state = worldStore.getState();
-    expect(state.entities.chef.state?.gazingAt).toEqual({ type: 'entity', entityId: ' burner1' });
+    expect(state.entities.chef.state?.gazingAt).toEqual({ type: 'entity', entityId: 'burner1' });
 
     const log = getActionLog();
     expect(log.map((l) => l.action)).toContain('MASCOT_MOVE');
@@ -84,14 +84,14 @@ describe('mascotActions system', () => {
     // First grab potato from immutable despensa
     grabIngredient('potato', 'despensa', 'chef');
 
-    // Then drop into  burner1
-    dropIngredient(' burner1', undefined, 'chef');
+    // Then drop intoburner1
+    dropIngredient('burner1', undefined, 'chef');
 
     const state = worldStore.getState();
     // Held item cleared
     expect(state.entities.chef.state?.holdingEntityId).toBeUndefined();
-    //  burner1 now has a potato copy (because source was immutable despensa)
-    expect(state.containers. burner1.entityIds.length).toBe(1);
+    //burner1 now has a potato copy (because source was immutable despensa)
+    expect(state.containers.burner1.entityIds.length).toBe(1);
 
     const log = getActionLog();
     const actions = log.map((l) => l.action);
@@ -130,10 +130,10 @@ describe('mascotActions system', () => {
     expect(worldStore.getState().entities.chef.state?.holdingEntityId).toBe('potato');
     expect(worldStore.getState().containers.board.entityIds).toEqual(['i1', 'i2', 'i3']);
 
-    // 4. Drop into non-full  burner1 -> allowed, Tortilla stops grabbing it (holdingEntityId cleared)
-    dropIngredient(' burner1', undefined, 'chef');
+    // 4. Drop into non-fullburner1 -> allowed, Tortilla stops grabbing it (holdingEntityId cleared)
+    dropIngredient('burner1', undefined, 'chef');
     expect(worldStore.getState().entities.chef.state?.holdingEntityId).toBeUndefined();
-    expect(worldStore.getState().containers. burner1.entityIds.length).toBe(1);
+    expect(worldStore.getState().containers.burner1.entityIds.length).toBe(1);
   });
 
   it('runs full async script sequence: move ➔ grab ➔ move ➔ drop ➔ flip ➔ return home', async () => {
@@ -171,7 +171,7 @@ describe('mascotActions system', () => {
         board: { id: 'board', name: 'Board', type: 'board', entityIds: [], rules: { maxCapacity: 10 } },
         sink: { id: 'sink', name: 'Sink', type: 'sink', entityIds: [], rules: { maxCapacity: 10 } },
         bowl: { id: 'bowl', name: 'Bowl', type: 'bowl', entityIds: [], rules: { maxCapacity: 10 } },
-        burner1: { id: ' burner1', name: ' burner1', type: 'burner', entityIds: [], rules: { maxCapacity: 10 } },
+        burner1: { id: 'burner1', name: 'burner1', type: 'burner', entityIds: [], rules: { maxCapacity: 10 } },
         plate: { id: 'plate', name: 'Plate', type: 'plate', entityIds: [], rules: { maxCapacity: 10 } },
       },
     });

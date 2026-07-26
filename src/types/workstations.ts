@@ -25,4 +25,5 @@ export type Workstation = {
   defaultContainerId: string;
   requiredTools?: string[];
   optionalTools?: string[];
+  isOn?: boolean;
 };

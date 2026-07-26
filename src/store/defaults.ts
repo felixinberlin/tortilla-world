@@ -6,7 +6,7 @@
  *
  * RESPONSIBILITY:
  * - Provides default entity definitions (mascot, ingredients, tools).
- * - Provides default container definitions (despensa, sink, board, bowl, pan, plate).
+ * - Provides default container definitions (despensa, sink, board, bowl, burner, plate).
  */
 
 import type { Container, Entity } from '../types/world';
@@ -79,6 +79,13 @@ export const defaultContainers: Record<string, Container> = {
   burner1: {
     id: 'burner1',
     name: 'Fuego 1',
+    type: 'burner',
+    entityIds: [],
+    rules: { maxCapacity: 5, allowedTypes: ['ingredient', 'tool'] },
+  },
+  burner2: {
+    id: 'burner2',
+    name: 'Fuego 2',
     type: 'burner',
     entityIds: [],
     rules: { maxCapacity: 5, allowedTypes: ['ingredient', 'tool'] },
