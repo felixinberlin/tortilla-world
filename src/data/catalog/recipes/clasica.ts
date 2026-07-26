@@ -39,6 +39,12 @@ export const clasicaRecipe: Recipe = {
       unit: 'pcs',
     },
 
+    garlic: {
+      entityId: 'garlic',
+      amount: 1,
+      unit: 'head',
+    },
+
     oil: {
       entityId: 'oil',
       amount: 100,
@@ -72,6 +78,18 @@ export const clasicaRecipe: Recipe = {
     },
 
     {
+      action: 'prepare',
+      target: 'garlic',
+      preparation: 'peeled',
+    },
+
+    {
+      action: 'prepare',
+      target: 'garlic',
+      preparation: 'in half heads',
+    },
+
+    {
       action: 'cook',
       target: 'oil',
       method: 'heat',
@@ -80,6 +98,12 @@ export const clasicaRecipe: Recipe = {
     {
       action: 'cook',
       target: 'potatoes',
+      method: 'fry',
+    },
+
+    {
+      action: 'cook',
+      target: 'garlic',
       method: 'fry',
     },
 
@@ -96,6 +120,7 @@ export const clasicaRecipe: Recipe = {
         'eggs',
         'salt',
         'black_pepper',
+        'garlic'
       ],
       output: 'mixture',
     },

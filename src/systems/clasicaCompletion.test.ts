@@ -91,7 +91,7 @@ describe('Clásica Recipe Completion State', () => {
     expect(state.containers.bowl.entityIds).toEqual([]);
 
     // 2. Sarten (pan) is empty
-    expect(state.containers.pan.entityIds).toEqual([]);
+    expect(state.containers.pan.entityIds).toEqual([]); // maybe still has hot oil inside @todo:check
 
     // 3. Plato (plate) contains ONLY mixture
     expect(state.containers.plate.entityIds).toHaveLength(1);
