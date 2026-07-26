@@ -13,7 +13,7 @@ import { worldStore } from '../store/worldStore';
 import { updateMascotGaze, getMascotGazeTarget } from './gaze';
 import type { GazeTarget } from './gaze';
 
-const PAN_GAZE: GazeTarget = { type: 'entity', entityId: 'pan' };
+const  FIRE_GAZE: GazeTarget = { type: 'entity', entityId: ' burner1' };
 
 describe('Gaze System', () => {
   beforeEach(() => {
@@ -36,10 +36,10 @@ describe('Gaze System', () => {
           rules: { maxCapacity: 1 },
           entityIds: [],
         },
-        pan: {
-          id: 'pan',
-          name: 'Pan',
-          type: 'pan',
+        burner1: {
+          id: 'burner1',
+          name: 'burner1',
+          type: 'burner',
           rules: { maxCapacity: Infinity },
           entityIds: [],
         },
@@ -55,22 +55,22 @@ describe('Gaze System', () => {
   });
 
   it('updates mascot gaze target correctly', () => {
-    updateMascotGaze('chef', PAN_GAZE);
-    expect(getMascotGazeTarget('chef')).toEqual(PAN_GAZE);
+    updateMascotGaze('chef',  FIRE_GAZE);
+    expect(getMascotGazeTarget('chef')).toEqual( FIRE_GAZE);
   });
 
   it('is idempotent when gazing at the same target', () => {
-    updateMascotGaze('chef', PAN_GAZE);
+    updateMascotGaze('chef',  FIRE_GAZE);
     const firstState = worldStore.getState();
 
-    updateMascotGaze('chef', { type: 'entity', entityId: 'pan' }); // structurally identical
+    updateMascotGaze('chef', { type: 'entity', entityId: ' burner1' }); // structurally identical
     const secondState = worldStore.getState();
 
     expect(firstState).toBe(secondState);
   });
 
   it('updates when gazing at a different entity', () => {
-    updateMascotGaze('chef', PAN_GAZE);
+    updateMascotGaze('chef',  FIRE_GAZE);
     updateMascotGaze('chef', { type: 'entity', entityId: 'plate' });
     expect(getMascotGazeTarget('chef')).toEqual({ type: 'entity', entityId: 'plate' });
   });
@@ -87,7 +87,7 @@ describe('Gaze System', () => {
   });
 
   it('can clear gaze to null', () => {
-    updateMascotGaze('chef', PAN_GAZE);
+    updateMascotGaze('chef',  FIRE_GAZE);
     updateMascotGaze('chef', null);
     expect(getMascotGazeTarget('chef')).toBeNull();
   });

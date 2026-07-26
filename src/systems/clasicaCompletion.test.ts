@@ -6,7 +6,6 @@
  *
  * VERIFIES:
  * - Preparation bowl (bowl) is empty at the end.
- * - Sarten (pan) is empty at the end.
  * - Plato (plate) contains ONLY mixture at the end.
  * - Mixed input ingredients disappear from all world containers.
  */
@@ -56,10 +55,10 @@ function seedTestWorld() {
         entityIds: [],
         rules: { maxCapacity: 10 },
       },
-      pan: {
-        id: 'pan',
-        name: 'Pan',
-        type: 'pan',
+      burner1: {
+        id: 'burner1',
+        name: 'burner1',
+        type: 'burner',
         entityIds: [],
         rules: { maxCapacity: 5 },
       },
@@ -90,7 +89,7 @@ describe('Clásica Recipe Completion State', () => {
     // 1. Preparation bowl is empty
     expect(state.containers.bowl.entityIds).toEqual([]);
 
-    // 2. Sarten (pan) is empty
+    // 2. fireplace is empty
     //expect(state.containers.pan.entityIds).toEqual([]);
 
     // 3. Plato (plate) contains ONLY mixture
@@ -115,7 +114,7 @@ describe('Clásica Recipe Completion State', () => {
     expect(state.entities[pepperId]?.state?.consumed).toBe(true);
 
     // Verify none of the consumed ingredients remain in any workstation container
-    const workstationContainerIds = ['sink', 'board', 'bowl', 'pan', 'plate'];
+    const workstationContainerIds = ['sink', 'board', 'bowl', 'burner1', 'plate'];
     for (const cId of workstationContainerIds) {
       expect(state.containers[cId].entityIds).not.toContain(potatoesId);
       expect(state.containers[cId].entityIds).not.toContain(eggsId);

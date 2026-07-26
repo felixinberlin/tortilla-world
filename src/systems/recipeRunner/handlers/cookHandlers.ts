@@ -28,7 +28,7 @@ export async function handleCookStep(
   ctx.validateEntity(entityId, 'cook');
 
   const cookingMethod = step.method || 'cooked';
-  const containerId = step.containerId || workstationDefaultContainerId || 'pan';
+  const containerId = step.containerId || workstationDefaultContainerId || 'burner1';
 
   if (step.instruction) {
     worldStore.getState().dispatch({
@@ -128,7 +128,7 @@ export async function handleFlipStep(
   step: FlipStep
 ): Promise<void> {
   const rawKey = step.target;
-  const targetContainer = rawKey === 'mixture' ? 'pan' : rawKey || 'pan';
+  const targetContainer = rawKey === 'mixture' ? 'burner1' : rawKey || 'burner1';
   const instructionText = step.instruction;
 
   if (instructionText) {

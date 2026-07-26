@@ -52,10 +52,10 @@ function seedTestWorld() {
         entityIds: [],
         rules: { maxCapacity: 10 },
       },
-      pan: {
-        id: 'pan',
-        name: 'Pan',
-        type: 'pan',
+      burner1: {
+        id: 'burner1',
+        name: 'burner1',
+        type: 'burner',
         entityIds: [],
         rules: { maxCapacity: 5 },
       },
@@ -113,15 +113,15 @@ describe('RecipeRunner System', () => {
   });
 
   it('mutates existing entity state for cook step', async () => {
-    const runner = new RecipeRunner({ mascotId: 'chef', defaultTargetId: 'pan', delayMs: 5 });
+    const runner = new RecipeRunner({ mascotId: 'chef', defaultTargetId: 'burner1', delayMs: 5 });
     await runner.runSteps([
-      { action: 'move', ingredient: 'potato', source: 'despensa', target: 'pan' },
-      { action: 'cook', ingredient: 'potato', method: 'fried', containerId: 'pan' },
+      { action: 'move', ingredient: 'potato', source: 'despensa', target: 'burner1' },
+      { action: 'cook', ingredient: 'potato', method: 'fried', containerId: 'burner1' },
     ]);
 
     const state = worldStore.getState();
-    const panEntities = state.containers.pan.entityIds.map((id) => state.entities[id]);
-    const friedPotato = panEntities.find((e) => e?.ingredientId === 'potato');
+    const burner1Entities = state.containers.burner1.entityIds.map((id) => state.entities[id]);
+    const friedPotato = burner1Entities.find((e) => e?.ingredientId === 'potato');
 
     expect(friedPotato).toBeDefined();
     expect(friedPotato?.state?.cooking).toBe('fried');
@@ -246,7 +246,7 @@ describe('RecipeRunner System', () => {
           type: 'ingredient',
           state: { preparation: 'sliced', cooking: 'fried' },
         },
-        containerId: 'pan',
+        containerId: 'burner1',
       },
     });
 

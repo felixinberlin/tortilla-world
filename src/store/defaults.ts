@@ -76,10 +76,10 @@ export const defaultContainers: Record<string, Container> = {
     entityIds: [],
     rules: { maxCapacity: 10, allowedTypes: ['ingredient', 'tool'] },
   },
-  pan: {
-    id: 'pan',
-    name: 'Sartén (Skillet)',
-    type: 'pan',
+  burner1: {
+    id: 'burner1',
+    name: 'Fuego 1',
+    type: 'burner',
     entityIds: [],
     rules: { maxCapacity: 5, allowedTypes: ['ingredient', 'tool'] },
   },
