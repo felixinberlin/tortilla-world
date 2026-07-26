@@ -26,12 +26,15 @@ export type RecipeStep =
       target?: string;
       ingredient?: string;
       method?: CookingMethod;
+      /** Local vessel alias from recipe.vessels (e.g. 'big_pan', 'small_pan') */
+      vessel?: string;
+      /** Escape hatch — direct container id, overrides vessel */
       containerId?: string;
       duration?: number;
-      unit?: string;
+      until?: string | string[];
+      temperature?: string | number;
       instruction?: string;
       mascotId?: string;
-      cooking_area?: string;
     }
   | {
       action: 'wash' | 'rinse' | 'drain';

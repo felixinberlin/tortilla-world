@@ -13,6 +13,7 @@ import type { Container, Entity } from '../types/world';
 import type { GazeTarget } from '../systems/Mascot/gaze';
 import { ingredients as catalogIngredients } from '../data/catalog/ingredients';
 import { catalogTools } from '../data/catalog/tools';
+import { catalogVessels } from '../src/data/catalog/vessels';
 
 export const defaultEntities: Record<string, Entity> = {
   chef: {
@@ -76,20 +77,17 @@ export const defaultContainers: Record<string, Container> = {
     entityIds: [],
     rules: { maxCapacity: 10, allowedTypes: ['ingredient', 'tool'] },
   },
-  cooking_area_sarten: {
-    id: 'cooking_area_sarten',
-    name: 'Sartén (Skillet)',
-    type: 'pan',
-    entityIds: [],
-    rules: { maxCapacity: 5, allowedTypes: ['ingredient', 'tool'] },
-  },
-  cooking_area_sarten_grande: {
-    id: 'cooking_area_sarten_grande',
-    name: 'Sartén Grande',
-    type: 'pan',
-    entityIds: [],
-    rules: { maxCapacity: 5, allowedTypes: ['ingredient', 'tool'] },
-  },
+  ...catalogVessels.reduce((acc, vessel) => {
+    const id = `cooking_area_${vessel.id}`;
+    acc[id] = {
+      id,
+      name: `${vessel.icon} ${vessel.name}`,
+      type: vessel.containerType,
+      entityIds: [],
+      rules: { maxCapacity: vessel.capacity, allowedTypes: ['ingredient', 'tool'] },
+    };
+    return acc;
+  }, {} as Record<string, Container>),
   plate: {
     id: 'plate',
     name: 'Plato (Plate)',

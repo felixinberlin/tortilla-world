@@ -18,9 +18,26 @@ export type RecipeRequirements =
   | Requirement[]
   | Record<string, RequirementDictItem>;
 
+export interface RecipeVessel {
+  /** References a VesselCatalogItem id (e.g. 'sarten', 'sarten_grande', 'oven') */
+  vesselType: string;
+}
+
 export interface Recipe {
   id: string;
   name: string;
+  /**
+   * Declares which cooking vessels this recipe needs.
+   * Keys are local aliases used in step `vessel` fields.
+   * The runner assigns real container IDs at runtime by matching vesselType → ContainerType.
+   *
+   * @example
+   * vessels: {
+   *   big_pan:   { vesselType: 'sarten_grande' },
+   *   small_pan: { vesselType: 'sarten' },
+   * }
+   */
+  vessels?: Record<string, RecipeVessel>;
   requirements: RecipeRequirements;
   steps: RecipeStep[];
 }
@@ -54,4 +71,3 @@ export function getRecipeRequirementsArray(recipe: Recipe): Requirement[] {
 
 /** Legacy alias helper for backward compatibility during transition */
 export const getRecipeIngredientsArray = getRecipeRequirementsArray;
-

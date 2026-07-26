@@ -17,6 +17,10 @@ export const concebollaRecipe: Recipe = {
   
   name: 'Tortilla con Cebolla',
 
+  vessels: {
+    cooking_area_sarten: 
+  },
+
   requirements: {
     potatoes: {
       entityId: 'potato',

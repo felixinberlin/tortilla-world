@@ -14,29 +14,18 @@ import type { RecipeList } from '../../../types/Recipe'
 
 import { concebollaRecipe } from './concebolla';
 import { clasicaRecipe } from './clasica';
+import { conpimientosRecipe } from './conpimientos';
 
-/**
- * Master recipe catalog.
- *
- * Used by systems that need access to all available recipes.
- */
 export const recipes: RecipeList = [
   concebollaRecipe,
   clasicaRecipe,
+  conpimientosRecipe,
 ];
 
 export const sincebollaRecipe = clasicaRecipe;
 
-/**
- * Individual recipe exports.
- *
- * Useful for:
- * - Recipe detail views
- * - Testing
- * - Debugging
- * - Future recipe editors
- */
 export {
   concebollaRecipe,
   clasicaRecipe,
+  conpimientosRecipe,
 };
