@@ -17,9 +17,10 @@ export const concebollaRecipe: Recipe = {
   
   name: 'Tortilla con Cebolla',
 
-  vessels: {
-    cooking_area_sarten: 
-  },
+   vessels: {
+     big_pan:   { vesselType: 'sarten_grande' },
+     small_pan: { vesselType: 'sarten' },
+   },
 
   requirements: {
     potatoes: {
@@ -87,25 +88,25 @@ export const concebollaRecipe: Recipe = {
       action: 'cook',
       target: 'oil',
       method: 'heat',
-      cooking_area: 'cooking_area_sarten_grande',
+      vessel: 'big_pan',
     },
     {
       action: 'cook',
       target: 'oil',
       method: 'heat',
-      cooking_area: 'cooking_area_sarten',
+      vessel: 'small_pan',
     },
     {
       action: 'cook',
       target: 'potatoes',
       method: 'fry',
-      cooking_area: 'cooking_area_sarten_grande',
+      vessel: 'big_pan',
     },
     {
       action: 'cook',
       target: 'onions',
       method: 'fry',
-      cooking_area: 'cooking_area_sarten',
+      vessel: 'small_pan',
     },
     {
       action: 'prepare',
@@ -128,7 +129,7 @@ export const concebollaRecipe: Recipe = {
       target: 'mixture',
       method: 'fry',
       duration: 5,
-      unit: 'min',
+      vessel: 'small_pan',
     },
     {
       action: 'instruction',
@@ -144,7 +145,7 @@ export const concebollaRecipe: Recipe = {
       target: 'mixture',
       method: 'fry',
       duration: 5,
-      unit: 'min',
+      vessel: 'small_pan',
       instruction: 'Deja cocinar por otros 5 min.',
     },
     {

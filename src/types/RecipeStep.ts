@@ -35,6 +35,7 @@ export type RecipeStep =
       temperature?: string | number;
       instruction?: string;
       mascotId?: string;
+      unit?: string;
     }
   | {
       action: 'wash' | 'rinse' | 'drain';

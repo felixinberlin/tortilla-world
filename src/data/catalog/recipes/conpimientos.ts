@@ -1,33 +1,25 @@
 /**
- * FILE: clasica.ts
+ * FILE: concebolla.ts
  *
  * PURPOSE:
- * Recipe definition for Tortilla Clásica (without onion).
+ * Recipe definition for Tortilla con cebolla.
  *
  * RESPONSIBILITY:
  * - Defines the ingredients, quantities, and cooking process.
  * - Describes recipe actions in a declarative format.
  * - Provides a Cooklang representation for humans.
- *
- * NOTE:
- * Recipes describe WHAT happens.
- * The RecipeRunner decides HOW it happens:
- * - finding ingredients
- * - moving the chef
- * - animations
- * - changing entity state
- * - creating intermediate results
  */
 
 import type { Recipe } from '../../../types/Recipe';
 
-export const clasicaRecipe: Recipe = {
-  id: 'clasica',
-
-  name: 'Clásica',
+export const conpimientosRecipe: Recipe = {
+  id: 'conpimiento',
+  
+  name: 'Tortilla con Pimientos',
 
    vessels: {
-     big_pan:   { vesselType: 'sarten_grande' },
+     small_pan:   { vesselType: 'sarten' },
+     small_pan2: { vesselType: 'sarten' },
    },
 
   requirements: {
@@ -36,25 +28,26 @@ export const clasicaRecipe: Recipe = {
       amount: 4,
       unit: 'pcs',
     },
-
     eggs: {
       entityId: 'egg',
       amount: 6,
       unit: 'pcs',
     },
-
     oil: {
       entityId: 'oil',
       amount: 100,
       unit: 'ml',
     },
-
+    pepper: {
+      entityId: 'pepper',
+      amount: 1,
+      unit: 'pcs',
+    },
     salt: {
       entityId: 'salt',
       amount: 1,
       unit: 'tsp',
     },
-
     black_pepper: {
       entityId: 'black_pepper',
       amount: 1,
@@ -68,99 +61,128 @@ export const clasicaRecipe: Recipe = {
       target: 'potatoes',
       preparation: 'peeled',
     },
-
+    {
+      action: 'wash',
+      target: 'potatoes',
+    },
     {
       action: 'prepare',
       target: 'potatoes',
       preparation: 'sliced',
     },
-
+    {
+      action: 'prepare',
+      target: 'pepper',
+      preparation: 'peeled',
+    },
+    {
+      action: 'wash',
+      target: 'pepper',
+    },
+    {
+      action: 'prepare',
+      target: 'pepper',
+      preparation: 'diced',
+    },
     {
       action: 'cook',
       target: 'oil',
       method: 'heat',
-      vessel: 'big_pan',
+      vessel: 'small_pan',
     },
-
+    {
+      action: 'cook',
+      target: 'oil',
+      method: 'heat',
+      vessel: 'small_pan2',
+    },
     {
       action: 'cook',
       target: 'potatoes',
       method: 'fry',
-      vessel: 'big_pan',
+      vessel: 'small_pan',
     },
-
+    {
+      action: 'cook',
+      target: 'onions',
+      method: 'fry',
+      vessel: 'small_pan2',
+    },
     {
       action: 'prepare',
       target: 'eggs',
       preparation: 'beaten',
     },
-
     {
       action: 'mix',
       inputs: [
         'potatoes',
+        'pepper',
         'eggs',
         'salt',
+        'pepper',
         'black_pepper',
       ],
       output: 'mixture',
     },
-
     {
       action: 'cook',
       target: 'mixture',
       method: 'fry',
       duration: 5,
-      vessel: 'big_pan',
+      vessel: 'small_pan',
     },
-
     {
       action: 'instruction',
       text: 'Con una espátula blanda, asegúrate de que la tortilla no se pega a la sartén.',
     },
-
     {
       action: 'flip',
       target: 'mixture',
       instruction: 'Dale la vuelta a la tortilla.',
     },
-
     {
       action: 'cook',
       target: 'mixture',
       method: 'fry',
       duration: 5,
+      vessel: 'small_pan',
       instruction: 'Deja cocinar por otros 5 min.',
-      vessel: 'big_pan',
     },
-
     {
       action: 'serve',
       target: 'mixture',
     },
-
     {
       action: 'celebrate',
     },
   ],
 };
 
-export const clasicaCooklang = `
+export const concebollaCooklang = `
 Peel the @potatoes{4%pcs}.
 
+Wash the @potatoes.
+
 Slice the @potatoes.
+
+Peel the @onions{1%pcs}.
+
+Wash the @onions.
+
+Dice the @onions.
 
 Heat the @oil{100%ml}.
 
 Fry the @potatoes until tender.
 
+Fry the @onions until golden.
+
 Beat the @eggs{6%pcs}.
 
-Add @salt{1%tsp}.
+Add @salt{1%tsp} and @pepper{1%pinch}.
 
-Add @pepper{1%pinch}.
-
-Mix the potatoes with the beaten eggs, salt and pepper.
+Mix the fried potatoes and onions with the beaten eggs, salt and pepper.
 
 Pour the mixture into the pan.
 
@@ -177,4 +199,4 @@ Serve the tortilla.
 Celebrate.
 `;
 
-export const recipe = clasicaRecipe;
+export const recipe = conpimientosRecipe;
