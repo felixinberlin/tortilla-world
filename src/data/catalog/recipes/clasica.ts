@@ -65,73 +65,61 @@ export const clasicaRecipe: Recipe = {
   },
 
   steps: [
-    {
-      action: 'prepare',
-      target: 'potatoes',
-      preparation: 'peeled',
-    },
+  {
+    action: 'prepare',
+    target: 'garlic',
+    preparation: 'peeled',
+  },
 
-    {
-      action: 'prepare',
-      target: 'potatoes',
-      preparation: 'sliced',
-    },
+  // Heat oil first
+  {
+    action: 'cook',
+    target: 'oil',
+    method: 'heat',
+  },
 
-    {
-      action: 'prepare',
-      target: 'garlic',
-      preparation: 'in half heads',
-    },
+  // Fry garlic (consumes oil)
+  {
+    action: 'cook',
+    target: 'garlic',
+    method: 'fry',
+    instruction: 'Que no se quemen.', // Cook but don't burn
+  },
 
-    {
-      action: 'prepare',
-      target: 'garlic',
-      preparation: 'peeled',
-    },
+  // IMPORTANT: Move garlic out IMMEDIATELY after cooking
+  {
+    action: 'move',
+    ingredient: 'garlic',
+    target: 'plate',  // Move to pantry
+    source: 'pan',     // From pan
+  },
 
-    {
-      action: 'cook',
-      target: 'garlic',
-      method: 'fry',
-      instruction: 'Que no se quemen.',
-    },
+  // Now cook potatoes in the same oil (oil already used from garlic step)
+  {
+    action: 'cook',
+    target: 'potatoes',
+    method: 'fry',
+  },
 
-    {
-      action: 'move',
-      ingredient: 'garlic',
-      target: 'pantry',
-      source: 'pan',
-    },
+  // Beat eggs
+  {
+    action: 'prepare',
+    target: 'eggs',
+    preparation: 'beaten',
+  },
 
-    {
-      action: 'cook',
-      target: 'oil',
-      method: 'heat',
-    },
-
-    {
-      action: 'cook',
-      target: 'potatoes',
-      method: 'fry',
-    },
-
-    {
-      action: 'prepare',
-      target: 'eggs',
-      preparation: 'beaten',
-    },
-
-    {
-      action: 'mix',
-      inputs: [
-        'potatoes',
-        'eggs',
-        'salt',
-        'black_pepper',
-        'garlic'
-      ],
-      output: 'mixture',
-    },
+  // Mix all together including garlic from pantry
+  {
+    action: 'mix',
+    inputs: [
+      'potatoes',      // From pan
+      'eggs',          // Fresh
+      'salt',          // Fresh
+      'black_pepper',  // Fresh
+      'garlic'         // From pantry (cooked earlier)
+    ],
+    output: 'mixture',
+  },
 
     {
       action: 'cook',
