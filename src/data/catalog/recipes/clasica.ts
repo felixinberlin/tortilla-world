@@ -105,6 +105,14 @@ export const clasicaRecipe: Recipe = {
       action: 'cook',
       target: 'garlic',
       method: 'fry',
+      instruction: 'Que no se quemen.',
+    },
+
+    {
+      action: 'move', 
+      ingredient: 'garlic',
+      target: 'pantry',
+      source: 'pan', 
     },
 
     {
