@@ -9,6 +9,7 @@ import type { Container, Entity, WorldAction, WorldEvent } from '../types/world'
 import type { EntitySlice } from './slices/entitySlice';
 import type { ContainerSlice } from './slices/containerSlice';
 import type { MascotSlice } from './slices/mascotSlice';
+import type { RecordSlice } from './slices/recordSlice';
 
 export type WorldStateStore = {
   entities: Record<string, Entity>;
@@ -20,4 +21,5 @@ export type WorldStateStore = {
   resetWorld: () => void;
 } & EntitySlice &
   ContainerSlice &
-  MascotSlice;
+  MascotSlice &
+  RecordSlice;

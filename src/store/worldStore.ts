@@ -19,6 +19,7 @@ import { defaultEntities, defaultContainers } from './defaults';
 import { createEntitySlice } from './slices/entitySlice';
 import { createContainerSlice } from './slices/containerSlice';
 import { createMascotSlice } from './slices/mascotSlice';
+import { createRecordSlice } from './slices/recordSlice';
 import type { WorldStateStore } from './types';
 
 const eventListeners = new Set<(event: WorldEvent) => void>();
@@ -30,6 +31,7 @@ export const worldStore = createStore<WorldStateStore>()(
         ...createEntitySlice(set, get, api),
         ...createContainerSlice(set, get, api),
         ...createMascotSlice(set, get, api),
+        ...createRecordSlice(set, get, api),
 
         // Deep clone initial state to avoid reference mutations
         entities: JSON.parse(JSON.stringify(defaultEntities)),
@@ -64,6 +66,12 @@ export const worldStore = createStore<WorldStateStore>()(
 
         dispatch: (action: WorldAction) => {
           const store = get();
+
+          // Record action if recording is currently active
+          if (store.isRecording) {
+            store.recordAction(action);
+          }
+
           switch (action.type) {
             case 'MOVE_ENTITY':
               store.moveEntity(
@@ -75,8 +83,10 @@ export const worldStore = createStore<WorldStateStore>()(
             case 'TOGGLE_BURNER': {
               set((draft) => {
                 const burner = draft.containers[action.payload.containerId];
-                burner.isOn = !burner.isOn;
-              });
+                if (burner) {
+                  burner.isOn = !burner.isOn;
+                }
+              }, false, 'TOGGLE_BURNER');
 
               break;
             }

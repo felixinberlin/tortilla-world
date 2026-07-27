@@ -1,0 +1,116 @@
+/**
+ * FILE: src/components/Controls/ActionReplayer.scss
+ *
+ * PURPOSE:
+ * SCSS styles for the ActionReplayer JSON load/playback component.
+ */
+
+@use 'sass:color';
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.action-replayer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+
+  .file-input-hidden {
+    display: none;
+  }
+
+  .replayer-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    border-radius: $radius-sm;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid $warm-border;
+    background: #ffffff;
+    color: $dark-brown;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+    &:hover:not(:disabled) {
+      background: $tortilla-yellow-light;
+      border-color: $tortilla-yellow;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    &.load-btn {
+      border-color: $olive-green;
+      color: $olive-green-hover;
+
+      &:hover:not(:disabled) {
+        background: rgba(107, 142, 35, 0.1);
+      }
+    }
+
+    &.stop-btn {
+      border-color: $terracotta;
+      color: $terracotta;
+      background: $terracotta-light;
+
+      &:hover:not(:disabled) {
+        background: $terracotta;
+        color: #ffffff;
+      }
+    }
+  }
+
+  .playback-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: $warm-surface;
+    border: 1px solid $warm-border;
+    padding: 4px 12px;
+    border-radius: $radius-sm;
+    font-size: 12px;
+    font-weight: 700;
+    color: $dark-brown;
+
+    .progress-bar-container {
+      width: 80px;
+      height: 6px;
+      background: rgba(0, 0, 0, 0.08);
+      border-radius: 3px;
+      overflow: hidden;
+
+      .progress-bar-fill {
+        height: 100%;
+        background: $olive-green;
+        transition: width 0.15s ease-out;
+      }
+    }
+  }
+
+  .delay-select {
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: $radius-sm;
+    border: 1px solid $warm-border;
+    background: #ffffff;
+    color: $dark-brown;
+    cursor: pointer;
+
+    &:focus {
+      outline: none;
+      border-color: $tortilla-yellow;
+    }
+  }
+
+  .error-message {
+    font-size: 12px;
+    color: $terracotta;
+    font-weight: 600;
+  }
+}

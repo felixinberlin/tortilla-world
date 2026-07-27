@@ -12,6 +12,7 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useStore } from 'zustand';
 import { recipes } from '../../data/catalog/recipes';
 import { ingredients } from '../../data/catalog/ingredients';
 import { catalogTools as tools } from '../../data/catalog/tools';
@@ -21,6 +22,7 @@ import type { RecipeStep } from '../../types/RecipeStep';
 import type { Recipe } from '../../types/Recipe';
 import { getRecipeRequirementsArray } from '../../types/Recipe';
 import { RecipeRequirements } from '../Recipe/RecipeRequirements';
+import { ActionReplayer } from '../Controls/ActionReplayer';
 import './RecipePlayer.scss';
 
 // Speed options and corresponding delays in ms
@@ -207,6 +209,14 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [speed, setSpeed] = useState<number>(1); // 0.5, 1, 2, 3
+
+  // WorldStore recording state
+  const isRecording = useStore(worldStore, (state) => state.isRecording);
+  const recordedActions = useStore(worldStore, (state) => state.recordedActions);
+  const recordedDownloadUrl = useStore(worldStore, (state) => state.recordedDownloadUrl);
+  const recordedFilename = useStore(worldStore, (state) => state.recordedFilename);
+  const startRecording = useStore(worldStore, (state) => state.startRecording);
+  const stopRecording = useStore(worldStore, (state) => state.stopRecording);
 
   const activeRecipe: Recipe = useMemo(
     () => recipes.find((r) => r.id === selectedRecipeId) || recipes[0],
@@ -547,6 +557,36 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
           >
             Fast ⚡
           </button>
+
+          {/* Record / Stop Recording Toggle */}
+          <button
+            type="button"
+            className={`ctrl-btn record-btn ${isRecording ? 'is-recording' : ''}`}
+            onClick={isRecording ? stopRecording : startRecording}
+            title={
+              isRecording
+                ? 'Stop recording world interactions'
+                : 'Record world interactions into a serialized recipe'
+            }
+          >
+            <span className={`record-indicator ${isRecording ? 'active' : ''}`}></span>
+            {isRecording ? `⏹ Stop (${recordedActions.length})` : '⏺ Record'}
+          </button>
+
+          {/* Download Recipe JSON Link */}
+          {recordedDownloadUrl && (
+            <a
+              href={recordedDownloadUrl}
+              download={recordedFilename || 'tortilla-recorded-recipe.json'}
+              className="ctrl-btn download-btn"
+              title="Download serialized recipe JSON file"
+            >
+              💾 Download Recipe (.json)
+            </a>
+          )}
+
+          {/* Action Log Replayer */}
+          <ActionReplayer />
 
           {/* Kitchen Reset Button */}
           <button

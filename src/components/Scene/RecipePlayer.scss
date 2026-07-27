@@ -348,6 +348,62 @@
         background: $warm-surface;
       }
 
+      // Record button
+      &.record-btn {
+        background: #ffffff;
+        border: 2px solid $terracotta;
+        color: $terracotta;
+        font-weight: 800;
+
+        .record-indicator {
+          display: inline-block;
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          background: $terracotta;
+          transition: transform 0.2s ease;
+
+          &.active {
+            animation: record-pulse 1.2s infinite ease-in-out;
+          }
+        }
+
+        &:hover:not(:disabled) {
+          background: $terracotta-light;
+          border-color: $terracotta-hover;
+        }
+
+        &.is-recording {
+          background: $terracotta;
+          color: #ffffff;
+          border-color: $terracotta-hover;
+          box-shadow: 0 4px 10px rgba(217, 83, 79, 0.35);
+
+          .record-indicator {
+            background: #ffffff;
+          }
+
+          &:hover:not(:disabled) {
+            background: $terracotta-hover;
+          }
+        }
+      }
+
+      // Download button
+      &.download-btn {
+        background: linear-gradient(135deg, $olive-green, $olive-green-hover);
+        color: #ffffff;
+        border: 2px solid $olive-green-hover;
+        font-weight: 800;
+        text-decoration: none;
+        box-shadow: 0 3px 8px rgba(107, 142, 35, 0.3);
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 5px 12px rgba(107, 142, 35, 0.4);
+        }
+      }
+
       // Reset button
       &.reset-btn {
         margin-left: auto;
@@ -445,5 +501,20 @@
         }
       }
     }
+  }
+}
+
+@keyframes record-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.4);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
   }
 }
