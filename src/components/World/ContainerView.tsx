@@ -9,7 +9,7 @@
  * - Acts as a droppable target for drag-and-drop actions.
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useStore } from 'zustand';
 import { useDroppable } from '@dnd-kit/core';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -25,6 +25,9 @@ interface ContainerViewProps {
 
 export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
   const entities = useStore(worldStore, (state) => state.entities);
+  const [mixCustomName, setMixCustomName] = useState('');
+  const [cookConditionInput, setCookConditionInput] = useState('');
+  const [cookedCustomName, setCookedCustomName] = useState('');
 
   // Set up dnd-kit droppable binding for this container
   const { setNodeRef, isOver } = useDroppable({
@@ -89,25 +92,14 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
             title="Toggle Heat"
             onClick={(e) => {
               e.stopPropagation();
-              if (!container.isOn) {
-                const cookCondition = window.prompt('Enter cooking timer or condition (e.g., "10 min" or "until brown"):');
-                dispatch({
-                  type: 'TOGGLE_HEAT',
-                  payload: {
-                    containerId: container.id,
-                    cookCondition: cookCondition ?? undefined,
-                    isOn: true,
-                  },
-                });
-              } else {
-                dispatch({
-                  type: 'TOGGLE_HEAT',
-                  payload: {
-                    containerId: container.id,
-                    isOn: false,
-                  },
-                });
-              }
+              dispatch({
+                type: 'TOGGLE_HEAT',
+                payload: {
+                  containerId: container.id,
+                  cookCondition: cookConditionInput.trim() || undefined,
+                  isOn: !container.isOn,
+                },
+              });
             }}
           />
         )}
@@ -116,54 +108,63 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
       {(isCookingArea || isSink || isCuttingBoard || isBowl) && (
         <div className="container-view__actions">
           {isCookingArea && (
-            <>
-              <button
-                type="button"
-                className={`container-action-btn toggle-heat-btn ${container.isOn ? 'container-action-btn--active' : ''}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (!container.isOn) {
-                    const cookCondition = window.prompt('Enter cooking timer or condition (e.g., "10 min" or "until brown"):');
+            <div className="container-view__action-group">
+              <div className="container-view__input-row">
+                <input
+                  type="text"
+                  className="container-view__input"
+                  placeholder="Target (e.g. 10 min, until brown)"
+                  value={cookConditionInput}
+                  onChange={(e) => setCookConditionInput(e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                />
+                <button
+                  type="button"
+                  className={`container-action-btn toggle-heat-btn ${container.isOn ? 'container-action-btn--active' : ''}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
                     dispatch({
                       type: 'TOGGLE_HEAT',
                       payload: {
                         containerId: container.id,
-                        cookCondition: cookCondition ?? undefined,
-                        isOn: true,
+                        cookCondition: cookConditionInput.trim() || undefined,
+                        isOn: !container.isOn,
                       },
                     });
-                  } else {
+                  }}
+                >
+                  🔥 {container.isOn ? 'Heat On' : 'Heat Off'}
+                </button>
+              </div>
+
+              <div className="container-view__input-row">
+                <input
+                  type="text"
+                  className="container-view__input"
+                  placeholder="Final name (e.g. Oma tortilla)"
+                  value={cookedCustomName}
+                  onChange={(e) => setCookedCustomName(e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                />
+                <button
+                  type="button"
+                  className="container-action-btn cook-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
                     dispatch({
-                      type: 'TOGGLE_HEAT',
+                      type: 'COOK_CONTAINER_CONTENTS',
                       payload: {
                         containerId: container.id,
-                        isOn: false,
+                        customName: cookedCustomName.trim() || undefined,
+                        cookCondition: cookConditionInput.trim() || container.cookCondition || container.timer,
                       },
                     });
-                  }
-                }}
-              >
-                🔥 {container.isOn ? 'Heat On' : 'Heat Off'}
-              </button>
-              <button
-                type="button"
-                className="container-action-btn cook-btn"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const customName = window.prompt('Enter final custom name for cooked item (leave empty for recipe default):');
-                  dispatch({
-                    type: 'COOK_CONTAINER_CONTENTS',
-                    payload: {
-                      containerId: container.id,
-                      customName: customName ?? undefined,
-                      cookCondition: container.cookCondition || container.timer,
-                    },
-                  });
-                }}
-              >
-                🍳 Cook
-              </button>
-            </>
+                  }}
+                >
+                  🍳 Cook
+                </button>
+              </div>
+            </div>
           )}
 
           {isSink && (
@@ -214,23 +215,34 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
           )}
 
           {isBowl && (
-            <button
-              type="button"
-              className="container-action-btn mix-btn"
-              onClick={(e) => {
-                e.stopPropagation();
-                const customName = window.prompt('Enter custom name for mixture (leave empty for default e.g. mixture_1):');
-                dispatch({
-                  type: 'MIX_CONTAINER_CONTENTS',
-                  payload: {
-                    containerId: container.id,
-                    customName: customName ?? undefined,
-                  },
-                });
-              }}
-            >
-              🥣 Mix
-            </button>
+            <div className="container-view__action-group">
+              <div className="container-view__input-row">
+                <input
+                  type="text"
+                  className="container-view__input"
+                  placeholder="Mixture name (optional)"
+                  value={mixCustomName}
+                  onChange={(e) => setMixCustomName(e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                />
+                <button
+                  type="button"
+                  className="container-action-btn mix-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    dispatch({
+                      type: 'MIX_CONTAINER_CONTENTS',
+                      payload: {
+                        containerId: container.id,
+                        customName: mixCustomName.trim() || undefined,
+                      },
+                    });
+                  }}
+                >
+                  🥣 Mix
+                </button>
+              </div>
+            </div>
           )}
         </div>
       )}
