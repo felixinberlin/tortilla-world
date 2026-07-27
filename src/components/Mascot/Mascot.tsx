@@ -18,7 +18,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from 'zustand';
 import { worldStore } from '../../store/worldStore';
 import { TortillaSvg } from './TortillaSvg';
-import { runTortillaPotatoScript } from '../../systems/mascotActions';
 import { ingredients } from '../../data/catalog/ingredients';
 import type { GazeTarget } from '../../systems/gaze';
 import { gazeEntityId } from '../../systems/gaze';
@@ -32,7 +31,6 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
   const entities = useStore(worldStore, (state) => state.entities);
   const dispatch = useStore(worldStore, (state) => state.dispatch);
   
-  const [isRunningScript, setIsRunningScript] = useState(false);
   const [offset, setOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const mascotAnchorRef = useRef<HTMLDivElement>(null);
 
@@ -76,8 +74,8 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
       // If the screen is small (mobile), hover the mascot slightly higher and to the right
       // so it doesn't block the container's title or items.
       const isMobile = window.innerWidth <= 600;
-      const yOffset = isMobile ? 35 : 15;
-      const xOffsetModifier = isMobile ? 25 : 0;
+      const yOffset = isMobile ? 55 : 15; // increased to ensure space for floating speech bubble and avoid blocking headers
+      const xOffsetModifier = isMobile ? 35 : 0; // increased slight shift right to avoid obscure text
 
       const y = containerRect.top - mascotRect.top - yOffset;
 
@@ -100,32 +98,10 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
     dispatch({ type: 'MASCOT_FLIP', payload: { mascotId } });
   };
 
-  const handleRunScript = async () => {
-    if (isRunningScript) return;
-    setIsRunningScript(true);
-    try {
-      await runTortillaPotatoScript(mascotId, 650);
-    } finally {
-      setIsRunningScript(false);
-    }
-  };
-
   const isFloating = offset.x !== 0 || offset.y !== 0;
 
   return (
-    <div
-      className="mascot-card"
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '16px',
-        padding: '12px 16px',
-        background: 'var(--code-bg)',
-        border: '1px solid var(--border)',
-        borderRadius: '12px',
-        flexWrap: 'wrap',
-      }}
-    >
+    <>
       {/* Anchor box holding mascot location in layout */}
       <div
         ref={mascotAnchorRef}
@@ -160,62 +136,36 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
               <span>{heldEntity?.name || heldIngredientInfo?.name || holdingEntityId}</span>
             </div>
           )}
+
+          {speechMessage && (
+            <div
+              className="mascot-speech-bubble"
+              style={{
+                position: 'absolute',
+                top: '-40px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                padding: '8px 12px',
+                fontSize: '13px',
+                fontWeight: 500,
+                color: 'var(--text-h)',
+                background: 'var(--card-bg, #ffffff)',
+                border: '1px solid var(--primary, #e8b84a)',
+                borderRadius: '8px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                whiteSpace: 'nowrap',
+                zIndex: 10,
+              }}
+            >
+              <span>💬</span>
+              <span>{speechMessage}</span>
+            </div>
+          )}
         </div>
       </div>
-
-      <div>
-        <h3 style={{ margin: 0, fontSize: '16px', color: 'var(--text-h)' }}>{mascotEntity.name}</h3>
-        {speechMessage && (
-          <div
-            className="mascot-speech-bubble"
-            style={{
-              margin: '6px 0',
-              padding: '8px 12px',
-              fontSize: '13px',
-              fontWeight: 500,
-              color: 'var(--text-h)',
-              background: 'var(--card-bg, #ffffff)',
-              border: '1px solid var(--primary, #e8b84a)',
-              borderRadius: '8px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}
-          >
-            <span>💬</span>
-            <span>{speechMessage}</span>
-          </div>
-        )}
-        <p style={{ margin: '4px 0 8px 0', fontSize: '13px', color: 'var(--text)' }}>
-          Focus / Target: <strong>{targetContainerId || gazingAtEntityId || 'Kitchen Home'}</strong>
-          {holdingEntityId && (
-            <span style={{ marginLeft: '8px', color: 'var(--primary, #e8b84a)', fontWeight: 600 }}>
-              (Carrying: {heldIngredientInfo?.icon || '🥔'} {heldEntity?.name || holdingEntityId})
-            </span>
-          )}
-        </p>
-        <button
-          onClick={handleRunScript}
-          disabled={isRunningScript}
-          style={{
-            padding: '8px 14px',
-            fontSize: '12px',
-            fontWeight: 600,
-            color: '#ffffff',
-            background: isRunningScript
-              ? 'var(--border)'
-              : 'linear-gradient(135deg, #e8b84a 0%, #d4953a 100%)',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: isRunningScript ? 'not-allowed' : 'pointer',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
-            transition: 'all 0.2s ease',
-          }}
-        >
-          {isRunningScript ? '⏳ Executing Action Script...' : '▶ Script: Grab Potato ➔ Drop in Tabla ➔ Flip'}
-        </button>
-      </div>
-    </div>
+    </>
   );
 };
