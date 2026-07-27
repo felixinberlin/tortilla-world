@@ -80,6 +80,10 @@ export const worldStore = createStore<WorldStateStore>()(
 
               break;
             }
+            case 'COOK_INGREDIENT':
+              // fire on
+              store.cookIngredient(action.payload.entityId, action.payload.cooking);
+              break;
             case 'ADD_ENTITY':
               store.addEntity(action.payload.entity, action.payload.containerId);
               break;
@@ -94,10 +98,6 @@ export const worldStore = createStore<WorldStateStore>()(
 
             case 'PREPARE_INGREDIENT':
               store.prepareIngredient(action.payload.entityId, action.payload.preparation);
-              break;
-
-            case 'COOK_INGREDIENT':
-              store.cookIngredient(action.payload.entityId, action.payload.cooking);
               break;
 
             case 'USE_INGREDIENT':
