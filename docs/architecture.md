@@ -318,30 +318,43 @@ Example:
 
 ---
 
-# Actions
+# Actions & Event Sourcing
 
-All world changes happen through actions.
+All world changes happen through actions dispatched to `worldStore`.
 
 Example:
 
 ```ts
 {
- type:"MOVE_ENTITY",
-
- entityId:"potato",
-
- source:"kitchen",
-
- target:"pan"
+ type: "MOVE_ENTITY",
+ payload: {
+   entityId: "potato",
+   targetContainerId: "board"
+ }
 }
 ```
 
-Actions provide:
+## Event Sourcing (`EventStore.ts`)
 
-* traceability
-* debugging
-* replay
-* AI compatibility
+Every dispatched action is intercepted and appended to an immutable audit trail as a `BaseWorldEvent`:
+
+```ts
+interface BaseWorldEvent {
+  id: string; // Auto-generated UUID / sequence string
+  timestamp: number; // Unix epoch ms
+  sequenceNumber: number; // Monotonically increasing sequence ID
+  version: number; // Schema version (default: 1)
+  actor: 'player' | 'mascot' | 'system';
+  action: WorldAction;
+}
+```
+
+Event Store Benefits:
+
+* **Traceability**: Complete history of every world state mutation
+* **Deterministic Replay**: `replayEngine.ts` resets store and re-executes actions sequentially
+* **Multi-Format Export**: `ActionRecorder.tsx` generates Mascot Sequence, Declarative Recipe JSON, and Full Session Logs (`zustandInit` / `actions` / `events` / `zustandEnd`)
+* **Analytics**: Headless audit trail reporting (`analytics.ts`)
 
 ---
 

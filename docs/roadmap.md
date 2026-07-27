@@ -9,373 +9,199 @@ The goal is not only to create a recipe application, but to create a small simul
 * objects exist as entities
 * containers define relationships
 * actions modify the world
+* event sourcing tracks all world state changes deterministically
 * characters and AI can interact with the environment
 
-The long-term vision is a "living kitchen" where the user can interact with objects naturally and where autonomous agents can understand and manipulate the world.
+The long-term vision is a "living kitchen" where the user can interact with objects naturally and where autonomous agents can understand, replay, and manipulate the world.
 
 ---
 
 # Current Status
 
-## Phase: World Foundation
+## Phase: World Foundation & Interaction Core
 
 Status:
 
-🟡 In development
+🟢 Core Simulation & Event Sourcing Established
 
 Current focus:
 
-* stable world model
-* entity system
-* container system
+* stable world & workstation model
+* entity & container ownership rules
 * drag and drop interactions
-* predictable state management
+* event sourcing & append-only audit trail
+* multi-format action & session exports (.json)
+* comprehensive vitest test coverage (20 test suites, 115 passing tests)
 
 Completed foundations:
 
-✅ React + TypeScript application
-✅ Zustand world store
-✅ Entity-based architecture
-✅ Container concept
-✅ Drag and drop foundation
-✅ Ingredient data model
-✅ Documentation structure
+✅ React 19 + TypeScript application
+✅ Zustand world store with Immer
+✅ Entity & container architecture
+✅ Workstation engine (`pantry`, `washing`, `cutting`, `prep`, `cooking`, `serving`)
+✅ Drag and drop foundation (`dnd-kit`)
+✅ Headless EventStore & append-only audit trail
+✅ Deterministic Replay Engine (`replayEngine.ts`)
+✅ Action Recorder with 3 Export Formats (Mascot Sequence, Recipe JSON, Full Session Log with `zustandInit` / `actions` / `events` / `zustandEnd`)
+✅ Comprehensive documentation structure
 
 ---
 
 # Roadmap Overview
 
 ```text
-Foundation
+Foundation & Event Sourcing
     |
     v
-World Interaction
+World Interaction & Workstations
     |
     v
-Cooking Simulation
+Cooking Simulation & Recipe Engine
     |
     v
-Living Kitchen
+Living Kitchen & NPC AI
     |
     v
-AI Assisted World
+AI Kitchen Assistant & Autonomous Agents
+    |
+    v
+Multiplayer / Synced World Simulation
 ```
 
 ---
 
-# Phase 1 — World Foundation
+# Phase 1 — World Foundation & Event Store
 
 ## Goal
 
-Create a reliable simulation core.
+Create a reliable simulation core with deterministic state tracking and event sourcing.
 
 ## Features
 
 ### Entity System
 
-Implement:
+Implemented:
 
-* ingredients
-* tools
-* containers
-* entity identity
-
-Example:
-
-```text
-Potato
-Knife
-Pan
-Kitchen
-```
+* ingredients (potato, egg, onion, oil, salt, etc.)
+* tools (knife, peeler, whisk, fork, spatula, etc.)
+* containers (pantry, cutting board, bowl, pan, plate, sink)
+* entity identity preservation during transformations
 
 ---
 
 ### Container System
 
-Implement:
+Implemented:
 
-* ownership
+* ownership models
 * ordered contents
-* container rules
-* validation
-
-Examples:
-
-```text
-Kitchen
-Recipe
-Pan
-Plate
-```
+* container acceptance & transfer rules
+* duplicate & uniqueness validation
 
 ---
 
-### Movement System
+### Event Store & Audit Trail
 
-Implement:
+Implemented:
 
-* moving entities
-* validating moves
-* transfer rules
-* ownership changes
-
-Example:
-
-```text
-Kitchen
-
- potato
-
-    |
-    v
-
-Pan
-
- potato
-```
+* `EventStore` interceptor listening to all `dispatch` calls
+* Immutable `BaseWorldEvent` wrappers (`id`, `timestamp`, `sequenceNumber`, `version`, `actor`, `action`)
+* Headless export/import (`exportJSON`, `importJSON`)
+* Deterministic Replay Engine (`replayEngine.ts`)
 
 ---
 
-# Phase 2 — Interaction Layer
+# Phase 2 — Interaction & Workstation Layer
 
 ## Goal
 
-Make the world feel alive.
+Make the world feel alive and enable multi-format session recording.
 
 ## Features
 
-### Improved Drag and Drop
+### Workstation Engine
 
-Support:
+Supported:
 
-* visual feedback
-* invalid drop states
-* animations
-* multi-container interactions
-
----
-
-### Entity Animations
-
-Entities should:
-
-* move naturally
-* react to interactions
-* have visual states
-
-Examples:
-
-* potato jumps into pan
-* knife moves to cutting board
-* ingredients combine
+* Pantry (`pantry`)
+* Washing Station (`washing_station`)
+* Cutting Station (`cutting_station`)
+* Preparation Station (`preparation_station`)
+* Cooking Station (`cooking_station`)
+* Serving Station (`serving_station`)
 
 ---
 
-### Action System
+### Action Recorder & Multi-Format Exporter
 
-Introduce:
+Supported:
 
-```ts
-Action
-{
- type
- payload
- timestamp
-}
-```
-
-Benefits:
-
-* replay
-* debugging
-* AI compatibility
-
-Status:
-
-✅ Traceability — every `dispatch` call is logged (`devtools` +
-`src/store/middleware/actionLog.ts`) and validated through
-`engine/containerRules.ts`.
-✅ Replay — headless `ActionPlayer` utility (`src/systems/actionPlayer.ts`) and UI `ActionReplayer` component (`src/components/Controls/ActionReplayer.tsx`) allow loading JSON logs, resetting `worldStore`, and stepping through action sequences sequentially with configurable step delays.
+* Real-time action recording & EventStore capture
+* Format 1: 🤖 **Mascot Action Sequence** (explicit focus/grab/move/drop/flip steps)
+* Format 2: 📜 **Declarative Recipe File** (.json step definitions)
+* Format 3: 💾 **Full Session Log** (`zustandInit` initial state + actions/events + `zustandEnd` final state)
+* Direct download buttons for all 3 formats in UI
 
 ---
 
-# Phase 3 — Cooking Simulation
+# Phase 3 — Cooking Simulation & Recipe Engine
 
 ## Goal
 
-Create actual cooking behaviour.
+Execute declarative cooking recipes state machines with mascot automation.
 
 ## Features
 
-## Recipe System
+### Declarative Recipe Engine (`RecipeRunner`)
 
-Support:
+Supported:
 
-* recipes
-* ingredient requirements
-* preparation steps
-
-Example:
-
-```text
-Potato
-Egg
-Onion
-
-    +
-    
-Cooking
-
-    =
-
-Tortilla
-```
+* Declarative recipe definitions (`clasicaRecipe`, `tortillaPatatasRecipe`, etc.)
+* Automated mascot helper actions via `mascotActions.ts`
+* Preparation mutations (`raw` ➔ `cut` ➔ `beaten` ➔ `mixed`)
+* Cooking transformations (`cooked`, `fried`, `flipped`)
 
 ---
 
-## Cooking States
-
-Entities gain states:
-
-Example:
-
-```text
-Potato
-
-raw
- |
- v
-cut
- |
- v
-fried
-```
-
----
-
-## Tools Become Functional
-
-Examples:
-
-Knife:
-
-```text
-ingredient
-      |
-      v
-cut ingredient
-```
-
-Pan:
-
-```text
-ingredient
-      |
-      v
-cook ingredient
-```
-
----
-
-# Phase 4 — Living Kitchen
+# Phase 4 — Living Kitchen & Multi-Character Dynamics
 
 ## Goal
 
-Create a world that behaves independently.
+Create an autonomous living kitchen environment.
 
-## Features
+## Features (In Progress / Next Focus)
 
-### Characters
-
-Introduce:
-
-* player character
-* helpers
-* customers
-* NPCs
+* **Multi-Character Interactions**: Customer order queue, waiter NPCs, and helper mascots.
+* **Ambient Physics & Particle Effects**: Steam on cooking burners, sizzle audio synthesis, chopping sound triggers.
+* **Time & Temperature Engine**: Dynamic cooking timer loops, heat dissipation, and overcooking/burning states.
 
 ---
 
-### Time System
-
-Add:
-
-* cooking duration
-* events
-* schedules
-
-Example:
-
-```text
-Egg on pan
-
-0s
- |
-30s
- |
-Cooked
-```
-
----
-
-### Environment
-
-Add:
-
-* fridge
-* cupboards
-* tables
-* oven
-* restaurant area
-
----
-
-# Phase 5 — AI Kitchen Assistant
+# Phase 5 — AI Kitchen Assistant & Autonomous Agents
 
 ## Goal
 
-Allow AI agents to understand and interact with the world.
+Allow LLM and autonomous agents to perceive, plan, and execute kitchen workflows.
 
-The AI does not directly change state.
+## Features (Planned)
 
-The AI creates actions.
-
-Example:
-
-```json
-{
-"type":"MOVE_ENTITY",
-"entity":"egg",
-"target":"pan"
-}
-```
-
-The world validates and executes the action.
+* **Agent Perception Interface**: Serialized world state JSON feeds for LLMs.
+* **Autonomous Task Planner**: Translates natural language requests ("Make a Spanish Tortilla for 4 people") into validated `WorldAction` sequences.
+* **Live Action Validation**: Real-time pre-execution validation ensuring agents obey physical container constraints.
 
 ---
 
-## AI Features
+# Phase 6 — Shared & Multiplayer World (Future)
 
-Possible future capabilities:
+## Goal
 
-* recipe planning
-* cooking assistance
-* autonomous helpers
-* explanations
-* suggestions
-* learning user preferences
+Synchronized multi-user kitchen simulation.
 
----
+## Features (Future)
 
-# Phase 6 — Multiplayer / Shared World (Future)
-
-Possible future direction:
-
-* shared kitchens
-* collaborative cooking
-* synchronized worlds
-* multiple AI agents
+* Real-time WebSocket event store synchronization
+* Multi-player collaborative cooking sessions
+* Shared event history log and replay comparison tools
 
 ---
 
@@ -383,30 +209,30 @@ Possible future direction:
 
 ## Keep the World Model Independent
 
-The simulation should not depend on React.
+The simulation engine exists independently of React.
 
 ---
 
 ## Prefer Systems Over Component Logic
 
-Components display.
-
-Systems decide.
+Components display. Systems decide.
 
 ---
 
 ## Preserve Entity Identity
 
-Objects are moved, not recreated.
+Objects are moved and mutated, not deleted and recreated.
 
 ---
 
 ## Document Decisions
 
-Important architecture changes should be recorded in:
+All architecture changes are recorded in:
 
 ```text
 docs/decisions.md
+docs/systems.md
+docs/architecture.md
 ```
 
 ---
@@ -415,6 +241,4 @@ docs/decisions.md
 
 The immediate goal is:
 
-> Build a stable interactive kitchen world where every object follows predictable rules.
-
-Everything else depends on this foundation.
+> Expand living kitchen dynamics (customers, cooking timers, heat dissipation) on top of our solid event sourcing foundation.
