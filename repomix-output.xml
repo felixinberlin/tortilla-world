@@ -173,6 +173,30 @@ vite.config.ts
 <files>
 This section contains the contents of the repository's files.
 
+<file path="docs/README.md">
+# Tortilla World
+
+Interactive React application where a tortilla mascot lives in a virtual kitchen.
+
+The user can interact with ingredients, recipes and kitchen objects.
+
+## Stack
+
+- React
+- TypeScript
+- Zustand
+- Framer Motion
+- Vite
+
+## Main concept
+
+The application has a small world-state layer.
+Objects exist independently from the UI.
+
+Components render the world.
+Systems modify the world.
+</file>
+
 <file path="public/favicon.svg">
 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="46" fill="none" viewBox="0 0 48 46"><path fill="#863bff" d="M25.946 44.938c-.664.845-2.021.375-2.021-.698V33.937a2.26 2.26 0 0 0-2.262-2.262H10.287c-.92 0-1.456-1.04-.92-1.788l7.48-10.471c1.07-1.497 0-3.578-1.842-3.578H1.237c-.92 0-1.456-1.04-.92-1.788L10.013.474c.214-.297.556-.474.92-.474h28.894c.92 0 1.456 1.04.92 1.788l-7.48 10.471c-1.07 1.498 0 3.579 1.842 3.579h11.377c.943 0 1.473 1.088.89 1.83L25.947 44.94z" style="fill:#863bff;fill:color(display-p3 .5252 .23 1);fill-opacity:1"/><mask id="a" width="48" height="46" x="0" y="0" maskUnits="userSpaceOnUse" style="mask-type:alpha"><path fill="#000" d="M25.842 44.938c-.664.844-2.021.375-2.021-.698V33.937a2.26 2.26 0 0 0-2.262-2.262H10.183c-.92 0-1.456-1.04-.92-1.788l7.48-10.471c1.07-1.498 0-3.579-1.842-3.579H1.133c-.92 0-1.456-1.04-.92-1.787L9.91.473c.214-.297.556-.474.92-.474h28.894c.92 0 1.456 1.04.92 1.788l-7.48 10.471c-1.07 1.498 0 3.578 1.842 3.578h11.377c.943 0 1.473 1.088.89 1.832L25.843 44.94z" style="fill:#000;fill-opacity:1"/></mask><g mask="url(#a)"><g filter="url(#b)"><ellipse cx="5.508" cy="14.704" fill="#ede6ff" rx="5.508" ry="14.704" style="fill:#ede6ff;fill:color(display-p3 .9275 .9033 1);fill-opacity:1" transform="matrix(.00324 1 1 -.00324 -4.47 31.516)"/></g><g filter="url(#c)"><ellipse cx="10.399" cy="29.851" fill="#ede6ff" rx="10.399" ry="29.851" style="fill:#ede6ff;fill:color(display-p3 .9275 .9033 1);fill-opacity:1" transform="matrix(.00324 1 1 -.00324 -39.328 7.883)"/></g><g filter="url(#d)"><ellipse cx="5.508" cy="30.487" fill="#7e14ff" rx="5.508" ry="30.487" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(89.814 -25.913 -14.639)scale(1 -1)"/></g><g filter="url(#e)"><ellipse cx="5.508" cy="30.599" fill="#7e14ff" rx="5.508" ry="30.599" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(89.814 -32.644 -3.334)scale(1 -1)"/></g><g filter="url(#f)"><ellipse cx="5.508" cy="30.599" fill="#7e14ff" rx="5.508" ry="30.599" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="matrix(.00324 1 1 -.00324 -34.34 30.47)"/></g><g filter="url(#g)"><ellipse cx="14.072" cy="22.078" fill="#ede6ff" rx="14.072" ry="22.078" style="fill:#ede6ff;fill:color(display-p3 .9275 .9033 1);fill-opacity:1" transform="rotate(93.35 24.506 48.493)scale(-1 1)"/></g><g filter="url(#h)"><ellipse cx="3.47" cy="21.501" fill="#7e14ff" rx="3.47" ry="21.501" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(89.009 28.708 47.59)scale(-1 1)"/></g><g filter="url(#i)"><ellipse cx="3.47" cy="21.501" fill="#7e14ff" rx="3.47" ry="21.501" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(89.009 28.708 47.59)scale(-1 1)"/></g><g filter="url(#j)"><ellipse cx=".387" cy="8.972" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(39.51 .387 8.972)"/></g><g filter="url(#k)"><ellipse cx="47.523" cy="-6.092" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(37.892 47.523 -6.092)"/></g><g filter="url(#l)"><ellipse cx="41.412" cy="6.333" fill="#47bfff" rx="5.971" ry="9.665" style="fill:#47bfff;fill:color(display-p3 .2799 .748 1);fill-opacity:1" transform="rotate(37.892 41.412 6.333)"/></g><g filter="url(#m)"><ellipse cx="-1.879" cy="38.332" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(37.892 -1.88 38.332)"/></g><g filter="url(#n)"><ellipse cx="-1.879" cy="38.332" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(37.892 -1.88 38.332)"/></g><g filter="url(#o)"><ellipse cx="35.651" cy="29.907" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(37.892 35.651 29.907)"/></g><g filter="url(#p)"><ellipse cx="38.418" cy="32.4" fill="#47bfff" rx="5.971" ry="15.297" style="fill:#47bfff;fill:color(display-p3 .2799 .748 1);fill-opacity:1" transform="rotate(37.892 38.418 32.4)"/></g></g><defs><filter id="b" width="60.045" height="41.654" x="-19.77" y="16.149" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="7.659"/></filter><filter id="c" width="90.34" height="51.437" x="-54.613" y="-7.533" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="7.659"/></filter><filter id="d" width="79.355" height="29.4" x="-49.64" y="2.03" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="e" width="79.579" height="29.4" x="-45.045" y="20.029" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="f" width="79.579" height="29.4" x="-43.513" y="21.178" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="g" width="74.749" height="58.852" x="15.756" y="-17.901" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="7.659"/></filter><filter id="h" width="61.377" height="25.362" x="23.548" y="2.284" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="i" width="61.377" height="25.362" x="23.548" y="2.284" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="j" width="56.045" height="63.649" x="-27.636" y="-22.853" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="k" width="54.814" height="64.646" x="20.116" y="-38.415" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="l" width="33.541" height="35.313" x="24.641" y="-11.323" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="m" width="54.814" height="64.646" x="-29.286" y="6.009" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="n" width="54.814" height="64.646" x="-29.286" y="6.009" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="o" width="54.814" height="64.646" x="8.244" y="-2.416" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="p" width="39.409" height="43.623" x="18.713" y="10.588" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter></defs></svg>
 </file>
@@ -318,30 +342,6 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
 })
-</file>
-
-<file path="docs/README.md">
-# Tortilla World
-
-Interactive React application where a tortilla mascot lives in a virtual kitchen.
-
-The user can interact with ingredients, recipes and kitchen objects.
-
-## Stack
-
-- React
-- TypeScript
-- Zustand
-- Framer Motion
-- Vite
-
-## Main concept
-
-The application has a small world-state layer.
-Objects exist independently from the UI.
-
-Components render the world.
-Systems modify the world.
 </file>
 
 <file path="docs/redux-devtools-actions.json">
@@ -4196,6 +4196,566 @@ docs/
 ````
 </file>
 
+<file path="docs/architecture.md">
+# Architecture
+
+## Overview
+
+Tortilla World is a simulation-driven React application.
+
+The application is not designed as a collection of UI components with local state.
+Instead, it models a small interactive world where entities exist, move, interact, and change state through controlled systems.
+
+The architecture is based on four main concepts:
+
+```text
+              User / AI
+                  |
+                  v
+          Interaction System
+                  |
+                  v
+          Action Validation
+                  |
+                  v
+             World Store
+                  |
+                  v
+       Entities and Containers
+```
+
+---
+
+# Core Concepts
+
+## Entities
+
+Entities are all objects that exist in the world.
+
+Examples:
+
+* ingredients
+* tools
+* containers
+* characters
+* machines
+
+An entity has:
+
+* identity
+* type
+* properties
+* optional state
+
+Example:
+
+```ts
+{
+  id: "potato",
+  type: "ingredient"
+}
+```
+
+Entities do not control their own behaviour.
+
+They are controlled by systems.
+
+---
+
+# Workstations
+
+Workstations represent *where actions can be performed* in the kitchen simulation:
+
+* **Pantry (`pantry`)**: Store ingredients (`despensa`).
+* **Washing Station (`washing_station`)**: Clean ingredients (`sink`).
+* **Cutting Station (`cutting_station`)**: Preparation (`board`, `knife`, `peeler`).
+* **Preparation Station (`preparation_station`)**: Mix & combine (`bowl`, `whisk`, `fork`).
+* **Cooking Station (`cooking_station`)**: Apply heat (`pan`, `spatula`).
+* **Serving Station (`serving_station`)**: Plate and serve (`plate`).
+
+---
+
+# Containers
+
+Containers are entities that own other entities.
+
+Examples:
+
+* Kitchen
+* Pantry
+* Recipe
+* Pan
+* Plate
+
+A container defines:
+
+* what it can contain
+* ordering
+* uniqueness rules
+* transfer behaviour
+
+Example:
+
+```text
+Kitchen
+ ├── Potato
+ ├── Onion
+ ├── Knife
+ └── Pan
+```
+
+A container is not a simple array.
+
+It is a world object with rules.
+
+---
+
+# Ownership Model
+
+Every movable entity has an owner.
+
+Example:
+
+Initial:
+
+```text
+Kitchen
+ ├── Potato
+ ├── Egg
+
+
+Pan
+ └── Oil
+```
+
+After moving potato:
+
+```text
+Kitchen
+ └── Egg
+
+
+Pan
+ ├── Oil
+ └── Potato
+```
+
+The potato entity remains the same.
+
+Only the relationship changes:
+
+```text
+Before:
+
+Kitchen owns Potato
+
+
+After:
+
+Pan owns Potato
+```
+
+---
+
+# State Management
+
+The world state is stored centrally.
+
+Current technology:
+
+* React
+* Zustand
+
+The store represents the complete world.
+
+Example:
+
+```ts
+interface WorldState {
+
+ entities:
+   Record<string, Entity>
+
+ containers:
+   Record<string, Container>
+
+ actions:
+   WorldActions
+
+}
+```
+
+---
+
+# Data Flow
+
+## User interaction
+
+Example:
+
+User drags potato into pan.
+
+Flow:
+
+```text
+Drag Event
+    |
+    v
+D&D Layer
+    |
+    v
+Interaction System
+    |
+    v
+Move Action
+    |
+    v
+Container Validation
+    |
+    v
+World Store Update
+    |
+    v
+React Render
+```
+
+---
+
+# Drag and Drop Architecture
+
+Drag and drop is only an input method.
+
+It does not contain business rules.
+
+The DnD system provides:
+
+```ts
+{
+ entityId:"potato",
+ targetContainer:"pan"
+}
+```
+
+The Interaction System decides:
+
+* is the move allowed?
+* what transfer rule applies?
+* what state changes happen?
+
+---
+
+# Systems
+
+Systems contain world behaviour.
+
+Examples:
+
+## Movement System
+
+Responsible for:
+
+* moving entities
+* validating ownership
+* applying transfer rules
+
+---
+
+## Interaction System
+
+Responsible for:
+
+* converting user input into actions
+* handling clicks
+* handling drag operations
+
+---
+
+## Cooking System
+
+Future system.
+
+Responsible for:
+
+* combining ingredients
+* changing states
+* producing results
+
+Example:
+
+```text
+Potato + Egg + Onion
+
+       |
+       v
+
+Tortilla
+```
+
+---
+
+## AI System
+
+Future system.
+
+Responsible for:
+
+* generating actions
+* planning
+* interacting with the world
+
+AI does not modify state directly.
+
+Example:
+
+```ts
+{
+ type:"MOVE_ENTITY",
+ entity:"egg",
+ destination:"recipe"
+}
+```
+
+---
+
+# Actions
+
+All world changes happen through actions.
+
+Example:
+
+```ts
+{
+ type:"MOVE_ENTITY",
+
+ entityId:"potato",
+
+ source:"kitchen",
+
+ target:"pan"
+}
+```
+
+Actions provide:
+
+* traceability
+* debugging
+* replay
+* AI compatibility
+
+---
+
+# Containers and Transfer Rules
+
+Moving an entity is not a simple remove/add operation.
+
+The process is:
+
+```text
+Move Request
+
+      |
+      v
+
+Check source container
+
+      |
+      v
+
+Check destination container
+
+      |
+      v
+
+Apply transfer rules
+
+      |
+      v
+
+Update ownership
+
+      |
+      v
+
+Update world state
+```
+
+---
+
+# Rendering Architecture
+
+React components display world state.
+
+They do not own world logic.
+
+Example:
+
+```text
+World Store
+
+    |
+    v
+
+Scene Component
+
+    |
+    +---- Container Component
+    |
+    +---- Entity Component
+```
+
+---
+
+# Component Responsibilities
+
+## Entity Component
+
+Responsible for:
+
+* rendering an entity
+* animations
+* visual state
+
+Does not:
+
+* move itself
+* validate actions
+
+---
+
+## Container Component
+
+Responsible for:
+
+* rendering contents
+* layout
+* accepting interactions
+
+Does not:
+
+* decide business rules
+
+---
+
+# Future Architecture
+
+The architecture is designed to support:
+
+## More containers
+
+Examples:
+
+* fridge
+* cupboard
+* oven
+* table
+* customer tray
+
+---
+
+## More entities
+
+Examples:
+
+* characters
+* animals
+* machines
+* recipes
+
+---
+
+## More systems
+
+Examples:
+
+* physics
+* time
+* cooking
+* economy
+* AI planning
+
+---
+
+# Design Principles
+
+## 1. Data before UI
+
+The world model exists independently of React.
+
+---
+
+## 2. Rules before actions
+
+Every action must be validated.
+
+---
+
+## 3. Entities keep identity
+
+Movement changes ownership, not objects.
+
+---
+
+## 4. Containers own behaviour
+
+Rules belong to locations, not items.
+
+---
+
+## 5. Systems change the world
+
+Components only represent the world.
+
+---
+
+# Final Architecture Diagram
+
+```text
+
+                 User
+                  |
+                  |
+                  v
+
+          React Interaction Layer
+                  |
+                  |
+                  v
+
+          Interaction System
+                  |
+                  |
+                  v
+
+             Action Queue
+                  |
+                  |
+                  v
+
+          World Simulation
+                  |
+        +---------+---------+
+        |                   |
+        v                   v
+
+    Containers          Entities
+
+        |
+        |
+        v
+
+     Zustand Store
+
+        |
+        |
+        v
+
+      React UI
+
+```
+
+Tortilla World is therefore structured as a small simulation engine with a React interface, rather than a traditional CRUD application.
+</file>
+
 <file path="docs/redux-devtools-commands.md">
 # Redux DevTools & Console Test Commands
 
@@ -6354,578 +6914,6 @@ $radius-lg: 16px;
 $radius-xl: 24px;
 </file>
 
-<file path="src/systems/recipeRunner/handlers/cookHandlers.test.ts">
-/**
- * FILE: src/systems/recipeRunner/handlers/cookHandlers.test.ts
- *
- * PURPOSE:
- * Unit tests for cooking step handlers and oil heating behavior.
- *
- * RESPONSIBILITY:
- * - Verify oil heating doesn't mark oil as consumed
- * - Verify oil stays in the burner1/container after heating
- * - Verify oil IS consumed when it's used as a cooking medium
- * - Distinguish between oil as target vs oil as cooking medium
- * - Test garlic cooking and other ingredients
- * - Verify Required Materials immutability concept
- */
-
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { worldStore } from '../../../store/worldStore';
-import { handleCookStep, handleFlipStep } from './cookHandlers';
-import type { RecipeStep } from '../../../types/RecipeStep';
-import type { RecipeRunnerContext } from '../types';
-
-/**
- * Helper: Create mock RecipeRunnerContext
- */
-function createMockContext(overrides?: Partial<RecipeRunnerContext>): RecipeRunnerContext {
-  return {
-    mascotId: 'chef_1',
-    defaultSourceId: 'burner1try',
-    defaultTargetId: 'board',
-    delayMs: 0, // No delay in tests
-    recipeContext: {
-      recipeId: 'test_recipe',
-      bindings: {},
-    },
-    getBoundEntityId: vi.fn((key: string) => {
-      const mapping: Record<string, string> = {
-        oil: 'oil_1',
-        potatoes: 'potatoes_1',
-        garlic: 'garlic_1',
-        mixture: 'mixture_1',
-      };
-      return mapping[key] || null;
-    }),
-    validateEntity: vi.fn(),
-    updateBindingIfCopied: vi.fn(),
-    wait: vi.fn(async () => {}),
-    bindStepsContext: vi.fn(),
-    ensureEntityInWorkspace: vi.fn(async (id: string) => id),
-    ensureIngredientInWorkspace: vi.fn(async (id: string) => id),
-    resolveIngredientId: vi.fn((key: string) => key),
-    currentRecipe: undefined,
-    bindRecipeContext: vi.fn(),
-    runRecipe: vi.fn(),
-    runSteps: vi.fn(),
-    executeStep: vi.fn(),
-    ...overrides,
-  } as unknown as RecipeRunnerContext;
-}
-
-/**
- * Helper: Setup world state with ingredients
- */
-function seedWorld() {
-  worldStore.setState({
-    entities: {
-      oil_1: {
-        id: 'oil_1',
-        name: '🫒 Olive Oil',
-        type: 'ingredient',
-        ingredientId: 'oil',
-        state: {},
-      },
-      potatoes_1: {
-        id: 'potatoes_1',
-        name: '🥔 Potatoes',
-        type: 'ingredient',
-        ingredientId: 'potatoes',
-        state: { preparation: 'sliced' },
-      },
-      garlic_1: {
-        id: 'garlic_1',
-        name: '🧄 Garlic',
-        type: 'ingredient',
-        ingredientId: 'garlic',
-        state: { preparation: 'peeled' },
-      },
-      eggs_1: {
-        id: 'eggs_1',
-        name: '🥚 Eggs',
-        type: 'ingredient',
-        ingredientId: 'egg',
-        state: {},
-      },
-    },
-    containers: {
-      burner1: {
-        id: 'burner1',
-        name: 'burner1',
-        type: 'workstation',
-        entityIds: [],
-      },
-      burner1try: {
-        id: 'burner1try',
-        name: 'burner1try',
-        type: 'storage',
-        entityIds: ['oil_1', 'potatoes_1', 'garlic_1', 'eggs_1'],
-      },
-      board: {
-        id: 'board',
-        name: 'Board',
-        type: 'workstation',
-        entityIds: [],
-      },
-    },
-    events: [],
-  });
-}
-
-describe('Cook Handlers - Oil & Ingredient Cooking', () => {
-  beforeEach(() => {
-    seedWorld();
-  });
-
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
-  describe('Test Group 1: Oil Heating (Primary Target)', () => {
-    it('1.1: Heat oil - Oil should NOT be marked as consumed', async () => {
-      const ctx = createMockContext();
-
-      const heatOilStep: RecipeStep = {
-        action: 'cook',
-        target: 'oil',
-        method: 'heat',
-      };
-
-      await handleCookStep(ctx, heatOilStep as any, 'burner1');
-
-      const state = worldStore.getState();
-      const oil = state.entities.oil_1;
-
-      expect(oil.state?.consumed).not.toBe(true);
-      expect(oil.state?.consumedBy).toBeUndefined();
-    });
-
-    it('1.2: Heat oil - Oil should be moved to burner1', async () => {
-      const ctx = createMockContext();
-
-      const heatOilStep: RecipeStep = {
-        action: 'cook',
-        target: 'oil',
-        method: 'heat',
-      };
-
-      await handleCookStep(ctx, heatOilStep as any, 'burner1');
-
-      const state = worldStore.getState();
-      const burner1Container = state.containers.burner1;
-
-      expect(burner1Container.entityIds).toContain('oil_1');
-    });
-
-    it('1.3: Heat oil - Oil state should show cooking method "heat"', async () => {
-      const ctx = createMockContext();
-
-      const heatOilStep: RecipeStep = {
-        action: 'cook',
-        target: 'oil',
-        method: 'heat',
-      };
-
-      await handleCookStep(ctx, heatOilStep as any, 'burner1');
-
-      const state = worldStore.getState();
-      const oil = state.entities.oil_1;
-
-      expect(oil.state?.cooking).toBe('heat');
-    });
-
-  });
-
-  describe('Test Group 2: Garlic Cooking & Removal', () => {
-    it('2.1: Fry garlic - Garlic should be marked with cooking state', async () => {
-      const ctx = createMockContext();
-
-      const fryGarlicStep: RecipeStep = {
-        action: 'cook',
-        target: 'garlic',
-        method: 'fry',
-        instruction: 'Que no se quemen.', // Don't let them burn
-      };
-
-      await handleCookStep(ctx, fryGarlicStep as any, 'burner1');
-
-      const state = worldStore.getState();
-      const garlic = state.entities.garlic_1;
-
-      expect(garlic.state?.cooking).toBe('fry');
-    });
-
-    it('2.2: Fry garlic - Garlic should be moved to burner1', async () => {
-      const ctx = createMockContext();
-
-      const fryGarlicStep: RecipeStep = {
-        action: 'cook',
-        target: 'garlic',
-        method: 'fry',
-      };
-
-      await handleCookStep(ctx, fryGarlicStep as any, 'burner1');
-
-      const state = worldStore.getState();
-      const burner1Container = state.containers.burner1;
-
-      expect(burner1Container.entityIds).toContain('garlic_1');
-    });
-
-    it('2.3: Fry garlic - Garlic should NOT be consumed (it\'s the target)', async () => {
-      const ctx = createMockContext();
-
-      const fryGarlicStep: RecipeStep = {
-        action: 'cook',
-        target: 'garlic',
-        method: 'fry',
-      };
-
-      await handleCookStep(ctx, fryGarlicStep as any, 'burner1');
-
-      const state = worldStore.getState();
-      const garlic = state.entities.garlic_1;
-
-      expect(garlic.state?.consumed).not.toBe(true);
-      expect(garlic.state?.consumedBy).toBeUndefined();
-    });
-
-    it('2.4: Fry garlic - Oil should be consumed as cooking medium', async () => {
-      const ctx = createMockContext();
-
-      // First heat oil
-      const heatOilStep: RecipeStep = {
-        action: 'cook',
-        target: 'oil',
-        method: 'heat',
-      };
-      await handleCookStep(ctx, heatOilStep as any, 'burner1');
-
-      // Now fry garlic
-      const fryGarlicStep: RecipeStep = {
-        action: 'cook',
-        target: 'garlic',
-        method: 'fry',
-      };
-      await handleCookStep(ctx, fryGarlicStep as any, 'burner1');
-
-      const state = worldStore.getState();
-      const oil = state.entities.oil_1;
-
-      // Oil should be consumed since garlic (not oil) is the target
-      expect(oil.state?.consumed).toBe(true);
-      expect(oil.state?.consumedBy).toBe('garlic_1');
-    });
-  });
-
-  describe('Test Group 3: Frying with Oil (Oil as Cooking Medium)', () => {
-    it('3.1: Fry potatoes - Oil should be consumed as cooking medium', async () => {
-      const ctx = createMockContext();
-
-      // Heat oil first
-      const heatOilStep: RecipeStep = {
-        action: 'cook',
-        target: 'oil',
-        method: 'heat',
-      };
-      await handleCookStep(ctx, heatOilStep as any, 'burner1');
-
-      // Move potatoes to burner1 manually for test
-      worldStore.getState().dispatch({
-        type: 'MOVE_ENTITY',
-        payload: {
-          entityId: 'potatoes_1',
-          targetContainerId: 'burner1',
-        },
-      });
-
-      // Fry potatoes
-      const fryPotatoesStep: RecipeStep = {
-        action: 'cook',
-        target: 'potatoes',
-        method: 'fry',
-      };
-      await handleCookStep(ctx, fryPotatoesStep as any, 'burner1');
-
-      const state = worldStore.getState();
-      const oil = state.entities.oil_1;
-
-      // Oil SHOULD be consumed when potatoes are fried
-      expect(oil.state?.consumed).toBe(true);
-      expect(oil.state?.consumedBy).toBe('potatoes_1');
-    });
-
-    it('3.2: Potatoes should NOT be consumed (they are the target)', async () => {
-      const ctx = createMockContext();
-
-      // Heat oil
-      const heatOilStep: RecipeStep = {
-        action: 'cook',
-        target: 'oil',
-        method: 'heat',
-      };
-      await handleCookStep(ctx, heatOilStep as any, 'burner1');
-
-      // Move potatoes to burner1
-      worldStore.getState().dispatch({
-        type: 'MOVE_ENTITY',
-        payload: {
-          entityId: 'potatoes_1',
-          targetContainerId: 'burner1',
-        },
-      });
-
-      // Fry potatoes
-      const fryPotatoesStep: RecipeStep = {
-        action: 'cook',
-        target: 'potatoes',
-        method: 'fry',
-      };
-      await handleCookStep(ctx, fryPotatoesStep as any, 'burner1');
-
-      const state = worldStore.getState();
-      const potatoes = state.entities.potatoes_1;
-
-      expect(potatoes.state?.consumed).not.toBe(true);
-      expect(potatoes.state?.consumedBy).toBeUndefined();
-    });
-  });
-
-  describe('Test Group 4: Complete Cooking Sequence', () => {
-    it('4.1: Full sequence - Heat oil, fry garlic, fry potatoes', async () => {
-      const ctx = createMockContext();
-
-      // Step 1: Heat oil
-      const heatOilStep: RecipeStep = {
-        action: 'cook',
-        target: 'oil',
-        method: 'heat',
-      };
-      await handleCookStep(ctx, heatOilStep as any, 'burner1');
-
-      // Verify oil is in burner1 but not consumed
-      let state = worldStore.getState();
-      let oil = state.entities.oil_1;
-      expect(state.containers.burner1.entityIds).toContain('oil_1');
-      expect(oil.state?.consumed).not.toBe(true);
-      expect(oil.state?.cooking).toBe('heat');
-
-      // Step 2: Fry garlic
-      const fryGarlicStep: RecipeStep = {
-        action: 'cook',
-        target: 'garlic',
-        method: 'fry',
-      };
-      await handleCookStep(ctx, fryGarlicStep as any, 'burner1');
-
-      // Verify garlic is in burner1, oil is consumed
-      state = worldStore.getState();
-      let garlic = state.entities.garlic_1;
-      oil = state.entities.oil_1;
-      expect(state.containers.burner1.entityIds).toContain('garlic_1');
-      expect(garlic.state?.cooking).toBe('fry');
-      expect(oil.state?.consumed).toBe(true);
-
-      // Step 3: Move potatoes to burner1 (simulating move step)
-      worldStore.getState().dispatch({
-        type: 'MOVE_ENTITY',
-        payload: {
-          entityId: 'potatoes_1',
-          targetContainerId: 'burner1',
-        },
-      });
-
-      // Step 4: Fry potatoes (oil already consumed, won't be consumed again)
-      const fryPotatoesStep: RecipeStep = {
-        action: 'cook',
-        target: 'potatoes',
-        method: 'fry',
-      };
-      await handleCookStep(ctx, fryPotatoesStep as any, 'burner1');
-
-      // Final state check
-      state = worldStore.getState();
-      const potatoes = state.entities.potatoes_1;
-      oil = state.entities.oil_1;
-
-      expect(state.containers.burner1.entityIds).toContain('potatoes_1');
-      expect(potatoes.state?.cooking).toBe('fry');
-      expect(oil.state?.consumed).toBe(true); // Still consumed from garlic step
-    });
-
-    it('4.2: Oil consumption happens only once per session', async () => {
-      const ctx = createMockContext();
-
-      // Heat oil
-      const heatOilStep: RecipeStep = {
-        action: 'cook',
-        target: 'oil',
-        method: 'heat',
-      };
-      await handleCookStep(ctx, heatOilStep as any, 'burner1');
-
-      // Fry garlic (consumes oil)
-      worldStore.getState().dispatch({
-        type: 'MOVE_ENTITY',
-        payload: {
-          entityId: 'garlic_1',
-          targetContainerId: 'burner1',
-        },
-      });
-
-      const fryGarlicStep: RecipeStep = {
-        action: 'cook',
-        target: 'garlic',
-        method: 'fry',
-      };
-      await handleCookStep(ctx, fryGarlicStep as any, 'burner1');
-
-      let state = worldStore.getState();
-      let oil = state.entities.oil_1;
-      const firstConsumption = oil.state?.consumedBy;
-
-      // Fry potatoes (oil already consumed, shouldn't be consumed again)
-      worldStore.getState().dispatch({
-        type: 'MOVE_ENTITY',
-        payload: {
-          entityId: 'potatoes_1',
-          targetContainerId: 'burner1',
-        },
-      });
-
-      const fryPotatoesStep: RecipeStep = {
-        action: 'cook',
-        target: 'potatoes',
-        method: 'fry',
-      };
-      await handleCookStep(ctx, fryPotatoesStep as any, 'burner1');
-
-      state = worldStore.getState();
-      oil = state.entities.oil_1;
-
-      // Oil should still be consumed by garlic, not potatoes
-      expect(oil.state?.consumedBy).toBe(firstConsumption);
-      expect(oil.state?.consumedBy).toBe('garlic_1');
-    });
-  });
-
-  describe('Test Group 5: Flip Step', () => {
-    it('5.1: Flip mixture - Should mark mixture as flipped', async () => {
-      const ctx = createMockContext();
-
-      // Create a mixture entity
-      worldStore.getState().dispatch({
-        type: 'ADD_ENTITY',
-        payload: {
-          entity: {
-            id: 'mixture_1',
-            name: '🍳 Mixture',
-            type: 'ingredient',
-            ingredientId: 'mixture',
-            state: {},
-          },
-          containerId: 'burner1',
-        },
-      });
-
-      const flipStep: RecipeStep = {
-        action: 'flip',
-        target: 'mixture',
-        instruction: 'Dale la vuelta a la tortilla.',
-      };
-
-      await handleFlipStep(ctx, flipStep as any);
-
-      const state = worldStore.getState();
-      const mixture = state.entities.mixture_1;
-
-      expect(mixture.state?.isFlipped).toBe(true);
-    });
-  });
-
-  describe('Test Group 6: Edge Cases', () => {
-    it('6.1: Cook oil again - Should NOT consume it again', async () => {
-      const ctx = createMockContext();
-
-      // Heat oil first time
-      const heatOilStep1: RecipeStep = {
-        action: 'cook',
-        target: 'oil',
-        method: 'heat',
-      };
-      await handleCookStep(ctx, heatOilStep1 as any, 'burner1');
-
-      let state = worldStore.getState();
-      let oil = state.entities.oil_1;
-      expect(oil.state?.cooking).toBe('heat');
-
-      // Try to heat oil again (should just update state)
-      const heatOilStep2: RecipeStep = {
-        action: 'cook',
-        target: 'oil',
-        method: 'heat',
-      };
-      await handleCookStep(ctx, heatOilStep2 as any, 'burner1');
-
-      state = worldStore.getState();
-      oil = state.entities.oil_1;
-
-      // Oil should still not be consumed
-      expect(oil.state?.consumed).not.toBe(true);
-    });
-
-    it('6.2: Multiple ingredients in burner1 - Only oil consumed', async () => {
-      const ctx = createMockContext();
-
-      // Setup: Move multiple items to burner1
-      worldStore.getState().dispatch({
-        type: 'MOVE_ENTITY',
-        payload: {
-          entityId: 'oil_1',
-          targetContainerId: 'burner1',
-        },
-      });
-
-      worldStore.getState().dispatch({
-        type: 'MOVE_ENTITY',
-        payload: {
-          entityId: 'eggs_1',
-          targetContainerId: 'burner1',
-        },
-      });
-
-      // Fry potatoes
-      worldStore.getState().dispatch({
-        type: 'MOVE_ENTITY',
-        payload: {
-          entityId: 'potatoes_1',
-          targetContainerId: 'burner1',
-        },
-      });
-
-      const fryStep: RecipeStep = {
-        action: 'cook',
-        target: 'potatoes',
-        method: 'fry',
-      };
-
-      await handleCookStep(ctx, fryStep as any, 'burner1');
-
-      const state = worldStore.getState();
-      const oil = state.entities.oil_1;
-      const eggs = state.entities.eggs_1;
-
-      // Oil should be consumed
-      expect(oil.state?.consumed).toBe(true);
-
-      // Eggs should not be consumed (not detected as cooking medium)
-      expect(eggs.state?.consumed).not.toBe(true);
-    });
-  });
-});
-</file>
-
 <file path="src/systems/recipeRunner/types.ts">
 /**
  * FILE: src/systems/recipeRunner/types.ts
@@ -7705,56 +7693,38 @@ The goal is a living world.
 The actual whole code of this repo is in: [repomix-output.xml](https://github.com/felixinberlin/tortilla-world/blob/main/repomix-output.xml)
 </file>
 
-<file path="docs/architecture.md">
-# Architecture
+<file path="docs/entities.md">
+# Entities
 
 ## Overview
 
-Tortilla World is a simulation-driven React application.
+Tortilla World is built around a world model composed of **entities** and **containers**.
 
-The application is not designed as a collection of UI components with local state.
-Instead, it models a small interactive world where entities exist, move, interact, and change state through controlled systems.
-
-The architecture is based on four main concepts:
-
-```text
-              User / AI
-                  |
-                  v
-          Interaction System
-                  |
-                  v
-          Action Validation
-                  |
-                  v
-             World Store
-                  |
-                  v
-       Entities and Containers
-```
-
----
-
-# Core Concepts
-
-## Entities
-
-Entities are all objects that exist in the world.
-
-Examples:
+Everything that exists in the world is an entity:
 
 * ingredients
 * tools
 * containers
-* characters
-* machines
+* future objects such as plates, machines, characters, or decorations
 
-An entity has:
+Entities do not decide where they can exist.
+Containers own entities and enforce the rules of what they can contain.
 
-* identity
-* type
-* properties
-* optional state
+The world state is therefore based on:
+
+```
+Entity
+   |
+   | owned by
+   v
+Container
+```
+
+---
+
+# Entity
+
+An entity is a unique object inside the world.
 
 Example:
 
@@ -7765,504 +7735,849 @@ Example:
 }
 ```
 
-Entities do not control their own behaviour.
+or:
 
-They are controlled by systems.
+```ts
+{
+  id: "pan-small",
+  type: "tool"
+}
+```
 
----
+Entities have identity.
 
-# Workstations
-
-Workstations represent *where actions can be performed* in the kitchen simulation:
-
-* **Pantry (`pantry`)**: Store ingredients (`despensa`).
-* **Washing Station (`washing_station`)**: Clean ingredients (`sink`).
-* **Cutting Station (`cutting_station`)**: Preparation (`board`, `knife`, `peeler`).
-* **Preparation Station (`preparation_station`)**: Mix & combine (`bowl`, `whisk`, `fork`).
-* **Cooking Station (`cooking_station`)**: Apply heat (`pan`, `spatula`).
-* **Serving Station (`serving_station`)**: Plate and serve (`plate`).
+Moving an entity does not create a new entity.
+A move changes the ownership relationship between containers.
 
 ---
 
-# Containers
+# Entity Types
 
-Containers are entities that own other entities.
+## Ingredient
+
+Ingredients are cooking resources.
 
 Examples:
 
-* Kitchen
-* Pantry
-* Recipe
-* Pan
-* Plate
+* potato
+* egg
+* onion
+* oil
 
-A container defines:
+Ingredients have special rules:
 
-* what it can contain
-* ordering
-* uniqueness rules
-* transfer behaviour
+* an ingredient can only appear once inside the same container
+* ingredients can move between containers
+* ingredients can be consumed by actions
+* ingredients can be transformed by cooking systems
 
 Example:
 
-```text
-Kitchen
- ├── Potato
- ├── Onion
- ├── Knife
- └── Pan
+```ts
+{
+  id: "potato",
+  type: "ingredient",
+  name: "Potato",
+  icon: "🥔"
+}
 ```
-
-A container is not a simple array.
-
-It is a world object with rules.
 
 ---
 
-# Ownership Model
+## Tool
+
+Tools are reusable objects used by actions at workstations.
+
+Examples:
+
+* knife (`knife`)
+* peeler (`peeler`)
+* whisk (`whisk`)
+* fork (`fork`)
+* spatula (`spatula`)
+* grater (`grater`)
+* mandoline (`mandoline`)
+* spoon (`spoon`)
+
+Tools have different rules from ingredients:
+
+* duplicate tools are allowed
+* tools can exist multiple times inside a container
+* tools are normally not consumed
+
+Example:
+
+```ts
+{
+  id: "pan-001",
+  type: "tool",
+  name: "Pan",
+  icon: "🍳"
+}
+```
+
+A kitchen can contain:
+
+```
+Kitchen
+ ├── pan-001
+ └── pan-002
+```
+
+Both are valid.
+
+---
+
+# Container
+
+A container is an entity that can own other entities.
+
+Examples:
+
+* kitchen
+* pantry
+* recipe
+* pan
+* plate
+* fridge
+
+A container is not a simple programming list.
+
+It is a world object with:
+
+* ordered contents
+* ownership
+* validation rules
+* capabilities
+
+Example:
+
+```ts
+{
+  id: "kitchen",
+  type: "container",
+  children:[
+    "potato",
+    "egg",
+    "pan-001"
+  ]
+}
+```
+
+---
+
+# Container Rules
+
+Containers define what they allow.
+
+Rules are not stored in the entity itself.
+
+The same entity type can behave differently depending on the container.
+
+Example:
+
+A potato can exist in:
+
+```
+Kitchen
+Recipe
+Pan
+Plate
+```
+
+but each container decides what happens.
+
+---
+
+## Content ordering
+
+Container contents are ordered.
+
+The order matters for:
+
+* visual rendering
+* drag and drop
+* animations
+* UI positioning
+
+Therefore container contents use an ordered collection.
+
+Example:
+
+```ts
+children:[
+  "potato",
+  "egg",
+  "onion"
+]
+```
+
+---
+
+# Ingredient uniqueness
+
+A container cannot contain two identical ingredients.
+
+Valid:
+
+```
+Recipe
+ ├── potato
+ ├── onion
+ └── egg
+```
+
+Invalid:
+
+```
+Recipe
+ ├── potato
+ ├── potato
+```
+
+This rule applies only to ingredients.
+
+---
+
+# Duplicate entities
+
+Duplicate rules depend on entity type.
+
+Example:
+
+Kitchen:
+
+Valid:
+
+```
+Kitchen
+ ├── potato
+ ├── onion
+ ├── pan-001
+ └── pan-002
+```
+
+Invalid:
+
+```
+Kitchen
+ ├── potato
+ └── potato
+```
+
+---
+
+# Ownership
 
 Every movable entity has an owner.
 
 Example:
 
-Initial:
+Initial state:
 
-```text
+```
 Kitchen
- ├── Potato
- ├── Egg
+ ├── potato
+ ├── egg
 
 
 Pan
- └── Oil
+ └── oil
 ```
 
 After moving potato:
 
-```text
+```
 Kitchen
- └── Egg
+ └── egg
 
 
 Pan
- ├── Oil
- └── Potato
+ ├── oil
+ └── potato
 ```
 
-The potato entity remains the same.
+The potato entity did not change.
 
-Only the relationship changes:
-
-```text
-Before:
-
-Kitchen owns Potato
-
-
-After:
-
-Pan owns Potato
-```
+Only the ownership relation changed.
 
 ---
 
-# State Management
+# Static and Dynamic Containers
 
-The world state is stored centrally.
+Containers can have different ownership behaviour.
 
-Current technology:
+## Static Container
 
-* React
-* Zustand
-
-The store represents the complete world.
-
-Example:
-
-```ts
-interface WorldState {
-
- entities:
-   Record<string, Entity>
-
- containers:
-   Record<string, Container>
-
- actions:
-   WorldActions
-
-}
-```
-
----
-
-# Data Flow
-
-## User interaction
-
-Example:
-
-User drags potato into pan.
-
-Flow:
-
-```text
-Drag Event
-    |
-    v
-D&D Layer
-    |
-    v
-Interaction System
-    |
-    v
-Move Action
-    |
-    v
-Container Validation
-    |
-    v
-World Store Update
-    |
-    v
-React Render
-```
-
----
-
-# Drag and Drop Architecture
-
-Drag and drop is only an input method.
-
-It does not contain business rules.
-
-The DnD system provides:
-
-```ts
-{
- entityId:"potato",
- targetContainer:"pan"
-}
-```
-
-The Interaction System decides:
-
-* is the move allowed?
-* what transfer rule applies?
-* what state changes happen?
-
----
-
-# Systems
-
-Systems contain world behaviour.
+A static container represents predefined world content.
 
 Examples:
 
-## Movement System
+* kitchen ingredients
+* initial inventory
+* environment objects
 
-Responsible for:
+Characteristics:
 
-* moving entities
-* validating ownership
-* applying transfer rules
+* content is defined by the world
+* removing an item does not necessarily delete it
+* moving an item out can create a new reference/copy depending on rules
+
+Example:
+
+```
+Kitchen
+ ├── potato
+ ├── onion
+ └── egg
+```
 
 ---
 
-## Interaction System
+## Dynamic Container
 
-Responsible for:
+A dynamic container represents changing ownership.
 
-* converting user input into actions
-* handling clicks
-* handling drag operations
+Examples:
+
+* recipe
+* pan
+* plate
+* trash
+
+Characteristics:
+
+* items can be added
+* items can be removed
+* items can be transferred
+
+Example:
+
+```
+Recipe
+ ├── potato
+ └── egg
+```
 
 ---
 
-## Cooking System
+# Container Capabilities
 
-Future system.
+Containers expose capabilities that systems can check.
 
-Responsible for:
+Example:
 
-* combining ingredients
-* changing states
-* producing results
+```ts
+{
+  canAdd: true,
+  canRemove: true,
+  allowsDuplicateIngredients: false,
+  acceptedTypes:[
+    "ingredient",
+    "tool"
+  ]
+}
+```
+
+Before performing an action, systems validate these capabilities.
+
+---
+
+# Relationships
+
+The world is composed of relationships:
+
+```
+Kitchen
+   owns
+      Potato
+
+
+Pan
+   owns
+      Oil
+```
+
+The Entity itself does not know:
+
+* where it is
+* what contains it
+* what actions are possible
+
+The world systems decide this.
+
+---
+
+# Future Extensions
+
+This model allows adding:
+
+## Characters
+
+```
+Tortilla
+  owns
+    Knife
+```
+
+## Machines
+
+```
+Oven
+  owns
+    Tray
+```
+
+## Recipes
+
+```
+Recipe
+  owns
+    Potato
+    Egg
+```
+
+## Entity State (Preparation & Cooking)
+
+Entities store mutable properties inside their `state` field without changing entity identity:
+
+```ts
+{
+  id: "potato",
+  type: "ingredient",
+  name: "Potato",
+  state: {
+    preparation: "diced", // "whole" | "peeled" | "sliced" | "diced" | "minced"
+    cooking: "fried"     // "raw" | "fried" | "boiled" | "burned"
+  }
+}
+```
+
+Preparation and cooking actions mutate this state via `PREPARE_INGREDIENT` and `COOK_INGREDIENT` actions without recreating entities.
+</file>
+
+<file path="docs/roadmap.md">
+# Tortilla World Roadmap
+
+## Vision
+
+Tortilla World is an interactive cooking simulation built around a living world model.
+
+The goal is not only to create a recipe application, but to create a small simulated environment where:
+
+* objects exist as entities
+* containers define relationships
+* actions modify the world
+* characters and AI can interact with the environment
+
+The long-term vision is a "living kitchen" where the user can interact with objects naturally and where autonomous agents can understand and manipulate the world.
+
+---
+
+# Current Status
+
+## Phase: World Foundation
+
+Status:
+
+🟡 In development
+
+Current focus:
+
+* stable world model
+* entity system
+* container system
+* drag and drop interactions
+* predictable state management
+
+Completed foundations:
+
+✅ React + TypeScript application
+✅ Zustand world store
+✅ Entity-based architecture
+✅ Container concept
+✅ Drag and drop foundation
+✅ Ingredient data model
+✅ Documentation structure
+
+---
+
+# Roadmap Overview
+
+```text
+Foundation
+    |
+    v
+World Interaction
+    |
+    v
+Cooking Simulation
+    |
+    v
+Living Kitchen
+    |
+    v
+AI Assisted World
+```
+
+---
+
+# Phase 1 — World Foundation
+
+## Goal
+
+Create a reliable simulation core.
+
+## Features
+
+### Entity System
+
+Implement:
+
+* ingredients
+* tools
+* containers
+* entity identity
 
 Example:
 
 ```text
-Potato + Egg + Onion
+Potato
+Knife
+Pan
+Kitchen
+```
 
-       |
-       v
+---
+
+### Container System
+
+Implement:
+
+* ownership
+* ordered contents
+* container rules
+* validation
+
+Examples:
+
+```text
+Kitchen
+Recipe
+Pan
+Plate
+```
+
+---
+
+### Movement System
+
+Implement:
+
+* moving entities
+* validating moves
+* transfer rules
+* ownership changes
+
+Example:
+
+```text
+Kitchen
+
+ potato
+
+    |
+    v
+
+Pan
+
+ potato
+```
+
+---
+
+# Phase 2 — Interaction Layer
+
+## Goal
+
+Make the world feel alive.
+
+## Features
+
+### Improved Drag and Drop
+
+Support:
+
+* visual feedback
+* invalid drop states
+* animations
+* multi-container interactions
+
+---
+
+### Entity Animations
+
+Entities should:
+
+* move naturally
+* react to interactions
+* have visual states
+
+Examples:
+
+* potato jumps into pan
+* knife moves to cutting board
+* ingredients combine
+
+---
+
+### Action System
+
+Introduce:
+
+```ts
+Action
+{
+ type
+ payload
+ timestamp
+}
+```
+
+Benefits:
+
+* replay
+* debugging
+* AI compatibility
+
+Status:
+
+✅ Traceability — every `dispatch` call is logged (`devtools` +
+`src/store/middleware/actionLog.ts`) and validated through
+`engine/containerRules.ts`.
+🚧 Replay — the log is in-memory only; replaying a recorded sequence back
+into the store is not implemented.
+
+---
+
+# Phase 3 — Cooking Simulation
+
+## Goal
+
+Create actual cooking behaviour.
+
+## Features
+
+## Recipe System
+
+Support:
+
+* recipes
+* ingredient requirements
+* preparation steps
+
+Example:
+
+```text
+Potato
+Egg
+Onion
+
+    +
+    
+Cooking
+
+    =
 
 Tortilla
 ```
 
 ---
 
-## AI System
+## Cooking States
 
-Future system.
-
-Responsible for:
-
-* generating actions
-* planning
-* interacting with the world
-
-AI does not modify state directly.
-
-Example:
-
-```ts
-{
- type:"MOVE_ENTITY",
- entity:"egg",
- destination:"recipe"
-}
-```
-
----
-
-# Actions
-
-All world changes happen through actions.
-
-Example:
-
-```ts
-{
- type:"MOVE_ENTITY",
-
- entityId:"potato",
-
- source:"kitchen",
-
- target:"pan"
-}
-```
-
-Actions provide:
-
-* traceability
-* debugging
-* replay
-* AI compatibility
-
----
-
-# Containers and Transfer Rules
-
-Moving an entity is not a simple remove/add operation.
-
-The process is:
-
-```text
-Move Request
-
-      |
-      v
-
-Check source container
-
-      |
-      v
-
-Check destination container
-
-      |
-      v
-
-Apply transfer rules
-
-      |
-      v
-
-Update ownership
-
-      |
-      v
-
-Update world state
-```
-
----
-
-# Rendering Architecture
-
-React components display world state.
-
-They do not own world logic.
+Entities gain states:
 
 Example:
 
 ```text
-World Store
+Potato
 
-    |
-    v
-
-Scene Component
-
-    |
-    +---- Container Component
-    |
-    +---- Entity Component
+raw
+ |
+ v
+cut
+ |
+ v
+fried
 ```
 
 ---
 
-# Component Responsibilities
-
-## Entity Component
-
-Responsible for:
-
-* rendering an entity
-* animations
-* visual state
-
-Does not:
-
-* move itself
-* validate actions
-
----
-
-## Container Component
-
-Responsible for:
-
-* rendering contents
-* layout
-* accepting interactions
-
-Does not:
-
-* decide business rules
-
----
-
-# Future Architecture
-
-The architecture is designed to support:
-
-## More containers
+## Tools Become Functional
 
 Examples:
+
+Knife:
+
+```text
+ingredient
+      |
+      v
+cut ingredient
+```
+
+Pan:
+
+```text
+ingredient
+      |
+      v
+cook ingredient
+```
+
+---
+
+# Phase 4 — Living Kitchen
+
+## Goal
+
+Create a world that behaves independently.
+
+## Features
+
+### Characters
+
+Introduce:
+
+* player character
+* helpers
+* customers
+* NPCs
+
+---
+
+### Time System
+
+Add:
+
+* cooking duration
+* events
+* schedules
+
+Example:
+
+```text
+Egg on pan
+
+0s
+ |
+30s
+ |
+Cooked
+```
+
+---
+
+### Environment
+
+Add:
 
 * fridge
-* cupboard
+* cupboards
+* tables
 * oven
-* table
-* customer tray
+* restaurant area
 
 ---
 
-## More entities
+# Phase 5 — AI Kitchen Assistant
 
-Examples:
+## Goal
 
-* characters
-* animals
-* machines
-* recipes
+Allow AI agents to understand and interact with the world.
 
----
+The AI does not directly change state.
 
-## More systems
+The AI creates actions.
 
-Examples:
+Example:
 
-* physics
-* time
-* cooking
-* economy
-* AI planning
-
----
-
-# Design Principles
-
-## 1. Data before UI
-
-The world model exists independently of React.
-
----
-
-## 2. Rules before actions
-
-Every action must be validated.
-
----
-
-## 3. Entities keep identity
-
-Movement changes ownership, not objects.
-
----
-
-## 4. Containers own behaviour
-
-Rules belong to locations, not items.
-
----
-
-## 5. Systems change the world
-
-Components only represent the world.
-
----
-
-# Final Architecture Diagram
-
-```text
-
-                 User
-                  |
-                  |
-                  v
-
-          React Interaction Layer
-                  |
-                  |
-                  v
-
-          Interaction System
-                  |
-                  |
-                  v
-
-             Action Queue
-                  |
-                  |
-                  v
-
-          World Simulation
-                  |
-        +---------+---------+
-        |                   |
-        v                   v
-
-    Containers          Entities
-
-        |
-        |
-        v
-
-     Zustand Store
-
-        |
-        |
-        v
-
-      React UI
-
+```json
+{
+"type":"MOVE_ENTITY",
+"entity":"egg",
+"target":"pan"
+}
 ```
 
-Tortilla World is therefore structured as a small simulation engine with a React interface, rather than a traditional CRUD application.
+The world validates and executes the action.
+
+---
+
+## AI Features
+
+Possible future capabilities:
+
+* recipe planning
+* cooking assistance
+* autonomous helpers
+* explanations
+* suggestions
+* learning user preferences
+
+---
+
+# Phase 6 — Multiplayer / Shared World (Future)
+
+Possible future direction:
+
+* shared kitchens
+* collaborative cooking
+* synchronized worlds
+* multiple AI agents
+
+---
+
+# Development Principles
+
+## Keep the World Model Independent
+
+The simulation should not depend on React.
+
+---
+
+## Prefer Systems Over Component Logic
+
+Components display.
+
+Systems decide.
+
+---
+
+## Preserve Entity Identity
+
+Objects are moved, not recreated.
+
+---
+
+## Document Decisions
+
+Important architecture changes should be recorded in:
+
+```text
+docs/decisions.md
+```
+
+---
+
+# Current Priority
+
+The immediate goal is:
+
+> Build a stable interactive kitchen world where every object follows predictable rules.
+
+Everything else depends on this foundation.
 </file>
 
 <file path="src/components/Ingredients/RecipeIngredientItem.tsx">
@@ -9222,6 +9537,622 @@ export type WorldStateStore = {
   MascotSlice;
 </file>
 
+<file path="src/systems/recipeRunner/handlers/cookHandlers.test.ts">
+/**
+ * FILE: src/systems/recipeRunner/handlers/cookHandlers.test.ts
+ *
+ * PURPOSE:
+ * Unit tests for cooking step handlers and oil heating behavior.
+ *
+ * RESPONSIBILITY:
+ * - Verify oil heating doesn't mark oil as consumed
+ * - Verify oil stays in the burner1/container after heating
+ * - Verify oil IS consumed when it's used as a cooking medium
+ * - Distinguish between oil as target vs oil as cooking medium
+ * - Test garlic cooking and other ingredients
+ * - Verify Required Materials immutability concept
+ */
+
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { worldStore } from '../../../store/worldStore';
+import { handleCookStep, handleFlipStep } from './cookHandlers';
+import type { RecipeStep } from '../../../types/RecipeStep';
+import type { RecipeRunnerContext } from '../types';
+
+type CookStep = Extract<RecipeStep, { action: 'cook' }>;
+type FlipStep = Extract<RecipeStep, { action: 'flip' }>;
+
+/**
+ * Helper: Create mock RecipeRunnerContext
+ */
+function createMockContext(overrides?: Partial<RecipeRunnerContext>): RecipeRunnerContext {
+  return {
+    mascotId: 'chef_1',
+    defaultSourceId: 'burner1try',
+    defaultTargetId: 'board',
+    delayMs: 0, // No delay in tests
+    recipeContext: {
+      recipeId: 'test_recipe',
+      bindings: {},
+    },
+    getBoundEntityId: vi.fn((key: string) => {
+      const mapping: Record<string, string> = {
+        oil: 'oil_1',
+        potatoes: 'potatoes_1',
+        garlic: 'garlic_1',
+        mixture: 'mixture_1',
+      };
+      return mapping[key] || null;
+    }),
+    validateEntity: vi.fn(),
+    updateBindingIfCopied: vi.fn(),
+    wait: vi.fn(async () => {}),
+    bindStepsContext: vi.fn(),
+    ensureEntityInWorkspace: vi.fn(async (id: string) => id),
+    ensureIngredientInWorkspace: vi.fn(async (id: string) => id),
+    resolveIngredientId: vi.fn((key: string) => key),
+    currentRecipe: undefined,
+    bindRecipeContext: vi.fn(),
+    runRecipe: vi.fn(),
+    runSteps: vi.fn(),
+    executeStep: vi.fn(),
+    ...overrides,
+  } as unknown as RecipeRunnerContext;
+}
+
+/**
+ * Helper: Setup world state with ingredients
+ */
+function seedWorld() {
+  worldStore.setState({
+    entities: {
+      oil_1: {
+        id: 'oil_1',
+        name: '🫒 Olive Oil',
+        type: 'ingredient',
+        ingredientId: 'oil',
+        state: {},
+      },
+      potatoes_1: {
+        id: 'potatoes_1',
+        name: '🥔 Potatoes',
+        type: 'ingredient',
+        ingredientId: 'potatoes',
+        state: { preparation: 'sliced' },
+      },
+      garlic_1: {
+        id: 'garlic_1',
+        name: '🧄 Garlic',
+        type: 'ingredient',
+        ingredientId: 'garlic',
+        state: { preparation: 'peeled' },
+      },
+      eggs_1: {
+        id: 'eggs_1',
+        name: '🥚 Eggs',
+        type: 'ingredient',
+        ingredientId: 'egg',
+        state: {},
+      },
+    },
+    containers: {
+      burner1: {
+        id: 'burner1',
+        name: 'burner1',
+        type: 'workstation',
+        entityIds: [],
+      },
+      burner1try: {
+        id: 'burner1try',
+        name: 'burner1try',
+        type: 'storage',
+        entityIds: ['oil_1', 'potatoes_1', 'garlic_1', 'eggs_1'],
+      },
+      board: {
+        id: 'board',
+        name: 'Board',
+        type: 'workstation',
+        entityIds: [],
+      },
+    },
+    events: [],
+  });
+}
+
+describe('Cook Handlers - Oil & Ingredient Cooking', () => {
+  beforeEach(() => {
+    seedWorld();
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('Test Group 1: Oil Heating (Primary Target)', () => {
+    it('1.1: Heat oil - Oil should NOT be marked as consumed', async () => {
+      const ctx = createMockContext();
+
+      const heatOilStep: CookStep = {
+        action: 'cook',
+        target: 'oil',
+        method: 'heat',
+      };
+
+      await handleCookStep(ctx, heatOilStep, 'burner1');
+
+      const state = worldStore.getState();
+      const oil = state.entities.oil_1;
+
+      expect(oil.state?.consumed).not.toBe(true);
+      expect(oil.state?.consumedBy).toBeUndefined();
+    });
+
+    it('1.2: Heat oil - Oil should be moved to burner1', async () => {
+      const ctx = createMockContext();
+
+      const heatOilStep: CookStep = {
+        action: 'cook',
+        target: 'oil',
+        method: 'heat',
+      };
+
+      await handleCookStep(ctx, heatOilStep, 'burner1');
+
+      const state = worldStore.getState();
+      const burner1Container = state.containers.burner1;
+
+      expect(burner1Container.entityIds).toContain('oil_1');
+    });
+
+    it('1.3: Heat oil - Oil state should show cooking method "heat"', async () => {
+      const ctx = createMockContext();
+
+      const heatOilStep: CookStep = {
+        action: 'cook',
+        target: 'oil',
+        method: 'heat',
+      };
+
+      await handleCookStep(ctx, heatOilStep, 'burner1');
+
+      const state = worldStore.getState();
+      const oil = state.entities.oil_1;
+
+      expect(oil.state?.cooking).toBe('heat');
+    });
+
+  });
+
+  describe('Test Group 2: Garlic Cooking & Removal', () => {
+    it('2.1: Fry garlic - Garlic should be marked with cooking state', async () => {
+      const ctx = createMockContext();
+
+      const fryGarlicStep: CookStep = {
+        action: 'cook',
+        target: 'garlic',
+        method: 'fry',
+        instruction: 'Que no se quemen.', // Don't let them burn
+      };
+
+      await handleCookStep(ctx, fryGarlicStep, 'burner1');
+
+      const state = worldStore.getState();
+      const garlic = state.entities.garlic_1;
+
+      expect(garlic.state?.cooking).toBe('fry');
+    });
+
+    it('2.2: Fry garlic - Garlic should be moved to burner1', async () => {
+      const ctx = createMockContext();
+
+      const fryGarlicStep: CookStep = {
+        action: 'cook',
+        target: 'garlic',
+        method: 'fry',
+      };
+
+      await handleCookStep(ctx, fryGarlicStep, 'burner1');
+
+      const state = worldStore.getState();
+      const burner1Container = state.containers.burner1;
+
+      expect(burner1Container.entityIds).toContain('garlic_1');
+    });
+
+    it('2.3: Fry garlic - Garlic should NOT be consumed (it\'s the target)', async () => {
+      const ctx = createMockContext();
+
+      const fryGarlicStep: CookStep = {
+        action: 'cook',
+        target: 'garlic',
+        method: 'fry',
+      };
+
+      await handleCookStep(ctx, fryGarlicStep, 'burner1');
+
+      const state = worldStore.getState();
+      const garlic = state.entities.garlic_1;
+
+      expect(garlic.state?.consumed).not.toBe(true);
+      expect(garlic.state?.consumedBy).toBeUndefined();
+    });
+
+    it('2.4: Fry garlic - Oil should be consumed as cooking medium', async () => {
+      const ctx = createMockContext();
+
+      // First heat oil
+      const heatOilStep: CookStep = {
+        action: 'cook',
+        target: 'oil',
+        method: 'heat',
+      };
+      await handleCookStep(ctx, heatOilStep, 'burner1');
+
+      // Now fry garlic
+      const fryGarlicStep: CookStep = {
+        action: 'cook',
+        target: 'garlic',
+        method: 'fry',
+      };
+      await handleCookStep(ctx, fryGarlicStep, 'burner1');
+
+      const state = worldStore.getState();
+      const oil = state.entities.oil_1;
+
+      // Oil should be consumed since garlic (not oil) is the target
+      expect(oil.state?.consumed).toBe(true);
+      expect(oil.state?.consumedBy).toBe('garlic_1');
+    });
+  });
+
+  describe('Test Group 3: Frying with Oil (Oil as Cooking Medium)', () => {
+    it('3.1: Fry potatoes - Oil should be consumed as cooking medium', async () => {
+      const ctx = createMockContext();
+
+      // Heat oil first
+      const heatOilStep: CookStep = {
+        action: 'cook',
+        target: 'oil',
+        method: 'heat',
+      };
+      await handleCookStep(ctx, heatOilStep, 'burner1');
+
+      // Move potatoes to burner1 manually for test
+      worldStore.getState().dispatch({
+        type: 'MOVE_ENTITY',
+        payload: {
+          entityId: 'potatoes_1',
+          targetContainerId: 'burner1',
+        },
+      });
+
+      // Fry potatoes
+      const fryPotatoesStep: CookStep = {
+        action: 'cook',
+        target: 'potatoes',
+        method: 'fry',
+      };
+      await handleCookStep(ctx, fryPotatoesStep, 'burner1');
+
+      const state = worldStore.getState();
+      const oil = state.entities.oil_1;
+
+      // Oil SHOULD be consumed when potatoes are fried
+      expect(oil.state?.consumed).toBe(true);
+      expect(oil.state?.consumedBy).toBe('potatoes_1');
+    });
+
+    it('3.2: Potatoes should NOT be consumed (they are the target)', async () => {
+      const ctx = createMockContext();
+
+      // Heat oil
+      const heatOilStep: CookStep = {
+        action: 'cook',
+        target: 'oil',
+        method: 'heat',
+      };
+      await handleCookStep(ctx, heatOilStep, 'burner1');
+
+      // Move potatoes to burner1
+      worldStore.getState().dispatch({
+        type: 'MOVE_ENTITY',
+        payload: {
+          entityId: 'potatoes_1',
+          targetContainerId: 'burner1',
+        },
+      });
+
+      // Fry potatoes
+      const fryPotatoesStep: CookStep = {
+        action: 'cook',
+        target: 'potatoes',
+        method: 'fry',
+      };
+      await handleCookStep(ctx, fryPotatoesStep, 'burner1');
+
+      const state = worldStore.getState();
+      const potatoes = state.entities.potatoes_1;
+
+      expect(potatoes.state?.consumed).not.toBe(true);
+      expect(potatoes.state?.consumedBy).toBeUndefined();
+    });
+  });
+
+  describe('Test Group 4: Complete Cooking Sequence', () => {
+    it('4.1: Full sequence - Heat oil, fry garlic, fry potatoes', async () => {
+      const ctx = createMockContext();
+
+      // Step 1: Heat oil
+      const heatOilStep: CookStep = {
+        action: 'cook',
+        target: 'oil',
+        method: 'heat',
+      };
+      await handleCookStep(ctx, heatOilStep, 'burner1');
+
+      // Verify oil is in burner1 but not consumed
+      let state = worldStore.getState();
+      let oil = state.entities.oil_1;
+      expect(state.containers.burner1.entityIds).toContain('oil_1');
+      expect(oil.state?.consumed).not.toBe(true);
+      expect(oil.state?.cooking).toBe('heat');
+
+      // Step 2: Fry garlic
+      const fryGarlicStep: CookStep = {
+        action: 'cook',
+        target: 'garlic',
+        method: 'fry',
+      };
+      await handleCookStep(ctx, fryGarlicStep, 'burner1');
+
+      // Verify garlic is in burner1, oil is consumed
+      state = worldStore.getState();
+      const garlic = state.entities.garlic_1;
+      oil = state.entities.oil_1;
+      expect(state.containers.burner1.entityIds).toContain('garlic_1');
+      expect(garlic.state?.cooking).toBe('fry');
+      expect(oil.state?.consumed).toBe(true);
+
+      // Step 3: Move potatoes to burner1 (simulating move step)
+      worldStore.getState().dispatch({
+        type: 'MOVE_ENTITY',
+        payload: {
+          entityId: 'potatoes_1',
+          targetContainerId: 'burner1',
+        },
+      });
+
+      // Step 4: Fry potatoes (oil already consumed, won't be consumed again)
+      const fryPotatoesStep: CookStep = {
+        action: 'cook',
+        target: 'potatoes',
+        method: 'fry',
+      };
+      await handleCookStep(ctx, fryPotatoesStep, 'burner1');
+
+      // Final state check
+      state = worldStore.getState();
+      const potatoes = state.entities.potatoes_1;
+      oil = state.entities.oil_1;
+
+      expect(state.containers.burner1.entityIds).toContain('potatoes_1');
+      expect(potatoes.state?.cooking).toBe('fry');
+      expect(oil.state?.consumed).toBe(true); // Still consumed from garlic step
+    });
+
+    it('4.2: Oil consumption happens only once per session', async () => {
+      const ctx = createMockContext();
+
+      // Heat oil
+      const heatOilStep: CookStep = {
+        action: 'cook',
+        target: 'oil',
+        method: 'heat',
+      };
+      await handleCookStep(ctx, heatOilStep, 'burner1');
+
+      // Fry garlic (consumes oil)
+      worldStore.getState().dispatch({
+        type: 'MOVE_ENTITY',
+        payload: {
+          entityId: 'garlic_1',
+          targetContainerId: 'burner1',
+        },
+      });
+
+      const fryGarlicStep: CookStep = {
+        action: 'cook',
+        target: 'garlic',
+        method: 'fry',
+      };
+      await handleCookStep(ctx, fryGarlicStep, 'burner1');
+
+      let state = worldStore.getState();
+      let oil = state.entities.oil_1;
+      const firstConsumption = oil.state?.consumedBy;
+
+      // Fry potatoes (oil already consumed, shouldn't be consumed again)
+      worldStore.getState().dispatch({
+        type: 'MOVE_ENTITY',
+        payload: {
+          entityId: 'potatoes_1',
+          targetContainerId: 'burner1',
+        },
+      });
+
+      const fryPotatoesStep: CookStep = {
+        action: 'cook',
+        target: 'potatoes',
+        method: 'fry',
+      };
+      await handleCookStep(ctx, fryPotatoesStep, 'burner1');
+
+      state = worldStore.getState();
+      oil = state.entities.oil_1;
+
+      // Oil should still be consumed by garlic, not potatoes
+      expect(oil.state?.consumedBy).toBe(firstConsumption);
+      expect(oil.state?.consumedBy).toBe('garlic_1');
+    });
+  });
+
+  describe('Test Group 5: Flip Step', () => {
+    it('5.1: Flip mixture - Should mark mixture as flipped', async () => {
+      const ctx = createMockContext();
+
+      // Create a mixture entity
+      worldStore.getState().dispatch({
+        type: 'ADD_ENTITY',
+        payload: {
+          entity: {
+            id: 'mixture_1',
+            name: '🍳 Mixture',
+            type: 'ingredient',
+            ingredientId: 'mixture',
+            state: {},
+          },
+          containerId: 'burner1',
+        },
+      });
+
+      const flipStep: FlipStep = {
+        action: 'flip',
+        target: 'mixture',
+        instruction: 'Dale la vuelta a la tortilla.',
+      };
+
+      await handleFlipStep(ctx, flipStep);
+
+      const state = worldStore.getState();
+      const mixture = state.entities.mixture_1;
+
+      expect(mixture.state?.isFlipped).toBe(true);
+    });
+  });
+
+  describe('Test Group 6: Edge Cases', () => {
+    it('6.1: Cook oil again - Should NOT consume it again', async () => {
+      const ctx = createMockContext();
+
+      // Heat oil first time
+      const heatOilStep1: CookStep = {
+        action: 'cook',
+        target: 'oil',
+        method: 'heat',
+      };
+      await handleCookStep(ctx, heatOilStep1, 'burner1');
+
+      let state = worldStore.getState();
+      let oil = state.entities.oil_1;
+      expect(oil.state?.cooking).toBe('heat');
+
+      // Try to heat oil again (should just update state)
+      const heatOilStep2: CookStep = {
+        action: 'cook',
+        target: 'oil',
+        method: 'heat',
+      };
+      await handleCookStep(ctx, heatOilStep2, 'burner1');
+
+      state = worldStore.getState();
+      oil = state.entities.oil_1;
+
+      // Oil should still not be consumed
+      expect(oil.state?.consumed).not.toBe(true);
+    });
+
+    it('6.2: Multiple ingredients in burner1 - Only oil consumed', async () => {
+      const ctx = createMockContext();
+
+      // Setup: Move multiple items to burner1
+      worldStore.getState().dispatch({
+        type: 'MOVE_ENTITY',
+        payload: {
+          entityId: 'oil_1',
+          targetContainerId: 'burner1',
+        },
+      });
+
+      worldStore.getState().dispatch({
+        type: 'MOVE_ENTITY',
+        payload: {
+          entityId: 'eggs_1',
+          targetContainerId: 'burner1',
+        },
+      });
+
+      // Fry potatoes
+      worldStore.getState().dispatch({
+        type: 'MOVE_ENTITY',
+        payload: {
+          entityId: 'potatoes_1',
+          targetContainerId: 'burner1',
+        },
+      });
+
+      const fryStep: CookStep = {
+        action: 'cook',
+        target: 'potatoes',
+        method: 'fry',
+      };
+
+      await handleCookStep(ctx, fryStep, 'burner1');
+
+      const state = worldStore.getState();
+      const oil = state.entities.oil_1;
+      const eggs = state.entities.eggs_1;
+
+      // Oil should be consumed
+      expect(oil.state?.consumed).toBe(true);
+
+      // Eggs should not be consumed (not detected as cooking medium)
+      expect(eggs.state?.consumed).not.toBe(true);
+    });
+
+    it('6.3: Fire control - Mascot turns fire ON before cooking and OFF after cooking', async () => {
+      const fireStates: boolean[] = [];
+
+      const ctx = createMockContext({
+        wait: vi.fn(async () => {
+          // Record burner1 isOn state during wait
+          const isOn = Boolean(worldStore.getState().containers.burner1?.isOn);
+          fireStates.push(isOn);
+        }),
+      });
+
+      // Ensure burner1 is off initially
+      worldStore.setState({
+        containers: {
+          ...worldStore.getState().containers,
+          burner1: {
+            id: 'burner1',
+            name: 'burner1',
+            type: 'workstation',
+            entityIds: [],
+            isOn: false,
+          },
+        },
+      });
+
+      const cookStep: CookStep = {
+        action: 'cook',
+        target: 'potatoes',
+        method: 'fry',
+      };
+
+      await handleCookStep(ctx, cookStep, 'burner1');
+
+      // During cooking (in first wait after toggle or second wait), fire was turned ON
+      expect(fireStates).toContain(true);
+
+      // After cooking step finishes, burner1 fire is turned OFF
+      const finalBurnerState = worldStore.getState().containers.burner1;
+      expect(finalBurnerState.isOn).toBe(false);
+    });
+  });
+});
+</file>
+
 <file path="src/systems/recipeRunner/handlers/prepHandlers.ts">
 /**
  * FILE: src/systems/recipeRunner/handlers/prepHandlers.ts
@@ -9603,893 +10534,6 @@ export type RecipeStep =
       action: 'celebrate';
       mascotId?: string;
     };
-</file>
-
-<file path="docs/entities.md">
-# Entities
-
-## Overview
-
-Tortilla World is built around a world model composed of **entities** and **containers**.
-
-Everything that exists in the world is an entity:
-
-* ingredients
-* tools
-* containers
-* future objects such as plates, machines, characters, or decorations
-
-Entities do not decide where they can exist.
-Containers own entities and enforce the rules of what they can contain.
-
-The world state is therefore based on:
-
-```
-Entity
-   |
-   | owned by
-   v
-Container
-```
-
----
-
-# Entity
-
-An entity is a unique object inside the world.
-
-Example:
-
-```ts
-{
-  id: "potato",
-  type: "ingredient"
-}
-```
-
-or:
-
-```ts
-{
-  id: "pan-small",
-  type: "tool"
-}
-```
-
-Entities have identity.
-
-Moving an entity does not create a new entity.
-A move changes the ownership relationship between containers.
-
----
-
-# Entity Types
-
-## Ingredient
-
-Ingredients are cooking resources.
-
-Examples:
-
-* potato
-* egg
-* onion
-* oil
-
-Ingredients have special rules:
-
-* an ingredient can only appear once inside the same container
-* ingredients can move between containers
-* ingredients can be consumed by actions
-* ingredients can be transformed by cooking systems
-
-Example:
-
-```ts
-{
-  id: "potato",
-  type: "ingredient",
-  name: "Potato",
-  icon: "🥔"
-}
-```
-
----
-
-## Tool
-
-Tools are reusable objects used by actions at workstations.
-
-Examples:
-
-* knife (`knife`)
-* peeler (`peeler`)
-* whisk (`whisk`)
-* fork (`fork`)
-* spatula (`spatula`)
-* grater (`grater`)
-* mandoline (`mandoline`)
-* spoon (`spoon`)
-
-Tools have different rules from ingredients:
-
-* duplicate tools are allowed
-* tools can exist multiple times inside a container
-* tools are normally not consumed
-
-Example:
-
-```ts
-{
-  id: "pan-001",
-  type: "tool",
-  name: "Pan",
-  icon: "🍳"
-}
-```
-
-A kitchen can contain:
-
-```
-Kitchen
- ├── pan-001
- └── pan-002
-```
-
-Both are valid.
-
----
-
-# Container
-
-A container is an entity that can own other entities.
-
-Examples:
-
-* kitchen
-* pantry
-* recipe
-* pan
-* plate
-* fridge
-
-A container is not a simple programming list.
-
-It is a world object with:
-
-* ordered contents
-* ownership
-* validation rules
-* capabilities
-
-Example:
-
-```ts
-{
-  id: "kitchen",
-  type: "container",
-  children:[
-    "potato",
-    "egg",
-    "pan-001"
-  ]
-}
-```
-
----
-
-# Container Rules
-
-Containers define what they allow.
-
-Rules are not stored in the entity itself.
-
-The same entity type can behave differently depending on the container.
-
-Example:
-
-A potato can exist in:
-
-```
-Kitchen
-Recipe
-Pan
-Plate
-```
-
-but each container decides what happens.
-
----
-
-## Content ordering
-
-Container contents are ordered.
-
-The order matters for:
-
-* visual rendering
-* drag and drop
-* animations
-* UI positioning
-
-Therefore container contents use an ordered collection.
-
-Example:
-
-```ts
-children:[
-  "potato",
-  "egg",
-  "onion"
-]
-```
-
----
-
-# Ingredient uniqueness
-
-A container cannot contain two identical ingredients.
-
-Valid:
-
-```
-Recipe
- ├── potato
- ├── onion
- └── egg
-```
-
-Invalid:
-
-```
-Recipe
- ├── potato
- ├── potato
-```
-
-This rule applies only to ingredients.
-
----
-
-# Duplicate entities
-
-Duplicate rules depend on entity type.
-
-Example:
-
-Kitchen:
-
-Valid:
-
-```
-Kitchen
- ├── potato
- ├── onion
- ├── pan-001
- └── pan-002
-```
-
-Invalid:
-
-```
-Kitchen
- ├── potato
- └── potato
-```
-
----
-
-# Ownership
-
-Every movable entity has an owner.
-
-Example:
-
-Initial state:
-
-```
-Kitchen
- ├── potato
- ├── egg
-
-
-Pan
- └── oil
-```
-
-After moving potato:
-
-```
-Kitchen
- └── egg
-
-
-Pan
- ├── oil
- └── potato
-```
-
-The potato entity did not change.
-
-Only the ownership relation changed.
-
----
-
-# Static and Dynamic Containers
-
-Containers can have different ownership behaviour.
-
-## Static Container
-
-A static container represents predefined world content.
-
-Examples:
-
-* kitchen ingredients
-* initial inventory
-* environment objects
-
-Characteristics:
-
-* content is defined by the world
-* removing an item does not necessarily delete it
-* moving an item out can create a new reference/copy depending on rules
-
-Example:
-
-```
-Kitchen
- ├── potato
- ├── onion
- └── egg
-```
-
----
-
-## Dynamic Container
-
-A dynamic container represents changing ownership.
-
-Examples:
-
-* recipe
-* pan
-* plate
-* trash
-
-Characteristics:
-
-* items can be added
-* items can be removed
-* items can be transferred
-
-Example:
-
-```
-Recipe
- ├── potato
- └── egg
-```
-
----
-
-# Container Capabilities
-
-Containers expose capabilities that systems can check.
-
-Example:
-
-```ts
-{
-  canAdd: true,
-  canRemove: true,
-  allowsDuplicateIngredients: false,
-  acceptedTypes:[
-    "ingredient",
-    "tool"
-  ]
-}
-```
-
-Before performing an action, systems validate these capabilities.
-
----
-
-# Relationships
-
-The world is composed of relationships:
-
-```
-Kitchen
-   owns
-      Potato
-
-
-Pan
-   owns
-      Oil
-```
-
-The Entity itself does not know:
-
-* where it is
-* what contains it
-* what actions are possible
-
-The world systems decide this.
-
----
-
-# Future Extensions
-
-This model allows adding:
-
-## Characters
-
-```
-Tortilla
-  owns
-    Knife
-```
-
-## Machines
-
-```
-Oven
-  owns
-    Tray
-```
-
-## Recipes
-
-```
-Recipe
-  owns
-    Potato
-    Egg
-```
-
-## Entity State (Preparation & Cooking)
-
-Entities store mutable properties inside their `state` field without changing entity identity:
-
-```ts
-{
-  id: "potato",
-  type: "ingredient",
-  name: "Potato",
-  state: {
-    preparation: "diced", // "whole" | "peeled" | "sliced" | "diced" | "minced"
-    cooking: "fried"     // "raw" | "fried" | "boiled" | "burned"
-  }
-}
-```
-
-Preparation and cooking actions mutate this state via `PREPARE_INGREDIENT` and `COOK_INGREDIENT` actions without recreating entities.
-</file>
-
-<file path="docs/roadmap.md">
-# Tortilla World Roadmap
-
-## Vision
-
-Tortilla World is an interactive cooking simulation built around a living world model.
-
-The goal is not only to create a recipe application, but to create a small simulated environment where:
-
-* objects exist as entities
-* containers define relationships
-* actions modify the world
-* characters and AI can interact with the environment
-
-The long-term vision is a "living kitchen" where the user can interact with objects naturally and where autonomous agents can understand and manipulate the world.
-
----
-
-# Current Status
-
-## Phase: World Foundation
-
-Status:
-
-🟡 In development
-
-Current focus:
-
-* stable world model
-* entity system
-* container system
-* drag and drop interactions
-* predictable state management
-
-Completed foundations:
-
-✅ React + TypeScript application
-✅ Zustand world store
-✅ Entity-based architecture
-✅ Container concept
-✅ Drag and drop foundation
-✅ Ingredient data model
-✅ Documentation structure
-
----
-
-# Roadmap Overview
-
-```text
-Foundation
-    |
-    v
-World Interaction
-    |
-    v
-Cooking Simulation
-    |
-    v
-Living Kitchen
-    |
-    v
-AI Assisted World
-```
-
----
-
-# Phase 1 — World Foundation
-
-## Goal
-
-Create a reliable simulation core.
-
-## Features
-
-### Entity System
-
-Implement:
-
-* ingredients
-* tools
-* containers
-* entity identity
-
-Example:
-
-```text
-Potato
-Knife
-Pan
-Kitchen
-```
-
----
-
-### Container System
-
-Implement:
-
-* ownership
-* ordered contents
-* container rules
-* validation
-
-Examples:
-
-```text
-Kitchen
-Recipe
-Pan
-Plate
-```
-
----
-
-### Movement System
-
-Implement:
-
-* moving entities
-* validating moves
-* transfer rules
-* ownership changes
-
-Example:
-
-```text
-Kitchen
-
- potato
-
-    |
-    v
-
-Pan
-
- potato
-```
-
----
-
-# Phase 2 — Interaction Layer
-
-## Goal
-
-Make the world feel alive.
-
-## Features
-
-### Improved Drag and Drop
-
-Support:
-
-* visual feedback
-* invalid drop states
-* animations
-* multi-container interactions
-
----
-
-### Entity Animations
-
-Entities should:
-
-* move naturally
-* react to interactions
-* have visual states
-
-Examples:
-
-* potato jumps into pan
-* knife moves to cutting board
-* ingredients combine
-
----
-
-### Action System
-
-Introduce:
-
-```ts
-Action
-{
- type
- payload
- timestamp
-}
-```
-
-Benefits:
-
-* replay
-* debugging
-* AI compatibility
-
-Status:
-
-✅ Traceability — every `dispatch` call is logged (`devtools` +
-`src/store/middleware/actionLog.ts`) and validated through
-`engine/containerRules.ts`.
-🚧 Replay — the log is in-memory only; replaying a recorded sequence back
-into the store is not implemented.
-
----
-
-# Phase 3 — Cooking Simulation
-
-## Goal
-
-Create actual cooking behaviour.
-
-## Features
-
-## Recipe System
-
-Support:
-
-* recipes
-* ingredient requirements
-* preparation steps
-
-Example:
-
-```text
-Potato
-Egg
-Onion
-
-    +
-    
-Cooking
-
-    =
-
-Tortilla
-```
-
----
-
-## Cooking States
-
-Entities gain states:
-
-Example:
-
-```text
-Potato
-
-raw
- |
- v
-cut
- |
- v
-fried
-```
-
----
-
-## Tools Become Functional
-
-Examples:
-
-Knife:
-
-```text
-ingredient
-      |
-      v
-cut ingredient
-```
-
-Pan:
-
-```text
-ingredient
-      |
-      v
-cook ingredient
-```
-
----
-
-# Phase 4 — Living Kitchen
-
-## Goal
-
-Create a world that behaves independently.
-
-## Features
-
-### Characters
-
-Introduce:
-
-* player character
-* helpers
-* customers
-* NPCs
-
----
-
-### Time System
-
-Add:
-
-* cooking duration
-* events
-* schedules
-
-Example:
-
-```text
-Egg on pan
-
-0s
- |
-30s
- |
-Cooked
-```
-
----
-
-### Environment
-
-Add:
-
-* fridge
-* cupboards
-* tables
-* oven
-* restaurant area
-
----
-
-# Phase 5 — AI Kitchen Assistant
-
-## Goal
-
-Allow AI agents to understand and interact with the world.
-
-The AI does not directly change state.
-
-The AI creates actions.
-
-Example:
-
-```json
-{
-"type":"MOVE_ENTITY",
-"entity":"egg",
-"target":"pan"
-}
-```
-
-The world validates and executes the action.
-
----
-
-## AI Features
-
-Possible future capabilities:
-
-* recipe planning
-* cooking assistance
-* autonomous helpers
-* explanations
-* suggestions
-* learning user preferences
-
----
-
-# Phase 6 — Multiplayer / Shared World (Future)
-
-Possible future direction:
-
-* shared kitchens
-* collaborative cooking
-* synchronized worlds
-* multiple AI agents
-
----
-
-# Development Principles
-
-## Keep the World Model Independent
-
-The simulation should not depend on React.
-
----
-
-## Prefer Systems Over Component Logic
-
-Components display.
-
-Systems decide.
-
----
-
-## Preserve Entity Identity
-
-Objects are moved, not recreated.
-
----
-
-## Document Decisions
-
-Important architecture changes should be recorded in:
-
-```text
-docs/decisions.md
-```
-
----
-
-# Current Priority
-
-The immediate goal is:
-
-> Build a stable interactive kitchen world where every object follows predictable rules.
-
-Everything else depends on this foundation.
 </file>
 
 <file path="src/components/Recipe/RecipePanel.scss">
@@ -12063,668 +12107,6 @@ p {
 }
 </file>
 
-<file path="src/store/defaults.ts">
-/**
- * FILE: defaults.ts
- *
- * PURPOSE:
- * Initial seed data for world state.
- *
- * RESPONSIBILITY:
- * - Provides default entity definitions (mascot, ingredients, tools).
- * - Provides default container definitions (despensa, sink, board, bowl, burner, plate).
- */
-
-import type { Container, Entity } from '../types/world';
-import type { GazeTarget } from '../systems/gaze';
-import { ingredients as catalogIngredients } from '../data/catalog/ingredients';
-import { catalogTools } from '../data/catalog/tools';
-
-export const defaultEntities: Record<string, Entity> = {
-  chef: {
-    id: 'chef',
-    name: 'Chef Tortilla 🍳',
-    type: 'mascot',
-    state: { gazingAt: { type: 'entity', entityId: 'despensa' } satisfies GazeTarget },
-  },
-  ...catalogIngredients.reduce((acc, item) => {
-    acc[item.id] = {
-      id: item.id,
-      ingredientId: item.id,
-      name: `${item.icon} ${item.name}`,
-      type: 'ingredient',
-      state: {},
-    };
-    return acc;
-  }, {} as Record<string, Entity>),
-  ...catalogTools.reduce((acc, item) => {
-    acc[item.id] = {
-      id: item.id,
-      name: `${item.icon} ${item.name}`,
-      type: 'tool',
-      state: {},
-    };
-    return acc;
-  }, {} as Record<string, Entity>),
-};
-
-export const defaultContainers: Record<string, Container> = {
-  despensa: {
-    id: 'despensa',
-    name: 'Despensa (All Ingredients - Immutable Catalog)',
-    type: 'storage',
-    entityIds: [...catalogIngredients.map((i) => i.id), ...catalogTools.map((t) => t.id)],
-    rules: {
-      maxCapacity: 30,
-      allowedTypes: ['ingredient', 'tool'],
-      consumesOnDrag: false,
-      isImmutable: true,
-    },
-  },
-  sink: {
-    id: 'sink',
-    name: 'Fregadero (Sink)',
-    type: 'sink',
-    entityIds: [],
-    rules: { maxCapacity: 10, allowedTypes: ['ingredient', 'tool'] },
-  },
-  board: {
-    id: 'board',
-    name: 'Tabla (Cutting Board)',
-    type: 'board',
-    entityIds: [],
-    rules: { maxCapacity: 10, allowedTypes: ['ingredient', 'tool'] },
-  },
-  bowl: {
-    id: 'bowl',
-    name: 'Bol (Preparation Bowl)',
-    type: 'bowl',
-    entityIds: [],
-    rules: { maxCapacity: 10, allowedTypes: ['ingredient', 'tool'] },
-  },
-  burner1: {
-    id: 'burner1',
-    name: 'Fuego 1',
-    type: 'burner',
-    entityIds: [],
-    rules: { maxCapacity: 5, allowedTypes: ['ingredient', 'tool'] },
-    isOn: false,
-  },
-  burner2: {
-    id: 'burner2',
-    name: 'Fuego 2',
-    type: 'burner',
-    entityIds: [],
-    isOn: true,
-    rules: { maxCapacity: 5, allowedTypes: ['ingredient', 'tool'] },
-  },
-  plate: {
-    id: 'plate',
-    name: 'Plato (Plate)',
-    type: 'plate',
-    entityIds: [],
-    rules: { maxCapacity: 5, allowedTypes: ['ingredient', 'tool'] },
-  },
-};
-</file>
-
-<file path="src/store/worldStore.test.ts">
-/**
- * FILE: worldStore.test.ts
- *
- * PURPOSE:
- * Unit tests for central world store and container rule enforcement.
- *
- * RESPONSIBILITY:
- * - Validates state transitions, move/add entity actions, and rule checks.
- */
-
-import { describe, it, expect, beforeEach } from 'vitest';
-import { worldStore } from './worldStore';
-import { clearActionLog, getActionLog } from './middleware/actionLog';
-
-function seed() {
-  worldStore.setState({
-    entities: {
-      potato: { id: 'potato', name: 'Potato', type: 'ingredient' },
-      onion: { id: 'onion', name: 'Onion', type: 'ingredient' },
-      knife: { id: 'knife', name: 'Knife', type: 'tool' },
-      chef: { id: 'chef', name: 'Chef', type: 'mascot' },
-    },
-    containers: {
-      kitchen: {
-        id: 'kitchen',
-        name: 'Kitchen',
-        type: 'storage',
-        entityIds: ['potato', 'onion', 'knife'],
-      },
-      burner1: {
-        id: 'burner1',
-        name: 'burner1',
-        type: 'burner',
-        entityIds: [],
-        rules: { maxCapacity: 1 },
-      },
-      board: {
-        id: 'board',
-        name: 'Cutting Board',
-        type: 'board',
-        entityIds: [],
-        rules: { allowedTypes: ['ingredient'] },
-      },
-      recipe: {
-        id: 'recipe',
-        name: 'Recipe',
-        type: 'plate',
-        entityIds: [],
-        rules: { allowedTypes: ['ingredient'], uniqueTypesOnly: true },
-      },
-    },
-  });
-}
-
-describe('worldStore container rule enforcement', () => {
-  beforeEach(() => {
-    seed();
-    clearActionLog();
-  });
-
-  it('allows a move that satisfies the target container rules', () => {
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: { entityId: 'potato', targetContainerId: 'burner1' },
-    });
-
-    const state = worldStore.getState();
-    expect(state.containers.burner1.entityIds).toEqual(['potato']);
-    expect(state.containers.kitchen.entityIds).not.toContain('potato');
-  });
-
-  it('blocks a move once the target container is at capacity', () => {
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: { entityId: 'potato', targetContainerId: 'burner1' },
-    });
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: { entityId: 'onion', targetContainerId: 'burner1' },
-    });
-
-    const state = worldStore.getState();
-    expect(state.containers.burner1.entityIds).toEqual(['potato']);
-    expect(state.containers.kitchen.entityIds).toContain('onion');
-  });
-
-  it('blocks a move that violates allowedTypes', () => {
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: { entityId: 'knife', targetContainerId: 'board' },
-    });
-
-    // knife is a tool; board only allows ingredients
-    const state = worldStore.getState();
-    expect(state.containers.board.entityIds).toEqual([]);
-    expect(state.containers.kitchen.entityIds).toContain('knife');
-  });
-
-  it('blocks a move that would duplicate a type in a uniqueTypesOnly container', () => {
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: { entityId: 'potato', targetContainerId: 'recipe' },
-    });
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: { entityId: 'onion', targetContainerId: 'recipe' },
-    });
-
-    // both are 'ingredient' type; uniqueTypesOnly blocks the second
-    const state = worldStore.getState();
-    expect(state.containers.recipe.entityIds).toEqual(['potato']);
-    expect(state.containers.kitchen.entityIds).toContain('onion');
-  });
-
-  it('never re-validates a same-container reorder', () => {
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: { entityId: 'potato', targetContainerId: 'kitchen', positionIndex: 0 },
-    });
-
-    // would fail uniqueTypesOnly-style self-comparison if the entity
-    // weren't excluded from its own container's current entities
-    const state = worldStore.getState();
-    expect(state.containers.kitchen.entityIds[0]).toBe('potato');
-  });
-
-  it('is a no-op when the entity does not exist', () => {
-    const before = worldStore.getState().containers.burner1.entityIds;
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: { entityId: 'ghost', targetContainerId: 'burner1' },
-    });
-    expect(worldStore.getState().containers.burner1.entityIds).toEqual(before);
-  });
-
-  it('enforces the same rules on ADD_ENTITY', () => {
-    worldStore.getState().dispatch({
-      type: 'ADD_ENTITY',
-      payload: {
-        entity: { id: 'spoon', name: 'Spoon', type: 'tool' },
-        containerId: 'board',
-      },
-    });
-
-    const state = worldStore.getState();
-    expect(state.containers.board.entityIds).toEqual([]);
-    expect(state.entities.spoon).toBeUndefined();
-  });
-
-  it('logs a labelled entry into the action log for each dispatch', () => {
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: { entityId: 'potato', targetContainerId: 'burner1' },
-    });
-
-    const log = getActionLog();
-    expect(log).toHaveLength(1);
-    expect(log[0].action).toBe('MOVE_ENTITY');
-    expect(typeof log[0].timestamp).toBe('number');
-  });
-
-  it('keeps source entity and creates copy in target when moving from an immutable container', () => {
-    worldStore.setState({
-      entities: {
-        potato: { id: 'potato', name: 'Potato', type: 'ingredient' },
-      },
-      containers: {
-        pantry: {
-          id: 'pantry',
-          name: 'Immutable Pantry',
-          type: 'storage',
-          entityIds: ['potato'],
-          rules: { isImmutable: true },
-        },
-        burner1: {
-          id: 'burner1',
-          name: 'burner1',
-          type: 'burner',
-          entityIds: [],
-        },
-      },
-    });
-
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: { entityId: 'potato', targetContainerId: 'burner1' },
-    });
-
-    const state = worldStore.getState();
-    // Source container retains original entity
-    expect(state.containers.pantry.entityIds).toEqual(['potato']);
-    // Target container gets a copy instance
-    expect(state.containers.burner1.entityIds.length).toBe(1);
-    const copyId = state.containers.burner1.entityIds[0];
-    expect(copyId).not.toBe('potato');
-    expect(state.entities[copyId].name).toBe('Potato');
-  });
-
-  it('rejects adding a duplicate ingredient to a container according to Rule 6', () => {
-    worldStore.setState({
-      entities: {
-        potato: { id: 'potato', ingredientId: 'potato', name: 'Potato', type: 'ingredient' },
-        potato_copy: { id: 'potato_copy', ingredientId: 'potato', name: 'Potato Copy', type: 'ingredient' },
-      },
-      containers: {
-        pantry: {
-          id: 'pantry',
-          name: 'Pantry',
-          type: 'storage',
-          entityIds: ['potato_copy'],
-          rules: { isImmutable: true },
-        },
-        burner1: {
-          id: 'burner1',
-          name: 'burner1',
-          type: 'burner',
-          entityIds: ['potato'],
-        },
-      },
-    });
-
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: { entityId: 'potato_copy', targetContainerId: 'burner1' },
-    });
-
-    const state = worldStore.getState();
-    // burner1 should still only have 1 potato because duplicate ingredient is blocked
-    expect(state.containers.burner1.entityIds).toEqual(['potato']);
-  });
-
-  it('updates ingredient status to peeled when preparation is peeled', () => {
-    worldStore.setState({
-      entities: {
-        potato: { id: 'potato', ingredientId: 'potato', name: '🥔 Potatoes', type: 'ingredient' },
-      },
-      containers: {
-        board: { id: 'board', name: 'Board', type: 'board', entityIds: ['potato'] },
-      },
-    });
-
-    worldStore.getState().dispatch({
-      type: 'PREPARE_INGREDIENT',
-      payload: { entityId: 'potato', preparation: 'peeled' },
-    });
-
-    const state = worldStore.getState();
-    const entity = state.entities.potato;
-    expect(entity.state?.preparation).toBe('peeled');
-    expect(entity.state?.status).toBe('peeled');
-    expect(entity.name).toBe('🥔 Peeled Potatoes');
-  });
-
-  it('updates ingredient status to sliced-potatoe and diced-potatoe generically', () => {
-    worldStore.setState({
-      entities: {
-        potato: { id: 'potato', ingredientId: 'potato', name: '🥔 Potatoes', type: 'ingredient' },
-        onion: { id: 'onion', ingredientId: 'onion', name: '🧅 Onion', type: 'ingredient' },
-      },
-      containers: {
-        board: { id: 'board', name: 'Board', type: 'board', entityIds: ['potato', 'onion'] },
-      },
-    });
-
-    worldStore.getState().dispatch({
-      type: 'PREPARE_INGREDIENT',
-      payload: { entityId: 'potato', preparation: 'sliced' },
-    });
-
-    worldStore.getState().dispatch({
-      type: 'PREPARE_INGREDIENT',
-      payload: { entityId: 'onion', preparation: 'diced' },
-    });
-
-    const state = worldStore.getState();
-    expect(state.entities.potato.state?.status).toBe('sliced-potatoe');
-    expect(state.entities.onion.state?.status).toBe('diced-onion');
-  });
-});
-</file>
-
-<file path="src/systems/recipeRunner/handlers/utilityHandlers.ts">
-/**
- * FILE: src/systems/recipeRunner/handlers/utilityHandlers.ts
- *
- * PURPOSE:
- * Step handlers for utility, narrative, and completion steps ('serve', 'wait', 'instruction', 'speak', 'celebrate').
- */
-
-import { worldStore } from '../../../store/worldStore';
-import { moveTortillaTo, flipTortilla, clearTortillaGaze } from '../../mascotActions';
-import type { RecipeStep } from '../../../types/RecipeStep';
-import type { RecipeRunnerContext } from '../types';
-
-type ServeStep = Extract<RecipeStep, { action: 'serve' }>;
-type WaitStep = Extract<RecipeStep, { action: 'wait' }>;
-type InstructionStep = Extract<RecipeStep, { action: 'instruction' }>;
-type SpeakStep = Extract<RecipeStep, { action: 'speak' }>;
-type CelebrateStep = Extract<RecipeStep, { action: 'celebrate' }>;
-
-export async function handleServeStep(
-  ctx: RecipeRunnerContext,
-  step: ServeStep,
-  workstationDefaultContainerId?: string
-): Promise<void> {
-  const targetContainerId = step.containerId || workstationDefaultContainerId || 'plate';
-  moveTortillaTo(targetContainerId, ctx.mascotId);
-  await ctx.wait();
-
-  const state = worldStore.getState();
-
-  if (step.target) {
-    const targetEntityId = ctx.getBoundEntityId(step.target);
-    if (targetEntityId) {
-      const currentContainer = Object.values(state.containers).find((c) =>
-        c.entityIds.includes(targetEntityId)
-      );
-      if (currentContainer && currentContainer.id !== targetContainerId) {
-        worldStore.getState().dispatch({
-          type: 'MOVE_ENTITY',
-          payload: {
-            entityId: targetEntityId,
-            targetContainerId,
-          },
-        });
-      }
-    }
-  } else {
-    // Move all active (unconsumed) bound recipe entities to target container (plate)
-    const boundEntityIds = new Set(Object.values(ctx.recipeContext.bindings));
-
-    for (const entityId of boundEntityIds) {
-      const entity = state.entities[entityId];
-      if (entity && !entity.state?.consumed) {
-        const currentContainer = Object.values(state.containers).find((c) =>
-          c.entityIds.includes(entityId)
-        );
-        if (currentContainer && currentContainer.id !== targetContainerId) {
-          worldStore.getState().dispatch({
-            type: 'MOVE_ENTITY',
-            payload: {
-              entityId,
-              targetContainerId,
-            },
-          });
-        }
-      }
-    }
-  }
-  await ctx.wait();
-}
-
-export async function handleWaitStep(
-  ctx: RecipeRunnerContext,
-  step: WaitStep
-): Promise<void> {
-  await ctx.wait(step.durationMs);
-}
-
-export async function handleInstructionStep(
-  ctx: RecipeRunnerContext,
-  step: InstructionStep
-): Promise<void> {
-  const text = step.text || step.instruction;
-  if (text) {
-    worldStore.getState().dispatch({
-      type: 'UPDATE_ENTITY_STATE',
-      payload: {
-        entityId: step.mascotId || ctx.mascotId,
-        changes: { speechMessage: text },
-      },
-    });
-  }
-  await ctx.wait();
-}
-
-export async function handleSpeakStep(
-  ctx: RecipeRunnerContext,
-  step: SpeakStep
-): Promise<void> {
-  worldStore.getState().dispatch({
-    type: 'UPDATE_ENTITY_STATE',
-    payload: {
-      entityId: step.mascotId || ctx.mascotId,
-      changes: { speechMessage: step.message },
-    },
-  });
-  await ctx.wait();
-}
-
-export async function handleCelebrateStep(
-  ctx: RecipeRunnerContext,
-  step: CelebrateStep
-): Promise<void> {
-  flipTortilla(step.mascotId || ctx.mascotId);
-  await ctx.wait(900);
-  clearTortillaGaze(step.mascotId || ctx.mascotId);
-}
-</file>
-
-<file path="src/systems/clasicaCompletion.test.ts">
-/**
- * FILE: src/systems/clasicaCompletion.test.ts
- *
- * PURPOSE:
- * Integration tests verifying entity states and container cleanups at the completion of clasicaRecipe.
- *
- * VERIFIES:
- * - Preparation bowl (bowl) is empty at the end.
- * - Plato (plate) contains ONLY mixture at the end.
- * - Mixed input ingredients disappear from all world containers.
- */
-
-import { beforeEach, describe, expect, it } from 'vitest';
-import { worldStore } from '../store/worldStore';
-import { RecipeRunner } from './recipeRunner';
-import { clasicaRecipe } from '../data/catalog/recipes/clasica';
-import { clearActionLog } from '../store/middleware/actionLog';
-
-function seedTestWorld() {
-  worldStore.setState({
-    entities: {
-      chef: { id: 'chef', name: 'Chef Tortilla 🍳', type: 'mascot', state: { gazingAt: null } },
-      potato: { id: 'potato', ingredientId: 'potato', name: 'Potato', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-      egg: { id: 'egg', ingredientId: 'egg', name: 'Egg', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-      oil: { id: 'oil', ingredientId: 'oil', name: 'Oil', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-      salt: { id: 'salt', ingredientId: 'salt', name: 'Salt', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-      black_pepper: { id: 'black_pepper', ingredientId: 'black_pepper', name: 'Pepper', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-    },
-    containers: {
-      despensa: {
-        id: 'despensa',
-        name: 'Despensa',
-        type: 'storage',
-        entityIds: ['potato', 'egg', 'oil', 'salt', 'black_pepper'],
-        rules: { isImmutable: true },
-      },
-      sink: {
-        id: 'sink',
-        name: 'Sink',
-        type: 'sink',
-        entityIds: [],
-        rules: { maxCapacity: 10 },
-      },
-      board: {
-        id: 'board',
-        name: 'Board',
-        type: 'board',
-        entityIds: [],
-        rules: { maxCapacity: 10 },
-      },
-      bowl: {
-        id: 'bowl',
-        name: 'Bowl',
-        type: 'bowl',
-        entityIds: [],
-        rules: { maxCapacity: 10 },
-      },
-      burner1: {
-        id: 'burner1',
-        name: 'burner1',
-        type: 'burner',
-        entityIds: [],
-        rules: { maxCapacity: 5 },
-      },
-      plate: {
-        id: 'plate',
-        name: 'Plate',
-        type: 'plate',
-        entityIds: [],
-        rules: { maxCapacity: 5 },
-      },
-    },
-    dispatch: worldStore.getState().dispatch,
-  });
-}
-
-describe('Clásica Recipe Completion State', () => {
-  beforeEach(() => {
-    seedTestWorld();
-    clearActionLog();
-  });
-
-  it('ensures preparation bowl is empty, and plato contains ONLY mixture', async () => {
-    const runner = new RecipeRunner({ mascotId: 'chef', delayMs: 1 });
-    await runner.runRecipe(clasicaRecipe);
-
-    const state = worldStore.getState();
-
-    // 1. Preparation bowl is empty
-    expect(state.containers.bowl.entityIds).toEqual([]);
-
-    // 2. fireplace is empty
-    //expect(state.containers.pan.entityIds).toEqual([]);
-
-    // 3. Plato (plate) contains ONLY mixture
-    expect(state.containers.plate.entityIds).toHaveLength(1);
-    const servedEntityId = state.containers.plate.entityIds[0];
-    const servedEntity = state.entities[servedEntityId];
-    expect(servedEntity).toBeDefined();
-    expect(servedEntity.name).toBe('mixture');
-
-    // 4. Input ingredients and cooking oil are marked as consumed
-    const mixtureId = runner.recipeContext.bindings['mixture'];
-    expect(mixtureId).toBe(servedEntityId);
-
-    const potatoesId = runner.recipeContext.bindings['potatoes'];
-    const eggsId = runner.recipeContext.bindings['eggs'];
-    const saltId = runner.recipeContext.bindings['salt'];
-    const pepperId = runner.recipeContext.bindings['black_pepper'];
-
-    expect(state.entities[potatoesId]?.state?.consumed).toBe(true);
-    expect(state.entities[eggsId]?.state?.consumed).toBe(true);
-    expect(state.entities[saltId]?.state?.consumed).toBe(true);
-    expect(state.entities[pepperId]?.state?.consumed).toBe(true);
-
-    // Verify none of the consumed ingredients remain in any workstation container
-    const workstationContainerIds = ['sink', 'board', 'bowl', 'burner1', 'plate'];
-    for (const cId of workstationContainerIds) {
-      expect(state.containers[cId].entityIds).not.toContain(potatoesId);
-      expect(state.containers[cId].entityIds).not.toContain(eggsId);
-      expect(state.containers[cId].entityIds).not.toContain(saltId);
-      expect(state.containers[cId].entityIds).not.toContain(pepperId);
-    }
-  });
-});
-</file>
-
-<file path="src/types/IngredientList.ts">
-/**
- * FILE: IngredientList.ts
- *
- * PURPOSE:
- * Defines container/list data structures.
- *
- * RESPONSIBILITY:
- * - Represents collections of entities.
- */
-
-import type { Ingredient } from './Ingredient'
-
-export interface IngredientList {
-  id: string
-  name: string
-  ingredients: Ingredient[]
-}
-
-export interface List {
-  id: string
-  title: string
-  seedFromCatalog?: boolean
-  seedIngredients?: string[]
-  consumesOnDrag?: boolean   // true = item is removed from this list when dragged out
-}
-</file>
-
 <file path="docs/systems.md">
 # Systems
 
@@ -13482,6 +12864,668 @@ The Store remembers the result.
 ```
 </file>
 
+<file path="src/store/defaults.ts">
+/**
+ * FILE: defaults.ts
+ *
+ * PURPOSE:
+ * Initial seed data for world state.
+ *
+ * RESPONSIBILITY:
+ * - Provides default entity definitions (mascot, ingredients, tools).
+ * - Provides default container definitions (despensa, sink, board, bowl, burner, plate).
+ */
+
+import type { Container, Entity } from '../types/world';
+import type { GazeTarget } from '../systems/gaze';
+import { ingredients as catalogIngredients } from '../data/catalog/ingredients';
+import { catalogTools } from '../data/catalog/tools';
+
+export const defaultEntities: Record<string, Entity> = {
+  chef: {
+    id: 'chef',
+    name: 'Chef Tortilla 🍳',
+    type: 'mascot',
+    state: { gazingAt: { type: 'entity', entityId: 'despensa' } satisfies GazeTarget },
+  },
+  ...catalogIngredients.reduce((acc, item) => {
+    acc[item.id] = {
+      id: item.id,
+      ingredientId: item.id,
+      name: `${item.icon} ${item.name}`,
+      type: 'ingredient',
+      state: {},
+    };
+    return acc;
+  }, {} as Record<string, Entity>),
+  ...catalogTools.reduce((acc, item) => {
+    acc[item.id] = {
+      id: item.id,
+      name: `${item.icon} ${item.name}`,
+      type: 'tool',
+      state: {},
+    };
+    return acc;
+  }, {} as Record<string, Entity>),
+};
+
+export const defaultContainers: Record<string, Container> = {
+  despensa: {
+    id: 'despensa',
+    name: 'Despensa (All Ingredients - Immutable Catalog)',
+    type: 'storage',
+    entityIds: [...catalogIngredients.map((i) => i.id), ...catalogTools.map((t) => t.id)],
+    rules: {
+      maxCapacity: 30,
+      allowedTypes: ['ingredient', 'tool'],
+      consumesOnDrag: false,
+      isImmutable: true,
+    },
+  },
+  sink: {
+    id: 'sink',
+    name: 'Fregadero (Sink)',
+    type: 'sink',
+    entityIds: [],
+    rules: { maxCapacity: 10, allowedTypes: ['ingredient', 'tool'] },
+  },
+  board: {
+    id: 'board',
+    name: 'Tabla (Cutting Board)',
+    type: 'board',
+    entityIds: [],
+    rules: { maxCapacity: 10, allowedTypes: ['ingredient', 'tool'] },
+  },
+  bowl: {
+    id: 'bowl',
+    name: 'Bol (Preparation Bowl)',
+    type: 'bowl',
+    entityIds: [],
+    rules: { maxCapacity: 10, allowedTypes: ['ingredient', 'tool'] },
+  },
+  burner1: {
+    id: 'burner1',
+    name: 'Fuego 1',
+    type: 'burner',
+    entityIds: [],
+    rules: { maxCapacity: 5, allowedTypes: ['ingredient', 'tool'] },
+    isOn: false,
+  },
+  burner2: {
+    id: 'burner2',
+    name: 'Fuego 2',
+    type: 'burner',
+    entityIds: [],
+    isOn: true,
+    rules: { maxCapacity: 5, allowedTypes: ['ingredient', 'tool'] },
+  },
+  plate: {
+    id: 'plate',
+    name: 'Plato (Plate)',
+    type: 'plate',
+    entityIds: [],
+    rules: { maxCapacity: 5, allowedTypes: ['ingredient', 'tool'] },
+  },
+};
+</file>
+
+<file path="src/store/worldStore.test.ts">
+/**
+ * FILE: worldStore.test.ts
+ *
+ * PURPOSE:
+ * Unit tests for central world store and container rule enforcement.
+ *
+ * RESPONSIBILITY:
+ * - Validates state transitions, move/add entity actions, and rule checks.
+ */
+
+import { describe, it, expect, beforeEach } from 'vitest';
+import { worldStore } from './worldStore';
+import { clearActionLog, getActionLog } from './middleware/actionLog';
+
+function seed() {
+  worldStore.setState({
+    entities: {
+      potato: { id: 'potato', name: 'Potato', type: 'ingredient' },
+      onion: { id: 'onion', name: 'Onion', type: 'ingredient' },
+      knife: { id: 'knife', name: 'Knife', type: 'tool' },
+      chef: { id: 'chef', name: 'Chef', type: 'mascot' },
+    },
+    containers: {
+      kitchen: {
+        id: 'kitchen',
+        name: 'Kitchen',
+        type: 'storage',
+        entityIds: ['potato', 'onion', 'knife'],
+      },
+      burner1: {
+        id: 'burner1',
+        name: 'burner1',
+        type: 'burner',
+        entityIds: [],
+        rules: { maxCapacity: 1 },
+      },
+      board: {
+        id: 'board',
+        name: 'Cutting Board',
+        type: 'board',
+        entityIds: [],
+        rules: { allowedTypes: ['ingredient'] },
+      },
+      recipe: {
+        id: 'recipe',
+        name: 'Recipe',
+        type: 'plate',
+        entityIds: [],
+        rules: { allowedTypes: ['ingredient'], uniqueTypesOnly: true },
+      },
+    },
+  });
+}
+
+describe('worldStore container rule enforcement', () => {
+  beforeEach(() => {
+    seed();
+    clearActionLog();
+  });
+
+  it('allows a move that satisfies the target container rules', () => {
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'potato', targetContainerId: 'burner1' },
+    });
+
+    const state = worldStore.getState();
+    expect(state.containers.burner1.entityIds).toEqual(['potato']);
+    expect(state.containers.kitchen.entityIds).not.toContain('potato');
+  });
+
+  it('blocks a move once the target container is at capacity', () => {
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'potato', targetContainerId: 'burner1' },
+    });
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'onion', targetContainerId: 'burner1' },
+    });
+
+    const state = worldStore.getState();
+    expect(state.containers.burner1.entityIds).toEqual(['potato']);
+    expect(state.containers.kitchen.entityIds).toContain('onion');
+  });
+
+  it('blocks a move that violates allowedTypes', () => {
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'knife', targetContainerId: 'board' },
+    });
+
+    // knife is a tool; board only allows ingredients
+    const state = worldStore.getState();
+    expect(state.containers.board.entityIds).toEqual([]);
+    expect(state.containers.kitchen.entityIds).toContain('knife');
+  });
+
+  it('blocks a move that would duplicate a type in a uniqueTypesOnly container', () => {
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'potato', targetContainerId: 'recipe' },
+    });
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'onion', targetContainerId: 'recipe' },
+    });
+
+    // both are 'ingredient' type; uniqueTypesOnly blocks the second
+    const state = worldStore.getState();
+    expect(state.containers.recipe.entityIds).toEqual(['potato']);
+    expect(state.containers.kitchen.entityIds).toContain('onion');
+  });
+
+  it('never re-validates a same-container reorder', () => {
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'potato', targetContainerId: 'kitchen', positionIndex: 0 },
+    });
+
+    // would fail uniqueTypesOnly-style self-comparison if the entity
+    // weren't excluded from its own container's current entities
+    const state = worldStore.getState();
+    expect(state.containers.kitchen.entityIds[0]).toBe('potato');
+  });
+
+  it('is a no-op when the entity does not exist', () => {
+    const before = worldStore.getState().containers.burner1.entityIds;
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'ghost', targetContainerId: 'burner1' },
+    });
+    expect(worldStore.getState().containers.burner1.entityIds).toEqual(before);
+  });
+
+  it('enforces the same rules on ADD_ENTITY', () => {
+    worldStore.getState().dispatch({
+      type: 'ADD_ENTITY',
+      payload: {
+        entity: { id: 'spoon', name: 'Spoon', type: 'tool' },
+        containerId: 'board',
+      },
+    });
+
+    const state = worldStore.getState();
+    expect(state.containers.board.entityIds).toEqual([]);
+    expect(state.entities.spoon).toBeUndefined();
+  });
+
+  it('logs a labelled entry into the action log for each dispatch', () => {
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'potato', targetContainerId: 'burner1' },
+    });
+
+    const log = getActionLog();
+    expect(log).toHaveLength(1);
+    expect(log[0].action).toBe('MOVE_ENTITY');
+    expect(typeof log[0].timestamp).toBe('number');
+  });
+
+  it('keeps source entity and creates copy in target when moving from an immutable container', () => {
+    worldStore.setState({
+      entities: {
+        potato: { id: 'potato', name: 'Potato', type: 'ingredient' },
+      },
+      containers: {
+        pantry: {
+          id: 'pantry',
+          name: 'Immutable Pantry',
+          type: 'storage',
+          entityIds: ['potato'],
+          rules: { isImmutable: true },
+        },
+        burner1: {
+          id: 'burner1',
+          name: 'burner1',
+          type: 'burner',
+          entityIds: [],
+        },
+      },
+    });
+
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'potato', targetContainerId: 'burner1' },
+    });
+
+    const state = worldStore.getState();
+    // Source container retains original entity
+    expect(state.containers.pantry.entityIds).toEqual(['potato']);
+    // Target container gets a copy instance
+    expect(state.containers.burner1.entityIds.length).toBe(1);
+    const copyId = state.containers.burner1.entityIds[0];
+    expect(copyId).not.toBe('potato');
+    expect(state.entities[copyId].name).toBe('Potato');
+  });
+
+  it('rejects adding a duplicate ingredient to a container according to Rule 6', () => {
+    worldStore.setState({
+      entities: {
+        potato: { id: 'potato', ingredientId: 'potato', name: 'Potato', type: 'ingredient' },
+        potato_copy: { id: 'potato_copy', ingredientId: 'potato', name: 'Potato Copy', type: 'ingredient' },
+      },
+      containers: {
+        pantry: {
+          id: 'pantry',
+          name: 'Pantry',
+          type: 'storage',
+          entityIds: ['potato_copy'],
+          rules: { isImmutable: true },
+        },
+        burner1: {
+          id: 'burner1',
+          name: 'burner1',
+          type: 'burner',
+          entityIds: ['potato'],
+        },
+      },
+    });
+
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'potato_copy', targetContainerId: 'burner1' },
+    });
+
+    const state = worldStore.getState();
+    // burner1 should still only have 1 potato because duplicate ingredient is blocked
+    expect(state.containers.burner1.entityIds).toEqual(['potato']);
+  });
+
+  it('updates ingredient status to peeled when preparation is peeled', () => {
+    worldStore.setState({
+      entities: {
+        potato: { id: 'potato', ingredientId: 'potato', name: '🥔 Potatoes', type: 'ingredient' },
+      },
+      containers: {
+        board: { id: 'board', name: 'Board', type: 'board', entityIds: ['potato'] },
+      },
+    });
+
+    worldStore.getState().dispatch({
+      type: 'PREPARE_INGREDIENT',
+      payload: { entityId: 'potato', preparation: 'peeled' },
+    });
+
+    const state = worldStore.getState();
+    const entity = state.entities.potato;
+    expect(entity.state?.preparation).toBe('peeled');
+    expect(entity.state?.status).toBe('peeled');
+    expect(entity.name).toBe('🥔 Peeled Potatoes');
+  });
+
+  it('updates ingredient status to sliced-potatoe and diced-potatoe generically', () => {
+    worldStore.setState({
+      entities: {
+        potato: { id: 'potato', ingredientId: 'potato', name: '🥔 Potatoes', type: 'ingredient' },
+        onion: { id: 'onion', ingredientId: 'onion', name: '🧅 Onion', type: 'ingredient' },
+      },
+      containers: {
+        board: { id: 'board', name: 'Board', type: 'board', entityIds: ['potato', 'onion'] },
+      },
+    });
+
+    worldStore.getState().dispatch({
+      type: 'PREPARE_INGREDIENT',
+      payload: { entityId: 'potato', preparation: 'sliced' },
+    });
+
+    worldStore.getState().dispatch({
+      type: 'PREPARE_INGREDIENT',
+      payload: { entityId: 'onion', preparation: 'diced' },
+    });
+
+    const state = worldStore.getState();
+    expect(state.entities.potato.state?.status).toBe('sliced-potatoe');
+    expect(state.entities.onion.state?.status).toBe('diced-onion');
+  });
+});
+</file>
+
+<file path="src/systems/recipeRunner/handlers/utilityHandlers.ts">
+/**
+ * FILE: src/systems/recipeRunner/handlers/utilityHandlers.ts
+ *
+ * PURPOSE:
+ * Step handlers for utility, narrative, and completion steps ('serve', 'wait', 'instruction', 'speak', 'celebrate').
+ */
+
+import { worldStore } from '../../../store/worldStore';
+import { moveTortillaTo, flipTortilla, clearTortillaGaze } from '../../mascotActions';
+import type { RecipeStep } from '../../../types/RecipeStep';
+import type { RecipeRunnerContext } from '../types';
+
+type ServeStep = Extract<RecipeStep, { action: 'serve' }>;
+type WaitStep = Extract<RecipeStep, { action: 'wait' }>;
+type InstructionStep = Extract<RecipeStep, { action: 'instruction' }>;
+type SpeakStep = Extract<RecipeStep, { action: 'speak' }>;
+type CelebrateStep = Extract<RecipeStep, { action: 'celebrate' }>;
+
+export async function handleServeStep(
+  ctx: RecipeRunnerContext,
+  step: ServeStep,
+  workstationDefaultContainerId?: string
+): Promise<void> {
+  const targetContainerId = step.containerId || workstationDefaultContainerId || 'plate';
+  moveTortillaTo(targetContainerId, ctx.mascotId);
+  await ctx.wait();
+
+  const state = worldStore.getState();
+
+  if (step.target) {
+    const targetEntityId = ctx.getBoundEntityId(step.target);
+    if (targetEntityId) {
+      const currentContainer = Object.values(state.containers).find((c) =>
+        c.entityIds.includes(targetEntityId)
+      );
+      if (currentContainer && currentContainer.id !== targetContainerId) {
+        worldStore.getState().dispatch({
+          type: 'MOVE_ENTITY',
+          payload: {
+            entityId: targetEntityId,
+            targetContainerId,
+          },
+        });
+      }
+    }
+  } else {
+    // Move all active (unconsumed) bound recipe entities to target container (plate)
+    const boundEntityIds = new Set(Object.values(ctx.recipeContext.bindings));
+
+    for (const entityId of boundEntityIds) {
+      const entity = state.entities[entityId];
+      if (entity && !entity.state?.consumed) {
+        const currentContainer = Object.values(state.containers).find((c) =>
+          c.entityIds.includes(entityId)
+        );
+        if (currentContainer && currentContainer.id !== targetContainerId) {
+          worldStore.getState().dispatch({
+            type: 'MOVE_ENTITY',
+            payload: {
+              entityId,
+              targetContainerId,
+            },
+          });
+        }
+      }
+    }
+  }
+  await ctx.wait();
+}
+
+export async function handleWaitStep(
+  ctx: RecipeRunnerContext,
+  step: WaitStep
+): Promise<void> {
+  await ctx.wait(step.durationMs);
+}
+
+export async function handleInstructionStep(
+  ctx: RecipeRunnerContext,
+  step: InstructionStep
+): Promise<void> {
+  const text = step.text || step.instruction;
+  if (text) {
+    worldStore.getState().dispatch({
+      type: 'UPDATE_ENTITY_STATE',
+      payload: {
+        entityId: step.mascotId || ctx.mascotId,
+        changes: { speechMessage: text },
+      },
+    });
+  }
+  await ctx.wait();
+}
+
+export async function handleSpeakStep(
+  ctx: RecipeRunnerContext,
+  step: SpeakStep
+): Promise<void> {
+  worldStore.getState().dispatch({
+    type: 'UPDATE_ENTITY_STATE',
+    payload: {
+      entityId: step.mascotId || ctx.mascotId,
+      changes: { speechMessage: step.message },
+    },
+  });
+  await ctx.wait();
+}
+
+export async function handleCelebrateStep(
+  ctx: RecipeRunnerContext,
+  step: CelebrateStep
+): Promise<void> {
+  flipTortilla(step.mascotId || ctx.mascotId);
+  await ctx.wait(900);
+  clearTortillaGaze(step.mascotId || ctx.mascotId);
+}
+</file>
+
+<file path="src/systems/clasicaCompletion.test.ts">
+/**
+ * FILE: src/systems/clasicaCompletion.test.ts
+ *
+ * PURPOSE:
+ * Integration tests verifying entity states and container cleanups at the completion of clasicaRecipe.
+ *
+ * VERIFIES:
+ * - Preparation bowl (bowl) is empty at the end.
+ * - Plato (plate) contains ONLY mixture at the end.
+ * - Mixed input ingredients disappear from all world containers.
+ */
+
+import { beforeEach, describe, expect, it } from 'vitest';
+import { worldStore } from '../store/worldStore';
+import { RecipeRunner } from './recipeRunner';
+import { clasicaRecipe } from '../data/catalog/recipes/clasica';
+import { clearActionLog } from '../store/middleware/actionLog';
+
+function seedTestWorld() {
+  worldStore.setState({
+    entities: {
+      chef: { id: 'chef', name: 'Chef Tortilla 🍳', type: 'mascot', state: { gazingAt: null } },
+      potato: { id: 'potato', ingredientId: 'potato', name: 'Potato', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+      egg: { id: 'egg', ingredientId: 'egg', name: 'Egg', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+      oil: { id: 'oil', ingredientId: 'oil', name: 'Oil', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+      salt: { id: 'salt', ingredientId: 'salt', name: 'Salt', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+      black_pepper: { id: 'black_pepper', ingredientId: 'black_pepper', name: 'Pepper', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+    },
+    containers: {
+      despensa: {
+        id: 'despensa',
+        name: 'Despensa',
+        type: 'storage',
+        entityIds: ['potato', 'egg', 'oil', 'salt', 'black_pepper'],
+        rules: { isImmutable: true },
+      },
+      sink: {
+        id: 'sink',
+        name: 'Sink',
+        type: 'sink',
+        entityIds: [],
+        rules: { maxCapacity: 10 },
+      },
+      board: {
+        id: 'board',
+        name: 'Board',
+        type: 'board',
+        entityIds: [],
+        rules: { maxCapacity: 10 },
+      },
+      bowl: {
+        id: 'bowl',
+        name: 'Bowl',
+        type: 'bowl',
+        entityIds: [],
+        rules: { maxCapacity: 10 },
+      },
+      burner1: {
+        id: 'burner1',
+        name: 'burner1',
+        type: 'burner',
+        entityIds: [],
+        rules: { maxCapacity: 5 },
+      },
+      plate: {
+        id: 'plate',
+        name: 'Plate',
+        type: 'plate',
+        entityIds: [],
+        rules: { maxCapacity: 5 },
+      },
+    },
+    dispatch: worldStore.getState().dispatch,
+  });
+}
+
+describe('Clásica Recipe Completion State', () => {
+  beforeEach(() => {
+    seedTestWorld();
+    clearActionLog();
+  });
+
+  it('ensures preparation bowl is empty, and plato contains ONLY mixture', async () => {
+    const runner = new RecipeRunner({ mascotId: 'chef', delayMs: 1 });
+    await runner.runRecipe(clasicaRecipe);
+
+    const state = worldStore.getState();
+
+    // 1. Preparation bowl is empty
+    expect(state.containers.bowl.entityIds).toEqual([]);
+
+    // 2. fireplace is empty
+    //expect(state.containers.pan.entityIds).toEqual([]);
+
+    // 3. Plato (plate) contains ONLY mixture
+    expect(state.containers.plate.entityIds).toHaveLength(1);
+    const servedEntityId = state.containers.plate.entityIds[0];
+    const servedEntity = state.entities[servedEntityId];
+    expect(servedEntity).toBeDefined();
+    expect(servedEntity.name).toBe('mixture');
+
+    // 4. Input ingredients and cooking oil are marked as consumed
+    const mixtureId = runner.recipeContext.bindings['mixture'];
+    expect(mixtureId).toBe(servedEntityId);
+
+    const potatoesId = runner.recipeContext.bindings['potatoes'];
+    const eggsId = runner.recipeContext.bindings['eggs'];
+    const saltId = runner.recipeContext.bindings['salt'];
+    const pepperId = runner.recipeContext.bindings['black_pepper'];
+
+    expect(state.entities[potatoesId]?.state?.consumed).toBe(true);
+    expect(state.entities[eggsId]?.state?.consumed).toBe(true);
+    expect(state.entities[saltId]?.state?.consumed).toBe(true);
+    expect(state.entities[pepperId]?.state?.consumed).toBe(true);
+
+    // Verify none of the consumed ingredients remain in any workstation container
+    const workstationContainerIds = ['sink', 'board', 'bowl', 'burner1', 'plate'];
+    for (const cId of workstationContainerIds) {
+      expect(state.containers[cId].entityIds).not.toContain(potatoesId);
+      expect(state.containers[cId].entityIds).not.toContain(eggsId);
+      expect(state.containers[cId].entityIds).not.toContain(saltId);
+      expect(state.containers[cId].entityIds).not.toContain(pepperId);
+    }
+  });
+});
+</file>
+
+<file path="src/types/IngredientList.ts">
+/**
+ * FILE: IngredientList.ts
+ *
+ * PURPOSE:
+ * Defines container/list data structures.
+ *
+ * RESPONSIBILITY:
+ * - Represents collections of entities.
+ */
+
+import type { Ingredient } from './Ingredient'
+
+export interface IngredientList {
+  id: string
+  name: string
+  ingredients: Ingredient[]
+}
+
+export interface List {
+  id: string
+  title: string
+  seedFromCatalog?: boolean
+  seedIngredients?: string[]
+  consumesOnDrag?: boolean   // true = item is removed from this list when dragged out
+}
+</file>
+
 <file path="src/systems/gaze.test.ts">
 /**
  * FILE: gaze.test.ts
@@ -13872,185 +13916,46 @@ describe('Query System', () => {
 });
 </file>
 
-<file path="src/systems/recipeRunner/handlers/cookHandlers.ts">
-/**
- * FILE: src/systems/recipeRunner/handlers/cookHandlers.ts
- *
- * PURPOSE:
- * Step handlers for cooking and thermal steps ('cook', 'flip').
- */
-
-import { worldStore } from '../../../store/worldStore';
-import { moveTortillaTo, flipTortilla } from '../../mascotActions';
-import type { RecipeStep } from '../../../types/RecipeStep';
-import type { RecipeRunnerContext } from '../types';
-
-type CookStep = Extract<RecipeStep, { action: 'cook' }>;
-type FlipStep = Extract<RecipeStep, { action: 'flip' }>;
-
-export async function handleCookStep(
-  ctx: RecipeRunnerContext,
-  step: CookStep,
-  workstationDefaultContainerId?: string
-): Promise<void> {
-  const rawKey = step.target || step.ingredient;
-  const entityId = ctx.getBoundEntityId(rawKey);
-
-  if (!entityId) {
-    throw new Error(`[RecipeRunner] No entity bound for cook step target: "${rawKey}"`);
+<file path="package.json">
+{
+  "name": "tortilla-world",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
+    "framer-motion": "^12.42.2",
+    "immer": "^11.1.15",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "zustand": "^5.0.14"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.13.2",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.3",
+    "eslint": "^10.6.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.3",
+    "globals": "^17.7.0",
+    "repomix": "^1.16.1",
+    "sass-embedded": "^1.100.0",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.62.0",
+    "vite": "^8.1.1",
+    "vitest": "^4.1.10"
   }
-
-  ctx.validateEntity(entityId, 'cook');
-
-  const cookingMethod = step.method || 'cooked';
-  const containerId = step.containerId || workstationDefaultContainerId || 'burner1';
-
-  if (step.instruction) {
-    worldStore.getState().dispatch({
-      type: 'UPDATE_ENTITY_STATE',
-      payload: {
-        entityId: step.mascotId || ctx.mascotId,
-        changes: { speechMessage: step.instruction },
-      },
-    });
-  }
-
-  // Ensure bound entity is moved to cooking container if not already there
-  const state = worldStore.getState();
-  const currentContainer = Object.values(state.containers).find((c) =>
-    c.entityIds.includes(entityId!)
-  );
-
-  if (!currentContainer || currentContainer.id !== containerId) {
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: {
-        entityId,
-        targetContainerId: containerId,
-      },
-    });
-  }
-
-  moveTortillaTo(containerId, ctx.mascotId);
-  await ctx.wait();
-
-  worldStore.getState().dispatch({
-    type: 'COOK_INGREDIENT',
-    payload: {
-      entityId,
-      cooking: cookingMethod,
-    },
-  });
-
-  // Consume cooking medium helper ingredients currently in the cooking container (e.g. oil)
-    /**
-   * IMPORTANT: Distinguish between oil as the primary cooking target vs oil as a cooking medium.
-   *
-   * Scenario 1: Oil is the target (method='heat')
-   *   Step: { action: 'cook', target: 'oil', method: 'heat' }
-   *   Expected: Oil is heated, NOT consumed
-   *   Reason: Oil is the subject being cooked, not a helper ingredient
-   *
-   * Scenario 2: Oil is a cooking medium
-   *   Step: { action: 'cook', target: 'potatoes', method: 'fry' }
-   *   Expected: Oil in the container IS consumed (used for frying)
-   *   Reason: Oil is helping to cook the potatoes
-   * 
-   *   Scenario 3: Oil as dressing
-   *   Step: { action: 'serve', target: 'mixture', method: 'dress' }
-   *   Expected: fresh Oil in the container where the finished tortilla is
-   *   Reason: Oil is dressiing for the tortilla
-   *
-   * Without this check, oil gets consumed even when it's the cooking target,
-   * preventing oil reuse and causing "Heat Olive Oil" name change in Required Materials.
-   */
-  const cookingContainer = worldStore.getState().containers[containerId];
-
-  // Only consume helper ingredients (like oil) if they are NOT the target of THIS cooking step
-  const isOilTheTarget =
-    rawKey === 'oil' ||
-    rawKey?.toLowerCase().includes('oil') ||
-    rawKey?.toLowerCase().includes('aceite');
-
-  if (!isOilTheTarget && cookingContainer) {
-    // Consume cooking medium helper ingredients currently in the cooking container (e.g. oil)
-    const otherEntityIds = cookingContainer.entityIds.filter((id) => id !== entityId);
-    for (const otherId of otherEntityIds) {
-      const otherEntity = worldStore.getState().entities[otherId];
-      const isOil =
-        otherEntity?.ingredientId === 'oil' ||
-        otherEntity?.id?.includes('oil') ||
-        otherEntity?.name?.toLowerCase().includes('oil') ||
-        otherEntity?.name?.toLowerCase().includes('aceite');
-
-      if (otherEntity && otherEntity.type === 'ingredient' && !otherEntity.state?.consumed && isOil) {
-        worldStore.getState().dispatch({
-          type: 'USE_INGREDIENT',
-          payload: {
-            entityId: otherId,
-            usedIn: entityId,
-          },
-        });
-      }
-    }
-  }
-
-  await ctx.wait();
-}
-
-export async function handleFlipStep(
-  ctx: RecipeRunnerContext,
-  step: FlipStep
-): Promise<void> {
-  const rawKey = step.target;
-  const targetContainer = rawKey === 'mixture' ? 'burner1' : rawKey || 'burner1';
-  const instructionText = step.instruction;
-
-  if (instructionText) {
-    worldStore.getState().dispatch({
-      type: 'UPDATE_ENTITY_STATE',
-      payload: {
-        entityId: step.mascotId || ctx.mascotId,
-        changes: { speechMessage: instructionText },
-      },
-    });
-  }
-
-  moveTortillaTo(targetContainer, ctx.mascotId);
-  await ctx.wait();
-
-  flipTortilla(step.mascotId || ctx.mascotId);
-
-  if (rawKey) {
-    const entityId = ctx.getBoundEntityId(rawKey);
-    if (entityId) {
-      ctx.validateEntity(entityId, 'flip');
-      worldStore.getState().dispatch({
-        type: 'UPDATE_ENTITY_STATE',
-        payload: {
-          entityId,
-          changes: { isFlipped: true, status: 'flipped-tortilla' },
-        },
-      });
-    }
-  } else {
-    // If no target specified, flip all active bound entities in target container
-    const state = worldStore.getState();
-    const container = state.containers[targetContainer];
-    if (container) {
-      container.entityIds.forEach((entityId) => {
-        worldStore.getState().dispatch({
-          type: 'UPDATE_ENTITY_STATE',
-          payload: {
-            entityId,
-            changes: { isFlipped: true, status: 'flipped-tortilla' },
-          },
-        });
-      });
-    }
-  }
-
-  await ctx.wait();
 }
 </file>
 
@@ -14115,247 +14020,6 @@ export const getEntitiesInContainer = (state: WorldState, containerId: string): 
     .map((id) => state.entities[id])
     .filter((entity): entity is Entity => entity !== undefined);
 };
-</file>
-
-<file path="package.json">
-{
-  "name": "tortilla-world",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview",
-    "test": "vitest run"
-  },
-  "dependencies": {
-    "@dnd-kit/core": "^6.3.1",
-    "@dnd-kit/sortable": "^10.0.0",
-    "@dnd-kit/utilities": "^3.2.2",
-    "framer-motion": "^12.42.2",
-    "immer": "^11.1.15",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7",
-    "zustand": "^5.0.14"
-  },
-  "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "@types/node": "^24.13.2",
-    "@types/react": "^19.2.17",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^6.0.3",
-    "eslint": "^10.6.0",
-    "eslint-plugin-react-hooks": "^7.1.1",
-    "eslint-plugin-react-refresh": "^0.5.3",
-    "globals": "^17.7.0",
-    "repomix": "^1.16.1",
-    "sass-embedded": "^1.100.0",
-    "typescript": "~6.0.2",
-    "typescript-eslint": "^8.62.0",
-    "vite": "^8.1.1",
-    "vitest": "^4.1.10"
-  }
-}
-</file>
-
-<file path="src/data/catalog/recipes/clasica.ts">
-/**
- * FILE: clasica.ts
- *
- * PURPOSE:
- * Recipe definition for Tortilla Clásica (without onion).
- *
- * RESPONSIBILITY:
- * - Defines the ingredients, quantities, and cooking process.
- * - Describes recipe actions in a declarative format.
- * - Provides a Cooklang representation for humans.
- *
- * NOTE:
- * Recipes describe WHAT happens.
- * The RecipeRunner decides HOW it happens:
- * - finding ingredients
- * - moving the chef
- * - animations
- * - changing entity state
- * - creating intermediate results
- */
-
-import type { Recipe } from '../../../types/Recipe';
-
-export const clasicaRecipe: Recipe = {
-  id: 'clasica',
-
-  name: 'Clásica',
-
-  requirements: {
-    potatoes: {
-      entityId: 'potato',
-      amount: 4,
-      unit: 'pcs',
-    },
-
-    eggs: {
-      entityId: 'egg',
-      amount: 6,
-      unit: 'pcs',
-    },
-
-    garlic: {
-      entityId: 'garlic',
-      amount: 1,
-      unit: 'head',
-    },
-
-    oil: {
-      entityId: 'oil',
-      amount: 100,
-      unit: 'ml',
-    },
-
-    salt: {
-      entityId: 'salt',
-      amount: 1,
-      unit: 'tsp',
-    },
-
-    black_pepper: {
-      entityId: 'black_pepper',
-      amount: 1,
-      unit: 'pinch',
-    },
-  },
-
-  steps: [
-  {
-    action: 'prepare',
-    target: 'garlic',
-    preparation: 'peeled',
-  },
-
-  // Heat oil first
-  {
-    action: 'cook',
-    target: 'oil',
-    method: 'heat',
-  },
-
-  // Fry garlic (consumes oil)
-  {
-    action: 'cook',
-    target: 'garlic',
-    method: 'fry',
-    instruction: 'Que no se quemen.', // Cook but don't burn
-  },
-
-  // IMPORTANT: Move garlic out IMMEDIATELY after cooking
-  {
-    action: 'move',
-    ingredient: 'garlic',
-    target: 'plate',  // Move to pantry
-    source: 'pan',     // From pan
-  },
-
-  // Now cook potatoes in the same oil (oil already used from garlic step)
-  {
-    action: 'cook',
-    target: 'potatoes',
-    method: 'fry',
-  },
-
-  // Beat eggs
-  {
-    action: 'prepare',
-    target: 'eggs',
-    preparation: 'beaten',
-  },
-
-  // Mix all together including garlic from pantry
-  {
-    action: 'mix',
-    inputs: [
-      'potatoes',      // From pan
-      'eggs',          // Fresh
-      'salt',          // Fresh
-      'black_pepper',  // Fresh
-      'garlic'         // From pantry (cooked earlier)
-    ],
-    output: 'mixture',
-  },
-
-    {
-      action: 'cook',
-      target: 'mixture',
-      method: 'fry',
-      duration: 5,
-      unit: 'min',
-    },
-
-    {
-      action: 'instruction',
-      text: 'Con una espátula blanda, asegúrate de que la tortilla no se pega a la sartén.',
-    },
-
-    {
-      action: 'flip',
-      target: 'mixture',
-      instruction: 'Dale la vuelta a la tortilla.',
-    },
-
-    {
-      action: 'cook',
-      target: 'mixture',
-      method: 'fry',
-      duration: 5,
-      unit: 'min',
-      instruction: 'Deja cocinar por otros 5 min.',
-    },
-
-    {
-      action: 'serve',
-      target: 'mixture',
-    },
-
-    {
-      action: 'celebrate',
-    },
-  ],
-};
-
-export const clasicaCooklang = `
-Peel the @potatoes{4%pcs}.
-
-Slice the @potatoes.
-
-Heat the @oil{100%ml}.
-
-Fry the @potatoes until tender.
-
-Beat the @eggs{6%pcs}.
-
-Add @salt{1%tsp}.
-
-Add @black_pepper{1%pinch}.
-
-Mix the potatoes with the beaten eggs, salt and black_pepper.
-
-Pour the mixture into the pan.
-
-Cook for 5 minutes.
-
-With a soft spatula, make sure the tortilla does not stick to the pan.
-
-Flip the tortilla.
-
-Cook for another 5 minutes.
-
-Serve the tortilla.
-
-Celebrate.
-`;
-
-export const recipe = clasicaRecipe;
 </file>
 
 <file path="docs/decisions.md">
@@ -15138,6 +14802,404 @@ Actions describe intentions.
 
 The Store remembers the result.
 ```
+</file>
+
+<file path="src/data/catalog/recipes/clasica.ts">
+/**
+ * FILE: clasica.ts
+ *
+ * PURPOSE:
+ * Recipe definition for Tortilla Clásica (without onion).
+ *
+ * RESPONSIBILITY:
+ * - Defines the ingredients, quantities, and cooking process.
+ * - Describes recipe actions in a declarative format.
+ * - Provides a Cooklang representation for humans.
+ *
+ * NOTE:
+ * Recipes describe WHAT happens.
+ * The RecipeRunner decides HOW it happens:
+ * - finding ingredients
+ * - moving the chef
+ * - animations
+ * - changing entity state
+ * - creating intermediate results
+ */
+
+import type { Recipe } from '../../../types/Recipe';
+
+export const clasicaRecipe: Recipe = {
+  id: 'clasica',
+
+  name: 'Clásica',
+
+  requirements: {
+    potatoes: {
+      entityId: 'potato',
+      amount: 4,
+      unit: 'pcs',
+    },
+
+    eggs: {
+      entityId: 'egg',
+      amount: 6,
+      unit: 'pcs',
+    },
+
+    garlic: {
+      entityId: 'garlic',
+      amount: 1,
+      unit: 'head',
+    },
+
+    oil: {
+      entityId: 'oil',
+      amount: 100,
+      unit: 'ml',
+    },
+
+    salt: {
+      entityId: 'salt',
+      amount: 1,
+      unit: 'tsp',
+    },
+
+    black_pepper: {
+      entityId: 'black_pepper',
+      amount: 1,
+      unit: 'pinch',
+    },
+  },
+
+  steps: [
+  {
+    action: 'prepare',
+    target: 'garlic',
+    preparation: 'peeled',
+  },
+
+  // Heat oil first
+  {
+    action: 'cook',
+    target: 'oil',
+    method: 'heat',
+  },
+
+  // Fry garlic (consumes oil)
+  {
+    action: 'cook',
+    target: 'garlic',
+    method: 'fry',
+    instruction: 'Que no se quemen.', // Cook but don't burn
+  },
+
+  // IMPORTANT: Move garlic out IMMEDIATELY after cooking
+  {
+    action: 'move',
+    ingredient: 'garlic',
+    target: 'plate',  // Move to pantry
+    source: 'pan',     // From pan
+  },
+
+  // Now cook potatoes in the same oil (oil already used from garlic step)
+  {
+    action: 'cook',
+    target: 'potatoes',
+    method: 'fry',
+  },
+
+  // Beat eggs
+  {
+    action: 'prepare',
+    target: 'eggs',
+    preparation: 'beaten',
+  },
+
+  // Mix all together including garlic from pantry
+  {
+    action: 'mix',
+    inputs: [
+      'potatoes',      // From pan
+      'eggs',          // Fresh
+      'salt',          // Fresh
+      'black_pepper',  // Fresh
+      'garlic'         // From pantry (cooked earlier)
+    ],
+    output: 'mixture',
+  },
+
+    {
+      action: 'cook',
+      target: 'mixture',
+      method: 'fry',
+      duration: 5,
+      unit: 'min',
+    },
+
+    {
+      action: 'instruction',
+      text: 'Con una espátula blanda, asegúrate de que la tortilla no se pega a la sartén.',
+    },
+
+    {
+      action: 'flip',
+      target: 'mixture',
+      instruction: 'Dale la vuelta a la tortilla.',
+    },
+
+    {
+      action: 'cook',
+      target: 'mixture',
+      method: 'fry',
+      duration: 5,
+      unit: 'min',
+      instruction: 'Deja cocinar por otros 5 min.',
+    },
+
+    {
+      action: 'serve',
+      target: 'mixture',
+    },
+
+    {
+      action: 'celebrate',
+    },
+  ],
+};
+
+export const clasicaCooklang = `
+Peel the @potatoes{4%pcs}.
+
+Slice the @potatoes.
+
+Heat the @oil{100%ml}.
+
+Fry the @potatoes until tender.
+
+Beat the @eggs{6%pcs}.
+
+Add @salt{1%tsp}.
+
+Add @black_pepper{1%pinch}.
+
+Mix the potatoes with the beaten eggs, salt and black_pepper.
+
+Pour the mixture into the pan.
+
+Cook for 5 minutes.
+
+With a soft spatula, make sure the tortilla does not stick to the pan.
+
+Flip the tortilla.
+
+Cook for another 5 minutes.
+
+Serve the tortilla.
+
+Celebrate.
+`;
+
+export const recipe = clasicaRecipe;
+</file>
+
+<file path="src/systems/recipeRunner/handlers/cookHandlers.ts">
+/**
+ * FILE: src/systems/recipeRunner/handlers/cookHandlers.ts
+ *
+ * PURPOSE:
+ * Step handlers for cooking and thermal steps ('cook', 'flip').
+ */
+
+import { worldStore } from '../../../store/worldStore';
+import { moveTortillaTo, flipTortilla } from '../../mascotActions';
+import type { RecipeStep } from '../../../types/RecipeStep';
+import type { RecipeRunnerContext } from '../types';
+
+type CookStep = Extract<RecipeStep, { action: 'cook' }>;
+type FlipStep = Extract<RecipeStep, { action: 'flip' }>;
+
+export async function handleCookStep(
+  ctx: RecipeRunnerContext,
+  step: CookStep,
+  workstationDefaultContainerId?: string
+): Promise<void> {
+  const rawKey = step.target || step.ingredient;
+  const entityId = ctx.getBoundEntityId(rawKey);
+
+  if (!entityId) {
+    throw new Error(`[RecipeRunner] No entity bound for cook step target: "${rawKey}"`);
+  }
+
+  ctx.validateEntity(entityId, 'cook');
+
+  const cookingMethod = step.method || 'cooked';
+  const containerId = step.containerId || workstationDefaultContainerId || 'burner1';
+
+  if (step.instruction) {
+    worldStore.getState().dispatch({
+      type: 'UPDATE_ENTITY_STATE',
+      payload: {
+        entityId: step.mascotId || ctx.mascotId,
+        changes: { speechMessage: step.instruction },
+      },
+    });
+  }
+
+  // Ensure bound entity is moved to cooking container if not already there
+  const state = worldStore.getState();
+  const currentContainer = Object.values(state.containers).find((c) =>
+    c.entityIds.includes(entityId!)
+  );
+
+  if (!currentContainer || currentContainer.id !== containerId) {
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: {
+        entityId,
+        targetContainerId: containerId,
+      },
+    });
+  }
+
+  moveTortillaTo(containerId, ctx.mascotId);
+  await ctx.wait();
+
+  // Turn ON fire if currently off
+  const containerBefore = worldStore.getState().containers[containerId];
+  if (containerBefore && !containerBefore.isOn) {
+    worldStore.getState().dispatch({
+      type: 'TOGGLE_BURNER',
+      payload: { containerId },
+    });
+  }
+
+  worldStore.getState().dispatch({
+    type: 'COOK_INGREDIENT',
+    payload: {
+      entityId,
+      cooking: cookingMethod,
+    },
+  });
+
+  // Consume cooking medium helper ingredients currently in the cooking container (e.g. oil)
+    /**
+   * IMPORTANT: Distinguish between oil as the primary cooking target vs oil as a cooking medium.
+   *
+   * Scenario 1: Oil is the target (method='heat')
+   *   Step: { action: 'cook', target: 'oil', method: 'heat' }
+   *   Expected: Oil is heated, NOT consumed
+   *   Reason: Oil is the subject being cooked, not a helper ingredient
+   *
+   * Scenario 2: Oil is a cooking medium
+   *   Step: { action: 'cook', target: 'potatoes', method: 'fry' }
+   *   Expected: Oil in the container IS consumed (used for frying)
+   *   Reason: Oil is helping to cook the potatoes
+   * 
+   *   Scenario 3: Oil as dressing
+   *   Step: { action: 'serve', target: 'mixture', method: 'dress' }
+   *   Expected: fresh Oil in the container where the finished tortilla is
+   *   Reason: Oil is dressiing for the tortilla
+   *
+   * Without this check, oil gets consumed even when it's the cooking target,
+   * preventing oil reuse and causing "Heat Olive Oil" name change in Required Materials.
+   */
+  const cookingContainer = worldStore.getState().containers[containerId];
+
+  // Only consume helper ingredients (like oil) if they are NOT the target of THIS cooking step
+  const isOilTheTarget =
+    rawKey === 'oil' ||
+    rawKey?.toLowerCase().includes('oil') ||
+    rawKey?.toLowerCase().includes('aceite');
+
+  if (!isOilTheTarget && cookingContainer) {
+    // Consume cooking medium helper ingredients currently in the cooking container (e.g. oil)
+    const otherEntityIds = cookingContainer.entityIds.filter((id) => id !== entityId);
+    for (const otherId of otherEntityIds) {
+      const otherEntity = worldStore.getState().entities[otherId];
+      const isOil =
+        otherEntity?.ingredientId === 'oil' ||
+        otherEntity?.id?.includes('oil') ||
+        otherEntity?.name?.toLowerCase().includes('oil') ||
+        otherEntity?.name?.toLowerCase().includes('aceite');
+
+      if (otherEntity && otherEntity.type === 'ingredient' && !otherEntity.state?.consumed && isOil) {
+        worldStore.getState().dispatch({
+          type: 'USE_INGREDIENT',
+          payload: {
+            entityId: otherId,
+            usedIn: entityId,
+          },
+        });
+      }
+    }
+  }
+
+  await ctx.wait();
+
+  // Turn OFF fire when cooking step finishes
+  const containerAfter = worldStore.getState().containers[containerId];
+  if (containerAfter && containerAfter.isOn) {
+    worldStore.getState().dispatch({
+      type: 'TOGGLE_BURNER',
+      payload: { containerId },
+    });
+  }
+}
+
+export async function handleFlipStep(
+  ctx: RecipeRunnerContext,
+  step: FlipStep
+): Promise<void> {
+  const rawKey = step.target;
+  const targetContainer = rawKey === 'mixture' ? 'burner1' : rawKey || 'burner1';
+  const instructionText = step.instruction;
+
+  if (instructionText) {
+    worldStore.getState().dispatch({
+      type: 'UPDATE_ENTITY_STATE',
+      payload: {
+        entityId: step.mascotId || ctx.mascotId,
+        changes: { speechMessage: instructionText },
+      },
+    });
+  }
+
+  moveTortillaTo(targetContainer, ctx.mascotId);
+  await ctx.wait();
+
+  flipTortilla(step.mascotId || ctx.mascotId);
+
+  if (rawKey) {
+    const entityId = ctx.getBoundEntityId(rawKey);
+    if (entityId) {
+      ctx.validateEntity(entityId, 'flip');
+      worldStore.getState().dispatch({
+        type: 'UPDATE_ENTITY_STATE',
+        payload: {
+          entityId,
+          changes: { isFlipped: true, status: 'flipped-tortilla' },
+        },
+      });
+    }
+  } else {
+    // If no target specified, flip all active bound entities in target container
+    const state = worldStore.getState();
+    const container = state.containers[targetContainer];
+    if (container) {
+      container.entityIds.forEach((entityId) => {
+        worldStore.getState().dispatch({
+          type: 'UPDATE_ENTITY_STATE',
+          payload: {
+            entityId,
+            changes: { isFlipped: true, status: 'flipped-tortilla' },
+          },
+        });
+      });
+    }
+  }
+
+  await ctx.wait();
+}
 </file>
 
 <file path="src/components/Ingredients/IngredientList.tsx">
