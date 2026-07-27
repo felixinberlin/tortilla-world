@@ -60,6 +60,47 @@ body {
   min-height: 100vh;
 }
 
+.app-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  position: relative;
+
+  &-content {
+    flex: 1;
+    min-width: 250px;
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+
+    p {
+      margin: 4px 0 0 0;
+      color: var(--text-muted);
+    }
+  }
+}
+
+.app-main {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 24px;
+  align-items: flex-start;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+}
+
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-sans);
   color: var(--text-h);
@@ -96,14 +137,16 @@ p {
 
 .scene {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
   width: 100%;
   flex: 1;
   box-sizing: border-box;
 
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
+  @media (max-width: 600px) {
+    // 2-column compact layout on very small screens (mobile)
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
 }
 

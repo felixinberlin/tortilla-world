@@ -45,6 +45,8 @@ export const Scene: React.FC = () => {
     </div>
   );
 
+  const [isPanelExpanded, setIsPanelExpanded] = useState(false);
+
   return (
     // 3. The DndContext wrapper acts as the physical input boundary
     <DndContext
@@ -54,56 +56,50 @@ export const Scene: React.FC = () => {
       onDragEnd={handleDragEnd}
     >
       <div className="scene-container">
-        {/* Mode Selector Navigation Tabs */}
-        <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
+        {/* Mobile Expand/Collapse Toggle */}
+        <div className="mobile-panel-toggle">
           <button
             type="button"
-            className={`mode-tab-btn ${activeMode === 'player' ? 'active' : ''}`}
-            onClick={() => setActiveMode('player')}
-            style={{
-              padding: '10px 18px',
-              borderRadius: '8px',
-              fontWeight: 700,
-              fontSize: '15px',
-              cursor: 'pointer',
-              border: '2px solid var(--warm-border, #e2e8f0)',
-              background: activeMode === 'player' ? '#d97706' : '#ffffff',
-              color: activeMode === 'player' ? '#ffffff' : '#334155',
-              boxShadow: activeMode === 'player' ? '0 2px 6px rgba(217,119,6,0.3)' : 'none',
-              transition: 'all 0.2s ease',
-            }}
+            onClick={() => setIsPanelExpanded(!isPanelExpanded)}
+            className="panel-toggle-btn"
           >
-            📖 Play Catalog Recipe Mode
-          </button>
-          <button
-            type="button"
-            className={`mode-tab-btn ${activeMode === 'recorder' ? 'active' : ''}`}
-            onClick={() => setActiveMode('recorder')}
-            style={{
-              padding: '10px 18px',
-              borderRadius: '8px',
-              fontWeight: 700,
-              fontSize: '15px',
-              cursor: 'pointer',
-              border: '2px solid var(--warm-border, #e2e8f0)',
-              background: activeMode === 'recorder' ? '#8b5cf6' : '#ffffff',
-              color: activeMode === 'recorder' ? '#ffffff' : '#334155',
-              boxShadow: activeMode === 'recorder' ? '0 2px 6px rgba(139,92,246,0.3)' : 'none',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            🎥 Action Recorder & Translator Mode
+            {isPanelExpanded ? '🔼 Hide Controls' : '🔽 Show Controls & Modes'}
           </button>
         </div>
 
-        {activeMode === 'player' ? (
-          <RecipePlayer renderWorkspace={renderWorkspace} />
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <ActionRecorder />
-            {renderWorkspace(null, <IngredientsSidebar />)}
+        <div className={`scene-controls-wrapper ${isPanelExpanded ? 'expanded' : 'collapsed'}`}>
+          {/* Mode Selector Navigation Tabs */}
+          <div className="mode-tabs">
+            <button
+              type="button"
+              className={`mode-tab-btn ${activeMode === 'player' ? 'active' : ''}`}
+              onClick={() => setActiveMode('player')}
+            >
+              📖 Play Catalog Recipe Mode
+            </button>
+            <button
+              type="button"
+              className={`mode-tab-btn ${activeMode === 'recorder' ? 'active' : ''}`}
+              onClick={() => setActiveMode('recorder')}
+            >
+              🎥 Action Recorder & Translator Mode
+            </button>
           </div>
-        )}
+
+          {activeMode === 'player' ? (
+            <RecipePlayer renderWorkspace={() => null} />
+          ) : (
+            <div className="action-recorder-layout">
+              <ActionRecorder />
+              <IngredientsSidebar />
+            </div>
+          )}
+        </div>
+
+        {/* Render Workspace independently so it doesn't get collapsed */}
+        <div className="scene-workspace-independent" style={{ marginTop: '20px' }}>
+            {renderWorkspace()}
+        </div>
       </div>
     </DndContext>
   );

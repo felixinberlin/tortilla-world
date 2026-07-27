@@ -70,11 +70,18 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
       const containerRect = containerEl.getBoundingClientRect();
       const mascotRect = mascotAnchorRef.current.getBoundingClientRect();
 
-      // Calculate translation offset so mascot hovers above the container center
+      // Calculate translation offset so mascot hovers near the container but doesn't obscure it
       const x = containerRect.left + containerRect.width / 2 - (mascotRect.left + mascotRect.width / 2);
-      const y = containerRect.top - mascotRect.top - 15;
 
-      setOffset({ x, y });
+      // If the screen is small (mobile), hover the mascot slightly higher and to the right
+      // so it doesn't block the container's title or items.
+      const isMobile = window.innerWidth <= 600;
+      const yOffset = isMobile ? 35 : 15;
+      const xOffsetModifier = isMobile ? 25 : 0;
+
+      const y = containerRect.top - mascotRect.top - yOffset;
+
+      setOffset({ x: x + xOffsetModifier, y });
     };
 
     updatePosition();
