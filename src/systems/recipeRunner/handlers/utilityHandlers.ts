@@ -88,6 +88,33 @@ export async function handleInstructionStep(
         changes: { speechMessage: text },
       },
     });
+
+    const lower = text.toLowerCase();
+    if (
+      lower.includes('toggle heat') ||
+      lower.includes('turn on heat') ||
+      lower.includes('turn off heat') ||
+      lower.includes('heat on') ||
+      lower.includes('burner')
+    ) {
+      let targetContainerId = 'burner1';
+      if (lower.includes('burner2') || lower.includes('burner 2')) {
+        targetContainerId = 'burner2';
+      } else if (lower.includes('burner1') || lower.includes('burner 1')) {
+        targetContainerId = 'burner1';
+      }
+
+      const container = worldStore.getState().containers[targetContainerId];
+      if (container) {
+        if (lower.includes('turn on') && !container.isOn) {
+          worldStore.getState().dispatch({ type: 'TOGGLE_BURNER', payload: { containerId: targetContainerId } });
+        } else if (lower.includes('turn off') && container.isOn) {
+          worldStore.getState().dispatch({ type: 'TOGGLE_BURNER', payload: { containerId: targetContainerId } });
+        } else if (lower.includes('toggle heat') || lower.includes('toggle burner') || lower.includes('burner')) {
+          worldStore.getState().dispatch({ type: 'TOGGLE_BURNER', payload: { containerId: targetContainerId } });
+        }
+      }
+    }
   }
   await ctx.wait();
 }
