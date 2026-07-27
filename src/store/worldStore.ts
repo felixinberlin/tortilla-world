@@ -165,6 +165,9 @@ export const worldStore = createStore<WorldStateStore>()(
               const targetContainer = get().containers[action.payload.containerId];
               if (targetContainer) {
                 const entityIds = [...targetContainer.entityIds];
+                entityIds.forEach((id) => {
+                  get().transformIngredient(id, 'wash');
+                });
                 get().emitEvent({
                   type: 'CONTAINER_WASHED',
                   payload: {
@@ -180,6 +183,9 @@ export const worldStore = createStore<WorldStateStore>()(
               const targetContainer = get().containers[action.payload.containerId];
               if (targetContainer) {
                 const entityIds = [...targetContainer.entityIds];
+                entityIds.forEach((id) => {
+                  get().transformIngredient(id, 'cut');
+                });
                 get().emitEvent({
                   type: 'CONTAINER_CUT',
                   payload: {
@@ -195,6 +201,9 @@ export const worldStore = createStore<WorldStateStore>()(
               const targetContainer = get().containers[action.payload.containerId];
               if (targetContainer) {
                 const entityIds = [...targetContainer.entityIds];
+                entityIds.forEach((id) => {
+                  get().transformIngredient(id, 'peel');
+                });
                 get().emitEvent({
                   type: 'CONTAINER_PEELED',
                   payload: {
@@ -210,6 +219,9 @@ export const worldStore = createStore<WorldStateStore>()(
               const targetContainer = get().containers[action.payload.containerId];
               if (targetContainer) {
                 const entityIds = [...targetContainer.entityIds];
+                entityIds.forEach((id) => {
+                  get().transformIngredient(id, 'mix');
+                });
                 get().emitEvent({
                   type: 'CONTAINER_MIXED',
                   payload: {

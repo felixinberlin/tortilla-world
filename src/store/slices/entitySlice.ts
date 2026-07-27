@@ -19,6 +19,7 @@ import {
   deriveCookingStatus,
   formatPreparedName,
   formatCookedName,
+  applyIngredientTransformation,
 } from '../../engine/ingredientState';
 
 export interface EntitySlice {
@@ -31,6 +32,10 @@ export interface EntitySlice {
   updateEntityState: (entityId: string, changes: Record<string, unknown>) => void;
   prepareIngredient: (entityId: string, preparation: PreparationStyle) => void;
   cookIngredient: (entityId: string, cooking: CookingMethod) => void;
+  transformIngredient: (
+    entityId: string,
+    transformation: 'wash' | 'cut' | 'peel' | 'cook' | 'mix'
+  ) => void;
   useIngredient: (entityId: string, usedIn?: string) => void;
   revertIngredientUsage: (entityId: string, previousContainerId?: string) => void;
   consumeIngredient: (entityId: string, consumedBy?: string) => void;
@@ -145,6 +150,30 @@ export const createEntitySlice: StateCreator<
       },
       false,
       'COOK_INGREDIENT'
+    );
+  },
+
+  transformIngredient: (entityId, transformation) => {
+    const targetEntity = get().entities[entityId];
+    if (!targetEntity) return;
+
+    const result = applyIngredientTransformation(targetEntity, transformation);
+    if (!result) return;
+
+    set(
+      (state) => {
+        const entity = state.entities[entityId];
+        if (!entity) return;
+
+        entity.name = result.name;
+        entity.status = result.status;
+        entity.state = {
+          ...entity.state,
+          ...result.state,
+        };
+      },
+      false,
+      'TRANSFORM_INGREDIENT'
     );
   },
 

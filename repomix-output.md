@@ -52,9 +52,13 @@ src/
     hero.png
   components/
     Controls/
+      ActionRecorder.scss
+      ActionRecorder.tsx
       ActionReplayer.scss
       ActionReplayer.test.tsx
       ActionReplayer.tsx
+      IngredientsSidebar.scss
+      IngredientsSidebar.tsx
     Ingredients/
       Ingredient.tsx
       IngredientList.tsx
@@ -144,6 +148,8 @@ src/
     recipeMatcher.ts
     recipeRunner.test.ts
     recipeRunner.ts
+    recipeTranslator.test.ts
+    recipeTranslator.ts
   types/
     actions.ts
     Ingredient.ts
@@ -397,362 +403,38 @@ export default defineConfig({
 ]
 `````
 
-## File: src/components/Controls/ActionReplayer.scss
-`````scss
-/**
- * FILE: src/components/Controls/ActionReplayer.scss
- *
- * PURPOSE:
- * SCSS styles for the ActionReplayer JSON load/playback component.
- */
-
-@use 'sass:color';
-@use '../../styles/variables' as *;
-@use '../../styles/mixins' as *;
-
-.action-replayer {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-
-  .file-input-hidden {
-    display: none;
-  }
-
-  .replayer-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 14px;
-    font-size: 13px;
-    font-weight: 700;
-    border-radius: $radius-sm;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border: 1px solid $warm-border;
-    background: #ffffff;
-    color: $dark-brown;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-
-    &:hover:not(:disabled) {
-      background: $tortilla-yellow-light;
-      border-color: $tortilla-yellow;
-    }
-
-    &:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    &.load-btn {
-      border-color: $olive-green;
-      color: $olive-green-hover;
-
-      &:hover:not(:disabled) {
-        background: rgba(107, 142, 35, 0.1);
-      }
-    }
-
-    &.stop-btn {
-      border-color: $terracotta;
-      color: $terracotta;
-      background: $terracotta-light;
-
-      &:hover:not(:disabled) {
-        background: $terracotta;
-        color: #ffffff;
-      }
-    }
-  }
-
-  .playback-status {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: $warm-surface;
-    border: 1px solid $warm-border;
-    padding: 4px 12px;
-    border-radius: $radius-sm;
-    font-size: 12px;
-    font-weight: 700;
-    color: $dark-brown;
-
-    .progress-bar-container {
-      width: 80px;
-      height: 6px;
-      background: rgba(0, 0, 0, 0.08);
-      border-radius: 3px;
-      overflow: hidden;
-
-      .progress-bar-fill {
-        height: 100%;
-        background: $olive-green;
-        transition: width 0.15s ease-out;
-      }
-    }
-  }
-
-  .delay-select {
-    padding: 4px 8px;
-    font-size: 12px;
-    font-weight: 600;
-    border-radius: $radius-sm;
-    border: 1px solid $warm-border;
-    background: #ffffff;
-    color: $dark-brown;
-    cursor: pointer;
-
-    &:focus {
-      outline: none;
-      border-color: $tortilla-yellow;
-    }
-  }
-
-  .error-message {
-    font-size: 12px;
-    color: $terracotta;
-    font-weight: 600;
-  }
-}
-`````
-
-## File: src/components/Controls/ActionReplayer.test.tsx
+## File: src/components/Ingredients/Ingredient.tsx
 `````typescript
 /**
- * FILE: ActionReplayer.test.tsx
+ * FILE: Ingredient.tsx
  *
  * PURPOSE:
- * Unit tests for ActionReplayer component logic.
- */
-
-import { describe, it, expect } from 'vitest';
-import { actionPlayer } from '../../systems/actionPlayer';
-import { worldStore } from '../../store/worldStore';
-import type { WorldAction } from '../../types/actions';
-
-describe('ActionReplayer component logic', () => {
-  it('integrates with ActionPlayer to replay uploaded actions', async () => {
-    worldStore.getState().resetWorld();
-
-    const actions: WorldAction[] = [
-      {
-        type: 'TOGGLE_BURNER',
-        payload: { containerId: 'burner1' },
-      },
-      {
-        type: 'ADD_ENTITY',
-        payload: {
-          entity: {
-            id: 'potato_test_1',
-            name: 'Potato',
-            type: 'ingredient',
-          },
-          containerId: 'burner1',
-        },
-      },
-    ];
-
-    await actionPlayer.playLog(actions, { delayMs: 10 });
-
-    const store = worldStore.getState();
-    expect(store.containers.burner1.isOn).toBe(true);
-    expect(store.containers.burner1.entityIds).toContain('potato_test_1');
-  });
-});
-`````
-
-## File: src/components/Controls/ActionReplayer.tsx
-`````typescript
-/**
- * FILE: ActionReplayer.tsx
- *
- * PURPOSE:
- * React UI component for uploading, validating, and playing back JSON action logs.
+ * Visual representation of one ingredient.
  *
  * RESPONSIBILITY:
- * - Handles JSON file loading via FileReader input.
- * - Validates JSON structure into WorldAction[].
- * - Controls playback execution using ActionPlayer.
- * - Displays active progress and stop/cancel controls during playback.
+ * - Displays ingredient information.
+ * - Handles ingredient presentation only.
+ *
+ * SHOULD NOT:
+ * - Manage inventory.
+ * - Apply game rules.
+ * - Modify world state.
  */
 
-import React, { useRef, useState, useCallback } from 'react';
-import { actionPlayer } from '../../systems/actionPlayer';
-import type { WorldAction } from '../../types/actions';
-import './ActionReplayer.scss';
+import type { Ingredient as IngredientModel } from '../../types/Ingredient'
 
-export interface ActionReplayerProps {
-  /** Optional custom delay default in ms. Default: 300 */
-  defaultDelayMs?: number;
-  /** Optional class name override */
-  className?: string;
-  /** Callback fired when playback starts */
-  onPlaybackStart?: () => void;
-  /** Callback fired when playback completes */
-  onPlaybackComplete?: () => void;
+interface IngredientProps {
+  ingredient: IngredientModel
 }
 
-export const ActionReplayer: React.FC<ActionReplayerProps> = ({
-  defaultDelayMs = 300,
-  className = '',
-  onPlaybackStart,
-  onPlaybackComplete,
-}) => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isPlaying, setIsPlaying] = useState<boolean>(false);
-  const [currentStep, setCurrentStep] = useState<number>(0);
-  const [totalSteps, setTotalSteps] = useState<number>(0);
-  const [delayMs, setDelayMs] = useState<number>(defaultDelayMs);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const handleUploadClick = () => {
-    setErrorMessage(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-      fileInputRef.current.click();
-    }
-  };
-
-  const validateActions = (parsed: unknown): WorldAction[] | null => {
-    let actionArray: unknown[] | null = null;
-
-    if (Array.isArray(parsed)) {
-      actionArray = parsed;
-    } else if (parsed && typeof parsed === 'object') {
-      const obj = parsed as Record<string, unknown>;
-      if (Array.isArray(obj.actions)) {
-        actionArray = obj.actions;
-      } else if (Array.isArray(obj.actionLog)) {
-        actionArray = obj.actionLog;
-      }
-    }
-
-    if (!actionArray || !Array.isArray(actionArray) || actionArray.length === 0) {
-      return null;
-    }
-
-    const isValid = actionArray.every(
-      (item) => item && typeof item === 'object' && typeof (item as Record<string, unknown>).type === 'string'
-    );
-
-    return isValid ? (actionArray as WorldAction[]) : null;
-  };
-
-  const handleFileChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        try {
-          const content = e.target?.result as string;
-          const parsed = JSON.parse(content);
-          const actions = validateActions(parsed);
-
-          if (!actions) {
-            setErrorMessage('Invalid JSON format: Expected array of WorldActions.');
-            return;
-          }
-
-          setErrorMessage(null);
-          setIsPlaying(true);
-          setCurrentStep(0);
-          setTotalSteps(actions.length);
-          onPlaybackStart?.();
-
-          await actionPlayer.playLog(actions, {
-            delayMs,
-            resetWorld: true,
-            onStep: (curr, tot) => {
-              setCurrentStep(curr);
-              setTotalSteps(tot);
-            },
-            onComplete: () => {
-              setIsPlaying(false);
-              onPlaybackComplete?.();
-            },
-            onStop: () => {
-              setIsPlaying(false);
-            },
-          });
-        } catch (err) {
-          console.error('Failed to parse action log JSON:', err);
-          setErrorMessage('Failed to read or parse JSON file.');
-        }
-      };
-
-      reader.readAsText(file);
-    },
-    [delayMs, onPlaybackStart, onPlaybackComplete]
-  );
-
-  const handleStop = () => {
-    actionPlayer.stop();
-    setIsPlaying(false);
-  };
-
-  const percent = totalSteps > 0 ? Math.round((currentStep / totalSteps) * 100) : 0;
-
+export function Ingredient({ ingredient }: IngredientProps) {
   return (
-    <div className={`action-replayer ${className}`}>
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".json"
-        className="file-input-hidden"
-        onChange={handleFileChange}
-      />
-
-      {!isPlaying ? (
-        <button
-          type="button"
-          className="replayer-btn load-btn"
-          onClick={handleUploadClick}
-          title="Upload and replay a recorded action log JSON file"
-        >
-          📂 Load Action Log (.json)
-        </button>
-      ) : (
-        <button
-          type="button"
-          className="replayer-btn stop-btn"
-          onClick={handleStop}
-          title="Stop action playback"
-        >
-          ⏹ Stop Playback
-        </button>
-      )}
-
-      {!isPlaying && (
-        <select
-          className="delay-select"
-          value={delayMs}
-          onChange={(e) => setDelayMs(Number(e.target.value))}
-          title="Playback speed step delay"
-        >
-          <option value={100}>Fast (100ms)</option>
-          <option value={300}>Normal (300ms)</option>
-          <option value={600}>Slow (600ms)</option>
-        </select>
-      )}
-
-      {isPlaying && (
-        <div className="playback-status">
-          <span>
-            Step {currentStep} / {totalSteps}
-          </span>
-          <div className="progress-bar-container">
-            <div className="progress-bar-fill" style={{ width: `${percent}%` }} />
-          </div>
-        </div>
-      )}
-
-      {errorMessage && <span className="error-message">{errorMessage}</span>}
-    </div>
-  );
-};
+    <>
+      <span aria-hidden="true">{ingredient.icon}</span>
+      <span>{ingredient.name}</span>
+    </>
+  )
+}
 `````
 
 ## File: src/components/Recipe/RecipeRequirements.tsx
@@ -1326,148 +1008,6 @@ describe('recordSlice', () => {
 });
 `````
 
-## File: src/store/slices/recordSlice.ts
-`````typescript
-/**
- * FILE: recordSlice.ts
- *
- * PURPOSE:
- * Zustand slice for recording user interactions into a serialized WorldState recipe.
- *
- * RESPONSIBILITY:
- * - Manages recording state (active/inactive, start time).
- * - Captures initial and final WorldState snapshots (entities + containers).
- * - Logs dispatched WorldActions with relative timestamps.
- * - Serializes recorded data into JSON blob with download URL generation.
- */
-
-import type { StateCreator } from 'zustand/vanilla';
-import type { WorldAction } from '../../types/world';
-import type { RecordedAction, SerializedRecipeExport, SerializedWorldState } from '../../types/recording';
-import type { WorldStateStore } from '../types';
-
-export interface RecordSlice {
-  isRecording: boolean;
-  recordingStartTime: number | null;
-  recordedActions: RecordedAction[];
-  initialRecordingState: SerializedWorldState | null;
-  recordedDownloadUrl: string | null;
-  recordedFilename: string | null;
-
-  startRecording: () => void;
-  stopRecording: () => void;
-  recordAction: (action: WorldAction) => void;
-  clearRecording: () => void;
-}
-
-export const createRecordSlice: StateCreator<
-  WorldStateStore,
-  [['zustand/devtools', never], ['zustand/immer', never]],
-  [],
-  RecordSlice
-> = (set, get) => ({
-  isRecording: false,
-  recordingStartTime: null,
-  recordedActions: [],
-  initialRecordingState: null,
-  recordedDownloadUrl: null,
-  recordedFilename: null,
-
-  startRecording: () => {
-    const prevUrl = get().recordedDownloadUrl;
-    if (prevUrl) {
-      URL.revokeObjectURL(prevUrl);
-    }
-
-    const { entities, containers } = get();
-
-    set((state) => {
-      state.isRecording = true;
-      state.recordingStartTime = Date.now();
-      state.recordedActions = [];
-      state.recordedDownloadUrl = null;
-      state.recordedFilename = null;
-      state.initialRecordingState = JSON.parse(
-        JSON.stringify({
-          entities,
-          containers,
-        })
-      );
-    });
-  },
-
-  recordAction: (action: WorldAction) => {
-    const { isRecording, recordingStartTime } = get();
-    if (!isRecording) return;
-
-    const timestampMs = Date.now() - (recordingStartTime || Date.now());
-    set((state) => {
-      state.recordedActions.push({
-        type: action.type,
-        payload: JSON.parse(JSON.stringify(action.payload)),
-        timestampMs,
-      });
-    });
-  },
-
-  stopRecording: () => {
-    const { isRecording, recordingStartTime, recordedActions, initialRecordingState, recordedDownloadUrl } = get();
-    if (!isRecording) return;
-
-    if (recordedDownloadUrl) {
-      URL.revokeObjectURL(recordedDownloadUrl);
-    }
-
-    const { entities, containers } = get();
-    const finalState = JSON.parse(
-      JSON.stringify({
-        entities,
-        containers,
-      })
-    );
-
-    const durationMs = Date.now() - (recordingStartTime || Date.now());
-    const exportData: SerializedRecipeExport = {
-      version: '1.0.0',
-      title: 'Recorded Tortilla Recipe',
-      recordedAt: new Date().toISOString(),
-      durationMs,
-      actionCount: recordedActions.length,
-      initialState: initialRecordingState || { entities: {}, containers: {} },
-      finalState,
-      actions: recordedActions,
-    };
-
-    const jsonString = JSON.stringify(exportData, null, 2);
-    const blob = new Blob([jsonString], { type: 'application/json' });
-    const downloadUrl = URL.createObjectURL(blob);
-    const dateStr = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-    const filename = `tortilla-recorded-recipe-${dateStr}.json`;
-
-    set((state) => {
-      state.isRecording = false;
-      state.recordedDownloadUrl = downloadUrl;
-      state.recordedFilename = filename;
-    });
-  },
-
-  clearRecording: () => {
-    const prevUrl = get().recordedDownloadUrl;
-    if (prevUrl) {
-      URL.revokeObjectURL(prevUrl);
-    }
-    set((state) => {
-      state.isRecording = false;
-      state.recordingStartTime = null;
-      state.recordedActions = [];
-      state.initialRecordingState = null;
-      state.recordedDownloadUrl = null;
-      state.recordedFilename = null;
-    });
-  },
-});
-`````
-
 ## File: src/store/selectors.ts
 `````typescript
 /**
@@ -1899,6 +1439,45 @@ describe('Ingredient Usage Intent Actions & Domain Events', () => {
 });
 `````
 
+## File: src/types/Ingredient.ts
+`````typescript
+/**
+ * FILE: Ingredient.ts
+ *
+ * PURPOSE:
+ * Defines ingredient data structures.
+ *
+ * RESPONSIBILITY:
+ * - Represents ingredient definitions.
+ */
+
+export interface Ingredient {
+  id: string
+  name: string
+  icon: string
+}
+`````
+
+## File: src/types/RecipeIngredient.ts
+`````typescript
+/**
+ * FILE: RecipeIngredient.ts
+ *
+ * PURPOSE:
+ * Defines ingredient usage inside recipes.
+ *
+ * RESPONSIBILITY:
+ * - Stores ingredient quantity and unit information.
+ */
+
+export interface RecipeIngredient {
+  id: string
+  ingredientId: string
+  amount: number
+  unit: string
+}
+`````
+
 ## File: src/types/RecipeList.ts
 `````typescript
 /**
@@ -1915,45 +1494,6 @@ import type { Recipe, RecipeList as RecipeListArray } from './Recipe'
 
 export type { Recipe }
 export type RecipeList = RecipeListArray
-`````
-
-## File: src/types/recording.ts
-`````typescript
-/**
- * FILE: recording.ts
- *
- * PURPOSE:
- * Type definitions for serialized world state recipes and recorded user interaction sequences.
- *
- * RESPONSIBILITY:
- * - Defines the JSON schema for serialized recipe exports.
- * - Captures initial and final WorldState snapshots (entities + containers).
- * - Stores interaction sequences with relative timestamps for replay / serialization.
- */
-
-import type { Container, Entity, WorldAction } from './world';
-
-export interface RecordedAction {
-  type: WorldAction['type'] | string;
-  payload: Record<string, unknown>;
-  timestampMs: number;
-}
-
-export interface SerializedWorldState {
-  entities: Record<string, Entity>;
-  containers: Record<string, Container>;
-}
-
-export interface SerializedRecipeExport {
-  version: '1.0.0';
-  title: string;
-  recordedAt: string;
-  durationMs: number;
-  actionCount: number;
-  initialState: SerializedWorldState;
-  finalState: SerializedWorldState;
-  actions: RecordedAction[];
-}
 `````
 
 ## File: src/types/Requirement.ts
@@ -6424,38 +5964,938 @@ await runFollowRecipeScript('concebolla', 'chef', 'board', 500);
 ```
 `````
 
-## File: src/components/Ingredients/Ingredient.tsx
+## File: src/components/Controls/ActionRecorder.scss
+`````scss
+.action-recorder-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--surface, #ffffff);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+  .recorder-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+
+    .recorder-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-h, #1e293b);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .recorder-subtitle {
+      font-size: 13px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+  }
+
+  .recorder-actions-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+
+    .rec-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
+      color: #334155;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover:not(:disabled) {
+        background: #f1f5f9;
+        border-color: #94a3b8;
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      &.start-rec {
+        background: #ef4444;
+        color: #ffffff;
+        border-color: #dc2626;
+
+        &:hover {
+          background: #dc2626;
+        }
+
+        &.is-recording {
+          animation: recPulse 1.5s infinite;
+        }
+      }
+
+      &.stop-rec {
+        background: #475569;
+        color: #ffffff;
+        border-color: #334155;
+
+        &:hover {
+          background: #334155;
+        }
+      }
+
+      &.translate-btn {
+        background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+        color: #ffffff;
+        border: none;
+        box-shadow: 0 2px 6px rgba(99, 102, 241, 0.3);
+
+        &:hover:not(:disabled) {
+          background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+          transform: translateY(-1px);
+        }
+      }
+    }
+  }
+
+  .used-ingredients-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 13px;
+    flex-wrap: wrap;
+
+    .bar-label {
+      font-weight: 700;
+      color: #334155;
+    }
+
+    .no-ingredients-hint {
+      color: #94a3b8;
+      font-style: italic;
+    }
+
+    .chips-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+
+      .ingredient-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: #ffffff;
+        border: 1px solid #cbd5e1;
+        border-radius: 16px;
+        padding: 3px 10px;
+        font-weight: 600;
+        color: #1e293b;
+        font-size: 12px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      }
+    }
+  }
+
+  .translation-preview-panel {
+    margin-top: 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 16px;
+
+    .translation-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+
+      h4 {
+        margin: 0;
+        font-size: 16px;
+        color: #1e293b;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+    }
+
+    .translation-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+
+      .tab-btn {
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        border: 1px solid #cbd5e1;
+        background: #ffffff;
+        color: #475569;
+        cursor: pointer;
+
+        &.active {
+          background: #6366f1;
+          color: #ffffff;
+          border-color: #4f46e5;
+        }
+      }
+    }
+
+    .translation-content {
+      pre {
+        background: #0f172a;
+        color: #f8fafc;
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        max-height: 240px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+    }
+
+    .translation-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+
+      .action-btn {
+        padding: 8px 14px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        border: 1px solid #cbd5e1;
+        background: #ffffff;
+        color: #1e293b;
+
+        &.primary {
+          background: #10b981;
+          color: #ffffff;
+          border-color: #059669;
+
+          &:hover {
+            background: #059669;
+          }
+        }
+      }
+    }
+  }
+}
+
+@keyframes recPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+`````
+
+## File: src/components/Controls/ActionRecorder.tsx
 `````typescript
 /**
- * FILE: Ingredient.tsx
+ * FILE: ActionRecorder.tsx
  *
  * PURPOSE:
- * Visual representation of one ingredient.
- *
- * RESPONSIBILITY:
- * - Displays ingredient information.
- * - Handles ingredient presentation only.
- *
- * SHOULD NOT:
- * - Manage inventory.
- * - Apply game rules.
- * - Modify world state.
+ * Dedicated UI panel component for recording human kitchen actions, inspecting logs,
+ * and translating human actions into mascot-guided recipes.
  */
 
-import type { Ingredient as IngredientModel } from '../../types/Ingredient'
+import React, { useState, useMemo } from 'react';
+import { useStore } from 'zustand';
+import { worldStore } from '../../store/worldStore';
+import { ActionReplayer } from './ActionReplayer';
+import { actionPlayer } from '../../systems/actionPlayer';
+import {
+  translateHumanActionsToMascotActions,
+  translateHumanActionsToRecipe,
+} from '../../systems/recipeTranslator';
+import type { Recipe } from '../../types/Recipe';
+import type { WorldAction } from '../../types/actions';
+import './ActionRecorder.scss';
 
-interface IngredientProps {
-  ingredient: IngredientModel
-}
+export const ActionRecorder: React.FC = () => {
+  const isRecording = useStore(worldStore, (state) => state.isRecording);
+  const recordedActions = useStore(worldStore, (state) => state.recordedActions);
+  const usedIngredients = useStore(worldStore, (state) => state.usedIngredients);
+  const startRecording = useStore(worldStore, (state) => state.startRecording);
+  const stopRecording = useStore(worldStore, (state) => state.stopRecording);
+  const clearRecording = useStore(worldStore, (state) => state.clearRecording);
 
-export function Ingredient({ ingredient }: IngredientProps) {
+  const [showTranslator, setShowTranslator] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<'mascotActions' | 'recipeFile'>('mascotActions');
+  const [isPlayingTranslated, setIsPlayingTranslated] = useState<boolean>(false);
+
+  // Translate human actions to mascot actions sequence
+  const translatedMascotActions = useMemo(() => {
+    if (recordedActions.length === 0) return [];
+    return translateHumanActionsToMascotActions(recordedActions);
+  }, [recordedActions]);
+
+  // Translate human actions to declarative Recipe definition
+  const translatedRecipe: Recipe | null = useMemo(() => {
+    if (recordedActions.length === 0) return null;
+    return translateHumanActionsToRecipe(recordedActions, {
+      recipeName: 'Custom Translated Recipe',
+    });
+  }, [recordedActions]);
+
+  // Handle downloading translated recipe JSON
+  const handleDownloadRecipe = () => {
+    if (!translatedRecipe) return;
+    const jsonStr = JSON.stringify(translatedRecipe, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${translatedRecipe.id || 'translated-recipe'}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Handle replaying translated mascot action sequence
+  const handleReplayTranslatedMascotSequence = async () => {
+    if (translatedMascotActions.length === 0) return;
+    setIsPlayingTranslated(true);
+
+    await actionPlayer.playLog(translatedMascotActions as unknown as WorldAction[], {
+      delayMs: 300,
+      resetWorld: true,
+      onComplete: () => setIsPlayingTranslated(false),
+      onStop: () => setIsPlayingTranslated(false),
+    });
+  };
+
   return (
-    <>
-      <span aria-hidden="true">{ingredient.icon}</span>
-      <span>{ingredient.name}</span>
-    </>
-  )
+    <div className="action-recorder-container">
+      <div className="recorder-header">
+        <div>
+          <div className="recorder-title">
+            <span>🎥 Action Recording & Translator</span>
+          </div>
+          <div className="recorder-subtitle">
+            Record live human interactions, replay logs, or translate actions into a mascot recipe.
+          </div>
+        </div>
+
+        <div className="recorder-status">
+          <span className="badge">
+            Captured Actions: <strong>{recordedActions.length}</strong>
+          </span>
+        </div>
+      </div>
+
+      <div className="recorder-actions-bar">
+        {!isRecording ? (
+          <button
+            type="button"
+            className="rec-btn start-rec"
+            onClick={startRecording}
+            title="Start recording live kitchen interactions"
+          >
+            🔴 Start Recording
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="rec-btn stop-rec"
+            onClick={stopRecording}
+            title="Stop recording"
+          >
+            ⏹ Stop Recording ({recordedActions.length})
+          </button>
+        )}
+
+        {recordedActions.length > 0 && (
+          <button
+            type="button"
+            className="rec-btn"
+            onClick={clearRecording}
+            title="Clear current recorded actions log"
+          >
+            🗑 Clear Log
+          </button>
+        )}
+
+        <button
+          type="button"
+          className="rec-btn translate-btn"
+          disabled={recordedActions.length === 0}
+          onClick={() => setShowTranslator(!showTranslator)}
+          title="Translate human recorded actions into a mascot recipe with movement"
+        >
+          🪄 {showTranslator ? 'Hide Translator' : 'Translate to Mascot Recipe'}
+        </button>
+
+        <ActionReplayer defaultDelayMs={300} />
+      </div>
+
+      <div className="used-ingredients-bar">
+        <span className="bar-label">🛒 Saved Ingredients ({usedIngredients.length}):</span>
+        {usedIngredients.length === 0 ? (
+          <span className="no-ingredients-hint">
+            No ingredients used yet. Drag items from the right panel into the kitchen.
+          </span>
+        ) : (
+          <div className="chips-list">
+            {usedIngredients.map((ing) => (
+              <span key={ing.id} className="ingredient-chip">
+                {ing.icon} {ing.name}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {showTranslator && translatedRecipe && (
+        <div className="translation-preview-panel">
+          <div className="translation-header">
+            <h4>🪄 Translated Mascot Recipe Preview</h4>
+          </div>
+
+          <div className="translation-tabs">
+            <button
+              type="button"
+              className={`tab-btn ${activeTab === 'mascotActions' ? 'active' : ''}`}
+              onClick={() => setActiveTab('mascotActions')}
+            >
+              🤖 Mascot Action Sequence ({translatedMascotActions.length} steps)
+            </button>
+            <button
+              type="button"
+              className={`tab-btn ${activeTab === 'recipeFile' ? 'active' : ''}`}
+              onClick={() => setActiveTab('recipeFile')}
+            >
+              📜 Declarative Recipe File (.json)
+            </button>
+          </div>
+
+          <div className="translation-content">
+            {activeTab === 'mascotActions' ? (
+              <pre>{JSON.stringify(translatedMascotActions, null, 2)}</pre>
+            ) : (
+              <pre>{JSON.stringify(translatedRecipe, null, 2)}</pre>
+            )}
+          </div>
+
+          <div className="translation-actions">
+            <button
+              type="button"
+              className="action-btn primary"
+              onClick={handleReplayTranslatedMascotSequence}
+              disabled={isPlayingTranslated}
+            >
+              {isPlayingTranslated ? '⏳ Replaying...' : '▶ Replay Translated Mascot Sequence'}
+            </button>
+
+            <button type="button" className="action-btn" onClick={handleDownloadRecipe}>
+              💾 Download Translated Recipe File (.json)
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+`````
+
+## File: src/components/Controls/ActionReplayer.scss
+`````scss
+/**
+ * FILE: src/components/Controls/ActionReplayer.scss
+ *
+ * PURPOSE:
+ * SCSS styles for the ActionReplayer JSON load/playback component.
+ */
+
+@use 'sass:color';
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.action-replayer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+
+  .file-input-hidden {
+    display: none;
+  }
+
+  .step-controls-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+
+    .step-btn {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+      color: #334155;
+
+      &:hover:not(:disabled) {
+        background: #e2e8f0;
+        border-color: #94a3b8;
+      }
+
+      &.step-forward-btn {
+        background: #eff6ff;
+        border-color: #93c5fd;
+        color: #1d4ed8;
+
+        &:hover:not(:disabled) {
+          background: #dbeafe;
+          border-color: #3b82f6;
+        }
+      }
+    }
+
+    .play-btn {
+      background: #f0fdf4;
+      border-color: #86efac;
+      color: #15803d;
+
+      &:hover:not(:disabled) {
+        background: #dcfce7;
+        border-color: #22c55e;
+      }
+    }
+
+    .reset-btn {
+      background: #fef2f2;
+      border-color: #fca5a5;
+      color: #b91c1c;
+
+      &:hover:not(:disabled) {
+        background: #fee2e2;
+        border-color: #ef4444;
+      }
+    }
+  }
+
+  .replayer-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    border-radius: $radius-sm;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid $warm-border;
+    background: #ffffff;
+    color: $dark-brown;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+    &:hover:not(:disabled) {
+      background: $tortilla-yellow-light;
+      border-color: $tortilla-yellow;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    &.load-btn {
+      border-color: $olive-green;
+      color: $olive-green-hover;
+
+      &:hover:not(:disabled) {
+        background: rgba(107, 142, 35, 0.1);
+      }
+    }
+
+    &.stop-btn {
+      border-color: $terracotta;
+      color: $terracotta;
+      background: $terracotta-light;
+
+      &:hover:not(:disabled) {
+        background: $terracotta;
+        color: #ffffff;
+      }
+    }
+  }
+
+  .playback-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: $warm-surface;
+    border: 1px solid $warm-border;
+    padding: 4px 12px;
+    border-radius: $radius-sm;
+    font-size: 12px;
+    font-weight: 700;
+    color: $dark-brown;
+
+    .progress-bar-container {
+      width: 80px;
+      height: 6px;
+      background: rgba(0, 0, 0, 0.08);
+      border-radius: 3px;
+      overflow: hidden;
+
+      .progress-bar-fill {
+        height: 100%;
+        background: $olive-green;
+        transition: width 0.15s ease-out;
+      }
+    }
+  }
+
+  .delay-select {
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: $radius-sm;
+    border: 1px solid $warm-border;
+    background: #ffffff;
+    color: $dark-brown;
+    cursor: pointer;
+
+    &:focus {
+      outline: none;
+      border-color: $tortilla-yellow;
+    }
+  }
+
+  .error-message {
+    font-size: 12px;
+    color: $terracotta;
+    font-weight: 600;
+  }
 }
+`````
+
+## File: src/components/Controls/IngredientsSidebar.scss
+`````scss
+.ingredients-sidebar-container {
+  width: 280px;
+  min-width: 260px;
+  background: var(--surface, #ffffff);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+
+  .sidebar-header {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    .sidebar-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sidebar-subtitle {
+      font-size: 12px;
+      color: #64748b;
+    }
+  }
+
+  .sidebar-search {
+    width: 100%;
+
+    input {
+      width: 100%;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s ease;
+
+      &:focus {
+        border-color: #6366f1;
+      }
+    }
+  }
+
+  .sidebar-category-tabs {
+    display: flex;
+    gap: 6px;
+
+    .tab-btn {
+      flex: 1;
+      padding: 5px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
+      color: #475569;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s ease;
+
+      &.active {
+        background: #8b5cf6;
+        color: #ffffff;
+        border-color: #7c3aed;
+      }
+    }
+  }
+
+  .items-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-top: 4px;
+
+    .sidebar-item-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      position: relative;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: #f1f5f9;
+        border-color: #cbd5e1;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      }
+
+      .item-entity-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+      }
+
+      .quick-add-btn {
+        margin-top: 6px;
+        width: 100%;
+        padding: 4px 6px;
+        font-size: 11px;
+        font-weight: 700;
+        border-radius: 6px;
+        border: 1px solid #cbd5e1;
+        background: #ffffff;
+        color: #334155;
+        cursor: pointer;
+        transition: all 0.15s ease;
+
+        &:hover {
+          background: #10b981;
+          color: #ffffff;
+          border-color: #059669;
+        }
+      }
+    }
+  }
+
+  .no-results {
+    padding: 16px;
+    text-align: center;
+    font-size: 13px;
+    color: #94a3b8;
+    font-style: italic;
+  }
+}
+`````
+
+## File: src/components/Controls/IngredientsSidebar.tsx
+`````typescript
+/**
+ * FILE: IngredientsSidebar.tsx
+ *
+ * PURPOSE:
+ * Right-side ingredients and tools catalog panel for recording mode.
+ *
+ * RESPONSIBILITY:
+ * - Displays all available ingredients and tools from the catalog.
+ * - Enables drag-and-drop or quick-add into kitchen workstations.
+ * - Filters items by category (All, Ingredients, Tools) and search query.
+ */
+
+import React, { useState, useMemo } from 'react';
+import { useStore } from 'zustand';
+import { worldStore } from '../../store/worldStore';
+import { ingredients } from '../../data/catalog/ingredients';
+import { catalogTools } from '../../data/catalog/tools';
+import { EntityView } from '../World/EntityView';
+import type { Entity } from '../../types/world';
+import './IngredientsSidebar.scss';
+
+export const IngredientsSidebar: React.FC = () => {
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [activeTab, setActiveTab] = useState<'all' | 'ingredients' | 'tools'>('all');
+
+  const entities = useStore(worldStore, (state) => state.entities);
+  const containers = useStore(worldStore, (state) => state.containers);
+
+  // Combine ingredients and tools catalog list
+  const catalogList = useMemo(() => {
+    const ingEntities: Entity[] = ingredients.map((ing) => {
+      const existing = entities[ing.id];
+      if (existing) return existing;
+      return {
+        id: ing.id,
+        ingredientId: ing.id,
+        name: `${ing.icon} ${ing.name}`,
+        type: 'ingredient',
+        state: {},
+      };
+    });
+
+    const toolEntities: Entity[] = catalogTools.map((tool) => {
+      const existing = entities[tool.id];
+      if (existing) return existing;
+      return {
+        id: tool.id,
+        name: `${tool.icon} ${tool.name}`,
+        type: 'tool',
+        state: {},
+      };
+    });
+
+    return { ingEntities, toolEntities };
+  }, [entities]);
+
+  // Filter items based on activeTab and searchQuery
+  const filteredItems = useMemo(() => {
+    let items: Entity[] = [];
+    if (activeTab === 'all') {
+      items = [...catalogList.ingEntities, ...catalogList.toolEntities];
+    } else if (activeTab === 'ingredients') {
+      items = catalogList.ingEntities;
+    } else if (activeTab === 'tools') {
+      items = catalogList.toolEntities;
+    }
+
+    if (!searchQuery.trim()) return items;
+
+    const query = searchQuery.toLowerCase();
+    return items.filter(
+      (item) => item.name.toLowerCase().includes(query) || item.id.toLowerCase().includes(query)
+    );
+  }, [catalogList, activeTab, searchQuery]);
+
+  // Handle quick-adding an entity into the primary workstation (e.g., board or bowl)
+  const handleQuickAdd = (entityId: string) => {
+    // Find a target container (preferably board or bowl, or first available workstation)
+    const targetId =
+      containers['board']?.id ||
+      containers['bowl']?.id ||
+      Object.keys(containers).find((id) => id !== 'despensa') ||
+      'board';
+
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: {
+        entityId,
+        targetContainerId: targetId,
+      },
+    });
+  };
+
+  return (
+    <div className="ingredients-sidebar-container" data-container-id="despensa">
+      <div className="sidebar-header">
+        <div className="sidebar-title">
+          <span>🧺 Ingredients Catalog</span>
+        </div>
+        <div className="sidebar-subtitle">
+          Drag items or tap ➕ to place into the kitchen workstation
+        </div>
+      </div>
+
+      <div className="sidebar-search">
+        <input
+          type="text"
+          placeholder="🔍 Search ingredients or tools..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
+
+      <div className="sidebar-category-tabs">
+        <button
+          type="button"
+          className={`tab-btn ${activeTab === 'all' ? 'active' : ''}`}
+          onClick={() => setActiveTab('all')}
+        >
+          All ({catalogList.ingEntities.length + catalogList.toolEntities.length})
+        </button>
+        <button
+          type="button"
+          className={`tab-btn ${activeTab === 'ingredients' ? 'active' : ''}`}
+          onClick={() => setActiveTab('ingredients')}
+        >
+          Ingredients ({catalogList.ingEntities.length})
+        </button>
+        <button
+          type="button"
+          className={`tab-btn ${activeTab === 'tools' ? 'active' : ''}`}
+          onClick={() => setActiveTab('tools')}
+        >
+          Tools ({catalogList.toolEntities.length})
+        </button>
+      </div>
+
+      <div className="items-grid">
+        {filteredItems.map((item) => (
+          <div key={item.id} className="sidebar-item-card">
+            <div className="item-entity-wrapper">
+              <EntityView entity={item} containerId="despensa" readOnly={false} />
+            </div>
+            <button
+              type="button"
+              className="quick-add-btn"
+              onClick={() => handleQuickAdd(item.id)}
+              title={`Add ${item.name} to workstation`}
+            >
+              ➕ Take
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {filteredItems.length === 0 && (
+        <div className="no-results">No ingredients found matching "{searchQuery}"</div>
+      )}
+    </div>
+  );
+};
 `````
 
 ## File: src/components/Ingredients/Ingredients.scss
@@ -6593,143 +7033,96 @@ export function Ingredient({ ingredient }: IngredientProps) {
 }
 `````
 
-## File: src/components/Mascot/TortillaSvg.scss
-`````scss
+## File: src/components/Ingredients/RecipeIngredientItem.tsx
+`````typescript
 /**
- * FILE: src/components/Mascot/TortillaSvg.scss
+ * FILE: RecipeIngredientItem.tsx
  *
  * PURPOSE:
- * Styles and animations for TortillaSvg mascot using SCSS variables and mixins.
+ * Displays an ingredient used in a recipe.
+ *
+ * RESPONSIBILITY:
+ * - Shows ingredient amount and unit.
+ * - Represents recipe-specific ingredient data.
  */
 
-@use 'sass:color';
-@use '../../styles/variables' as *;
-@use '../../styles/mixins' as *;
+import type { Ingredient } from '../../types/Ingredient'
 
-/* === Root SVG Styles & State Animations === */
-.tortilla-svg {
-  transform-origin: center;
-  overflow: visible;
-
-  &.is-idle {
-    animation: tortillaIdle 2.5s infinite ease-in-out;
-  }
-
-  &.is-flipping {
-    animation: tortillaFlip 0.8s ease-in-out forwards;
-  }
+interface RecipeIngredientItemProps {
+  key?: string | number
+  ingredient: Ingredient
+  amount: number
+  unit: string
 }
 
-@keyframes tortillaIdle {
-  0%, 100% {
-    transform: translateY(0) scaleY(1);
-  }
-  50% {
-    transform: translateY(-3px) scaleY(1.02);
-  }
+export function RecipeIngredientItem({
+  ingredient,
+  amount,
+  unit,
+}: RecipeIngredientItemProps) {
+  return (
+    <li className="recipe-ingredient-item">
+      <span aria-hidden="true">{ingredient.icon}</span>
+      <span className="recipe-ingredient-name">{ingredient.name}</span>
+      <span className="recipe-ingredient-amount">
+        {amount} {unit}
+      </span>
+    </li>
+  )
+}
+`````
+
+## File: src/components/Ingredients/RecipeIngredientList.tsx
+`````typescript
+/**
+ * FILE: RecipeIngredientList.tsx
+ *
+ * PURPOSE:
+ * Displays the ingredients required by a recipe.
+ *
+ * RESPONSIBILITY:
+ * - Renders recipe ingredient collection.
+ * - Provides recipe-oriented presentation.
+ */
+
+import type { Ingredient } from '../../types/Ingredient'
+import type { RecipeIngredient } from '../../types/RecipeIngredient'
+import './Ingredients.scss'
+import { RecipeIngredientItem } from './RecipeIngredientItem'
+
+interface RecipeIngredientListProps {
+  ingredients: RecipeIngredient[]
+  ingredientCatalog: Ingredient[]
 }
 
-@keyframes tortillaFlip {
-  0% {
-    transform: translateY(0) rotateX(0deg) scale(1);
-  }
-  50% {
-    transform: translateY(-60px) rotateX(180deg) scale(1.15);
-  }
-  100% {
-    transform: translateY(0) rotateX(360deg) scale(1);
-  }
-}
+export function RecipeIngredientList({
+  ingredients,
+  ingredientCatalog,
+}: RecipeIngredientListProps) {
+  const ingredientsById = new Map(
+    ingredientCatalog.map((ingredient) => [ingredient.id, ingredient]),
+  )
 
-/* === Physical Movement & Wrapper Animations === */
-.mascot-card {
-  @include ceramic-card($warm-surface, $warm-border);
-  padding: 12px 16px;
-}
+  return (
+    <ul className="recipe-ingredient-list">
+      {ingredients.map((recipeIngredient) => {
+        const ingredient = ingredientsById.get(recipeIngredient.ingredientId)
 
-.mascot-wrapper {
-  position: absolute;
-  top: 0;
-  left: 0;
-  transform: translate3d(var(--offset-x, 0px), var(--offset-y, 0px), 0);
-  transition: transform 0.65s cubic-bezier(0.34, 1.25, 0.64, 1), filter 0.3s ease;
-  will-change: transform, filter;
-  z-index: 1;
+        if (!ingredient) {
+          return null
+        }
 
-  &.is-floating {
-    z-index: 1000;
-    filter: drop-shadow(0 14px 22px rgba(44, 26, 20, 0.25));
-  }
-
-  &.is-holding {
-    animation: mascotGrabPulse 0.4s ease-in-out;
-  }
-}
-
-@keyframes mascotGrabPulse {
-  0% { transform: translate3d(var(--offset-x, 0px), var(--offset-y, 0px), 0) scale(1); }
-  50% { transform: translate3d(var(--offset-x, 0px), var(--offset-y, 0px), 0) scale(1.1); }
-  100% { transform: translate3d(var(--offset-x, 0px), var(--offset-y, 0px), 0) scale(1); }
-}
-
-/* === Held Ingredient Badge CSS Animations === */
-.mascot-held-badge {
-  position: absolute;
-  bottom: -8px;
-  right: -12px;
-  background: #ffffff;
-  border: 2px solid $tortilla-yellow;
-  border-radius: 20px;
-  padding: 3px 8px;
-  box-shadow: 0 4px 14px rgba(44, 26, 20, 0.18);
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  font-weight: bold;
-  color: $dark-brown;
-  white-space: nowrap;
-  pointer-events: none;
-  z-index: 1001;
-  animation: heldBadgeEnter 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, heldBadgeFloat 2.5s ease-in-out infinite 0.35s;
-}
-
-@keyframes heldBadgeEnter {
-  0% {
-    opacity: 0;
-    transform: translateY(15px) scale(0);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes heldBadgeFloat {
-  0%, 100% {
-    transform: translateY(0) rotate(-2deg);
-  }
-  50% {
-    transform: translateY(-4px) rotate(3deg);
-  }
-}
-
-/* === Internal Element Animations === */
-.tortilla-blink {
-  animation: tortillaBlink 4s infinite;
-  transform-box: fill-box;
-  transform-origin: center;
-}
-
-@keyframes tortillaBlink {
-  0%, 92%, 100% {
-    transform: scaleY(0);
-    opacity: 0;
-  }
-  94%, 98% {
-    transform: scaleY(1);
-    opacity: 1;
-  }
+        return (
+          <RecipeIngredientItem
+            key={recipeIngredient.id}
+            amount={recipeIngredient.amount}
+            ingredient={ingredient}
+            unit={recipeIngredient.unit}
+          />
+        )
+      })}
+    </ul>
+  )
 }
 `````
 
@@ -7499,23 +7892,407 @@ export interface RecipeRunnerContext {
 }
 `````
 
-## File: src/types/RecipeIngredient.ts
+## File: src/systems/recipeTranslator.test.ts
+`````typescript
+import { describe, it, expect } from 'vitest';
+import {
+  translateHumanActionsToMascotActions,
+  translateHumanActionsToRecipe,
+} from './recipeTranslator';
+import type { RecordedAction } from '../types/recording';
+
+describe('recipeTranslator system', () => {
+  it('translates human MOVE_ENTITY into interleaved mascot move, grab, move, drop, and move_entity actions', () => {
+    const humanActions: RecordedAction[] = [
+      {
+        type: 'MOVE_ENTITY',
+        payload: { entityId: 'patata_1', targetContainerId: 'board', sourceContainerId: 'despensa' },
+        timestampMs: 1000,
+      },
+    ];
+
+    const translated = translateHumanActionsToMascotActions(humanActions);
+
+    expect(translated).toHaveLength(5);
+    expect(translated[0].type).toBe('MASCOT_MOVE');
+    expect(translated[0].payload.targetContainerId).toBe('despensa');
+
+    expect(translated[1].type).toBe('MASCOT_GRAB');
+    expect(translated[1].payload.entityId).toBe('patata_1');
+
+    expect(translated[2].type).toBe('MASCOT_MOVE');
+    expect(translated[2].payload.targetContainerId).toBe('board');
+
+    expect(translated[3].type).toBe('MASCOT_DROP');
+    expect(translated[3].payload.targetContainerId).toBe('board');
+
+    expect(translated[4].type).toBe('MOVE_ENTITY');
+    expect(translated[4].payload.entityId).toBe('patata_1');
+  });
+
+  it('translates TOGGLE_BURNER and PREPARE_INGREDIENT with mascot move focus', () => {
+    const humanActions: RecordedAction[] = [
+      {
+        type: 'TOGGLE_BURNER',
+        payload: { containerId: 'burner1' },
+        timestampMs: 1000,
+      },
+      {
+        type: 'PREPARE_INGREDIENT',
+        payload: { entityId: 'cebolla_1', preparation: 'sliced' },
+        timestampMs: 1300,
+      },
+    ];
+
+    const translated = translateHumanActionsToMascotActions(humanActions);
+
+    expect(translated[0].type).toBe('MASCOT_MOVE');
+    expect(translated[0].payload.targetContainerId).toBe('burner1');
+    expect(translated[1].type).toBe('TOGGLE_BURNER');
+
+    expect(translated[2].type).toBe('MASCOT_MOVE');
+    expect(translated[3].type).toBe('PREPARE_INGREDIENT');
+  });
+
+  it('translates human action sequence into a declarative Recipe object', () => {
+    const humanActions: RecordedAction[] = [
+      {
+        type: 'MOVE_ENTITY',
+        payload: { entityId: 'patata_1', targetContainerId: 'board', sourceContainerId: 'despensa' },
+        timestampMs: 1000,
+      },
+      {
+        type: 'PREPARE_INGREDIENT',
+        payload: { entityId: 'patata_1', preparation: 'sliced' },
+        timestampMs: 1300,
+      },
+    ];
+
+    const recipe = translateHumanActionsToRecipe(humanActions, { recipeName: 'Test Tortilla' });
+
+    expect(recipe.name).toBe('Test Tortilla');
+    expect(recipe.requirements).toHaveProperty('patata');
+    expect(recipe.steps.length).toBeGreaterThan(2);
+
+    const moveStep = recipe.steps.find((s) => s.action === 'move');
+    expect(moveStep).toBeDefined();
+    if (moveStep && moveStep.action === 'move') {
+      expect(moveStep.ingredient).toBe('patata');
+      expect(moveStep.target).toBe('board');
+    }
+
+    const prepStep = recipe.steps.find((s) => s.action === 'prepare');
+    expect(prepStep).toBeDefined();
+    if (prepStep && prepStep.action === 'prepare') {
+      expect(prepStep.preparation).toBe('sliced');
+    }
+  });
+});
+`````
+
+## File: src/systems/recipeTranslator.ts
 `````typescript
 /**
- * FILE: RecipeIngredient.ts
+ * FILE: recipeTranslator.ts
  *
  * PURPOSE:
- * Defines ingredient usage inside recipes.
+ * Translator system converting human-recorded world actions into mascot-guided recipes
+ * and executable mascot action sequences.
  *
  * RESPONSIBILITY:
- * - Stores ingredient quantity and unit information.
+ * - Infers source/target containers and entity locations for human actions.
+ * - Injects explicit Mascot focus, grab, move, and drop actions for raw human interactions.
+ * - Generates clean, declarative Recipe definitions (with requirements & steps) compatible with RecipeRunner.
  */
 
-export interface RecipeIngredient {
-  id: string
-  ingredientId: string
-  amount: number
-  unit: string
+import type { RecordedAction } from '../types/recording';
+import type { Recipe } from '../types/Recipe';
+import type { RecipeStep } from '../types/RecipeStep';
+import type { WorldAction } from '../types/actions';
+
+export interface TranslatorOptions {
+  recipeName?: string;
+  recipeId?: string;
+  mascotId?: string;
+  defaultSourceContainer?: string;
+}
+
+/**
+ * Utility to extract clean entity name or catalog ID from an entityId.
+ */
+function cleanEntityName(entityId?: string): string {
+  if (!entityId) return 'item';
+  return entityId
+    .replace(/_\d+$/, '')
+    .replace(/_/g, ' ')
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .toLowerCase();
+}
+
+/**
+ * Translates human-recorded actions into an expanded mascot-guided action sequence
+ * where mascot focus, grab, move, and drop actions are explicitly interleaved.
+ */
+export function translateHumanActionsToMascotActions(
+  actions: (RecordedAction | WorldAction)[],
+  options: TranslatorOptions = {}
+): RecordedAction[] {
+  const mascotId = options.mascotId || 'chef';
+  const defaultSource = options.defaultSourceContainer || 'despensa';
+
+  // Track entity locations in simulated containers
+  const entityLocations: Record<string, string> = {};
+  const translated: RecordedAction[] = [];
+
+  let nowMs = Date.now();
+
+  const addAction = (type: string, payload: Record<string, unknown>) => {
+    translated.push({
+      type,
+      payload,
+      timestampMs: nowMs,
+    });
+    nowMs += 300;
+  };
+
+  for (const rawAct of actions) {
+    const act = rawAct as RecordedAction;
+    const { type, payload = {} } = act;
+
+    switch (type) {
+      case 'MOVE_ENTITY': {
+        const entityId = (payload.entityId as string) || '';
+        const targetContainerId = (payload.targetContainerId as string) || 'board';
+        const sourceContainerId =
+          (payload.sourceContainerId as string) || entityLocations[entityId] || defaultSource;
+
+        // 1. Mascot moves to source container
+        addAction('MASCOT_MOVE', { mascotId, targetContainerId: sourceContainerId });
+
+        // 2. Mascot grabs ingredient
+        addAction('MASCOT_GRAB', { mascotId, entityId, sourceContainerId });
+
+        // 3. Mascot moves to target container
+        addAction('MASCOT_MOVE', { mascotId, targetContainerId });
+
+        // 4. Mascot drops ingredient
+        addAction('MASCOT_DROP', { mascotId, targetContainerId });
+
+        // 5. Actual entity movement
+        addAction('MOVE_ENTITY', { entityId, targetContainerId, sourceContainerId });
+
+        // Update entity location
+        if (entityId) {
+          entityLocations[entityId] = targetContainerId;
+        }
+        break;
+      }
+
+      case 'ADD_ENTITY': {
+        const entity = payload.entity as { id?: string; name?: string } | undefined;
+        const entityId = entity?.id || '';
+        const containerId = (payload.containerId as string) || defaultSource;
+
+        addAction('MASCOT_MOVE', { mascotId, targetContainerId: containerId });
+        addAction('ADD_ENTITY', payload);
+
+        if (entityId) {
+          entityLocations[entityId] = containerId;
+        }
+        break;
+      }
+
+      case 'REMOVE_ENTITY': {
+        const entityId = (payload.entityId as string) || '';
+        const currentLoc = entityLocations[entityId] || defaultSource;
+
+        addAction('MASCOT_MOVE', { mascotId, targetContainerId: currentLoc });
+        addAction('REMOVE_ENTITY', payload);
+
+        delete entityLocations[entityId];
+        break;
+      }
+
+      case 'TOGGLE_BURNER': {
+        const containerId = (payload.containerId as string) || 'burner1';
+        addAction('MASCOT_MOVE', { mascotId, targetContainerId: containerId });
+        addAction('TOGGLE_BURNER', payload);
+        break;
+      }
+
+      case 'PREPARE_INGREDIENT': {
+        const entityId = (payload.entityId as string) || '';
+        const currentLoc = entityLocations[entityId] || 'board';
+
+        addAction('MASCOT_MOVE', { mascotId, targetContainerId: currentLoc });
+        addAction('PREPARE_INGREDIENT', payload);
+        break;
+      }
+
+      case 'COOK_INGREDIENT': {
+        const entityId = (payload.entityId as string) || '';
+        const currentLoc = entityLocations[entityId] || 'pan';
+
+        addAction('MASCOT_MOVE', { mascotId, targetContainerId: currentLoc });
+        addAction('COOK_INGREDIENT', payload);
+        break;
+      }
+
+      case 'MASCOT_FLIP': {
+        addAction('MASCOT_FLIP', { mascotId });
+        break;
+      }
+
+      case 'RESET_WORLD': {
+        addAction('RESET_WORLD', {});
+        addAction('MASCOT_CLEAR_GAZE', { mascotId });
+        // Reset entity locations map
+        for (const k of Object.keys(entityLocations)) {
+          delete entityLocations[k];
+        }
+        break;
+      }
+
+      default: {
+        // Pass through any existing mascot actions or custom actions
+        addAction(type, payload);
+        break;
+      }
+    }
+  }
+
+  return translated;
+}
+
+/**
+ * Translates human-recorded world actions into a declarative Recipe object
+ * that can be saved as a recipe file or executed directly via RecipeRunner.
+ */
+export function translateHumanActionsToRecipe(
+  actions: (RecordedAction | WorldAction)[],
+  options: TranslatorOptions = {}
+): Recipe {
+  const recipeId = options.recipeId || `translated-recipe-${Date.now()}`;
+  const name = options.recipeName || 'Recorded Kitchen Recipe';
+
+  const requirementsMap: Record<string, { entityId: string; amount: number; unit: string; name: string }> = {};
+  const steps: RecipeStep[] = [];
+
+  const entityLocations: Record<string, string> = {};
+
+  steps.push({
+    action: 'speak',
+    message: `Starting ${name}`,
+  });
+
+  for (const rawAct of actions) {
+    const act = rawAct as RecordedAction;
+    const { type, payload = {} } = act;
+
+    switch (type) {
+      case 'MOVE_ENTITY': {
+        const entityId = (payload.entityId as string) || '';
+        const target = (payload.targetContainerId as string) || 'board';
+        const source = (payload.sourceContainerId as string) || entityLocations[entityId] || 'despensa';
+
+        const cleanName = cleanEntityName(entityId);
+        if (cleanName && !requirementsMap[cleanName]) {
+          requirementsMap[cleanName] = {
+            entityId: cleanName,
+            amount: 1,
+            unit: 'unidad',
+            name: cleanName.charAt(0).toUpperCase() + cleanName.slice(1),
+          };
+        }
+
+        steps.push({
+          action: 'move',
+          ingredient: cleanName || entityId,
+          source,
+          target,
+        });
+
+        if (entityId) {
+          entityLocations[entityId] = target;
+        }
+        break;
+      }
+
+      case 'PREPARE_INGREDIENT': {
+        const entityId = (payload.entityId as string) || '';
+        const preparation = (payload.preparation as string) || 'sliced';
+        const cleanName = cleanEntityName(entityId);
+        const containerId = entityLocations[entityId] || 'board';
+
+        steps.push({
+          action: 'prepare',
+          ingredient: cleanName || entityId,
+          preparation,
+          containerId,
+        });
+        break;
+      }
+
+      case 'COOK_INGREDIENT': {
+        const entityId = (payload.entityId as string) || '';
+        const cooking = (payload.cooking as string) || 'fried';
+        const cleanName = cleanEntityName(entityId);
+        const containerId = entityLocations[entityId] || 'pan';
+
+        steps.push({
+          action: 'cook',
+          ingredient: cleanName || entityId,
+          method: cooking,
+          containerId,
+        });
+        break;
+      }
+
+      case 'TOGGLE_BURNER': {
+        const containerId = (payload.containerId as string) || 'burner1';
+        steps.push({
+          action: 'instruction',
+          text: `Toggle heat on ${containerId}`,
+        });
+        break;
+      }
+
+      case 'MASCOT_FLIP': {
+        steps.push({
+          action: 'flip',
+          target: 'pan',
+          instruction: 'Flip tortilla in pan',
+        });
+        break;
+      }
+
+      case 'USE_INGREDIENT': {
+        const entityId = (payload.entityId as string) || '';
+        const cleanName = cleanEntityName(entityId);
+        steps.push({
+          action: 'mix',
+          inputs: [cleanName || entityId],
+          targetContainerId: 'bowl',
+        });
+        break;
+      }
+
+      default:
+        // Ignore unhandled non-recipe world state metadata actions
+        break;
+    }
+  }
+
+  steps.push({
+    action: 'celebrate',
+  });
+
+  return {
+    id: recipeId,
+    name,
+    requirements: requirementsMap,
+    steps,
+  };
 }
 `````
 
@@ -8242,8 +9019,7 @@ Status:
 ✅ Traceability — every `dispatch` call is logged (`devtools` +
 `src/store/middleware/actionLog.ts`) and validated through
 `engine/containerRules.ts`.
-🚧 Replay — the log is in-memory only; replaying a recorded sequence back
-into the store is not implemented.
+✅ Replay — headless `ActionPlayer` utility (`src/systems/actionPlayer.ts`) and UI `ActionReplayer` component (`src/components/Controls/ActionReplayer.tsx`) allow loading JSON logs, resetting `worldStore`, and stepping through action sequences sequentially with configurable step delays.
 
 ---
 
@@ -8467,97 +9243,66 @@ The immediate goal is:
 Everything else depends on this foundation.
 `````
 
-## File: src/components/Ingredients/RecipeIngredientItem.tsx
+## File: src/components/Controls/ActionReplayer.test.tsx
 `````typescript
 /**
- * FILE: RecipeIngredientItem.tsx
+ * FILE: ActionReplayer.test.tsx
  *
  * PURPOSE:
- * Displays an ingredient used in a recipe.
- *
- * RESPONSIBILITY:
- * - Shows ingredient amount and unit.
- * - Represents recipe-specific ingredient data.
+ * Unit tests for ActionReplayer component logic.
  */
 
-import type { Ingredient } from '../../types/Ingredient'
+import { describe, it, expect } from 'vitest';
+import { actionPlayer } from '../../systems/actionPlayer';
+import { worldStore } from '../../store/worldStore';
+import type { WorldAction } from '../../types/actions';
 
-interface RecipeIngredientItemProps {
-  key?: string | number
-  ingredient: Ingredient
-  amount: number
-  unit: string
-}
+describe('ActionReplayer component logic', () => {
+  it('integrates with ActionPlayer to replay uploaded actions', async () => {
+    worldStore.getState().resetWorld();
 
-export function RecipeIngredientItem({
-  ingredient,
-  amount,
-  unit,
-}: RecipeIngredientItemProps) {
-  return (
-    <li className="recipe-ingredient-item">
-      <span aria-hidden="true">{ingredient.icon}</span>
-      <span className="recipe-ingredient-name">{ingredient.name}</span>
-      <span className="recipe-ingredient-amount">
-        {amount} {unit}
-      </span>
-    </li>
-  )
-}
-`````
+    const actions: WorldAction[] = [
+      {
+        type: 'TOGGLE_BURNER',
+        payload: { containerId: 'burner1' },
+      },
+      {
+        type: 'ADD_ENTITY',
+        payload: {
+          entity: {
+            id: 'potato_test_1',
+            name: 'Potato',
+            type: 'ingredient',
+          },
+          containerId: 'burner1',
+        },
+      },
+    ];
 
-## File: src/components/Ingredients/RecipeIngredientList.tsx
-`````typescript
-/**
- * FILE: RecipeIngredientList.tsx
- *
- * PURPOSE:
- * Displays the ingredients required by a recipe.
- *
- * RESPONSIBILITY:
- * - Renders recipe ingredient collection.
- * - Provides recipe-oriented presentation.
- */
+    await actionPlayer.playLog(actions, { delayMs: 10 });
 
-import type { Ingredient } from '../../types/Ingredient'
-import type { RecipeIngredient } from '../../types/RecipeIngredient'
-import './Ingredients.scss'
-import { RecipeIngredientItem } from './RecipeIngredientItem'
+    const store = worldStore.getState();
+    expect(store.containers.burner1.isOn).toBe(true);
+    expect(store.containers.burner1.entityIds).toContain('potato_test_1');
+  });
 
-interface RecipeIngredientListProps {
-  ingredients: RecipeIngredient[]
-  ingredientCatalog: Ingredient[]
-}
+  it('syncs uploaded actions with setRecordedActions in worldStore', () => {
+    worldStore.getState().resetWorld();
 
-export function RecipeIngredientList({
-  ingredients,
-  ingredientCatalog,
-}: RecipeIngredientListProps) {
-  const ingredientsById = new Map(
-    ingredientCatalog.map((ingredient) => [ingredient.id, ingredient]),
-  )
+    const sampleActions = [
+      {
+        type: 'MOVE_ENTITY',
+        payload: { entityId: 'patata', targetContainerId: 'board' },
+        timestampMs: Date.now(),
+      },
+    ];
 
-  return (
-    <ul className="recipe-ingredient-list">
-      {ingredients.map((recipeIngredient) => {
-        const ingredient = ingredientsById.get(recipeIngredient.ingredientId)
+    worldStore.getState().setRecordedActions(sampleActions);
 
-        if (!ingredient) {
-          return null
-        }
-
-        return (
-          <RecipeIngredientItem
-            key={recipeIngredient.id}
-            amount={recipeIngredient.amount}
-            ingredient={ingredient}
-            unit={recipeIngredient.unit}
-          />
-        )
-      })}
-    </ul>
-  )
-}
+    expect(worldStore.getState().recordedActions).toHaveLength(1);
+    expect(worldStore.getState().recordedActions[0].type).toBe('MOVE_ENTITY');
+  });
+});
 `````
 
 ## File: src/components/Recipe/RequirementView.tsx
@@ -8658,1492 +9403,6 @@ export const RequirementView: React.FC<RequirementViewProps> = ({ requirement })
     </li>
   );
 };
-`````
-
-## File: src/components/Scene/RecipePlayer.scss
-`````scss
-/**
- * FILE: RecipePlayer.scss
- *
- * PURPOSE:
- * Stylesheet for RecipePlayer component.
- * Uses warm Spanish kitchen ceramic palette with sleek interactive controls.
- */
-
-@use 'sass:color';
-@use '../../styles/variables' as *;
-@use '../../styles/mixins' as *;
-
-.recipe-player-container {
-  @include ceramic-card($warm-surface, $warm-border);
-  padding: 16px 20px;
-  margin-bottom: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  box-shadow: $shadow-ceramic;
-  position: relative;
-  overflow: hidden;
-
-  // Header Row
-  .player-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 12px;
-
-    .recipe-select-group {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-
-      .recipe-label {
-        font-weight: 800;
-        font-size: 0.9rem;
-        color: $dark-brown;
-      }
-
-      .recipe-buttons {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex-wrap: wrap;
-
-        .recipe-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          background: #ffffff;
-          border: 2px solid $warm-border;
-          border-radius: $radius-sm;
-          padding: 6px 14px;
-          font-size: 0.88rem;
-          font-weight: 700;
-          color: $dark-brown;
-          cursor: pointer;
-          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-          box-shadow: 0 2px 4px rgba(44, 26, 20, 0.04);
-          user-select: none;
-
-          .recipe-btn-icon {
-            font-size: 1.1rem;
-            line-height: 1;
-            transition: transform 0.2s ease;
-          }
-
-          &:hover {
-            border-color: $tortilla-yellow;
-            background: $tortilla-yellow-light;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(232, 168, 56, 0.2);
-
-            .recipe-btn-icon {
-              transform: scale(1.2) rotate(-5deg);
-            }
-          }
-
-          &:active {
-            transform: translateY(0);
-          }
-
-          &.active {
-            background: linear-gradient(135deg, $tortilla-yellow, $tortilla-yellow-hover);
-            color: #ffffff;
-            border-color: $tortilla-yellow-hover;
-            box-shadow: 0 4px 10px rgba(232, 168, 56, 0.35);
-
-            .recipe-btn-icon {
-              transform: scale(1.15);
-            }
-          }
-        }
-      }
-    }
-
-    .player-status-badge {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-
-      .step-count {
-        font-size: 0.88rem;
-        color: $wood-muted;
-        background: $warm-beige;
-        padding: 4px 10px;
-        border-radius: $radius-sm;
-        border: 1px solid $warm-border;
-
-        strong {
-          color: $dark-brown;
-          font-weight: 800;
-        }
-      }
-
-      .speed-badge {
-        font-size: 0.82rem;
-        font-weight: 700;
-        padding: 4px 10px;
-        border-radius: $radius-sm;
-        background: $olive-green-light;
-        color: $olive-green;
-        border: 1px solid $olive-green-border;
-      }
-    }
-  }
-
-  // Recipe Requirements Section (Left Sidebar Panel)
-  .recipe-requirements-section {
-    width: 260px;
-    min-width: 230px;
-    flex-shrink: 0;
-    background: #ffffff;
-    border: 1px solid $warm-border;
-    border-radius: $radius-md;
-    padding: 14px 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    box-shadow: $shadow-ceramic;
-    box-sizing: border-box;
-
-    @media (max-width: 860px) {
-      width: 100%;
-    }
-
-    .requirements-header {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      padding-bottom: 8px;
-      border-bottom: 2px dashed color.mix($dark-brown, white, 15%);
-
-      .requirements-title {
-        font-size: 0.85rem;
-        font-weight: 800;
-        color: $dark-brown;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-      }
-
-      .requirements-subtitle {
-        font-size: 0.75rem;
-        font-weight: 600;
-        color: $wood-muted;
-      }
-    }
-
-    .recipe-requirements {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      width: 100%;
-
-      .requirement-view {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background: $warm-surface;
-        border: 1px solid $warm-border;
-        border-radius: $radius-md;
-        padding: 8px 12px;
-        font-size: 0.88rem;
-        font-weight: 700;
-        color: $dark-brown;
-        box-shadow: 0 1px 3px rgba(44, 26, 20, 0.04);
-        width: 100%;
-        box-sizing: border-box;
-        transition: all 0.2s ease;
-
-        &:hover {
-          border-color: $tortilla-yellow;
-          box-shadow: 0 3px 6px rgba(232, 168, 56, 0.15);
-          transform: translateX(2px);
-        }
-
-        &__amount {
-          font-size: 0.8rem;
-          font-weight: 800;
-          color: $terracotta;
-          background: $terracotta-light;
-          padding: 3px 8px;
-          border-radius: 6px;
-          border: 1px solid $terracotta-border;
-          white-space: nowrap;
-        }
-      }
-    }
-  }
-
-  // Progress Bar Track
-  .player-progress-track {
-    width: 100%;
-    height: 6px;
-    background: $warm-beige;
-    border-radius: 999px;
-    overflow: hidden;
-    position: relative;
-
-    .player-progress-bar {
-      height: 100%;
-      background: linear-gradient(90deg, $tortilla-yellow, $terracotta);
-      border-radius: 999px;
-      transition: width 0.25s ease-out;
-    }
-  }
-
-  // Active Step Description Card
-  .current-step-card {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    background: #ffffff;
-    border: 1px solid $warm-border;
-    border-radius: $radius-md;
-    padding: 12px 16px;
-    box-shadow: 0 2px 5px rgba(44, 26, 20, 0.04);
-
-    .step-icon-area {
-      font-size: 1.8rem;
-      width: 44px;
-      height: 44px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: $tortilla-yellow-light;
-      border: 1px solid $tortilla-yellow-border;
-      border-radius: $radius-sm;
-      flex-shrink: 0;
-    }
-
-    .step-text-area {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-
-      .step-action-badge {
-        display: inline-block;
-        align-self: flex-start;
-        font-size: 0.68rem;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        padding: 2px 6px;
-        border-radius: 4px;
-        background: $terracotta-light;
-        color: $terracotta;
-        border: 1px solid $terracotta-border;
-      }
-
-      .step-description {
-        margin: 0;
-        font-size: 0.95rem;
-        font-weight: 600;
-        color: $dark-brown;
-        line-height: 1.35;
-      }
-    }
-  }
-
-  // Controls Row
-  .player-controls-bar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 10px;
-    padding-top: 4px;
-
-    .ctrl-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 14px;
-      font-size: 0.85rem;
-      font-weight: 700;
-      border-radius: $radius-sm;
-      border: 1px solid $warm-border;
-      background: #ffffff;
-      color: $dark-brown;
-      cursor: pointer;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
-      transition: all 0.18s ease;
-      user-select: none;
-
-      &:hover:not(:disabled) {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        border-color: $tortilla-yellow;
-      }
-
-      &:active:not(:disabled) {
-        transform: translateY(0);
-      }
-
-      &:disabled {
-        opacity: 0.45;
-        cursor: not-allowed;
-        box-shadow: none;
-      }
-
-      // Primary Play Button
-      &.play-btn {
-        background: $tortilla-yellow;
-        color: #ffffff;
-        border-color: $tortilla-yellow-hover;
-        padding: 10px 22px;
-        font-size: 0.95rem;
-
-        &:hover:not(:disabled) {
-          background: $tortilla-yellow-hover;
-        }
-
-        &.is-playing {
-          background: $terracotta;
-          border-color: $terracotta-hover;
-        }
-      }
-
-      // Slow & Fast buttons
-      &.slow-btn, &.fast-btn {
-        background: $warm-surface;
-      }
-
-      // Record button
-      &.record-btn {
-        background: #ffffff;
-        border: 2px solid $terracotta;
-        color: $terracotta;
-        font-weight: 800;
-
-        .record-indicator {
-          display: inline-block;
-          width: 10px;
-          height: 10px;
-          border-radius: 50%;
-          background: $terracotta;
-          transition: transform 0.2s ease;
-
-          &.active {
-            animation: record-pulse 1.2s infinite ease-in-out;
-          }
-        }
-
-        &:hover:not(:disabled) {
-          background: $terracotta-light;
-          border-color: $terracotta-hover;
-        }
-
-        &.is-recording {
-          background: $terracotta;
-          color: #ffffff;
-          border-color: $terracotta-hover;
-          box-shadow: 0 4px 10px rgba(217, 83, 79, 0.35);
-
-          .record-indicator {
-            background: #ffffff;
-          }
-
-          &:hover:not(:disabled) {
-            background: $terracotta-hover;
-          }
-        }
-      }
-
-      // Download button
-      &.download-btn {
-        background: linear-gradient(135deg, $olive-green, $olive-green-hover);
-        color: #ffffff;
-        border: 2px solid $olive-green-hover;
-        font-weight: 800;
-        text-decoration: none;
-        box-shadow: 0 3px 8px rgba(107, 142, 35, 0.3);
-
-        &:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 5px 12px rgba(107, 142, 35, 0.4);
-        }
-      }
-
-      // Reset button
-      &.reset-btn {
-        margin-left: auto;
-        background: #ffffff;
-        border: 2px solid $terracotta;
-        color: $terracotta;
-        font-size: 0.9rem;
-        font-weight: 800;
-        padding: 9px 18px;
-
-        &:hover:not(:disabled) {
-          background: $terracotta;
-          color: #ffffff;
-          border-color: $terracotta-hover;
-          box-shadow: 0 4px 8px rgba(217, 83, 79, 0.25);
-        }
-      }
-    }
-  }
-
-  // Footer: Speed Pills & Stepper Dots
-  .player-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 12px;
-    padding-top: 6px;
-    border-top: 1px dashed $warm-border;
-
-    .speed-pills {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-
-      .speed-title {
-        font-size: 0.8rem;
-        font-weight: 700;
-        color: $wood-muted;
-        margin-right: 2px;
-      }
-
-      .speed-pill {
-        border: 1px solid $warm-border;
-        background: #ffffff;
-        color: $dark-brown;
-        font-size: 0.75rem;
-        font-weight: 700;
-        padding: 3px 8px;
-        border-radius: $radius-sm;
-        cursor: pointer;
-        transition: all 0.15s;
-
-        &:hover {
-          border-color: $olive-green;
-        }
-
-        &.active {
-          background: $olive-green;
-          color: #ffffff;
-          border-color: $olive-green-hover;
-        }
-      }
-    }
-
-    .stepper-dots {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      flex-wrap: wrap;
-
-      .step-dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background: $warm-border;
-        border: none;
-        padding: 0;
-        cursor: pointer;
-        transition: all 0.2s;
-
-        &:hover {
-          transform: scale(1.3);
-          background: $tortilla-yellow;
-        }
-
-        &.completed {
-          background: $olive-green;
-        }
-
-        &.active {
-          background: $terracotta;
-          transform: scale(1.3);
-          box-shadow: 0 0 0 2px $terracotta-light;
-        }
-      }
-    }
-  }
-}
-
-@keyframes record-pulse {
-  0% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.4);
-    opacity: 0.5;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-`````
-
-## File: src/components/Scene/RecipePlayer.tsx
-`````typescript
-/**
- * FILE: RecipePlayer.tsx
- *
- * PURPOSE:
- * Interactive recipe playback and step navigation control component.
- *
- * RESPONSIBILITY:
- * - Provides play/pause, slow, fast, step up (forward), and step down (backward) controls.
- * - Displays active recipe progress, current step index, and human-readable step description.
- * - Manages automated execution using RecipeRunner engine.
- * - Supports instant step navigation and timeline jumping while maintaining simulation world state.
- */
-
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { useStore } from 'zustand';
-import { recipes } from '../../data/catalog/recipes';
-import { ingredients } from '../../data/catalog/ingredients';
-import { catalogTools as tools } from '../../data/catalog/tools';
-import { RecipeRunner } from '../../systems/recipeRunner';
-import { worldStore } from '../../store/worldStore';
-import type { RecipeStep } from '../../types/RecipeStep';
-import type { Recipe } from '../../types/Recipe';
-import { getRecipeRequirementsArray } from '../../types/Recipe';
-import { RecipeRequirements } from '../Recipe/RecipeRequirements';
-import { ActionReplayer } from '../Controls/ActionReplayer';
-import './RecipePlayer.scss';
-
-// Speed options and corresponding delays in ms
-const SPEED_DELAYS: Record<number, number> = {
-  0.5: 1200, // Slow
-  1: 600,    // Normal
-  2: 300,    // Fast
-  3: 150,    // Turbo
-};
-
-/**
- * Formats an ingredient key with its current preparation and cooking state from worldStore.
- */
-function formatIngredientWithState(inputKey: string): string {
-  const store = worldStore.getState();
-
-  const singularKey =
-    inputKey.endsWith('es') && inputKey.length > 3
-      ? inputKey.slice(0, -2)
-      : inputKey.endsWith('s') && inputKey.length > 2
-      ? inputKey.slice(0, -1)
-      : inputKey;
-
-  const entity = Object.values(store.entities).find(
-    (e) =>
-      e &&
-      (e.id === inputKey ||
-        e.ingredientId === inputKey ||
-        e.ingredientId === singularKey ||
-        e.id.startsWith(inputKey + '_') ||
-        e.id.startsWith(singularKey + '_'))
-  );
-
-  const parts: string[] = [];
-
-  if (entity?.state) {
-    // Cooking state
-    const cooking = entity.state.cooking as string | undefined;
-    if (cooking && cooking !== 'raw') {
-      if (cooking === 'fry' || cooking === 'fried' || cooking === 'cooked') {
-        parts.push('cooked');
-      } else {
-        parts.push(cooking);
-      }
-    }
-
-    // Preparation state
-    const prep = entity.state.preparation as string | undefined;
-    if (prep && prep !== 'whole' && prep !== 'raw') {
-      parts.push(prep);
-    }
-  }
-
-  // Fallback defaults for recipe step descriptions when state is not yet populated
-  if (parts.length === 0) {
-    if (inputKey === 'potatoes') {
-      parts.push('cooked', 'sliced');
-    } else if (inputKey === 'eggs') {
-      parts.push('beaten');
-    } else if (inputKey === 'onions') {
-      parts.push('cooked', 'diced');
-    }
-  }
-
-  parts.push(inputKey);
-  return parts.join(' ');
-}
-
-/**
- * Generates human-readable step details (icon, text label, badge) for a given RecipeStep.
- */
-function getStepDetails(step?: RecipeStep): { icon: string; text: string; actionName: string } {
-  if (!step) {
-    return { icon: '✨', text: 'Select a recipe and press Play or Step Up to begin!', actionName: 'Ready' };
-  }
-
-  switch (step.action) {
-    case 'move':
-      return {
-        icon: '🚚',
-        text: `Move ${step.ingredient || 'ingredient'} from ${step.source || 'storage'} to ${step.target || 'workspace'}`,
-        actionName: 'Move',
-      };
-    case 'grab':
-      return {
-        icon: '🫳',
-        text: `Grab ${step.ingredient} from ${step.source || 'storage'}`,
-        actionName: 'Grab',
-      };
-    case 'drop':
-      return {
-        icon: '⬇️',
-        text: `Drop held ingredient into ${step.target || 'workspace'}`,
-        actionName: 'Drop',
-      };
-    case 'cut':
-    case 'prepare':
-    case 'peel':
-      return {
-        icon: '🔪',
-        text: `${step.action.toUpperCase()} ${step.ingredient || step.target || ''} (${step.preparation || step.style || 'prepared'})`,
-        actionName: step.action,
-      };
-    case 'wash':
-    case 'rinse':
-    case 'drain':
-      return {
-        icon: '💧',
-        text: `${step.action.toUpperCase()} ${step.ingredient || step.target || ''}`,
-        actionName: step.action,
-      };
-    case 'cook':
-      return {
-        icon: '🍳',
-        text: `Cook ${step.target || step.ingredient || ''} (${step.method || 'fry'}${step.duration ? `, ${step.duration} ${step.unit || 'min'}` : ''})`,
-        actionName: 'Cook',
-      };
-    case 'flip':
-      return {
-        icon: '🍳',
-        text: step.instruction || `Flip ${step.target || 'tortilla'} in the pan`,
-        actionName: 'Flip',
-      };
-    case 'mix':
-    case 'beat':
-    case 'combine': {
-      const formattedInputs = (step.inputs || step.ingredients || []).map(formatIngredientWithState);
-      const targetContainer = step.targetContainerId;
-      const containerName =
-        !targetContainer || targetContainer === 'bowl' || targetContainer === 'preparation_bowl'
-          ? 'preparation bowl'
-          : targetContainer.replace('_', ' ');
-      return {
-        icon: '🥣',
-        text: `Mix ${formattedInputs.join(', ')} in the ${containerName} -> ${step.output || 'mixture'}`,
-        actionName: step.action,
-      };
-    }
-    case 'serve':
-      return {
-        icon: '🍽️',
-        text: `Serve ${step.target || 'dish'} to ${step.containerId || 'plate'}`,
-        actionName: 'Serve',
-      };
-    case 'instruction':
-      return {
-        icon: '👨‍🍳',
-        text: step.text || step.instruction || 'Follow recipe instruction',
-        actionName: 'Instruction',
-      };
-    case 'speak':
-      return {
-        icon: '💬',
-        text: `Tortilla says: "${step.message}"`,
-        actionName: 'Speak',
-      };
-    case 'celebrate':
-      return {
-        icon: '🎉',
-        text: 'Flip celebration! Recipe completed successfully!',
-        actionName: 'Celebrate',
-      };
-    case 'wait':
-      return {
-        icon: '⏳',
-        text: `Wait for ${step.durationMs || 600}ms`,
-        actionName: 'Wait',
-      };
-    default:
-      return {
-        icon: '📝',
-        text: 'Execute recipe step',
-        actionName: 'Step',
-      };
-  }
-}
-
-interface RecipePlayerProps {
-  renderWorkspace?: (requirementsNode: React.ReactNode) => React.ReactNode;
-}
-
-export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) => {
-  const [selectedRecipeId, setSelectedRecipeId] = useState<string>(recipes[0]?.id || 'concebolla');
-  const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
-  const [isPlaying, setIsPlaying] = useState<boolean>(false);
-  const [speed, setSpeed] = useState<number>(1); // 0.5, 1, 2, 3
-
-  // WorldStore recording state
-  const isRecording = useStore(worldStore, (state) => state.isRecording);
-  const recordedActions = useStore(worldStore, (state) => state.recordedActions);
-  const recordedDownloadUrl = useStore(worldStore, (state) => state.recordedDownloadUrl);
-  const recordedFilename = useStore(worldStore, (state) => state.recordedFilename);
-  const startRecording = useStore(worldStore, (state) => state.startRecording);
-  const stopRecording = useStore(worldStore, (state) => state.stopRecording);
-
-  const activeRecipe: Recipe = useMemo(
-    () => recipes.find((r) => r.id === selectedRecipeId) || recipes[0],
-    [selectedRecipeId]
-  );
-  const steps: RecipeStep[] = useMemo(() => activeRecipe?.steps || [], [activeRecipe]);
-  const totalSteps = steps.length;
-
-  const runnerRef = useRef<RecipeRunner | null>(null);
-  const isExecutingRef = useRef<boolean>(false);
-
-  // Get delay in ms based on active speed multiplier
-  const currentDelayMs = SPEED_DELAYS[speed] || 600;
-
-  // Synchronize required materials for active recipe in despensa container
-  useEffect(() => {
-    const store = worldStore.getState();
-    const reqs = getRecipeRequirementsArray(activeRecipe);
-    reqs.forEach((req) => {
-      const existing = store.entities[req.entityId];
-      if (!existing) {
-        const catalogIng = ingredients.find((i) => i.id === req.entityId);
-        const catalogTool = tools.find((t: { id: string }) => t.id === req.entityId);
-        store.dispatch({
-          type: 'ADD_ENTITY',
-          payload: {
-            entity: {
-              id: req.entityId,
-              name: req.name || catalogIng?.name || catalogTool?.name || req.entityId,
-              type: (catalogTool ? 'tool' : 'ingredient') as 'tool' | 'ingredient',
-              icon: catalogIng?.icon || catalogTool?.icon,
-              ingredientId: req.entityId,
-              state: {},
-            },
-            containerId: 'despensa',
-          },
-        });
-      }
-    });
-  }, [activeRecipe]);
-
-  // Re-sync runner context or reset when recipe changes
-  const handleRecipeChange = (newRecipeId: string) => {
-    setIsPlaying(false);
-    setSelectedRecipeId(newRecipeId);
-    setCurrentStepIndex(0);
-    runnerRef.current = null;
-    worldStore.getState().dispatch({ type: 'RESET_WORLD' });
-  };
-
-  // Full reset of world and player step
-  const handleReset = useCallback(() => {
-    setIsPlaying(false);
-    setCurrentStepIndex(0);
-    runnerRef.current = null;
-    worldStore.getState().dispatch({ type: 'RESET_WORLD' });
-  }, []);
-
-  // Jump to a specific target step index by replaying from step 0
-  const jumpToStep = useCallback(
-    async (targetIndex: number) => {
-      if (isExecutingRef.current) return;
-      setIsPlaying(false);
-
-      const clampedTarget = Math.min(Math.max(0, targetIndex), totalSteps);
-      isExecutingRef.current = true;
-
-      try {
-        // Reset world state to initial kitchen
-        worldStore.getState().dispatch({ type: 'RESET_WORLD' });
-
-        // Instantiate zero-delay runner for fast-forward
-        const fastRunner = new RecipeRunner({
-          mascotId: 'chef',
-          defaultTargetId: 'board',
-          delayMs: 0,
-        });
-        fastRunner.bindRecipeContext(activeRecipe);
-
-        for (let i = 0; i < clampedTarget; i++) {
-          await fastRunner.executeStep(steps[i]);
-        }
-
-        fastRunner.delayMs = currentDelayMs;
-        runnerRef.current = fastRunner;
-        setCurrentStepIndex(clampedTarget);
-      } catch (err) {
-        console.error('[RecipePlayer] Error jumping to step:', err);
-      } finally {
-        isExecutingRef.current = false;
-      }
-    },
-    [activeRecipe, totalSteps, steps, currentDelayMs]
-  );
-
-  // Step Up (Step forward 1 step)
-  const handleStepUp = useCallback(async () => {
-    if (isExecutingRef.current) return;
-    setIsPlaying(false);
-
-    if (currentStepIndex >= totalSteps) return;
-
-    isExecutingRef.current = true;
-
-    try {
-      if (!runnerRef.current || currentStepIndex === 0) {
-        if (currentStepIndex === 0) {
-          worldStore.getState().dispatch({ type: 'RESET_WORLD' });
-        }
-        runnerRef.current = new RecipeRunner({
-          mascotId: 'chef',
-          defaultTargetId: 'board',
-          delayMs: currentDelayMs,
-        });
-        runnerRef.current.bindRecipeContext(activeRecipe);
-      } else {
-        runnerRef.current.delayMs = currentDelayMs;
-      }
-
-      const stepToRun = steps[currentStepIndex];
-      await runnerRef.current.executeStep(stepToRun);
-      setCurrentStepIndex((prev) => Math.min(prev + 1, totalSteps));
-    } catch (err) {
-      console.error('[RecipePlayer] Error stepping up:', err);
-    } finally {
-      isExecutingRef.current = false;
-    }
-  }, [currentStepIndex, totalSteps, activeRecipe, steps, currentDelayMs]);
-
-  // Step Down (Step back 1 step)
-  const handleStepDown = useCallback(() => {
-    if (currentStepIndex <= 0) return;
-    jumpToStep(currentStepIndex - 1);
-  }, [currentStepIndex, jumpToStep]);
-
-  // Toggle Play / Pause
-  const handleTogglePlay = () => {
-    if (isPlaying) {
-      setIsPlaying(false);
-    } else {
-      // If at end of recipe, restart from beginning
-      if (currentStepIndex >= totalSteps) {
-        handleReset();
-      }
-      setIsPlaying(true);
-    }
-  };
-
-  // Decrease speed (Slow button)
-  const handleSlow = () => {
-    if (speed === 3) setSpeed(2);
-    else if (speed === 2) setSpeed(1);
-    else if (speed === 1) setSpeed(0.5);
-    else setSpeed(0.5);
-  };
-
-  // Increase speed (Fast button)
-  const handleFast = () => {
-    if (speed === 0.5) setSpeed(1);
-    else if (speed === 1) setSpeed(2);
-    else if (speed === 2) setSpeed(3);
-    else setSpeed(3);
-  };
-
-  // Auto-play step loop effect
-  useEffect(() => {
-    if (!isPlaying) return;
-
-    let isCancelled = false;
-
-    const playNextStep = async () => {
-      if (currentStepIndex >= totalSteps) {
-        setIsPlaying(false);
-        return;
-      }
-
-      if (isExecutingRef.current) return;
-      isExecutingRef.current = true;
-
-      try {
-        if (!runnerRef.current || currentStepIndex === 0) {
-          if (currentStepIndex === 0) {
-            worldStore.getState().dispatch({ type: 'RESET_WORLD' });
-          }
-          runnerRef.current = new RecipeRunner({
-            mascotId: 'chef',
-            defaultTargetId: 'board',
-            delayMs: currentDelayMs,
-          });
-          runnerRef.current.bindRecipeContext(activeRecipe);
-        } else {
-          runnerRef.current.delayMs = currentDelayMs;
-        }
-
-        const stepToRun = steps[currentStepIndex];
-        await runnerRef.current.executeStep(stepToRun);
-
-        if (!isCancelled) {
-          const nextIndex = currentStepIndex + 1;
-          setCurrentStepIndex(nextIndex);
-          if (nextIndex >= totalSteps) {
-            setIsPlaying(false);
-          }
-        }
-      } catch (err) {
-        console.error('[RecipePlayer] Playback loop error:', err);
-        if (!isCancelled) setIsPlaying(false);
-      } finally {
-        isExecutingRef.current = false;
-      }
-    };
-
-    playNextStep();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [isPlaying, currentStepIndex, totalSteps, activeRecipe, steps, currentDelayMs]);
-
-  // Details for current step
-  const currentStep = steps[currentStepIndex < totalSteps ? currentStepIndex : totalSteps - 1];
-  const stepDetails = getStepDetails(currentStepIndex < totalSteps ? currentStep : undefined);
-  const progressPercent = totalSteps > 0 ? Math.min(100, (currentStepIndex / totalSteps) * 100) : 0;
-
-  const requirementsNode = (
-    <div className="recipe-requirements-section" data-container-id="despensa">
-      <div className="requirements-header">
-        <span className="requirements-title">📋 Required Materials</span>
-        <span className="requirements-subtitle">(Drag items to workstation)</span>
-      </div>
-      <RecipeRequirements requirements={getRecipeRequirementsArray(activeRecipe)} />
-    </div>
-  );
-
-  return (
-    <>
-      <div className="recipe-player-container">
-        {/* Header Row */}
-        <div className="player-header">
-          <div className="recipe-select-group">
-            <span className="recipe-label">Recipe:</span>
-            <div className="recipe-buttons">
-              {recipes.map((r) => {
-                const isActive = r.id === selectedRecipeId;
-                const recipeIcon = r.id === 'concebolla' ? '🧅' : '🥔';
-                return (
-                  <button
-                    key={r.id}
-                    type="button"
-                    className={`recipe-btn ${isActive ? 'active' : ''}`}
-                    onClick={() => handleRecipeChange(r.id)}
-                  >
-                    <span className="recipe-btn-icon">{recipeIcon}</span>
-                    <span className="recipe-btn-text">{r.name}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="player-status-badge">
-            <span className="step-count">
-              Step <strong>{currentStepIndex}</strong> / {totalSteps}
-            </span>
-            <span className={`speed-badge speed-${speed.toString().replace('.', '_')}`}>
-              ⚡ {speed}x
-            </span>
-          </div>
-        </div>
-
-        {/* Progress Bar */}
-        <div className="player-progress-track">
-          <div
-            className="player-progress-bar"
-            style={{ width: `${progressPercent}%` }}
-          />
-        </div>
-
-        {/* Active Step Description Card */}
-        <div className="current-step-card">
-          <div className="step-icon-area">{stepDetails.icon}</div>
-          <div className="step-text-area">
-            <div className="step-action-badge">{stepDetails.actionName}</div>
-            <p className="step-description">{stepDetails.text}</p>
-          </div>
-        </div>
-
-        {/* Main Controls Row */}
-        <div className="player-controls-bar">
-          {/* Slow Control */}
-          <button
-            type="button"
-            className="ctrl-btn slow-btn"
-            onClick={handleSlow}
-            title="Slow down playback speed (0.5x)"
-          >
-            🐢 Slow
-          </button>
-
-          {/* Step Down (Step Back) */}
-          <button
-            type="button"
-            className="ctrl-btn step-down-btn"
-            onClick={handleStepDown}
-            disabled={currentStepIndex <= 0}
-            title="Step Down: Go back to previous step"
-          >
-            ⏮ Step Down
-          </button>
-
-          {/* Play / Pause Toggle */}
-          <button
-            type="button"
-            className={`ctrl-btn play-btn ${isPlaying ? 'is-playing' : ''}`}
-            onClick={handleTogglePlay}
-            title={isPlaying ? 'Pause recipe auto-play' : 'Play recipe step-by-step'}
-          >
-            {isPlaying ? '⏸ Pause' : currentStepIndex >= totalSteps ? '🔄 Replay' : '▶ Play'}
-          </button>
-
-          {/* Step Up (Step Forward) */}
-          <button
-            type="button"
-            className="ctrl-btn step-up-btn"
-            onClick={handleStepUp}
-            disabled={currentStepIndex >= totalSteps}
-            title="Step Up: Advance to next step"
-          >
-            Step Up ⏭
-          </button>
-
-          {/* Fast Control */}
-          <button
-            type="button"
-            className="ctrl-btn fast-btn"
-            onClick={handleFast}
-            title="Speed up playback speed (2x/3x)"
-          >
-            Fast ⚡
-          </button>
-
-          {/* Record / Stop Recording Toggle */}
-          <button
-            type="button"
-            className={`ctrl-btn record-btn ${isRecording ? 'is-recording' : ''}`}
-            onClick={isRecording ? stopRecording : startRecording}
-            title={
-              isRecording
-                ? 'Stop recording world interactions'
-                : 'Record world interactions into a serialized recipe'
-            }
-          >
-            <span className={`record-indicator ${isRecording ? 'active' : ''}`}></span>
-            {isRecording ? `⏹ Stop (${recordedActions.length})` : '⏺ Record'}
-          </button>
-
-          {/* Download Recipe JSON Link */}
-          {recordedDownloadUrl && (
-            <a
-              href={recordedDownloadUrl}
-              download={recordedFilename || 'tortilla-recorded-recipe.json'}
-              className="ctrl-btn download-btn"
-              title="Download serialized recipe JSON file"
-            >
-              💾 Download Recipe (.json)
-            </a>
-          )}
-
-          {/* Action Log Replayer */}
-          <ActionReplayer />
-
-          {/* Kitchen Reset Button */}
-          <button
-            type="button"
-            className="ctrl-btn reset-btn"
-            onClick={handleReset}
-            title="Reset kitchen world to starting state"
-          >
-            🔄 Reset
-          </button>
-        </div>
-
-        {/* Speed Presets & Step Timeline Dots */}
-        <div className="player-footer">
-          <div className="speed-pills">
-            <span className="speed-title">Speed:</span>
-            {[0.5, 1, 2, 3].map((sp) => (
-              <button
-                key={sp}
-                type="button"
-                className={`speed-pill ${speed === sp ? 'active' : ''}`}
-                onClick={() => setSpeed(sp)}
-              >
-                {sp}x
-              </button>
-            ))}
-          </div>
-
-          {/* Interactive Step Stepper Dots */}
-          <div className="stepper-dots">
-            {steps.map((_, idx) => (
-              <button
-                key={`step-dot-${idx}`}
-                type="button"
-                className={`step-dot ${idx < currentStepIndex ? 'completed' : ''} ${
-                  idx === currentStepIndex ? 'active' : ''
-                }`}
-                onClick={() => jumpToStep(idx)}
-                title={`Jump to step ${idx + 1}`}
-              />
-            ))}
-          </div>
-        </div>
-
-        {!renderWorkspace && requirementsNode}
-      </div>
-      {renderWorkspace && renderWorkspace(requirementsNode)}
-    </>
-  );
-};
-`````
-
-## File: src/components/World/ContainerView.tsx
-`````typescript
-/**
- * FILE: ContainerView.tsx
- *
- * PURPOSE:
- * Displays a world container and its owned entities.
- *
- * RESPONSIBILITY:
- * - Renders container title and its inner entities via EntityView.
- * - Acts as a droppable target for drag-and-drop actions.
- */
-
-import React from 'react';
-import { useStore } from 'zustand';
-import { useDroppable } from '@dnd-kit/core';
-import { motion, AnimatePresence } from 'framer-motion';
-import { worldStore } from '../../store/worldStore';
-import type { Container, Entity } from '../../types/world';
-import { EntityView } from './EntityView';
-import './World.scss';
-
-interface ContainerViewProps {
-  key?: string | number;
-  container: Container;
-}
-
-export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
-  const entities = useStore(worldStore, (state) => state.entities);
-
-  // Set up dnd-kit droppable binding for this container
-  const { setNodeRef, isOver } = useDroppable({
-    id: container.id,
-  });
-
-  const containerEntities = container.entityIds
-    .map((id: string) => entities[id])
-    .filter((e: Entity | undefined): e is Entity => Boolean(e));
-
-  const isMixturePresent = containerEntities.some(
-    (e) => e.id.includes('mixture') || e.name.toLowerCase().includes('mixture')
-  );
-
-  const getWorkstationBadge = (id: string) => {
-    switch (id) {
-      case 'sink': return 'Washing Area 💧';
-      case 'board': return 'Cutting Workspace 🔪';
-      case 'bowl': return 'Preparation 🥣';
-      case 'burner': return 'Cooking Heat 🍳';
-      case 'burner1': return 'Cooking Heat 1🍳';
-      case 'burner2': return 'Cooking Heat 2🍳';
-      case 'plate': return 'Serving Stage 🍽️';
-      case 'despensa': return 'Pantry 🧺';
-      default: return 'Workstation 📦';
-    }
-  };
-
-  const containerOnFireClass = container.isOn ? 'container-onFire' : '';
-  const dispatch = useStore(worldStore, (state) => state.dispatch);
-
-  return (
-    <div
-      ref={setNodeRef}
-      data-container-id={container.id}
-      className={`${container.isOn ? 'container-view--on' : ''} ${containerOnFireClass} container-view container-view--${container.id} ${isOver ? 'container-view--drag-over' : ''} ${isMixturePresent ? 'container-view--mixture' : ''}`}
-    >
-      <div className="container-view__header">
-        <h3 className="container-view__title">{container.name}</h3>
-        <span className="container-view__badge">{getWorkstationBadge(container.id)}</span>
-        <button
-          className={`burner-toggle ${container.isOn ? 'burner-toggle--on' : ''}`}
-          onClick={(e) => {
-            e.stopPropagation();
-
-            dispatch({
-              type: 'TOGGLE_BURNER',
-              payload: {
-                containerId: container.id,
-              },
-            });
-          }}
-        />
-      </div>
-      <div className="container-view__items">
-        <AnimatePresence mode="popLayout">
-          {containerEntities.map((entity: Entity) => {
-            const isMixture = entity.id.includes('mixture') || entity.name.toLowerCase().includes('mixture');
-            return (
-              <motion.div
-                key={entity.id}
-                layout
-                initial={
-                  isMixture
-                    ? { scale: 0.1, rotate: -180, opacity: 0 }
-                    : { scale: 0.8, opacity: 0, y: -10 }
-                }
-                animate={
-                  isMixture
-                    ? {
-                      scale: [0.2, 1.15, 1],
-                      rotate: [-180, 10, 0],
-                      opacity: 1,
-                      transition: { duration: 0.65, ease: 'easeOut' },
-                    }
-                    : { scale: 1, rotate: 0, opacity: 1, y: 0 }
-                }
-                exit={{
-                  scale: 0,
-                  rotate: 180,
-                  opacity: 0,
-                  filter: 'blur(4px)',
-                  transition: { duration: 0.5, ease: 'easeInOut' },
-                }}
-                transition={{ duration: 0.35 }}
-              >
-                <EntityView entity={entity} containerId={container.id} />
-              </motion.div>
-            );
-          })}
-        </AnimatePresence>
-        {containerEntities.length === 0 && (
-          <span className="container-view__empty-hint">Drop entities here</span>
-        )}
-      </div>
-    </div>
-  );
-};
-`````
-
-## File: src/components/World/World.scss
-`````scss
-/**
- * FILE: World.scss
- *
- * PURPOSE:
- * SCSS styles for world containers and entity views.
- */
-
-@use 'sass:color';
-@use '../../styles/variables' as *;
-@use '../../styles/mixins' as *;
-
-.container-view {
-  @include ceramic-card($warm-surface, $warm-border);
-  min-width: 240px;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  transition: border-color 0.2s ease, background-color 0.2s ease;
-
-  &--drag-over {
-    border-color: $tortilla-yellow;
-    background-color: color.mix($tortilla-yellow, $warm-surface, 10%);
-  }
-
-  &--mixture {
-    border-color: $tortilla-yellow;
-    box-shadow: 0 0 16px rgba(245, 180, 50, 0.35);
-  }
-}
-
-.burner-toggle {
-  width: 18px;
-  height: 18px;
-  padding: 0;
-
-  border: 2px solid #666;
-  border-radius: 50%;
-  background: #2f2f2f;
-
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    transform: scale(1.15);
-    border-color: #999;
-  }
-
-  &:active {
-    transform: scale(0.95);
-  }
-}
-
-.burner-toggle--on {
-  background: #ff6b00;
-  border-color: #ff9d4d;
-
-  box-shadow:
-    0 0 6px rgba(255, 120, 0, .8),
-    0 0 14px rgba(255, 120, 0, .5);
-}
-
-.container-onFire {
-  animation: burnerGlow 1s infinite alternate;
-}
-
-@keyframes burnerGlow {
-  from {
-    box-shadow: 0 0 5px red;
-  }
-
-  to {
-    box-shadow: 0 0 25px orange;
-  }
-}
-
-.container-view__header {
-  align-items: center;
-  display: flex;
-  justify-content: space-between;
-}
-
-.container-view__title {
-  color: $dark-brown;
-  font-size: 1rem;
-  font-weight: 700;
-  margin: 0;
-}
-
-.container-view__badge {
-  color: $wood-muted;
-  font-size: 0.82rem;
-  font-weight: 600;
-}
-
-.container-view__items {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin: 0;
-  padding: 0;
-  min-height: 48px;
-}
-
-.container-view__empty-hint {
-  color: $wood-muted;
-  font-size: 0.85rem;
-  font-style: italic;
-  text-align: center;
-  padding: 12px;
-  border: 1px dashed $warm-border;
-  border-radius: $radius-md;
-}
-
-.entity-view {
-  align-items: center;
-  background: #ffffff;
-  border: 1px solid $warm-border;
-  border-radius: $radius-md;
-  box-shadow: 0 2px 6px rgba(44, 26, 20, 0.04);
-  display: flex;
-  gap: 0.5rem;
-  padding: 8px 12px;
-  user-select: none;
-  transition: all 0.2s ease;
-
-  &:hover {
-    border-color: color.mix($tortilla-yellow, $warm-border, 50%);
-  }
-
-  &--dragging {
-    opacity: 0.6;
-    cursor: grabbing;
-  }
-
-  &--readonly {
-    cursor: default;
-    background: color.mix($warm-beige, #ffffff, 40%);
-    box-shadow: none;
-
-    &:hover {
-      border-color: $warm-border;
-    }
-  }
-}
-
-.entity-view__icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.25rem;
-}
-
-.entity-view__name {
-  font-weight: 600;
-  color: $dark-brown;
-  font-size: 0.9rem;
-}
-
-.entity-view__state {
-  margin-left: auto;
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 2px 6px;
-  border-radius: $radius-sm;
-
-  &--raw {
-    background: #fef3c7;
-    color: #92400e;
-  }
-
-  &--prepared {
-    background: #e0f2fe;
-    color: #0369a1;
-  }
-
-  &--cooking {
-    background: #ffedd5;
-    color: #c2410c;
-  }
-
-  &--finished {
-    background: #dcfce7;
-    color: #15803d;
-  }
-}
 `````
 
 ## File: src/data/catalog/ingredients.ts
@@ -10511,6 +9770,215 @@ export const createMascotSlice: StateCreator<
       false,
       'MASCOT_DROP'
     );
+  },
+});
+`````
+
+## File: src/store/slices/recordSlice.ts
+`````typescript
+/**
+ * FILE: recordSlice.ts
+ *
+ * PURPOSE:
+ * Zustand slice for recording user interactions into a serialized WorldState recipe.
+ *
+ * RESPONSIBILITY:
+ * - Manages recording state (active/inactive, start time).
+ * - Captures initial and final WorldState snapshots (entities + containers).
+ * - Logs dispatched WorldActions with relative timestamps.
+ * - Serializes recorded data into JSON blob with download URL generation.
+ */
+
+import type { StateCreator } from 'zustand/vanilla';
+import type { WorldAction } from '../../types/world';
+import type { RecordedAction, SerializedRecipeExport, SerializedWorldState } from '../../types/recording';
+import type { WorldStateStore } from '../types';
+import { ingredients } from '../../data/catalog/ingredients';
+import { catalogTools } from '../../data/catalog/tools';
+
+export interface UsedIngredientInfo {
+  id: string;
+  name: string;
+  icon?: string;
+}
+
+export interface RecordSlice {
+  isRecording: boolean;
+  recordingStartTime: number | null;
+  recordedActions: RecordedAction[];
+  usedIngredients: UsedIngredientInfo[];
+  initialRecordingState: SerializedWorldState | null;
+  recordedDownloadUrl: string | null;
+  recordedFilename: string | null;
+
+  startRecording: () => void;
+  stopRecording: () => void;
+  recordAction: (action: WorldAction) => void;
+  clearRecording: () => void;
+  setRecordedActions: (actions: RecordedAction[]) => void;
+}
+
+export const createRecordSlice: StateCreator<
+  WorldStateStore,
+  [['zustand/devtools', never], ['zustand/immer', never]],
+  [],
+  RecordSlice
+> = (set, get) => ({
+  isRecording: false,
+  recordingStartTime: null,
+  recordedActions: [],
+  usedIngredients: [],
+  initialRecordingState: null,
+  recordedDownloadUrl: null,
+  recordedFilename: null,
+
+  startRecording: () => {
+    const prevUrl = get().recordedDownloadUrl;
+    if (prevUrl) {
+      URL.revokeObjectURL(prevUrl);
+    }
+
+    const { entities, containers } = get();
+
+    set((state) => {
+      state.isRecording = true;
+      state.recordingStartTime = Date.now();
+      state.recordedActions = [];
+      state.usedIngredients = [];
+      state.recordedDownloadUrl = null;
+      state.recordedFilename = null;
+      state.initialRecordingState = JSON.parse(
+        JSON.stringify({
+          entities,
+          containers,
+        })
+      );
+    });
+  },
+
+  recordAction: (action: WorldAction) => {
+    const { isRecording, recordingStartTime } = get();
+    if (!isRecording) return;
+
+    const timestampMs = Date.now() - (recordingStartTime || Date.now());
+    set((state) => {
+      state.recordedActions.push({
+        type: action.type,
+        payload: JSON.parse(JSON.stringify(action.payload)),
+        timestampMs,
+      });
+
+      // Track used ingredients / entities during recording
+      const payload = action.payload || {};
+      let rawEntityId: string | undefined;
+
+      if (action.type === 'MOVE_ENTITY') {
+        const target = (payload as { targetContainerId?: string }).targetContainerId;
+        if (target && target !== 'despensa') {
+          rawEntityId = (payload as { entityId?: string }).entityId;
+        }
+      } else if (action.type === 'ADD_ENTITY') {
+        const target = (payload as { containerId?: string }).containerId;
+        if (target && target !== 'despensa') {
+          const ent = (payload as { entity?: { id?: string; ingredientId?: string } }).entity;
+          rawEntityId = ent?.ingredientId || ent?.id;
+        }
+      } else if (['PREPARE_INGREDIENT', 'COOK_INGREDIENT', 'USE_INGREDIENT'].includes(action.type)) {
+        rawEntityId = (payload as { entityId?: string }).entityId;
+      }
+
+      if (rawEntityId) {
+        // Strip timestamp/unique suffix if present (e.g., "potato_1729384" -> "potato")
+        const baseId = rawEntityId.split('_')[0] || rawEntityId;
+        const catalogIng = ingredients.find((i) => i.id === baseId || i.id === rawEntityId);
+        const catalogTool = catalogTools.find((t) => t.id === baseId || t.id === rawEntityId);
+
+        const cleanName =
+          catalogIng?.name ||
+          catalogTool?.name ||
+          baseId.charAt(0).toUpperCase() + baseId.slice(1).replace(/_/g, ' ');
+        const icon = catalogIng?.icon || catalogTool?.icon || '📦';
+
+        if (!state.usedIngredients.some((u) => u.id === baseId)) {
+          state.usedIngredients.push({
+            id: baseId,
+            name: cleanName,
+            icon,
+          });
+        }
+      }
+    });
+  },
+
+  stopRecording: () => {
+    const { isRecording, recordingStartTime, recordedActions, usedIngredients, initialRecordingState, recordedDownloadUrl } = get();
+    if (!isRecording) return;
+
+    if (recordedDownloadUrl) {
+      URL.revokeObjectURL(recordedDownloadUrl);
+    }
+
+    const { entities, containers } = get();
+    const finalState = JSON.parse(
+      JSON.stringify({
+        entities,
+        containers,
+      })
+    );
+
+    const durationMs = Date.now() - (recordingStartTime || Date.now());
+    const exportData: SerializedRecipeExport = {
+      version: '1.0.0',
+      title: 'Recorded Tortilla Recipe',
+      recordedAt: new Date().toISOString(),
+      durationMs,
+      actionCount: recordedActions.length,
+      usedIngredients,
+      initialState: initialRecordingState || { entities: {}, containers: {} },
+      finalState,
+      actions: recordedActions,
+    };
+
+    const jsonString = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const downloadUrl = URL.createObjectURL(blob);
+    const dateStr = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const filename = `tortilla-recorded-recipe-${dateStr}.json`;
+
+    set((state) => {
+      state.isRecording = false;
+      state.recordedDownloadUrl = downloadUrl;
+      state.recordedFilename = filename;
+    });
+  },
+
+  clearRecording: () => {
+    const prevUrl = get().recordedDownloadUrl;
+    if (prevUrl) {
+      URL.revokeObjectURL(prevUrl);
+    }
+    set((state) => {
+      state.isRecording = false;
+      state.recordingStartTime = null;
+      state.recordedActions = [];
+      state.usedIngredients = [];
+      state.initialRecordingState = null;
+      state.recordedDownloadUrl = null;
+      state.recordedFilename = null;
+    });
+  },
+
+  setRecordedActions: (actions: RecordedAction[]) => {
+    const prevUrl = get().recordedDownloadUrl;
+    if (prevUrl) {
+      URL.revokeObjectURL(prevUrl);
+    }
+    set((state) => {
+      state.recordedActions = actions;
+      state.usedIngredients = [];
+      state.recordedDownloadUrl = null;
+      state.recordedFilename = null;
+    });
   },
 });
 `````
@@ -11251,6 +10719,41 @@ export async function handlePrepStep(
 }
 `````
 
+## File: src/systems/movement.ts
+`````typescript
+/**
+ * FILE: movement.ts
+ *
+ * PURPOSE:
+ * Handles entity movement calculations.
+ *
+ * RESPONSIBILITY:
+ * - Calculates position changes.
+ * - Provides movement behavior.
+ */
+
+import { worldStore } from '../store/worldStore';
+
+/**
+ * Requests that an entity be moved to another container.
+ * The reducer determines the source container automatically.
+ */
+export function moveEntity(
+  entityId: string,
+  targetContainerId: string,
+  positionIndex?: number
+): void {
+  worldStore.getState().dispatch({
+    type: 'MOVE_ENTITY',
+    payload: {
+      entityId,
+      targetContainerId,
+      positionIndex,
+    },
+  });
+}
+`````
+
 ## File: src/systems/recipeMatcher.test.ts
 `````typescript
 import { describe, expect, it } from 'vitest'
@@ -11401,25 +10904,6 @@ export function countMatchingRequirements(
 
 /** Alias for backward compatibility */
 export const countMatchingIngredients = countMatchingRequirements
-`````
-
-## File: src/types/Ingredient.ts
-`````typescript
-/**
- * FILE: Ingredient.ts
- *
- * PURPOSE:
- * Defines ingredient data structures.
- *
- * RESPONSIBILITY:
- * - Represents ingredient definitions.
- */
-
-export interface Ingredient {
-  id: string
-  name: string
-  icon: string
-}
 `````
 
 ## File: src/types/Recipe.ts
@@ -11577,6 +11061,458 @@ export type RecipeStep =
       action: 'celebrate';
       mascotId?: string;
     };
+`````
+
+## File: src/types/recording.ts
+`````typescript
+/**
+ * FILE: recording.ts
+ *
+ * PURPOSE:
+ * Type definitions for serialized world state recipes and recorded user interaction sequences.
+ *
+ * RESPONSIBILITY:
+ * - Defines the JSON schema for serialized recipe exports.
+ * - Captures initial and final WorldState snapshots (entities + containers).
+ * - Stores interaction sequences with relative timestamps for replay / serialization.
+ */
+
+import type { Container, Entity, WorldAction } from './world';
+
+export interface RecordedAction {
+  type: WorldAction['type'] | string;
+  payload: Record<string, unknown>;
+  timestampMs: number;
+}
+
+export interface SerializedWorldState {
+  entities: Record<string, Entity>;
+  containers: Record<string, Container>;
+}
+
+export interface SerializedRecipeExport {
+  version: '1.0.0';
+  title: string;
+  recordedAt: string;
+  durationMs: number;
+  actionCount: number;
+  usedIngredients?: Array<{ id: string; name: string; icon?: string }>;
+  initialState: SerializedWorldState;
+  finalState: SerializedWorldState;
+  actions: RecordedAction[];
+}
+`````
+
+## File: src/components/Controls/ActionReplayer.tsx
+`````typescript
+/**
+ * FILE: ActionReplayer.tsx
+ *
+ * PURPOSE:
+ * React UI component for uploading, validating, and playing back JSON action logs.
+ *
+ * RESPONSIBILITY:
+ * - Handles JSON file loading via FileReader input.
+ * - Validates JSON structure into WorldAction[].
+ * - Controls playback execution using ActionPlayer.
+ * - Displays active progress and stop/cancel controls during playback.
+ */
+
+import React, { useRef, useState, useCallback } from 'react';
+import { actionPlayer } from '../../systems/actionPlayer';
+import { worldStore } from '../../store/worldStore';
+import { useStore } from 'zustand';
+import type { WorldAction } from '../../types/actions';
+import type { RecordedAction } from '../../types/recording';
+import './ActionReplayer.scss';
+
+export interface ActionReplayerProps {
+  /** Optional custom delay default in ms. Default: 300 */
+  defaultDelayMs?: number;
+  /** Optional class name override */
+  className?: string;
+  /** Callback fired when playback starts */
+  onPlaybackStart?: () => void;
+  /** Callback fired when playback completes */
+  onPlaybackComplete?: () => void;
+}
+
+export const ActionReplayer: React.FC<ActionReplayerProps> = ({
+  defaultDelayMs = 300,
+  className = '',
+  onPlaybackStart,
+  onPlaybackComplete,
+}) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const recordedActions = useStore(worldStore, (state) => state.recordedActions);
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [currentStep, setCurrentStep] = useState<number>(0);
+  const [delayMs, setDelayMs] = useState<number>(defaultDelayMs);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const totalSteps = recordedActions.length;
+  const effectiveCurrentStep = Math.min(currentStep, totalSteps);
+
+  const handleUploadClick = () => {
+    setErrorMessage(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+      fileInputRef.current.click();
+    }
+  };
+
+  const validateActions = (parsed: unknown): WorldAction[] | null => {
+    let actionArray: unknown[] | null = null;
+
+    if (Array.isArray(parsed)) {
+      actionArray = parsed;
+    } else if (parsed && typeof parsed === 'object') {
+      const obj = parsed as Record<string, unknown>;
+      if (Array.isArray(obj.actions)) {
+        actionArray = obj.actions;
+      } else if (Array.isArray(obj.actionLog)) {
+        actionArray = obj.actionLog;
+      }
+    }
+
+    if (!actionArray || !Array.isArray(actionArray) || actionArray.length === 0) {
+      return null;
+    }
+
+    const isValid = actionArray.every(
+      (item) => item && typeof item === 'object' && typeof (item as Record<string, unknown>).type === 'string'
+    );
+
+    return isValid ? (actionArray as WorldAction[]) : null;
+  };
+
+  const handleFileChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const content = e.target?.result as string;
+          const parsed = JSON.parse(content);
+          const actions = validateActions(parsed);
+
+          if (!actions) {
+            setErrorMessage('Invalid JSON format: Expected array of WorldActions.');
+            return;
+          }
+
+          setErrorMessage(null);
+          worldStore.getState().setRecordedActions(actions as unknown as RecordedAction[]);
+          setCurrentStep(0);
+        } catch (err) {
+          console.error('Failed to parse action log JSON:', err);
+          setErrorMessage('Failed to read or parse JSON file.');
+        }
+      };
+
+      reader.readAsText(file);
+    },
+    []
+  );
+
+  const handlePlayAll = useCallback(async () => {
+    if (recordedActions.length === 0) return;
+    setIsPlaying(true);
+    onPlaybackStart?.();
+
+    const reset = currentStep === 0;
+    const remainingActions = recordedActions.slice(currentStep) as unknown as WorldAction[];
+    const startOffset = currentStep;
+
+    await actionPlayer.playLog(remainingActions, {
+      delayMs,
+      resetWorld: reset,
+      onStep: (curr) => {
+        setCurrentStep(startOffset + curr);
+      },
+      onComplete: () => {
+        setIsPlaying(false);
+        onPlaybackComplete?.();
+      },
+      onStop: () => {
+        setIsPlaying(false);
+      },
+    });
+  }, [recordedActions, currentStep, delayMs, onPlaybackStart, onPlaybackComplete]);
+
+  const handleStop = () => {
+    actionPlayer.stop();
+    setIsPlaying(false);
+  };
+
+  const handleStepForward = useCallback(() => {
+    if (currentStep < recordedActions.length) {
+      const nextAction = recordedActions[currentStep];
+      worldStore.getState().dispatch(nextAction as unknown as WorldAction);
+      setCurrentStep((prev) => prev + 1);
+    }
+  }, [currentStep, recordedActions]);
+
+  const handleStepBack = useCallback(() => {
+    if (currentStep > 0) {
+      const targetIndex = currentStep - 1;
+      worldStore.getState().dispatch({ type: 'RESET_WORLD' });
+      for (let i = 0; i < targetIndex; i++) {
+        worldStore.getState().dispatch(recordedActions[i] as unknown as WorldAction);
+      }
+      setCurrentStep(targetIndex);
+    }
+  }, [currentStep, recordedActions]);
+
+  const handleResetSteps = useCallback(() => {
+    worldStore.getState().dispatch({ type: 'RESET_WORLD' });
+    setCurrentStep(0);
+  }, []);
+
+  const percent = totalSteps > 0 ? Math.round((effectiveCurrentStep / totalSteps) * 100) : 0;
+
+  return (
+    <div className={`action-replayer ${className}`}>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json"
+        className="file-input-hidden"
+        onChange={handleFileChange}
+      />
+
+      <button
+        type="button"
+        className="replayer-btn load-btn"
+        onClick={handleUploadClick}
+        title="Upload and replay a recorded action log JSON file"
+      >
+        📂 Load Action Log (.json)
+      </button>
+
+      {totalSteps > 0 && !isPlaying && (
+        <div className="step-controls-group">
+          <button
+            type="button"
+            className="replayer-btn step-btn"
+            onClick={handleStepBack}
+            disabled={effectiveCurrentStep === 0}
+            title="Step back to previous recorded action"
+          >
+            ⏮️ Step Back
+          </button>
+
+          <button
+            type="button"
+            className="replayer-btn step-btn step-forward-btn"
+            onClick={handleStepForward}
+            disabled={effectiveCurrentStep >= totalSteps}
+            title="Step forward to next recorded action"
+          >
+            ⏭️ Step Forward
+          </button>
+
+          <button
+            type="button"
+            className="replayer-btn play-btn"
+            onClick={handlePlayAll}
+            title="Play all remaining actions"
+          >
+            ▶️ Play
+          </button>
+
+          <button
+            type="button"
+            className="replayer-btn reset-btn"
+            onClick={handleResetSteps}
+            title="Reset world state to step 0"
+          >
+            🔄 Reset
+          </button>
+        </div>
+      )}
+
+      {isPlaying && (
+        <button
+          type="button"
+          className="replayer-btn stop-btn"
+          onClick={handleStop}
+          title="Stop action playback"
+        >
+          ⏹ Stop Playback
+        </button>
+      )}
+
+      {!isPlaying && (
+        <select
+          className="delay-select"
+          value={delayMs}
+          onChange={(e) => setDelayMs(Number(e.target.value))}
+          title="Playback speed step delay"
+        >
+          <option value={100}>Fast (100ms)</option>
+          <option value={300}>Normal (300ms)</option>
+          <option value={600}>Slow (600ms)</option>
+        </select>
+      )}
+
+      {totalSteps > 0 && (
+        <div className="playback-status">
+          <span>
+            Step {effectiveCurrentStep} / {totalSteps}
+          </span>
+          <div className="progress-bar-container">
+            <div className="progress-bar-fill" style={{ width: `${percent}%` }} />
+          </div>
+        </div>
+      )}
+
+      {errorMessage && <span className="error-message">{errorMessage}</span>}
+    </div>
+  );
+};
+`````
+
+## File: src/components/Mascot/TortillaSvg.scss
+`````scss
+/**
+ * FILE: src/components/Mascot/TortillaSvg.scss
+ *
+ * PURPOSE:
+ * Styles and animations for TortillaSvg mascot using SCSS variables and mixins.
+ */
+
+@use 'sass:color';
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+/* === Root SVG Styles & State Animations === */
+.tortilla-svg {
+  transform-origin: center;
+  overflow: visible;
+
+  &.is-idle {
+    animation: tortillaIdle 2.5s infinite ease-in-out;
+  }
+
+  &.is-flipping {
+    animation: tortillaFlip 0.8s ease-in-out forwards;
+  }
+}
+
+@keyframes tortillaIdle {
+  0%, 100% {
+    transform: translateY(0) scaleY(1);
+  }
+  50% {
+    transform: translateY(-3px) scaleY(1.02);
+  }
+}
+
+@keyframes tortillaFlip {
+  0% {
+    transform: translateY(0) rotateX(0deg) scale(1);
+  }
+  50% {
+    transform: translateY(-60px) rotateX(180deg) scale(1.15);
+  }
+  100% {
+    transform: translateY(0) rotateX(360deg) scale(1);
+  }
+}
+
+/* === Physical Movement & Wrapper Animations === */
+.mascot-card {
+  @include ceramic-card($warm-surface, $warm-border);
+  padding: 12px 16px;
+}
+
+.mascot-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translate3d(var(--offset-x, 0px), var(--offset-y, 0px), 0);
+  transition: transform 0.65s cubic-bezier(0.34, 1.25, 0.64, 1), filter 0.3s ease;
+  will-change: transform, filter;
+  z-index: 1;
+
+  &.is-floating {
+    z-index: 1000;
+    filter: drop-shadow(0 14px 22px rgba(44, 26, 20, 0.25));
+  }
+
+  &.is-holding {
+    animation: mascotGrabPulse 0.4s ease-in-out;
+  }
+}
+
+@keyframes mascotGrabPulse {
+  0% { transform: translate3d(var(--offset-x, 0px), var(--offset-y, 0px), 0) scale(1); }
+  50% { transform: translate3d(var(--offset-x, 0px), var(--offset-y, 0px), 0) scale(1.1); }
+  100% { transform: translate3d(var(--offset-x, 0px), var(--offset-y, 0px), 0) scale(1); }
+}
+
+/* === Held Ingredient Badge CSS Animations === */
+.mascot-held-badge {
+  position: absolute;
+  bottom: -8px;
+  right: -12px;
+  background: #ffffff;
+  border: 2px solid $tortilla-yellow;
+  border-radius: 20px;
+  padding: 3px 8px;
+  box-shadow: 0 4px 14px rgba(44, 26, 20, 0.18);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  color: $dark-brown;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 1001;
+  animation: heldBadgeEnter 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, heldBadgeFloat 2.5s ease-in-out infinite 0.35s;
+}
+
+@keyframes heldBadgeEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(15px) scale(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes heldBadgeFloat {
+  0%, 100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-4px) rotate(3deg);
+  }
+}
+
+/* === Internal Element Animations === */
+.tortilla-blink {
+  animation: tortillaBlink 4s infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes tortillaBlink {
+  0%, 92%, 100% {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  94%, 98% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
 `````
 
 ## File: src/components/Recipe/RecipePanel.scss
@@ -12837,41 +12773,6 @@ export class RecipeRunner implements RecipeRunnerContext {
 }
 `````
 
-## File: src/systems/movement.ts
-`````typescript
-/**
- * FILE: movement.ts
- *
- * PURPOSE:
- * Handles entity movement calculations.
- *
- * RESPONSIBILITY:
- * - Calculates position changes.
- * - Provides movement behavior.
- */
-
-import { worldStore } from '../store/worldStore';
-
-/**
- * Requests that an entity be moved to another container.
- * The reducer determines the source container automatically.
- */
-export function moveEntity(
-  entityId: string,
-  targetContainerId: string,
-  positionIndex?: number
-): void {
-  worldStore.getState().dispatch({
-    type: 'MOVE_ENTITY',
-    payload: {
-      entityId,
-      targetContainerId,
-      positionIndex,
-    },
-  });
-}
-`````
-
 ## File: src/systems/recipeRunner.ts
 `````typescript
 /**
@@ -12884,6 +12785,3270 @@ export function moveEntity(
 
 export { RecipeRunner } from './recipeRunner/RecipeRunner';
 export type { RecipeRunnerOptions, RecipeRunnerContext } from './recipeRunner/types';
+`````
+
+## File: src/types/IngredientList.ts
+`````typescript
+/**
+ * FILE: IngredientList.ts
+ *
+ * PURPOSE:
+ * Defines container/list data structures.
+ *
+ * RESPONSIBILITY:
+ * - Represents collections of entities.
+ */
+
+import type { Ingredient } from './Ingredient'
+
+export interface IngredientList {
+  id: string
+  name: string
+  ingredients: Ingredient[]
+}
+
+export interface List {
+  id: string
+  title: string
+  seedFromCatalog?: boolean
+  seedIngredients?: string[]
+  consumesOnDrag?: boolean   // true = item is removed from this list when dragged out
+}
+`````
+
+## File: src/components/Scene/RecipePlayer.tsx
+`````typescript
+/**
+ * FILE: RecipePlayer.tsx
+ *
+ * PURPOSE:
+ * Interactive recipe playback and step navigation control component.
+ *
+ * RESPONSIBILITY:
+ * - Provides play/pause, slow, fast, step up (forward), and step down (backward) controls.
+ * - Displays active recipe progress, current step index, and human-readable step description.
+ * - Manages automated execution using RecipeRunner engine.
+ * - Supports instant step navigation and timeline jumping while maintaining simulation world state.
+ */
+
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useStore } from 'zustand';
+import { recipes } from '../../data/catalog/recipes';
+import { ingredients } from '../../data/catalog/ingredients';
+import { catalogTools as tools } from '../../data/catalog/tools';
+import { RecipeRunner } from '../../systems/recipeRunner';
+import { worldStore } from '../../store/worldStore';
+import type { RecipeStep } from '../../types/RecipeStep';
+import type { Recipe } from '../../types/Recipe';
+import type { WorldAction } from '../../types/actions';
+import type { RecordedAction } from '../../types/recording';
+import { getRecipeRequirementsArray } from '../../types/Recipe';
+import { RecipeRequirements } from '../Recipe/RecipeRequirements';
+import { ActionReplayer } from '../Controls/ActionReplayer';
+import './RecipePlayer.scss';
+
+// Speed options and corresponding delays in ms
+const SPEED_DELAYS: Record<number, number> = {
+  0.5: 1200, // Slow
+  1: 600,    // Normal
+  2: 300,    // Fast
+  3: 150,    // Turbo
+};
+
+/**
+ * Generates human-readable step details for a recorded WorldAction.
+ */
+function getActionDetails(recordedAction?: RecordedAction | WorldAction): {
+  icon: string;
+  text: string;
+  actionName: string;
+} {
+  if (!recordedAction) {
+    return {
+      icon: '🎥',
+      text: 'Recording mode active. Perform kitchen actions or press Play / Step Up to replay recorded actions.',
+      actionName: 'Recording Mode',
+    };
+  }
+
+  const { type, payload } = recordedAction as { type: string; payload?: Record<string, unknown> };
+  const p = payload || {};
+
+  const formatName = (id?: unknown) => {
+    if (typeof id !== 'string' || !id) return '';
+    return id
+      .replace(/_\d+$/, '')
+      .replace(/_/g, ' ')
+      .replace(/([a-z])([A-Z])/g, '$1 $2')
+      .trim();
+  };
+
+  switch (type) {
+    case 'MOVE_ENTITY': {
+      const entity = formatName(p.entityId);
+      const target = formatName(p.targetContainerId);
+      return {
+        icon: '🚚',
+        actionName: 'Move Entity',
+        text: `Move ${entity || 'item'} to ${target || 'container'}`,
+      };
+    }
+    case 'ADD_ENTITY': {
+      const entityObj = p.entity as { name?: string; id?: string } | undefined;
+      const entity = entityObj?.name || formatName(entityObj?.id);
+      const target = formatName(p.containerId);
+      return {
+        icon: '➕',
+        actionName: 'Add Entity',
+        text: `Add ${entity || 'item'} into ${target || 'container'}`,
+      };
+    }
+    case 'REMOVE_ENTITY': {
+      const entity = formatName(p.entityId);
+      return {
+        icon: '🗑️',
+        actionName: 'Remove Entity',
+        text: `Remove ${entity || 'item'} from container`,
+      };
+    }
+    case 'TOGGLE_BURNER': {
+      const container = formatName(p.containerId);
+      return {
+        icon: '🔥',
+        actionName: 'Toggle Heat',
+        text: `Toggle heat on ${container || 'burner'}`,
+      };
+    }
+    case 'PREPARE_INGREDIENT': {
+      const entity = formatName(p.entityId);
+      return {
+        icon: '🔪',
+        actionName: 'Prepare',
+        text: `Prepare ${entity || 'ingredient'} (${p.preparation || 'prepared'})`,
+      };
+    }
+    case 'COOK_INGREDIENT': {
+      const entity = formatName(p.entityId);
+      return {
+        icon: '🍳',
+        actionName: 'Cook',
+        text: `Cook ${entity || 'ingredient'} (${p.cooking || 'cooked'})`,
+      };
+    }
+    case 'USE_INGREDIENT': {
+      const entity = formatName(p.entityId);
+      return {
+        icon: '🥣',
+        actionName: 'Use Ingredient',
+        text: `Use ${entity || 'ingredient'} in recipe`,
+      };
+    }
+    case 'UPDATE_ENTITY_STATE': {
+      const entity = formatName(p.entityId);
+      const changesObj = (p.changes as Record<string, unknown>) || {};
+      const keys = Object.keys(changesObj).join(', ');
+      return {
+        icon: '✨',
+        actionName: 'Update State',
+        text: `Update ${keys || 'state'} for ${entity || 'entity'}`,
+      };
+    }
+    case 'MASCOT_MOVE': {
+      return {
+        icon: '🤖',
+        actionName: 'Mascot Move',
+        text: `Mascot moves to ${formatName(p.targetContainerId)}`,
+      };
+    }
+    case 'MASCOT_GRAB': {
+      return {
+        icon: '🫳',
+        actionName: 'Mascot Grab',
+        text: `Mascot grabs ${formatName(p.entityId)}`,
+      };
+    }
+    case 'MASCOT_DROP': {
+      return {
+        icon: '⬇️',
+        actionName: 'Mascot Drop',
+        text: `Mascot drops item into ${formatName(p.targetContainerId)}`,
+      };
+    }
+    case 'MASCOT_FLIP': {
+      return {
+        icon: '🍳',
+        actionName: 'Mascot Flip',
+        text: 'Mascot performs pan flip',
+      };
+    }
+    case 'RESET_WORLD': {
+      return {
+        icon: '🔄',
+        actionName: 'Reset World',
+        text: 'Reset world state to default initial layout',
+      };
+    }
+    default: {
+      return {
+        icon: '⚡',
+        actionName: type || 'Action',
+        text: `Execute recorded action ${type}`,
+      };
+    }
+  }
+}
+
+/**
+ * Formats an ingredient key with its current preparation and cooking state from worldStore.
+ */
+function formatIngredientWithState(inputKey: string): string {
+  const store = worldStore.getState();
+
+  const singularKey =
+    inputKey.endsWith('es') && inputKey.length > 3
+      ? inputKey.slice(0, -2)
+      : inputKey.endsWith('s') && inputKey.length > 2
+      ? inputKey.slice(0, -1)
+      : inputKey;
+
+  const entity = Object.values(store.entities).find(
+    (e) =>
+      e &&
+      (e.id === inputKey ||
+        e.ingredientId === inputKey ||
+        e.ingredientId === singularKey ||
+        e.id.startsWith(inputKey + '_') ||
+        e.id.startsWith(singularKey + '_'))
+  );
+
+  const parts: string[] = [];
+
+  if (entity?.state) {
+    // Cooking state
+    const cooking = entity.state.cooking as string | undefined;
+    if (cooking && cooking !== 'raw') {
+      if (cooking === 'fry' || cooking === 'fried' || cooking === 'cooked') {
+        parts.push('cooked');
+      } else {
+        parts.push(cooking);
+      }
+    }
+
+    // Preparation state
+    const prep = entity.state.preparation as string | undefined;
+    if (prep && prep !== 'whole' && prep !== 'raw') {
+      parts.push(prep);
+    }
+  }
+
+  // Fallback defaults for recipe step descriptions when state is not yet populated
+  if (parts.length === 0) {
+    if (inputKey === 'potatoes') {
+      parts.push('cooked', 'sliced');
+    } else if (inputKey === 'eggs') {
+      parts.push('beaten');
+    } else if (inputKey === 'onions') {
+      parts.push('cooked', 'diced');
+    }
+  }
+
+  parts.push(inputKey);
+  return parts.join(' ');
+}
+
+/**
+ * Generates human-readable step details (icon, text label, badge) for a given RecipeStep.
+ */
+function getStepDetails(step?: RecipeStep): { icon: string; text: string; actionName: string } {
+  if (!step) {
+    return { icon: '✨', text: 'Select a recipe and press Play or Step Up to begin!', actionName: 'Ready' };
+  }
+
+  switch (step.action) {
+    case 'move':
+      return {
+        icon: '🚚',
+        text: `Move ${step.ingredient || 'ingredient'} from ${step.source || 'storage'} to ${step.target || 'workspace'}`,
+        actionName: 'Move',
+      };
+    case 'grab':
+      return {
+        icon: '🫳',
+        text: `Grab ${step.ingredient} from ${step.source || 'storage'}`,
+        actionName: 'Grab',
+      };
+    case 'drop':
+      return {
+        icon: '⬇️',
+        text: `Drop held ingredient into ${step.target || 'workspace'}`,
+        actionName: 'Drop',
+      };
+    case 'cut':
+    case 'prepare':
+    case 'peel':
+      return {
+        icon: '🔪',
+        text: `${step.action.toUpperCase()} ${step.ingredient || step.target || ''} (${step.preparation || step.style || 'prepared'})`,
+        actionName: step.action,
+      };
+    case 'wash':
+    case 'rinse':
+    case 'drain':
+      return {
+        icon: '💧',
+        text: `${step.action.toUpperCase()} ${step.ingredient || step.target || ''}`,
+        actionName: step.action,
+      };
+    case 'cook':
+      return {
+        icon: '🍳',
+        text: `Cook ${step.target || step.ingredient || ''} (${step.method || 'fry'}${step.duration ? `, ${step.duration} ${step.unit || 'min'}` : ''})`,
+        actionName: 'Cook',
+      };
+    case 'flip':
+      return {
+        icon: '🍳',
+        text: step.instruction || `Flip ${step.target || 'tortilla'} in the pan`,
+        actionName: 'Flip',
+      };
+    case 'mix':
+    case 'beat':
+    case 'combine': {
+      const formattedInputs = (step.inputs || step.ingredients || []).map(formatIngredientWithState);
+      const targetContainer = step.targetContainerId;
+      const containerName =
+        !targetContainer || targetContainer === 'bowl' || targetContainer === 'preparation_bowl'
+          ? 'preparation bowl'
+          : targetContainer.replace('_', ' ');
+      return {
+        icon: '🥣',
+        text: `Mix ${formattedInputs.join(', ')} in the ${containerName} -> ${step.output || 'mixture'}`,
+        actionName: step.action,
+      };
+    }
+    case 'serve':
+      return {
+        icon: '🍽️',
+        text: `Serve ${step.target || 'dish'} to ${step.containerId || 'plate'}`,
+        actionName: 'Serve',
+      };
+    case 'instruction':
+      return {
+        icon: '👨‍🍳',
+        text: step.text || step.instruction || 'Follow recipe instruction',
+        actionName: 'Instruction',
+      };
+    case 'speak':
+      return {
+        icon: '💬',
+        text: `Tortilla says: "${step.message}"`,
+        actionName: 'Speak',
+      };
+    case 'celebrate':
+      return {
+        icon: '🎉',
+        text: 'Flip celebration! Recipe completed successfully!',
+        actionName: 'Celebrate',
+      };
+    case 'wait':
+      return {
+        icon: '⏳',
+        text: `Wait for ${step.durationMs || 600}ms`,
+        actionName: 'Wait',
+      };
+    default:
+      return {
+        icon: '📝',
+        text: 'Execute recipe step',
+        actionName: 'Step',
+      };
+  }
+}
+
+interface RecipePlayerProps {
+  renderWorkspace?: (requirementsNode: React.ReactNode) => React.ReactNode;
+}
+
+export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) => {
+  const [selectedRecipeId, setSelectedRecipeId] = useState<string>(recipes[0]?.id || 'concebolla');
+  const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [speed, setSpeed] = useState<number>(1); // 0.5, 1, 2, 3
+
+  // WorldStore recording state
+  const isRecording = useStore(worldStore, (state) => state.isRecording);
+  const recordedActions = useStore(worldStore, (state) => state.recordedActions);
+  const recordedDownloadUrl = useStore(worldStore, (state) => state.recordedDownloadUrl);
+  const recordedFilename = useStore(worldStore, (state) => state.recordedFilename);
+  const startRecording = useStore(worldStore, (state) => state.startRecording);
+  const stopRecording = useStore(worldStore, (state) => state.stopRecording);
+
+  const isRecordingMode = selectedRecipeId === 'recording' || isRecording;
+
+  const activeRecipe: Recipe = useMemo(
+    () => recipes.find((r) => r.id === selectedRecipeId) || recipes[0],
+    [selectedRecipeId]
+  );
+  const steps: RecipeStep[] = useMemo(() => activeRecipe?.steps || [], [activeRecipe]);
+
+  const totalSteps = isRecordingMode ? recordedActions.length : steps.length;
+
+  const runnerRef = useRef<RecipeRunner | null>(null);
+  const isExecutingRef = useRef<boolean>(false);
+
+  // Get delay in ms based on active speed multiplier
+  const currentDelayMs = SPEED_DELAYS[speed] || 600;
+
+  // Details for current step / recorded action
+  const stepDetails = useMemo(() => {
+    if (isRecordingMode) {
+      if (recordedActions.length === 0) {
+        return getActionDetails(undefined);
+      }
+      const activeIndex =
+        currentStepIndex < recordedActions.length
+          ? currentStepIndex
+          : recordedActions.length - 1;
+      return getActionDetails(recordedActions[activeIndex]);
+    } else {
+      const activeStep = steps[currentStepIndex < steps.length ? currentStepIndex : steps.length - 1];
+      return getStepDetails(currentStepIndex < steps.length ? activeStep : undefined);
+    }
+  }, [isRecordingMode, recordedActions, steps, currentStepIndex]);
+
+  // Synchronize required materials for active recipe in despensa container
+  useEffect(() => {
+    if (isRecordingMode) return;
+    const store = worldStore.getState();
+    const reqs = getRecipeRequirementsArray(activeRecipe);
+    reqs.forEach((req) => {
+      const existing = store.entities[req.entityId];
+      if (!existing) {
+        const catalogIng = ingredients.find((i) => i.id === req.entityId);
+        const catalogTool = tools.find((t: { id: string }) => t.id === req.entityId);
+        store.dispatch({
+          type: 'ADD_ENTITY',
+          payload: {
+            entity: {
+              id: req.entityId,
+              name: req.name || catalogIng?.name || catalogTool?.name || req.entityId,
+              type: (catalogTool ? 'tool' : 'ingredient') as 'tool' | 'ingredient',
+              icon: catalogIng?.icon || catalogTool?.icon,
+              ingredientId: req.entityId,
+              state: {},
+            },
+            containerId: 'despensa',
+          },
+        });
+      }
+    });
+  }, [activeRecipe, isRecordingMode]);
+
+  // Re-sync runner context or reset when recipe changes
+  const handleRecipeChange = (newRecipeId: string) => {
+    setIsPlaying(false);
+    setSelectedRecipeId(newRecipeId);
+    setCurrentStepIndex(0);
+    runnerRef.current = null;
+    worldStore.getState().dispatch({ type: 'RESET_WORLD' });
+  };
+
+  // Full reset of world and player step
+  const handleReset = useCallback(() => {
+    setIsPlaying(false);
+    setCurrentStepIndex(0);
+    runnerRef.current = null;
+    worldStore.getState().dispatch({ type: 'RESET_WORLD' });
+  }, []);
+
+  // Jump to a specific target step index
+  const jumpToStep = useCallback(
+    async (targetIndex: number) => {
+      if (isExecutingRef.current) return;
+      setIsPlaying(false);
+
+      const clampedTarget = Math.min(Math.max(0, targetIndex), totalSteps);
+      isExecutingRef.current = true;
+
+      try {
+        // Reset world state to initial kitchen
+        worldStore.getState().dispatch({ type: 'RESET_WORLD' });
+
+        if (isRecordingMode) {
+          // Replay recorded actions up to targetIndex
+          for (let i = 0; i < clampedTarget; i++) {
+            const act = recordedActions[i];
+            if (act) {
+              worldStore.getState().dispatch(act as unknown as WorldAction);
+            }
+          }
+          setCurrentStepIndex(clampedTarget);
+        } else {
+          // Fast-forward recipe runner
+          const fastRunner = new RecipeRunner({
+            mascotId: 'chef',
+            defaultTargetId: 'board',
+            delayMs: 0,
+          });
+          fastRunner.bindRecipeContext(activeRecipe);
+
+          for (let i = 0; i < clampedTarget; i++) {
+            await fastRunner.executeStep(steps[i]);
+          }
+
+          fastRunner.delayMs = currentDelayMs;
+          runnerRef.current = fastRunner;
+          setCurrentStepIndex(clampedTarget);
+        }
+      } catch (err) {
+        console.error('[RecipePlayer] Error jumping to step:', err);
+      } finally {
+        isExecutingRef.current = false;
+      }
+    },
+    [activeRecipe, totalSteps, steps, currentDelayMs, isRecordingMode, recordedActions]
+  );
+
+  // Step Up (Step forward 1 step)
+  const handleStepUp = useCallback(async () => {
+    if (isExecutingRef.current) return;
+    setIsPlaying(false);
+
+    if (currentStepIndex >= totalSteps) return;
+
+    isExecutingRef.current = true;
+
+    try {
+      if (isRecordingMode) {
+        const act = recordedActions[currentStepIndex];
+        if (act) {
+          worldStore.getState().dispatch(act as unknown as WorldAction);
+        }
+        setCurrentStepIndex((prev) => Math.min(prev + 1, totalSteps));
+      } else {
+        if (!runnerRef.current || currentStepIndex === 0) {
+          if (currentStepIndex === 0) {
+            worldStore.getState().dispatch({ type: 'RESET_WORLD' });
+          }
+          runnerRef.current = new RecipeRunner({
+            mascotId: 'chef',
+            defaultTargetId: 'board',
+            delayMs: currentDelayMs,
+          });
+          runnerRef.current.bindRecipeContext(activeRecipe);
+        } else {
+          runnerRef.current.delayMs = currentDelayMs;
+        }
+
+        const stepToRun = steps[currentStepIndex];
+        await runnerRef.current.executeStep(stepToRun);
+        setCurrentStepIndex((prev) => Math.min(prev + 1, totalSteps));
+      }
+    } catch (err) {
+      console.error('[RecipePlayer] Error stepping up:', err);
+    } finally {
+      isExecutingRef.current = false;
+    }
+  }, [currentStepIndex, totalSteps, activeRecipe, steps, currentDelayMs, isRecordingMode, recordedActions]);
+
+  // Step Down (Step back 1 step)
+  const handleStepDown = useCallback(() => {
+    if (currentStepIndex <= 0) return;
+    jumpToStep(currentStepIndex - 1);
+  }, [currentStepIndex, jumpToStep]);
+
+  // Toggle Play / Pause
+  const handleTogglePlay = () => {
+    if (isPlaying) {
+      setIsPlaying(false);
+    } else {
+      // If at end of steps, restart from beginning
+      if (currentStepIndex >= totalSteps) {
+        handleReset();
+      }
+      setIsPlaying(true);
+    }
+  };
+
+  // Decrease speed (Slow button)
+  const handleSlow = () => {
+    if (speed === 3) setSpeed(2);
+    else if (speed === 2) setSpeed(1);
+    else if (speed === 1) setSpeed(0.5);
+    else setSpeed(0.5);
+  };
+
+  // Increase speed (Fast button)
+  const handleFast = () => {
+    if (speed === 0.5) setSpeed(1);
+    else if (speed === 1) setSpeed(2);
+    else if (speed === 2) setSpeed(3);
+    else setSpeed(3);
+  };
+
+  // Auto-play step loop effect
+  useEffect(() => {
+    if (!isPlaying) return;
+
+    let isCancelled = false;
+
+    const playNextStep = async () => {
+      if (currentStepIndex >= totalSteps) {
+        setIsPlaying(false);
+        return;
+      }
+
+      if (isExecutingRef.current) return;
+      isExecutingRef.current = true;
+
+      try {
+        if (isRecordingMode) {
+          const act = recordedActions[currentStepIndex];
+          if (act) {
+            worldStore.getState().dispatch(act as unknown as WorldAction);
+          }
+          if (!isCancelled) {
+            const nextIndex = currentStepIndex + 1;
+            setCurrentStepIndex(nextIndex);
+            if (nextIndex >= totalSteps) {
+              setIsPlaying(false);
+            }
+          }
+        } else {
+          if (!runnerRef.current || currentStepIndex === 0) {
+            if (currentStepIndex === 0) {
+              worldStore.getState().dispatch({ type: 'RESET_WORLD' });
+            }
+            runnerRef.current = new RecipeRunner({
+              mascotId: 'chef',
+              defaultTargetId: 'board',
+              delayMs: currentDelayMs,
+            });
+            runnerRef.current.bindRecipeContext(activeRecipe);
+          } else {
+            runnerRef.current.delayMs = currentDelayMs;
+          }
+
+          const stepToRun = steps[currentStepIndex];
+          await runnerRef.current.executeStep(stepToRun);
+
+          if (!isCancelled) {
+            const nextIndex = currentStepIndex + 1;
+            setCurrentStepIndex(nextIndex);
+            if (nextIndex >= totalSteps) {
+              setIsPlaying(false);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('[RecipePlayer] Playback loop error:', err);
+        if (!isCancelled) setIsPlaying(false);
+      } finally {
+        isExecutingRef.current = false;
+      }
+    };
+
+    const timeoutId = setTimeout(() => {
+      playNextStep();
+    }, isRecordingMode ? currentDelayMs : 0);
+
+    return () => {
+      isCancelled = true;
+      clearTimeout(timeoutId);
+    };
+  }, [isPlaying, currentStepIndex, totalSteps, activeRecipe, steps, currentDelayMs, isRecordingMode, recordedActions]);
+
+  const progressPercent = totalSteps > 0 ? Math.min(100, (currentStepIndex / totalSteps) * 100) : 0;
+
+  const requirementsNode = (
+    <div className="recipe-requirements-section" data-container-id="despensa">
+      <div className="requirements-header">
+        <span className="requirements-title">📋 Required Materials</span>
+        <span className="requirements-subtitle">(Drag items to workstation)</span>
+      </div>
+      <RecipeRequirements requirements={getRecipeRequirementsArray(activeRecipe)} />
+    </div>
+  );
+
+  return (
+    <>
+      <div className="recipe-player-container">
+        {/* Header Row */}
+        <div className="player-header">
+          <div className="recipe-select-group">
+            <span className="recipe-label">Recipe:</span>
+            <div className="recipe-buttons">
+              {recipes.map((r) => {
+                const isActive = r.id === selectedRecipeId;
+                const recipeIcon = r.id === 'concebolla' ? '🧅' : '🥔';
+                return (
+                  <button
+                    key={r.id}
+                    type="button"
+                    className={`recipe-btn ${isActive ? 'active' : ''}`}
+                    onClick={() => handleRecipeChange(r.id)}
+                  >
+                    <span className="recipe-btn-icon">{recipeIcon}</span>
+                    <span className="recipe-btn-text">{r.name}</span>
+                  </button>
+                );
+              })}
+
+              {(recordedActions.length > 0 || isRecording) && (
+                <button
+                  type="button"
+                  className={`recipe-btn recording-mode-btn ${selectedRecipeId === 'recording' ? 'active' : ''}`}
+                  onClick={() => handleRecipeChange('recording')}
+                >
+                  <span className="recipe-btn-icon">{isRecording ? '🔴' : '🎥'}</span>
+                  <span className="recipe-btn-text">
+                    {isRecording
+                      ? `Recording (${recordedActions.length})`
+                      : `Recorded Session (${recordedActions.length})`}
+                  </span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="player-status-badge">
+            <span className="step-count">
+              Step <strong>{currentStepIndex}</strong> / {totalSteps}
+            </span>
+            <span className={`speed-badge speed-${speed.toString().replace('.', '_')}`}>
+              ⚡ {speed}x
+            </span>
+          </div>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="player-progress-track">
+          <div
+            className="player-progress-bar"
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
+
+        {/* Active Step Description Card */}
+        <div className="current-step-card">
+          <div className="step-icon-area">{stepDetails.icon}</div>
+          <div className="step-text-area">
+            <div className="step-action-badge">{stepDetails.actionName}</div>
+            <p className="step-description">{stepDetails.text}</p>
+          </div>
+        </div>
+
+        {/* Main Controls Row */}
+        <div className="player-controls-bar">
+          {/* Slow Control */}
+          <button
+            type="button"
+            className="ctrl-btn slow-btn"
+            onClick={handleSlow}
+            title="Slow down playback speed (0.5x)"
+          >
+            🐢 Slow
+          </button>
+
+          {/* Step Down (Step Back) */}
+          <button
+            type="button"
+            className="ctrl-btn step-down-btn"
+            onClick={handleStepDown}
+            disabled={currentStepIndex <= 0}
+            title="Step Down: Go back to previous step"
+          >
+            ⏮ Step Down
+          </button>
+
+          {/* Play / Pause Toggle */}
+          <button
+            type="button"
+            className={`ctrl-btn play-btn ${isPlaying ? 'is-playing' : ''}`}
+            onClick={handleTogglePlay}
+            title={isPlaying ? 'Pause recipe auto-play' : 'Play recipe step-by-step'}
+          >
+            {isPlaying ? '⏸ Pause' : currentStepIndex >= totalSteps ? '🔄 Replay' : '▶ Play'}
+          </button>
+
+          {/* Step Up (Step Forward) */}
+          <button
+            type="button"
+            className="ctrl-btn step-up-btn"
+            onClick={handleStepUp}
+            disabled={currentStepIndex >= totalSteps}
+            title="Step Up: Advance to next step"
+          >
+            Step Up ⏭
+          </button>
+
+          {/* Fast Control */}
+          <button
+            type="button"
+            className="ctrl-btn fast-btn"
+            onClick={handleFast}
+            title="Speed up playback speed (2x/3x)"
+          >
+            Fast ⚡
+          </button>
+
+          {/* Record / Stop Recording Toggle */}
+          <button
+            type="button"
+            className={`ctrl-btn record-btn ${isRecording ? 'is-recording' : ''}`}
+            onClick={
+              isRecording
+                ? stopRecording
+                : () => {
+                    startRecording();
+                    setSelectedRecipeId('recording');
+                    setCurrentStepIndex(0);
+                  }
+            }
+            title={
+              isRecording
+                ? 'Stop recording world interactions'
+                : 'Record world interactions into a serialized recipe'
+            }
+          >
+            <span className={`record-indicator ${isRecording ? 'active' : ''}`}></span>
+            {isRecording ? `⏹ Stop (${recordedActions.length})` : '⏺ Record'}
+          </button>
+
+          {/* Download Recipe JSON Link */}
+          {recordedDownloadUrl && (
+            <a
+              href={recordedDownloadUrl}
+              download={recordedFilename || 'tortilla-recorded-recipe.json'}
+              className="ctrl-btn download-btn"
+              title="Download serialized recipe JSON file"
+            >
+              💾 Download Recipe (.json)
+            </a>
+          )}
+
+          {/* Action Log Replayer */}
+          <ActionReplayer
+            onPlaybackStart={() => {
+              setSelectedRecipeId('recording');
+              setCurrentStepIndex(0);
+            }}
+          />
+
+          {/* Kitchen Reset Button */}
+          <button
+            type="button"
+            className="ctrl-btn reset-btn"
+            onClick={handleReset}
+            title="Reset kitchen world to starting state"
+          >
+            🔄 Reset
+          </button>
+        </div>
+
+        {/* Speed Presets & Step Timeline Dots */}
+        <div className="player-footer">
+          <div className="speed-pills">
+            <span className="speed-title">Speed:</span>
+            {[0.5, 1, 2, 3].map((sp) => (
+              <button
+                key={sp}
+                type="button"
+                className={`speed-pill ${speed === sp ? 'active' : ''}`}
+                onClick={() => setSpeed(sp)}
+              >
+                {sp}x
+              </button>
+            ))}
+          </div>
+
+          {/* Interactive Step Stepper Dots */}
+          <div className="stepper-dots">
+            {Array.from({ length: totalSteps }).map((_, idx) => (
+              <button
+                key={`step-dot-${idx}`}
+                type="button"
+                className={`step-dot ${idx < currentStepIndex ? 'completed' : ''} ${
+                  idx === currentStepIndex ? 'active' : ''
+                }`}
+                onClick={() => jumpToStep(idx)}
+                title={`Jump to step ${idx + 1}`}
+              />
+            ))}
+          </div>
+        </div>
+
+        {!renderWorkspace && requirementsNode}
+      </div>
+      {renderWorkspace && renderWorkspace(requirementsNode)}
+    </>
+  );
+};
+`````
+
+## File: src/store/defaults.ts
+`````typescript
+/**
+ * FILE: defaults.ts
+ *
+ * PURPOSE:
+ * Initial seed data for world state.
+ *
+ * RESPONSIBILITY:
+ * - Provides default entity definitions (mascot, ingredients, tools).
+ * - Provides default container definitions (despensa, sink, board, bowl, burner, plate).
+ */
+
+import type { Container, Entity } from '../types/world';
+import type { GazeTarget } from '../systems/gaze';
+import { ingredients as catalogIngredients } from '../data/catalog/ingredients';
+import { catalogTools } from '../data/catalog/tools';
+
+export const defaultEntities: Record<string, Entity> = {
+  chef: {
+    id: 'chef',
+    name: 'Chef Tortilla 🍳',
+    type: 'mascot',
+    state: { gazingAt: { type: 'entity', entityId: 'despensa' } satisfies GazeTarget },
+  },
+  ...catalogIngredients.reduce((acc, item) => {
+    acc[item.id] = {
+      id: item.id,
+      ingredientId: item.id,
+      name: `${item.icon} ${item.name}`,
+      type: 'ingredient',
+      state: {},
+    };
+    return acc;
+  }, {} as Record<string, Entity>),
+  ...catalogTools.reduce((acc, item) => {
+    acc[item.id] = {
+      id: item.id,
+      name: `${item.icon} ${item.name}`,
+      type: 'tool',
+      state: {},
+    };
+    return acc;
+  }, {} as Record<string, Entity>),
+};
+
+export const defaultContainers: Record<string, Container> = {
+  despensa: {
+    id: 'despensa',
+    name: 'Despensa (All Ingredients - Immutable Catalog)',
+    type: 'storage',
+    entityIds: [...catalogIngredients.map((i) => i.id), ...catalogTools.map((t) => t.id)],
+    rules: {
+      maxCapacity: 30,
+      allowedTypes: ['ingredient', 'tool'],
+      consumesOnDrag: false,
+      isImmutable: true,
+    },
+  },
+  sink: {
+    id: 'sink',
+    name: 'Fregadero (Sink)',
+    type: 'sink',
+    entityIds: [],
+    rules: { maxCapacity: 10, allowedTypes: ['ingredient', 'tool'] },
+  },
+  board: {
+    id: 'board',
+    name: 'Tabla (Cutting Board)',
+    type: 'board',
+    entityIds: [],
+    rules: { maxCapacity: 10, allowedTypes: ['ingredient', 'tool'] },
+  },
+  bowl: {
+    id: 'bowl',
+    name: 'Bol (Preparation Bowl)',
+    type: 'bowl',
+    entityIds: [],
+    rules: { maxCapacity: 10, allowedTypes: ['ingredient', 'tool'] },
+  },
+  burner1: {
+    id: 'burner1',
+    name: 'Fuego 1',
+    type: 'burner',
+    entityIds: [],
+    rules: { maxCapacity: 5, allowedTypes: ['ingredient', 'tool'] },
+    isOn: false,
+  },
+  burner2: {
+    id: 'burner2',
+    name: 'Fuego 2',
+    type: 'burner',
+    entityIds: [],
+    isOn: true,
+    rules: { maxCapacity: 5, allowedTypes: ['ingredient', 'tool'] },
+  },
+  plate: {
+    id: 'plate',
+    name: 'Plato (Plate)',
+    type: 'plate',
+    entityIds: [],
+    rules: { maxCapacity: 5, allowedTypes: ['ingredient', 'tool'] },
+  },
+};
+`````
+
+## File: src/systems/clasicaCompletion.test.ts
+`````typescript
+/**
+ * FILE: src/systems/clasicaCompletion.test.ts
+ *
+ * PURPOSE:
+ * Integration tests verifying entity states and container cleanups at the completion of clasicaRecipe.
+ *
+ * VERIFIES:
+ * - Preparation bowl (bowl) is empty at the end.
+ * - Plato (plate) contains ONLY mixture at the end.
+ * - Mixed input ingredients disappear from all world containers.
+ */
+
+import { beforeEach, describe, expect, it } from 'vitest';
+import { worldStore } from '../store/worldStore';
+import { RecipeRunner } from './recipeRunner';
+import { clasicaRecipe } from '../data/catalog/recipes/clasica';
+import { clearActionLog } from '../store/middleware/actionLog';
+
+function seedTestWorld() {
+  worldStore.setState({
+    entities: {
+      chef: { id: 'chef', name: 'Chef Tortilla 🍳', type: 'mascot', state: { gazingAt: null } },
+      potato: { id: 'potato', ingredientId: 'potato', name: 'Potato', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+      egg: { id: 'egg', ingredientId: 'egg', name: 'Egg', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+      oil: { id: 'oil', ingredientId: 'oil', name: 'Oil', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+      salt: { id: 'salt', ingredientId: 'salt', name: 'Salt', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+      black_pepper: { id: 'black_pepper', ingredientId: 'black_pepper', name: 'Pepper', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+    },
+    containers: {
+      despensa: {
+        id: 'despensa',
+        name: 'Despensa',
+        type: 'storage',
+        entityIds: ['potato', 'egg', 'oil', 'salt', 'black_pepper'],
+        rules: { isImmutable: true },
+      },
+      sink: {
+        id: 'sink',
+        name: 'Sink',
+        type: 'sink',
+        entityIds: [],
+        rules: { maxCapacity: 10 },
+      },
+      board: {
+        id: 'board',
+        name: 'Board',
+        type: 'board',
+        entityIds: [],
+        rules: { maxCapacity: 10 },
+      },
+      bowl: {
+        id: 'bowl',
+        name: 'Bowl',
+        type: 'bowl',
+        entityIds: [],
+        rules: { maxCapacity: 10 },
+      },
+      burner1: {
+        id: 'burner1',
+        name: 'burner1',
+        type: 'burner',
+        entityIds: [],
+        rules: { maxCapacity: 5 },
+      },
+      plate: {
+        id: 'plate',
+        name: 'Plate',
+        type: 'plate',
+        entityIds: [],
+        rules: { maxCapacity: 5 },
+      },
+    },
+    dispatch: worldStore.getState().dispatch,
+  });
+}
+
+describe('Clásica Recipe Completion State', () => {
+  beforeEach(() => {
+    seedTestWorld();
+    clearActionLog();
+  });
+
+  it('ensures preparation bowl is empty, and plato contains ONLY mixture', async () => {
+    const runner = new RecipeRunner({ mascotId: 'chef', delayMs: 1 });
+    await runner.runRecipe(clasicaRecipe);
+
+    const state = worldStore.getState();
+
+    // 1. Preparation bowl is empty
+    expect(state.containers.bowl.entityIds).toEqual([]);
+
+    // 2. fireplace is empty
+    //expect(state.containers.pan.entityIds).toEqual([]);
+
+    // 3. Plato (plate) contains ONLY mixture
+    expect(state.containers.plate.entityIds).toHaveLength(1);
+    const servedEntityId = state.containers.plate.entityIds[0];
+    const servedEntity = state.entities[servedEntityId];
+    expect(servedEntity).toBeDefined();
+    expect(servedEntity.name).toBe('mixture');
+
+    // 4. Input ingredients and cooking oil are marked as consumed
+    const mixtureId = runner.recipeContext.bindings['mixture'];
+    expect(mixtureId).toBe(servedEntityId);
+
+    const potatoesId = runner.recipeContext.bindings['potatoes'];
+    const eggsId = runner.recipeContext.bindings['eggs'];
+    const saltId = runner.recipeContext.bindings['salt'];
+    const pepperId = runner.recipeContext.bindings['black_pepper'];
+
+    expect(state.entities[potatoesId]?.state?.consumed).toBe(true);
+    expect(state.entities[eggsId]?.state?.consumed).toBe(true);
+    expect(state.entities[saltId]?.state?.consumed).toBe(true);
+    expect(state.entities[pepperId]?.state?.consumed).toBe(true);
+
+    // Verify none of the consumed ingredients remain in any workstation container
+    const workstationContainerIds = ['sink', 'board', 'bowl', 'burner1', 'plate'];
+    for (const cId of workstationContainerIds) {
+      expect(state.containers[cId].entityIds).not.toContain(potatoesId);
+      expect(state.containers[cId].entityIds).not.toContain(eggsId);
+      expect(state.containers[cId].entityIds).not.toContain(saltId);
+      expect(state.containers[cId].entityIds).not.toContain(pepperId);
+    }
+  });
+});
+`````
+
+## File: package.json
+`````json
+{
+  "name": "tortilla-world",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
+    "framer-motion": "^12.42.2",
+    "immer": "^11.1.15",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "zustand": "^5.0.14"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.13.2",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.3",
+    "eslint": "^10.6.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.3",
+    "globals": "^17.7.0",
+    "repomix": "^1.16.1",
+    "sass-embedded": "^1.100.0",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.62.0",
+    "vite": "^8.1.1",
+    "vitest": "^4.1.10"
+  }
+}
+`````
+
+## File: src/components/Scene/RecipePlayer.scss
+`````scss
+/**
+ * FILE: RecipePlayer.scss
+ *
+ * PURPOSE:
+ * Stylesheet for RecipePlayer component.
+ * Uses warm Spanish kitchen ceramic palette with sleek interactive controls.
+ */
+
+@use 'sass:color';
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.recipe-player-container {
+  @include ceramic-card($warm-surface, $warm-border);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: $shadow-ceramic;
+  position: relative;
+  overflow: hidden;
+
+  // Header Row
+  .player-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+
+    .recipe-select-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .recipe-label {
+        font-weight: 800;
+        font-size: 0.9rem;
+        color: $dark-brown;
+      }
+
+      .recipe-buttons {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+
+        .recipe-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          background: #ffffff;
+          border: 2px solid $warm-border;
+          border-radius: $radius-sm;
+          padding: 6px 14px;
+          font-size: 0.88rem;
+          font-weight: 700;
+          color: $dark-brown;
+          cursor: pointer;
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          box-shadow: 0 2px 4px rgba(44, 26, 20, 0.04);
+          user-select: none;
+
+          .recipe-btn-icon {
+            font-size: 1.1rem;
+            line-height: 1;
+            transition: transform 0.2s ease;
+          }
+
+          &:hover {
+            border-color: $tortilla-yellow;
+            background: $tortilla-yellow-light;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(232, 168, 56, 0.2);
+
+            .recipe-btn-icon {
+              transform: scale(1.2) rotate(-5deg);
+            }
+          }
+
+          &:active {
+            transform: translateY(0);
+          }
+
+          &.active {
+            background: linear-gradient(135deg, $tortilla-yellow, $tortilla-yellow-hover);
+            color: #ffffff;
+            border-color: $tortilla-yellow-hover;
+            box-shadow: 0 4px 10px rgba(232, 168, 56, 0.35);
+
+            .recipe-btn-icon {
+              transform: scale(1.15);
+            }
+          }
+
+          &.recording-mode-btn {
+            border-color: $terracotta;
+            color: $terracotta;
+
+            &:hover {
+              background: rgba(217, 83, 79, 0.08);
+            }
+
+            &.active {
+              background: linear-gradient(135deg, $terracotta, color.adjust($terracotta, $lightness: -10%));
+              color: #ffffff;
+              border-color: $terracotta;
+              box-shadow: 0 4px 10px rgba(217, 83, 79, 0.35);
+            }
+          }
+        }
+      }
+    }
+
+    .player-status-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      .step-count {
+        font-size: 0.88rem;
+        color: $wood-muted;
+        background: $warm-beige;
+        padding: 4px 10px;
+        border-radius: $radius-sm;
+        border: 1px solid $warm-border;
+
+        strong {
+          color: $dark-brown;
+          font-weight: 800;
+        }
+      }
+
+      .speed-badge {
+        font-size: 0.82rem;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: $radius-sm;
+        background: $olive-green-light;
+        color: $olive-green;
+        border: 1px solid $olive-green-border;
+      }
+    }
+  }
+
+  // Recipe Requirements Section (Left Sidebar Panel)
+  .recipe-requirements-section {
+    width: 260px;
+    min-width: 230px;
+    flex-shrink: 0;
+    background: #ffffff;
+    border: 1px solid $warm-border;
+    border-radius: $radius-md;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: $shadow-ceramic;
+    box-sizing: border-box;
+
+    @media (max-width: 860px) {
+      width: 100%;
+    }
+
+    .requirements-header {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding-bottom: 8px;
+      border-bottom: 2px dashed color.mix($dark-brown, white, 15%);
+
+      .requirements-title {
+        font-size: 0.85rem;
+        font-weight: 800;
+        color: $dark-brown;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .requirements-subtitle {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: $wood-muted;
+      }
+    }
+
+    .recipe-requirements {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      width: 100%;
+
+      .requirement-view {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: $warm-surface;
+        border: 1px solid $warm-border;
+        border-radius: $radius-md;
+        padding: 8px 12px;
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: $dark-brown;
+        box-shadow: 0 1px 3px rgba(44, 26, 20, 0.04);
+        width: 100%;
+        box-sizing: border-box;
+        transition: all 0.2s ease;
+
+        &:hover {
+          border-color: $tortilla-yellow;
+          box-shadow: 0 3px 6px rgba(232, 168, 56, 0.15);
+          transform: translateX(2px);
+        }
+
+        &__amount {
+          font-size: 0.8rem;
+          font-weight: 800;
+          color: $terracotta;
+          background: $terracotta-light;
+          padding: 3px 8px;
+          border-radius: 6px;
+          border: 1px solid $terracotta-border;
+          white-space: nowrap;
+        }
+      }
+    }
+  }
+
+  // Progress Bar Track
+  .player-progress-track {
+    width: 100%;
+    height: 6px;
+    background: $warm-beige;
+    border-radius: 999px;
+    overflow: hidden;
+    position: relative;
+
+    .player-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, $tortilla-yellow, $terracotta);
+      border-radius: 999px;
+      transition: width 0.25s ease-out;
+    }
+  }
+
+  // Active Step Description Card
+  .current-step-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: #ffffff;
+    border: 1px solid $warm-border;
+    border-radius: $radius-md;
+    padding: 12px 16px;
+    box-shadow: 0 2px 5px rgba(44, 26, 20, 0.04);
+
+    .step-icon-area {
+      font-size: 1.8rem;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: $tortilla-yellow-light;
+      border: 1px solid $tortilla-yellow-border;
+      border-radius: $radius-sm;
+      flex-shrink: 0;
+    }
+
+    .step-text-area {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      .step-action-badge {
+        display: inline-block;
+        align-self: flex-start;
+        font-size: 0.68rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 2px 6px;
+        border-radius: 4px;
+        background: $terracotta-light;
+        color: $terracotta;
+        border: 1px solid $terracotta-border;
+      }
+
+      .step-description {
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: $dark-brown;
+        line-height: 1.35;
+      }
+    }
+  }
+
+  // Controls Row
+  .player-controls-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-top: 4px;
+
+    .ctrl-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      border-radius: $radius-sm;
+      border: 1px solid $warm-border;
+      background: #ffffff;
+      color: $dark-brown;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+      transition: all 0.18s ease;
+      user-select: none;
+
+      &:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-color: $tortilla-yellow;
+      }
+
+      &:active:not(:disabled) {
+        transform: translateY(0);
+      }
+
+      &:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+        box-shadow: none;
+      }
+
+      // Primary Play Button
+      &.play-btn {
+        background: $tortilla-yellow;
+        color: #ffffff;
+        border-color: $tortilla-yellow-hover;
+        padding: 10px 22px;
+        font-size: 0.95rem;
+
+        &:hover:not(:disabled) {
+          background: $tortilla-yellow-hover;
+        }
+
+        &.is-playing {
+          background: $terracotta;
+          border-color: $terracotta-hover;
+        }
+      }
+
+      // Slow & Fast buttons
+      &.slow-btn, &.fast-btn {
+        background: $warm-surface;
+      }
+
+      // Record button
+      &.record-btn {
+        background: #ffffff;
+        border: 2px solid $terracotta;
+        color: $terracotta;
+        font-weight: 800;
+
+        .record-indicator {
+          display: inline-block;
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          background: $terracotta;
+          transition: transform 0.2s ease;
+
+          &.active {
+            animation: record-pulse 1.2s infinite ease-in-out;
+          }
+        }
+
+        &:hover:not(:disabled) {
+          background: $terracotta-light;
+          border-color: $terracotta-hover;
+        }
+
+        &.is-recording {
+          background: $terracotta;
+          color: #ffffff;
+          border-color: $terracotta-hover;
+          box-shadow: 0 4px 10px rgba(217, 83, 79, 0.35);
+
+          .record-indicator {
+            background: #ffffff;
+          }
+
+          &:hover:not(:disabled) {
+            background: $terracotta-hover;
+          }
+        }
+      }
+
+      // Download button
+      &.download-btn {
+        background: linear-gradient(135deg, $olive-green, $olive-green-hover);
+        color: #ffffff;
+        border: 2px solid $olive-green-hover;
+        font-weight: 800;
+        text-decoration: none;
+        box-shadow: 0 3px 8px rgba(107, 142, 35, 0.3);
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 5px 12px rgba(107, 142, 35, 0.4);
+        }
+      }
+
+      // Reset button
+      &.reset-btn {
+        margin-left: auto;
+        background: #ffffff;
+        border: 2px solid $terracotta;
+        color: $terracotta;
+        font-size: 0.9rem;
+        font-weight: 800;
+        padding: 9px 18px;
+
+        &:hover:not(:disabled) {
+          background: $terracotta;
+          color: #ffffff;
+          border-color: $terracotta-hover;
+          box-shadow: 0 4px 8px rgba(217, 83, 79, 0.25);
+        }
+      }
+    }
+  }
+
+  // Footer: Speed Pills & Stepper Dots
+  .player-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-top: 6px;
+    border-top: 1px dashed $warm-border;
+
+    .speed-pills {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      .speed-title {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: $wood-muted;
+        margin-right: 2px;
+      }
+
+      .speed-pill {
+        border: 1px solid $warm-border;
+        background: #ffffff;
+        color: $dark-brown;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: $radius-sm;
+        cursor: pointer;
+        transition: all 0.15s;
+
+        &:hover {
+          border-color: $olive-green;
+        }
+
+        &.active {
+          background: $olive-green;
+          color: #ffffff;
+          border-color: $olive-green-hover;
+        }
+      }
+    }
+
+    .stepper-dots {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: wrap;
+
+      .step-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: $warm-border;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &:hover {
+          transform: scale(1.3);
+          background: $tortilla-yellow;
+        }
+
+        &.completed {
+          background: $olive-green;
+        }
+
+        &.active {
+          background: $terracotta;
+          transform: scale(1.3);
+          box-shadow: 0 0 0 2px $terracotta-light;
+        }
+      }
+    }
+  }
+}
+
+@keyframes record-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.4);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+`````
+
+## File: src/components/World/World.scss
+`````scss
+/**
+ * FILE: World.scss
+ *
+ * PURPOSE:
+ * SCSS styles for world containers and entity views.
+ */
+
+@use 'sass:color';
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.container-view {
+  @include ceramic-card($warm-surface, $warm-border);
+  min-width: 240px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+
+  &--drag-over {
+    border-color: $tortilla-yellow;
+    background-color: color.mix($tortilla-yellow, $warm-surface, 10%);
+  }
+
+  &--mixture {
+    border-color: $tortilla-yellow;
+    box-shadow: 0 0 16px rgba(245, 180, 50, 0.35);
+  }
+}
+
+.burner-toggle {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+
+  border: 2px solid #666;
+  border-radius: 50%;
+  background: #2f2f2f;
+
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: scale(1.15);
+    border-color: #999;
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.burner-toggle--on {
+  background: #ff6b00;
+  border-color: #ff9d4d;
+
+  box-shadow:
+    0 0 6px rgba(255, 120, 0, .8),
+    0 0 14px rgba(255, 120, 0, .5);
+}
+
+.container-onFire {
+  animation: burnerGlow 1s infinite alternate;
+}
+
+@keyframes burnerGlow {
+  from {
+    box-shadow: 0 0 5px red;
+  }
+
+  to {
+    box-shadow: 0 0 25px orange;
+  }
+}
+
+.container-view__header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.container-view__actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+
+  .container-action-btn {
+    padding: 4px 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: $radius-sm;
+    border: 1px solid $warm-border;
+    background: #ffffff;
+    color: $dark-brown;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: color.mix($tortilla-yellow, #ffffff, 20%);
+      border-color: $tortilla-yellow;
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+
+    &--active {
+      background: #ff6b00;
+      color: #ffffff;
+      border-color: #ff9d4d;
+      box-shadow: 0 0 6px rgba(255, 120, 0, 0.5);
+    }
+  }
+}
+
+.container-view__title {
+  color: $dark-brown;
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.container-view__badge {
+  color: $wood-muted;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.container-view__items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  min-height: 48px;
+}
+
+.container-view__empty-hint {
+  color: $wood-muted;
+  font-size: 0.85rem;
+  font-style: italic;
+  text-align: center;
+  padding: 12px;
+  border: 1px dashed $warm-border;
+  border-radius: $radius-md;
+}
+
+.entity-view {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid $warm-border;
+  border-radius: $radius-md;
+  box-shadow: 0 2px 6px rgba(44, 26, 20, 0.04);
+  display: flex;
+  gap: 0.5rem;
+  padding: 8px 12px;
+  user-select: none;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: color.mix($tortilla-yellow, $warm-border, 50%);
+  }
+
+  &--dragging {
+    opacity: 0.6;
+    cursor: grabbing;
+  }
+
+  &--readonly {
+    cursor: default;
+    background: color.mix($warm-beige, #ffffff, 40%);
+    box-shadow: none;
+
+    &:hover {
+      border-color: $warm-border;
+    }
+  }
+}
+
+.entity-view__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.entity-view__name {
+  font-weight: 600;
+  color: $dark-brown;
+  font-size: 0.9rem;
+}
+
+.entity-view__state {
+  margin-left: auto;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: $radius-sm;
+
+  &--raw {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  &--prepared {
+    background: #e0f2fe;
+    color: #0369a1;
+  }
+
+  &--cooking {
+    background: #ffedd5;
+    color: #c2410c;
+  }
+
+  &--finished {
+    background: #dcfce7;
+    color: #15803d;
+  }
+}
+`````
+
+## File: src/store/worldStore.test.ts
+`````typescript
+/**
+ * FILE: worldStore.test.ts
+ *
+ * PURPOSE:
+ * Unit tests for central world store and container rule enforcement.
+ *
+ * RESPONSIBILITY:
+ * - Validates state transitions, move/add entity actions, and rule checks.
+ */
+
+import { describe, it, expect, beforeEach } from 'vitest';
+import { worldStore } from './worldStore';
+import { clearActionLog, getActionLog } from './middleware/actionLog';
+
+function seed() {
+  worldStore.setState({
+    entities: {
+      potato: { id: 'potato', name: 'Potato', type: 'ingredient' },
+      onion: { id: 'onion', name: 'Onion', type: 'ingredient' },
+      knife: { id: 'knife', name: 'Knife', type: 'tool' },
+      chef: { id: 'chef', name: 'Chef', type: 'mascot' },
+    },
+    containers: {
+      kitchen: {
+        id: 'kitchen',
+        name: 'Kitchen',
+        type: 'storage',
+        entityIds: ['potato', 'onion', 'knife'],
+      },
+      burner1: {
+        id: 'burner1',
+        name: 'burner1',
+        type: 'burner',
+        entityIds: [],
+        rules: { maxCapacity: 1 },
+      },
+      board: {
+        id: 'board',
+        name: 'Cutting Board',
+        type: 'board',
+        entityIds: [],
+        rules: { allowedTypes: ['ingredient'] },
+      },
+      recipe: {
+        id: 'recipe',
+        name: 'Recipe',
+        type: 'plate',
+        entityIds: [],
+        rules: { allowedTypes: ['ingredient'], uniqueTypesOnly: true },
+      },
+    },
+  });
+}
+
+describe('worldStore container rule enforcement', () => {
+  beforeEach(() => {
+    seed();
+    clearActionLog();
+  });
+
+  it('allows a move that satisfies the target container rules', () => {
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'potato', targetContainerId: 'burner1' },
+    });
+
+    const state = worldStore.getState();
+    expect(state.containers.burner1.entityIds).toEqual(['potato']);
+    expect(state.containers.kitchen.entityIds).not.toContain('potato');
+  });
+
+  it('blocks a move once the target container is at capacity', () => {
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'potato', targetContainerId: 'burner1' },
+    });
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'onion', targetContainerId: 'burner1' },
+    });
+
+    const state = worldStore.getState();
+    expect(state.containers.burner1.entityIds).toEqual(['potato']);
+    expect(state.containers.kitchen.entityIds).toContain('onion');
+  });
+
+  it('blocks a move that violates allowedTypes', () => {
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'knife', targetContainerId: 'board' },
+    });
+
+    // knife is a tool; board only allows ingredients
+    const state = worldStore.getState();
+    expect(state.containers.board.entityIds).toEqual([]);
+    expect(state.containers.kitchen.entityIds).toContain('knife');
+  });
+
+  it('blocks a move that would duplicate a type in a uniqueTypesOnly container', () => {
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'potato', targetContainerId: 'recipe' },
+    });
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'onion', targetContainerId: 'recipe' },
+    });
+
+    // both are 'ingredient' type; uniqueTypesOnly blocks the second
+    const state = worldStore.getState();
+    expect(state.containers.recipe.entityIds).toEqual(['potato']);
+    expect(state.containers.kitchen.entityIds).toContain('onion');
+  });
+
+  it('never re-validates a same-container reorder', () => {
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'potato', targetContainerId: 'kitchen', positionIndex: 0 },
+    });
+
+    // would fail uniqueTypesOnly-style self-comparison if the entity
+    // weren't excluded from its own container's current entities
+    const state = worldStore.getState();
+    expect(state.containers.kitchen.entityIds[0]).toBe('potato');
+  });
+
+  it('is a no-op when the entity does not exist', () => {
+    const before = worldStore.getState().containers.burner1.entityIds;
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'ghost', targetContainerId: 'burner1' },
+    });
+    expect(worldStore.getState().containers.burner1.entityIds).toEqual(before);
+  });
+
+  it('enforces the same rules on ADD_ENTITY', () => {
+    worldStore.getState().dispatch({
+      type: 'ADD_ENTITY',
+      payload: {
+        entity: { id: 'spoon', name: 'Spoon', type: 'tool' },
+        containerId: 'board',
+      },
+    });
+
+    const state = worldStore.getState();
+    expect(state.containers.board.entityIds).toEqual([]);
+    expect(state.entities.spoon).toBeUndefined();
+  });
+
+  it('logs a labelled entry into the action log for each dispatch', () => {
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'potato', targetContainerId: 'burner1' },
+    });
+
+    const log = getActionLog();
+    expect(log).toHaveLength(1);
+    expect(log[0].action).toBe('MOVE_ENTITY');
+    expect(typeof log[0].timestamp).toBe('number');
+  });
+
+  it('keeps source entity and creates copy in target when moving from an immutable container', () => {
+    worldStore.setState({
+      entities: {
+        potato: { id: 'potato', name: 'Potato', type: 'ingredient' },
+      },
+      containers: {
+        pantry: {
+          id: 'pantry',
+          name: 'Immutable Pantry',
+          type: 'storage',
+          entityIds: ['potato'],
+          rules: { isImmutable: true },
+        },
+        burner1: {
+          id: 'burner1',
+          name: 'burner1',
+          type: 'burner',
+          entityIds: [],
+        },
+      },
+    });
+
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'potato', targetContainerId: 'burner1' },
+    });
+
+    const state = worldStore.getState();
+    // Source container retains original entity
+    expect(state.containers.pantry.entityIds).toEqual(['potato']);
+    // Target container gets a copy instance
+    expect(state.containers.burner1.entityIds.length).toBe(1);
+    const copyId = state.containers.burner1.entityIds[0];
+    expect(copyId).not.toBe('potato');
+    expect(state.entities[copyId].name).toBe('Potato');
+  });
+
+  it('rejects adding a duplicate ingredient to a container according to Rule 6', () => {
+    worldStore.setState({
+      entities: {
+        potato: { id: 'potato', ingredientId: 'potato', name: 'Potato', type: 'ingredient' },
+        potato_copy: { id: 'potato_copy', ingredientId: 'potato', name: 'Potato Copy', type: 'ingredient' },
+      },
+      containers: {
+        pantry: {
+          id: 'pantry',
+          name: 'Pantry',
+          type: 'storage',
+          entityIds: ['potato_copy'],
+          rules: { isImmutable: true },
+        },
+        burner1: {
+          id: 'burner1',
+          name: 'burner1',
+          type: 'burner',
+          entityIds: ['potato'],
+        },
+      },
+    });
+
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'potato_copy', targetContainerId: 'burner1' },
+    });
+
+    const state = worldStore.getState();
+    // burner1 should still only have 1 potato because duplicate ingredient is blocked
+    expect(state.containers.burner1.entityIds).toEqual(['potato']);
+  });
+
+  it('updates ingredient status to peeled when preparation is peeled', () => {
+    worldStore.setState({
+      entities: {
+        potato: { id: 'potato', ingredientId: 'potato', name: '🥔 Potatoes', type: 'ingredient' },
+      },
+      containers: {
+        board: { id: 'board', name: 'Board', type: 'board', entityIds: ['potato'] },
+      },
+    });
+
+    worldStore.getState().dispatch({
+      type: 'PREPARE_INGREDIENT',
+      payload: { entityId: 'potato', preparation: 'peeled' },
+    });
+
+    const state = worldStore.getState();
+    const entity = state.entities.potato;
+    expect(entity.state?.preparation).toBe('peeled');
+    expect(entity.state?.status).toBe('peeled');
+    expect(entity.name).toBe('🥔 Peeled Potatoes');
+  });
+
+  it('updates ingredient status to sliced-potatoe and diced-potatoe generically', () => {
+    worldStore.setState({
+      entities: {
+        potato: { id: 'potato', ingredientId: 'potato', name: '🥔 Potatoes', type: 'ingredient' },
+        onion: { id: 'onion', ingredientId: 'onion', name: '🧅 Onion', type: 'ingredient' },
+      },
+      containers: {
+        board: { id: 'board', name: 'Board', type: 'board', entityIds: ['potato', 'onion'] },
+      },
+    });
+
+    worldStore.getState().dispatch({
+      type: 'PREPARE_INGREDIENT',
+      payload: { entityId: 'potato', preparation: 'sliced' },
+    });
+
+    worldStore.getState().dispatch({
+      type: 'PREPARE_INGREDIENT',
+      payload: { entityId: 'onion', preparation: 'diced' },
+    });
+
+    const state = worldStore.getState();
+    expect(state.entities.potato.state?.status).toBe('sliced-potatoe');
+    expect(state.entities.onion.state?.status).toBe('diced-onion');
+  });
+
+  it('toggles container heat state and emits CONTAINER_HEAT_TOGGLED world event on TOGGLE_HEAT', () => {
+    const eventsReceived: Array<{ type: string; payload: unknown }> = [];
+    const unsubscribe = worldStore.getState().onEvent((event) => {
+      eventsReceived.push(event);
+    });
+
+    expect(worldStore.getState().containers.burner1.isOn).toBeFalsy();
+
+    // Toggle heat ON
+    worldStore.getState().dispatch({
+      type: 'TOGGLE_HEAT',
+      payload: { containerId: 'burner1' },
+    });
+
+    expect(worldStore.getState().containers.burner1.isOn).toBe(true);
+    expect(eventsReceived).toHaveLength(1);
+    expect(eventsReceived[0]).toEqual({
+      type: 'CONTAINER_HEAT_TOGGLED',
+      payload: { containerId: 'burner1', isOn: true },
+    });
+
+    // Toggle heat OFF
+    worldStore.getState().dispatch({
+      type: 'TOGGLE_HEAT',
+      payload: { containerId: 'burner1' },
+    });
+
+    expect(worldStore.getState().containers.burner1.isOn).toBe(false);
+    expect(eventsReceived).toHaveLength(2);
+    expect(eventsReceived[1]).toEqual({
+      type: 'CONTAINER_HEAT_TOGGLED',
+      payload: { containerId: 'burner1', isOn: false },
+    });
+
+    unsubscribe();
+  });
+
+  it('toggles container heat state and emits CONTAINER_HEAT_TOGGLED world event on TOGGLE_BURNER', () => {
+    const eventsReceived: Array<{ type: string; payload: unknown }> = [];
+    const unsubscribe = worldStore.getState().onEvent((event) => {
+      eventsReceived.push(event);
+    });
+
+    expect(worldStore.getState().containers.board.isOn).toBeFalsy();
+
+    worldStore.getState().dispatch({
+      type: 'TOGGLE_BURNER',
+      payload: { containerId: 'board' },
+    });
+
+    expect(worldStore.getState().containers.board.isOn).toBe(true);
+    expect(eventsReceived[0]).toEqual({
+      type: 'CONTAINER_HEAT_TOGGLED',
+      payload: { containerId: 'board', isOn: true },
+    });
+
+    unsubscribe();
+  });
+});
+`````
+
+## File: src/systems/recipeRunner/handlers/utilityHandlers.ts
+`````typescript
+/**
+ * FILE: src/systems/recipeRunner/handlers/utilityHandlers.ts
+ *
+ * PURPOSE:
+ * Step handlers for utility, narrative, and completion steps ('serve', 'wait', 'instruction', 'speak', 'celebrate').
+ */
+
+import { worldStore } from '../../../store/worldStore';
+import { moveTortillaTo, flipTortilla, clearTortillaGaze } from '../../mascotActions';
+import type { RecipeStep } from '../../../types/RecipeStep';
+import type { RecipeRunnerContext } from '../types';
+
+type ServeStep = Extract<RecipeStep, { action: 'serve' }>;
+type WaitStep = Extract<RecipeStep, { action: 'wait' }>;
+type InstructionStep = Extract<RecipeStep, { action: 'instruction' }>;
+type SpeakStep = Extract<RecipeStep, { action: 'speak' }>;
+type CelebrateStep = Extract<RecipeStep, { action: 'celebrate' }>;
+
+export async function handleServeStep(
+  ctx: RecipeRunnerContext,
+  step: ServeStep,
+  workstationDefaultContainerId?: string
+): Promise<void> {
+  const targetContainerId = step.containerId || workstationDefaultContainerId || 'plate';
+  moveTortillaTo(targetContainerId, ctx.mascotId);
+  await ctx.wait();
+
+  const state = worldStore.getState();
+
+  if (step.target) {
+    const targetEntityId = ctx.getBoundEntityId(step.target);
+    if (targetEntityId) {
+      const currentContainer = Object.values(state.containers).find((c) =>
+        c.entityIds.includes(targetEntityId)
+      );
+      if (currentContainer && currentContainer.id !== targetContainerId) {
+        worldStore.getState().dispatch({
+          type: 'MOVE_ENTITY',
+          payload: {
+            entityId: targetEntityId,
+            targetContainerId,
+          },
+        });
+      }
+    }
+  } else {
+    // Move all active (unconsumed) bound recipe entities to target container (plate)
+    const boundEntityIds = new Set(Object.values(ctx.recipeContext.bindings));
+
+    for (const entityId of boundEntityIds) {
+      const entity = state.entities[entityId];
+      if (entity && !entity.state?.consumed) {
+        const currentContainer = Object.values(state.containers).find((c) =>
+          c.entityIds.includes(entityId)
+        );
+        if (currentContainer && currentContainer.id !== targetContainerId) {
+          worldStore.getState().dispatch({
+            type: 'MOVE_ENTITY',
+            payload: {
+              entityId,
+              targetContainerId,
+            },
+          });
+        }
+      }
+    }
+  }
+  await ctx.wait();
+}
+
+export async function handleWaitStep(
+  ctx: RecipeRunnerContext,
+  step: WaitStep
+): Promise<void> {
+  await ctx.wait(step.durationMs);
+}
+
+export async function handleInstructionStep(
+  ctx: RecipeRunnerContext,
+  step: InstructionStep
+): Promise<void> {
+  const text = step.text || step.instruction;
+  if (text) {
+    worldStore.getState().dispatch({
+      type: 'UPDATE_ENTITY_STATE',
+      payload: {
+        entityId: step.mascotId || ctx.mascotId,
+        changes: { speechMessage: text },
+      },
+    });
+
+    const lower = text.toLowerCase();
+    if (
+      lower.includes('toggle heat') ||
+      lower.includes('turn on heat') ||
+      lower.includes('turn off heat') ||
+      lower.includes('heat on') ||
+      lower.includes('burner')
+    ) {
+      let targetContainerId = 'burner1';
+      if (lower.includes('burner2') || lower.includes('burner 2')) {
+        targetContainerId = 'burner2';
+      } else if (lower.includes('burner1') || lower.includes('burner 1')) {
+        targetContainerId = 'burner1';
+      }
+
+      const container = worldStore.getState().containers[targetContainerId];
+      if (container) {
+        if (lower.includes('turn on') && !container.isOn) {
+          worldStore.getState().dispatch({ type: 'TOGGLE_BURNER', payload: { containerId: targetContainerId } });
+        } else if (lower.includes('turn off') && container.isOn) {
+          worldStore.getState().dispatch({ type: 'TOGGLE_BURNER', payload: { containerId: targetContainerId } });
+        } else if (lower.includes('toggle heat') || lower.includes('toggle burner') || lower.includes('burner')) {
+          worldStore.getState().dispatch({ type: 'TOGGLE_BURNER', payload: { containerId: targetContainerId } });
+        }
+      }
+    }
+  }
+  await ctx.wait();
+}
+
+export async function handleSpeakStep(
+  ctx: RecipeRunnerContext,
+  step: SpeakStep
+): Promise<void> {
+  worldStore.getState().dispatch({
+    type: 'UPDATE_ENTITY_STATE',
+    payload: {
+      entityId: step.mascotId || ctx.mascotId,
+      changes: { speechMessage: step.message },
+    },
+  });
+  await ctx.wait();
+}
+
+export async function handleCelebrateStep(
+  ctx: RecipeRunnerContext,
+  step: CelebrateStep
+): Promise<void> {
+  flipTortilla(step.mascotId || ctx.mascotId);
+  await ctx.wait(900);
+  clearTortillaGaze(step.mascotId || ctx.mascotId);
+}
+`````
+
+## File: src/systems/gaze.test.ts
+`````typescript
+/**
+ * FILE: gaze.test.ts
+ *
+ * PURPOSE:
+ * Unit tests for gaze system.
+ *
+ * RESPONSIBILITY:
+ * - Validates mascot gaze target updates, structural equality, and idempotency.
+ */
+
+import { describe, it, expect, beforeEach } from 'vitest';
+import { worldStore } from '../store/worldStore';
+import { updateMascotGaze, getMascotGazeTarget } from './gaze';
+import type { GazeTarget } from './gaze';
+
+const  FIRE_GAZE: GazeTarget = { type: 'entity', entityId: ' burner1' };
+
+describe('Gaze System', () => {
+  beforeEach(() => {
+    worldStore.setState({
+      entities: {
+        chef: {
+          id: 'chef',
+          name: 'Chef',
+          type: 'mascot',
+          state: {
+            gazingAt: undefined,
+          },
+        },
+      },
+      containers: {
+        bench: {
+          id: 'bench',
+          name: 'Workbench',
+          type: 'board',
+          rules: { maxCapacity: 1 },
+          entityIds: [],
+        },
+        burner1: {
+          id: 'burner1',
+          name: 'burner1',
+          type: 'burner',
+          rules: { maxCapacity: Infinity },
+          entityIds: [],
+        },
+        plate: {
+          id: 'plate',
+          name: 'Plate',
+          type: 'storage',
+          rules: { maxCapacity: Infinity },
+          entityIds: [],
+        },
+      },
+    });
+  });
+
+  it('updates mascot gaze target correctly', () => {
+    updateMascotGaze('chef',  FIRE_GAZE);
+    expect(getMascotGazeTarget('chef')).toEqual( FIRE_GAZE);
+  });
+
+  it('is idempotent when gazing at the same target', () => {
+    updateMascotGaze('chef',  FIRE_GAZE);
+    const firstState = worldStore.getState();
+
+    updateMascotGaze('chef', { type: 'entity', entityId: ' burner1' }); // structurally identical
+    const secondState = worldStore.getState();
+
+    expect(firstState).toBe(secondState);
+  });
+
+  it('updates when gazing at a different entity', () => {
+    updateMascotGaze('chef',  FIRE_GAZE);
+    updateMascotGaze('chef', { type: 'entity', entityId: 'plate' });
+    expect(getMascotGazeTarget('chef')).toEqual({ type: 'entity', entityId: 'plate' });
+  });
+
+  it('can gaze at mouse', () => {
+    updateMascotGaze('chef', { type: 'mouse' });
+    expect(getMascotGazeTarget('chef')).toEqual({ type: 'mouse' });
+  });
+
+  it('can gaze at a point', () => {
+    const pointGaze: GazeTarget = { type: 'point', point: { x: 100, y: 200 } };
+    updateMascotGaze('chef', pointGaze);
+    expect(getMascotGazeTarget('chef')).toEqual(pointGaze);
+  });
+
+  it('can clear gaze to null', () => {
+    updateMascotGaze('chef',  FIRE_GAZE);
+    updateMascotGaze('chef', null);
+    expect(getMascotGazeTarget('chef')).toBeNull();
+  });
+});
+`````
+
+## File: src/systems/gaze.ts
+`````typescript
+/**
+ * FILE: gaze.ts
+ *
+ * PURPOSE:
+ * Calculates gaze behavior.
+ *
+ * RESPONSIBILITY:
+ * - Determines what objects attract attention.
+ * - Updates gaze-related state.
+ */
+
+import { worldStore } from '../store/worldStore';
+
+export interface GazePoint {
+  x: number;
+  y: number;
+}
+
+/**
+ * Discriminated union describing what the mascot is looking at.
+ *
+ * - entity  → a specific world entity (container or ingredient) by id
+ * - mouse   → the user's cursor position (resolved by the UI layer)
+ * - point   → an explicit SVG/screen coordinate
+ * - null    → not gazing at anything; fall back to idle eye position
+ */
+export type GazeTarget =
+  | { type: 'entity'; entityId: string }
+  | { type: 'mouse' }
+  | { type: 'point'; point: GazePoint }
+  | null;
+
+/** Narrow helper — returns the entityId when gazing at an entity, else null. */
+export function gazeEntityId(target: GazeTarget): string | null {
+  return target?.type === 'entity' ? target.entityId : null;
+}
+
+interface GazeState {
+  gazingAt?: GazeTarget;
+}
+
+/**
+ * Updates what target a mascot is looking at.
+ * No-ops if the target is structurally identical to the current one.
+ */
+export function updateMascotGaze(mascotId: string, targetId: GazeTarget): void {
+  const current = getMascotGazeTarget(mascotId);
+
+  // Structural equality check — avoids redundant dispatches for the same target.
+  if (JSON.stringify(current) === JSON.stringify(targetId)) return;
+
+  worldStore.getState().dispatch({
+    type: 'UPDATE_ENTITY_STATE',
+    payload: {
+      entityId: mascotId,
+      changes: { gazingAt: targetId },
+    },
+  });
+}
+
+/** Returns the current gaze target for a mascot entity. */
+export function getMascotGazeTarget(mascotId: string): GazeTarget {
+  const entity = worldStore.getState().entities[mascotId];
+  if (!entity) return null;
+  const state = entity.state as GazeState | undefined;
+  return state?.gazingAt ?? null;
+}
+
+/**
+ * Subscribes to gaze changes for a given mascot.
+ * Uses Zustand's vanilla subscribe so callers outside React can react to gaze updates
+ * without polling or re-rendering unrelated components.
+ *
+ * Returns an unsubscribe function.
+ *
+ * @example
+ *   const unsub = subscribeToGaze('chef', (target) => console.log(target));
+ *   // later:
+ *   unsub();
+ */
+export function subscribeToGaze(
+  mascotId: string,
+  callback: (target: GazeTarget) => void
+): () => void {
+  let prev = getMascotGazeTarget(mascotId);
+
+  return worldStore.subscribe((state) => {
+    const next = (state.entities[mascotId]?.state as GazeState | undefined)?.gazingAt ?? null;
+    // Only fire when the gaze actually changes (structural check).
+    if (JSON.stringify(next) !== JSON.stringify(prev)) {
+      prev = next;
+      callback(next);
+    }
+  });
+}
+`````
+
+## File: src/systems/mascotActions.ts
+`````typescript
+/**
+ * FILE: mascotActions.ts
+ *
+ * PURPOSE:
+ * Action dispatcher helpers for mascot (Tortilla) commands.
+ *
+ * RESPONSIBILITY:
+ * - Provides reusable, generic action dispatchers for AI agents or UI triggers.
+ * - Handles tortilla movement, grabbing ingredients from containers, dropping ingredients into containers, and flipping.
+ */
+
+import { worldStore } from '../store/worldStore';
+import { recipes } from '../data/catalog/recipes';
+import { RecipeRunner } from './recipeRunner';
+
+/**
+ * Triggers Tortilla flip animation and records action in store.
+ */
+export function flipTortilla(mascotId: string = 'chef'): void {
+  worldStore.getState().dispatch({
+    type: 'MASCOT_FLIP',
+    payload: { mascotId },
+  });
+}
+
+/**
+ * Moves Tortilla gaze/focus to a specific container in the world.
+ */
+export function moveTortillaTo(targetContainerId: string, mascotId: string = 'chef'): void {
+  worldStore.getState().dispatch({
+    type: 'MASCOT_MOVE',
+    payload: { mascotId, targetContainerId },
+  });
+}
+
+/**
+ * Clears Tortilla's gaze — mascot returns to idle eye position (gazingAt: null).
+ * Use instead of moveTortillaTo('') when there is no meaningful target.
+ */
+export function clearTortillaGaze(mascotId: string = 'chef'): void {
+  worldStore.getState().dispatch({
+    type: 'MASCOT_CLEAR_GAZE',
+    payload: { mascotId },
+  });
+}
+
+/**
+ * Commands Tortilla to grab/pick up an ingredient from a container.
+ */
+export function grabIngredient(
+  entityId: string,
+  sourceContainerId?: string,
+  mascotId: string = 'chef'
+): void {
+  worldStore.getState().dispatch({
+    type: 'MASCOT_GRAB',
+    payload: { mascotId, entityId, sourceContainerId },
+  });
+}
+
+/**
+ * Commands Tortilla to drop the currently held ingredient into a target container.
+ */
+export function dropIngredient(
+  targetContainerId: string,
+  positionIndex?: number,
+  mascotId: string = 'chef'
+): void {
+  worldStore.getState().dispatch({
+    type: 'MASCOT_DROP',
+    payload: { mascotId, targetContainerId, positionIndex },
+  });
+}
+
+/**
+ * Commands Tortilla to execute a sequence:
+ * 1. Move focus to despensa
+ * 2. Grab potato from despensa
+ * 3. Move focus to board (tabla)
+ * 4. Drop potato into board
+ * 5. Flip Tortilla mascot
+ */
+export async function runTortillaPotatoScript(
+  mascotId: string = 'chef',
+  delayMs: number = 600
+): Promise<void> {
+  const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  // 1. Look at despensa
+  moveTortillaTo('despensa', mascotId);
+  await wait(delayMs);
+
+  // 2. Grab potato from despensa
+  grabIngredient('potato', 'despensa', mascotId);
+  await wait(delayMs);
+
+  // 3. Look at board (tabla)
+  moveTortillaTo('board', mascotId);
+  await wait(delayMs);
+
+  // 4. Drop potato in board
+  dropIngredient('board', undefined, mascotId);
+  await wait(delayMs);
+
+  // 5. Flip Tortilla
+  flipTortilla(mascotId);
+  await wait(900);
+
+  // 6. Return home gracefully — clear gaze instead of setting an empty string target
+  clearTortillaGaze(mascotId);
+}
+
+/**
+ * Commands Tortilla to follow a recipe by running its step-based state machine.
+ */
+export async function runFollowRecipeScript(
+  recipeId: string,
+  mascotId: string = 'chef',
+  targetContainerId: string = 'board',
+  delayMs: number = 600
+): Promise<void> {
+  const activeRecipe = recipes.find((r) => r.id === recipeId);
+  if (!activeRecipe) return;
+
+  const runner = new RecipeRunner({
+    mascotId,
+    defaultTargetId: targetContainerId,
+    delayMs,
+  });
+
+  await runner.runRecipe(activeRecipe);
+}
+`````
+
+## File: src/systems/queries.test.ts
+`````typescript
+/**
+ * FILE: queries.test.ts
+ *
+ * PURPOSE:
+ * Unit tests for query system functions.
+ *
+ * RESPONSIBILITY:
+ * - Tests entity and container query helpers.
+ */
+
+import { describe, expect, it } from 'vitest';
+import { getContainerByEntityId, getEntitiesInContainer, getEntityById } from './queries';
+import type { WorldState } from '../types/world';
+
+describe('Query System', () => {
+  const mockState: WorldState = {
+    entities: {
+      tomato: { id: 'tomato', name: 'Tomato', type: 'ingredient', state: { sliced: false } },
+      onion: { id: 'onion', name: 'Onion', type: 'ingredient', state: { sliced: true } },
+    },
+    containers: {
+      pantry: {
+        id: 'pantry',
+        name: 'Pantry',
+        type: 'storage',
+        rules: { maxCapacity: 10 },
+        entityIds: ['tomato'],
+      },
+      board: {
+        id: 'board',
+        name: 'Cutting Board',
+        type: 'board',
+        rules: { maxCapacity: 2 },
+        entityIds: ['onion'],
+      },
+    },
+    dispatch: () => {},
+  };
+
+  it('retrieves an entity by ID', () => {
+    const entity = getEntityById(mockState, 'tomato');
+    expect(entity).toBeDefined();
+    expect(entity?.name).toBe('Tomato');
+  });
+
+  it('finds the parent container for a given entity ID', () => {
+    const container = getContainerByEntityId(mockState, 'onion');
+    expect(container).toBeDefined();
+    expect(container?.id).toBe('board');
+  });
+
+  it('returns all entities inside a specified container', () => {
+    const boardEntities = getEntitiesInContainer(mockState, 'board');
+    expect(boardEntities).toHaveLength(1);
+    expect(boardEntities[0].id).toBe('onion');
+  });
+});
+`````
+
+## File: src/components/Ingredients/IngredientList.tsx
+`````typescript
+/**
+ * FILE: IngredientList.tsx
+ *
+ * PURPOSE:
+ * Displays a collection/container of ingredients.
+ *
+ * RESPONSIBILITY:
+ * - Renders container title and its inner entities.
+ * - Acts as a droppable target for drag-and-drop.
+ */
+
+import { useStore } from 'zustand';
+import { useDroppable } from '@dnd-kit/core';
+import { worldStore } from '../../store/worldStore';
+import type { Container, Entity } from '../../types/world';
+import { IngredientListItem } from './IngredientListItem';
+
+interface IngredientListProps {
+  key?: string | number;
+  container: Container;
+}
+
+export function IngredientList({ container }: IngredientListProps) {
+  const entities = useStore(worldStore, (state) => state.entities);
+
+  // Set up dnd-kit droppable binding for this container
+  const { setNodeRef, isOver } = useDroppable({
+    id: container.id,
+  });
+
+  const containerEntities = container.entityIds
+    .map((id: string) => entities[id])
+    .filter((e: Entity | undefined): e is Entity => Boolean(e));
+
+  const getWorkstationBadge = (id: string) => {
+    switch (id) {
+      case 'sink': return 'Washing Area 💧';
+      case 'board': return 'Cutting Workspace 🔪';
+      case 'bowl': return 'Preparation 🥣';
+      case 'pan': return 'Cooking Heat 🍳';
+      case 'plate': return 'Serving Stage 🍽️';
+      case 'despensa': return 'Pantry 🧺';
+      default: return 'Workstation 🍳';
+    }
+  };
+
+  return (
+    <div 
+      ref={setNodeRef} 
+      data-container-id={container.id}
+      className={`ingredient-list workstation-${container.id} ${isOver ? 'drag-over' : ''}`}
+    >
+      <div className="workstation-header">
+        <h3>{container.name}</h3>
+        <span className="workstation-type-badge">{getWorkstationBadge(container.id)}</span>
+      </div>
+      <div className="items-container">
+        {containerEntities.map((entity: Entity) => (
+          <IngredientListItem key={entity.id} entity={entity} containerId={container.id} />
+        ))}
+        {containerEntities.length === 0 && (
+          <span className="empty-hint">Drop ingredients here</span>
+        )}
+      </div>
+    </div>
+  );
+}
+`````
+
+## File: src/components/Ingredients/IngredientListItem.tsx
+`````typescript
+/**
+ * FILE: IngredientListItem.tsx
+ *
+ * PURPOSE:
+ * UI wrapper for an ingredient inside a list.
+ *
+ * RESPONSIBILITY:
+ * - Connects ingredient rendering with list interactions.
+ * - Provides drag/drop related UI behavior.
+ */
+
+import React from 'react';
+import { useDraggable } from '@dnd-kit/core';
+import type { Entity } from '../../types/world';
+
+interface IngredientListItemProps {
+  entity: Entity;
+  containerId?: string;
+}
+
+export const IngredientListItem: React.FC<IngredientListItemProps> = ({ entity, containerId }) => {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: entity.id,
+  });
+
+  const style: React.CSSProperties | undefined = transform
+    ? {
+        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+        opacity: isDragging ? 0.6 : 1,
+        zIndex: isDragging ? 1000 : 1,
+        cursor: 'grab',
+      }
+    : {
+        cursor: 'grab',
+      };
+
+  // Determine ingredient state badge (Raw, Prepared, Cooking, Finished)
+  const renderStateBadge = () => {
+    if (entity.type !== 'ingredient') return null;
+
+    const prep = entity.state?.preparation as string | undefined;
+    const cooking = entity.state?.cooking as string | undefined;
+    const status = entity.state?.status as string | undefined;
+
+    if (containerId === 'plate' || status?.includes('cooked') || status?.includes('fried') || status?.includes('tortilla')) {
+      return <span className="ingredient-state-badge state-finished">Finished ✨</span>;
+    }
+    if (cooking && cooking !== 'raw') {
+      return <span className="ingredient-state-badge state-cooking">Cooking 🔥</span>;
+    }
+    if (prep) {
+      return <span className="ingredient-state-badge state-prepared">Prepared 🔪</span>;
+    }
+    return <span className="ingredient-state-badge state-raw">Raw 🌾</span>;
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...listeners}
+      {...attributes}
+      className={`ingredient-list-item ${isDragging ? 'dragging' : ''}`}
+    >
+      <span className="ingredient-name">{entity.name}</span>
+      {renderStateBadge()}
+    </div>
+  );
+};
+`````
+
+## File: src/components/World/ContainerView.tsx
+`````typescript
+/**
+ * FILE: ContainerView.tsx
+ *
+ * PURPOSE:
+ * Displays a world container and its owned entities.
+ *
+ * RESPONSIBILITY:
+ * - Renders container title and its inner entities via EntityView.
+ * - Acts as a droppable target for drag-and-drop actions.
+ */
+
+import React from 'react';
+import { useStore } from 'zustand';
+import { useDroppable } from '@dnd-kit/core';
+import { motion, AnimatePresence } from 'framer-motion';
+import { worldStore } from '../../store/worldStore';
+import type { Container, Entity } from '../../types/world';
+import { EntityView } from './EntityView';
+import './World.scss';
+
+interface ContainerViewProps {
+  key?: string | number;
+  container: Container;
+}
+
+export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
+  const entities = useStore(worldStore, (state) => state.entities);
+
+  // Set up dnd-kit droppable binding for this container
+  const { setNodeRef, isOver } = useDroppable({
+    id: container.id,
+  });
+
+  const containerEntities = container.entityIds
+    .map((id: string) => entities[id])
+    .filter((e: Entity | undefined): e is Entity => Boolean(e));
+
+  const isMixturePresent = containerEntities.some(
+    (e) => e.id.includes('mixture') || e.name.toLowerCase().includes('mixture')
+  );
+
+  const getWorkstationBadge = (id: string) => {
+    switch (id) {
+      case 'sink': return 'Washing Area 💧';
+      case 'board': return 'Cutting Workspace 🔪';
+      case 'bowl': return 'Preparation 🥣';
+      case 'burner': return 'Cooking Heat 🍳';
+      case 'burner1': return 'Cooking Heat 1🍳';
+      case 'burner2': return 'Cooking Heat 2🍳';
+      case 'plate': return 'Serving Stage 🍽️';
+      case 'despensa': return 'Pantry 🧺';
+      default: return 'Workstation 📦';
+    }
+  };
+
+  const containerOnFireClass = container.isOn ? 'container-onFire' : '';
+  const dispatch = useStore(worldStore, (state) => state.dispatch);
+
+  const isCookingArea =
+    container.type === 'burner' ||
+    container.id.includes('burner') ||
+    container.id.includes('pan') ||
+    container.id.includes('stove');
+  const isSink = container.type === 'sink' || container.id.includes('sink');
+  const isCuttingBoard =
+    container.type === 'board' ||
+    container.id.includes('board') ||
+    container.id.includes('cutting');
+  const isBowl = container.type === 'bowl' || container.id.includes('bowl');
+
+  return (
+    <div
+      ref={setNodeRef}
+      data-container-id={container.id}
+      className={`${container.isOn ? 'container-view--on' : ''} ${containerOnFireClass} container-view container-view--${container.id} ${isOver ? 'container-view--drag-over' : ''} ${isMixturePresent ? 'container-view--mixture' : ''}`}
+    >
+      <div className="container-view__header">
+        <h3 className="container-view__title">{container.name}</h3>
+        <span className="container-view__badge">{getWorkstationBadge(container.id)}</span>
+        {isCookingArea && (
+          <button
+            type="button"
+            className={`burner-toggle ${container.isOn ? 'burner-toggle--on' : ''}`}
+            title="Toggle Heat"
+            onClick={(e) => {
+              e.stopPropagation();
+
+              dispatch({
+                type: 'TOGGLE_HEAT',
+                payload: {
+                  containerId: container.id,
+                },
+              });
+            }}
+          />
+        )}
+      </div>
+
+      {(isCookingArea || isSink || isCuttingBoard || isBowl) && (
+        <div className="container-view__actions">
+          {isCookingArea && (
+            <button
+              type="button"
+              className={`container-action-btn toggle-heat-btn ${container.isOn ? 'container-action-btn--active' : ''}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                dispatch({
+                  type: 'TOGGLE_HEAT',
+                  payload: { containerId: container.id },
+                });
+              }}
+            >
+              🔥 On/Off
+            </button>
+          )}
+
+          {isSink && (
+            <button
+              type="button"
+              className="container-action-btn wash-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                dispatch({
+                  type: 'WASH_CONTAINER_CONTENTS',
+                  payload: { containerId: container.id },
+                });
+              }}
+            >
+              🧼 Wash
+            </button>
+          )}
+
+          {isCuttingBoard && (
+            <>
+              <button
+                type="button"
+                className="container-action-btn cut-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  dispatch({
+                    type: 'CUT_CONTAINER_CONTENTS',
+                    payload: { containerId: container.id },
+                  });
+                }}
+              >
+                🔪 Cut
+              </button>
+              <button
+                type="button"
+                className="container-action-btn peel-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  dispatch({
+                    type: 'PEEL_CONTAINER_CONTENTS',
+                    payload: { containerId: container.id },
+                  });
+                }}
+              >
+                🥔 Peel
+              </button>
+            </>
+          )}
+
+          {isBowl && (
+            <button
+              type="button"
+              className="container-action-btn mix-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                dispatch({
+                  type: 'MIX_CONTAINER_CONTENTS',
+                  payload: { containerId: container.id },
+                });
+              }}
+            >
+              🥣 Mix
+            </button>
+          )}
+        </div>
+      )}
+
+      <div className="container-view__items">
+        <AnimatePresence mode="popLayout">
+          {containerEntities.map((entity: Entity) => {
+            const isMixture = entity.id.includes('mixture') || entity.name.toLowerCase().includes('mixture');
+            return (
+              <motion.div
+                key={entity.id}
+                layout
+                initial={
+                  isMixture
+                    ? { scale: 0.1, rotate: -180, opacity: 0 }
+                    : { scale: 0.8, opacity: 0, y: -10 }
+                }
+                animate={
+                  isMixture
+                    ? {
+                      scale: [0.2, 1.15, 1],
+                      rotate: [-180, 10, 0],
+                      opacity: 1,
+                      transition: { duration: 0.65, ease: 'easeOut' },
+                    }
+                    : { scale: 1, rotate: 0, opacity: 1, y: 0 }
+                }
+                exit={{
+                  scale: 0,
+                  rotate: 180,
+                  opacity: 0,
+                  filter: 'blur(4px)',
+                  transition: { duration: 0.5, ease: 'easeInOut' },
+                }}
+                transition={{ duration: 0.35 }}
+              >
+                <EntityView entity={entity} containerId={container.id} />
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
+        {containerEntities.length === 0 && (
+          <span className="container-view__empty-hint">Drop entities here</span>
+        )}
+      </div>
+    </div>
+  );
+};
+`````
+
+## File: src/systems/mascot.ts
+`````typescript
+/**
+ * FILE: mascot.ts
+ *
+ * PURPOSE:
+ * Mascot state definitions and behavior functions.
+ *
+ * RESPONSIBILITY:
+ * - Defines mascot visual states ('idle', 'cooking', 'celebrating', etc.).
+ */
+
+export type MascotState = 'idle' | 'cooking' | 'celebrating' | 'thinking' | 'flipping' | string;
+`````
+
+## File: src/systems/queries.ts
+`````typescript
+/**
+ * FILE: queries.ts
+ *
+ * PURPOSE:
+ * Read-only world queries and selectors.
+ *
+ * RESPONSIBILITY:
+ * - Finds entities by ID or container.
+ * - Filters world state data for systems and components.
+ *
+ * SHOULD NOT:
+ * - Modify world state.
+ */
+
+import type { Container, Entity, WorldState } from '../types/world';
+
+/**
+ * Retrieves an entity by its unique ID from the world state.
+ */
+export const getEntityById = (state: WorldState, entityId: string): Entity | undefined => {
+  return state.entities[entityId];
+};
+
+/**
+ * Retrieves the container that currently holds the given entity ID.
+ */
+export const getContainerByEntityId = (
+  state: WorldState,
+  entityId: string
+): Container | undefined => {
+  return Object.values(state.containers).find((container) =>
+    container.entityIds.includes(entityId)
+  );
+};
+
+/**
+ * Retrieves all entities contained within a specific container.
+ */
+export const getEntitiesInContainer = (state: WorldState, containerId: string): Entity[] => {
+  const container = state.containers[containerId];
+  if (!container) return [];
+
+  return container.entityIds
+    .map((id) => state.entities[id])
+    .filter((entity): entity is Entity => entity !== undefined);
+};
 `````
 
 ## File: src/index.scss
@@ -13618,6 +16783,25 @@ Action queues provide:
 
 ---
 
+# Action Replay System (`ActionPlayer` & `ActionReplayer`)
+
+## Responsibility
+
+The Action Replay System enables recording, storing, and sequentially replaying discrete `WorldAction` JSON logs in Tortilla World.
+
+It consists of:
+1. **Headless Replay Utility (`src/systems/actionPlayer.ts`)**:
+   - `ActionPlayer` class / `actionPlayer` singleton.
+   - `playLog(actions: WorldAction[], options?: PlaybackOptions)`: Resets world state via `RESET_WORLD` action, then dispatches each action step sequentially to `worldStore.getState().dispatch(action)` with configurable delays.
+   - Provides step progress callbacks (`onStep(current, total, action)`), completion callbacks (`onComplete()`), and early cancellation (`stop()`).
+
+2. **React Controls UI (`src/components/Controls/ActionReplayer.tsx`)**:
+   - Accepts uploaded `.json` files via `FileReader`.
+   - Validates JSON format to ensure an array of valid `WorldAction` objects.
+   - Displays live step progress (`Step X / Y`), progress bar, step delay selector, and a Stop button.
+
+---
+
 # Animation System
 
 ## Responsibility
@@ -13930,6 +17114,29 @@ The Recipe System executes declarative, step-based recipe state machines via `Re
 
 ---
 
+### Action Recording & Replay System
+
+* **Action Log Integration**: World actions are captured in `recordSlice` when recording mode is active.
+* **Store Synchronization**: Loaded action sequences are loaded directly into `worldStore` state via `setRecordedActions`.
+* **Controls Reference Recorded Actions**: When recording mode or a loaded recorded session is active, player controls (`Play`, `Pause`, `Step Up`, `Step Down`, stepper dots) reference the sequence of actual `WorldAction` items instead of static recipe steps, stepping through or jumping across logged world state mutations directly.
+
+---
+
+### Recipe Translator System (`src/systems/recipeTranslator.ts`)
+
+* **Purpose**: Converts human-recorded kitchen interactions into executable mascot-guided recipes where Tortilla moves focus, grabs, and places ingredients across containers.
+* **Mascot Action Expansion** (`translateHumanActionsToMascotActions`):
+  - Injects `MASCOT_MOVE` focus, `MASCOT_GRAB`, and `MASCOT_DROP` steps around raw human `MOVE_ENTITY` actions.
+  - Injects `MASCOT_MOVE` focus steps prior to `TOGGLE_BURNER`, `PREPARE_INGREDIENT`, `COOK_INGREDIENT`, and `ADD_ENTITY` actions.
+* **Declarative Recipe File Generation** (`translateHumanActionsToRecipe`):
+  - Extracts clean entity names and requirements.
+  - Generates a valid `Recipe` definition (with `id`, `name`, `requirements`, and `steps`) suitable for export as `.json` or execution via `RecipeRunner`.
+* **UI Mode Separation**:
+  - `📖 Play Catalog Recipe Mode`: Dedicated to catalog recipe execution (`RecipePlayer.tsx`).
+  - `🎥 Action Recorder & Translator Mode`: Dedicated to live action recording, log replaying, human-to-mascot recipe translation (`ActionRecorder.tsx`), tracking used ingredients (`usedIngredients`), and an interactive right-side ingredients catalog panel (`IngredientsSidebar.tsx`).
+
+---
+
 # Final Principle
 
 The rule of Tortilla World:
@@ -13947,1174 +17154,450 @@ The Store remembers the result.
 ```
 `````
 
-## File: src/store/defaults.ts
+## File: src/data/catalog/recipes/clasica.ts
 `````typescript
 /**
- * FILE: defaults.ts
+ * FILE: clasica.ts
  *
  * PURPOSE:
- * Initial seed data for world state.
+ * Recipe definition for Tortilla Clásica (without onion).
  *
  * RESPONSIBILITY:
- * - Provides default entity definitions (mascot, ingredients, tools).
- * - Provides default container definitions (despensa, sink, board, bowl, burner, plate).
+ * - Defines the ingredients, quantities, and cooking process.
+ * - Describes recipe actions in a declarative format.
+ * - Provides a Cooklang representation for humans.
+ *
+ * NOTE:
+ * Recipes describe WHAT happens.
+ * The RecipeRunner decides HOW it happens:
+ * - finding ingredients
+ * - moving the chef
+ * - animations
+ * - changing entity state
+ * - creating intermediate results
  */
 
-import type { Container, Entity } from '../types/world';
-import type { GazeTarget } from '../systems/gaze';
-import { ingredients as catalogIngredients } from '../data/catalog/ingredients';
-import { catalogTools } from '../data/catalog/tools';
+import type { Recipe } from '../../../types/Recipe';
 
-export const defaultEntities: Record<string, Entity> = {
-  chef: {
-    id: 'chef',
-    name: 'Chef Tortilla 🍳',
-    type: 'mascot',
-    state: { gazingAt: { type: 'entity', entityId: 'despensa' } satisfies GazeTarget },
+export const clasicaRecipe: Recipe = {
+  id: 'clasica',
+
+  name: 'Clásica',
+
+  requirements: {
+    potatoes: {
+      entityId: 'potato',
+      amount: 4,
+      unit: 'pcs',
+    },
+
+    eggs: {
+      entityId: 'egg',
+      amount: 6,
+      unit: 'pcs',
+    },
+
+    garlic: {
+      entityId: 'garlic',
+      amount: 1,
+      unit: 'head',
+    },
+
+    oil: {
+      entityId: 'oil',
+      amount: 100,
+      unit: 'ml',
+    },
+
+    salt: {
+      entityId: 'salt',
+      amount: 1,
+      unit: 'tsp',
+    },
+
+    black_pepper: {
+      entityId: 'black_pepper',
+      amount: 1,
+      unit: 'pinch',
+    },
   },
-  ...catalogIngredients.reduce((acc, item) => {
-    acc[item.id] = {
-      id: item.id,
-      ingredientId: item.id,
-      name: `${item.icon} ${item.name}`,
-      type: 'ingredient',
-      state: {},
-    };
-    return acc;
-  }, {} as Record<string, Entity>),
-  ...catalogTools.reduce((acc, item) => {
-    acc[item.id] = {
-      id: item.id,
-      name: `${item.icon} ${item.name}`,
-      type: 'tool',
-      state: {},
-    };
-    return acc;
-  }, {} as Record<string, Entity>),
+
+  steps: [
+  {
+    action: 'prepare',
+    target: 'garlic',
+    preparation: 'peeled',
+  },
+
+  // Heat oil first
+  {
+    action: 'cook',
+    target: 'oil',
+    method: 'heat',
+  },
+
+  // Fry garlic (consumes oil)
+  {
+    action: 'cook',
+    target: 'garlic',
+    method: 'fry',
+    instruction: 'Que no se quemen.', // Cook but don't burn
+  },
+
+  // IMPORTANT: Move garlic out IMMEDIATELY after cooking
+  {
+    action: 'move',
+    ingredient: 'garlic',
+    target: 'plate',  // Move to pantry
+    source: 'pan',     // From pan
+  },
+
+  // Now cook potatoes in the same oil (oil already used from garlic step)
+  {
+    action: 'cook',
+    target: 'potatoes',
+    method: 'fry',
+  },
+
+  // Beat eggs
+  {
+    action: 'prepare',
+    target: 'eggs',
+    preparation: 'beaten',
+  },
+
+  // Mix all together including garlic from pantry
+  {
+    action: 'mix',
+    inputs: [
+      'potatoes',      // From pan
+      'eggs',          // Fresh
+      'salt',          // Fresh
+      'black_pepper',  // Fresh
+      'garlic'         // From pantry (cooked earlier)
+    ],
+    output: 'mixture',
+  },
+
+    {
+      action: 'cook',
+      target: 'mixture',
+      method: 'fry',
+      duration: 5,
+      unit: 'min',
+    },
+
+    {
+      action: 'instruction',
+      text: 'Con una espátula blanda, asegúrate de que la tortilla no se pega a la sartén.',
+    },
+
+    {
+      action: 'flip',
+      target: 'mixture',
+      instruction: 'Dale la vuelta a la tortilla.',
+    },
+
+    {
+      action: 'cook',
+      target: 'mixture',
+      method: 'fry',
+      duration: 5,
+      unit: 'min',
+      instruction: 'Deja cocinar por otros 5 min.',
+    },
+
+    {
+      action: 'serve',
+      target: 'mixture',
+    },
+
+    {
+      action: 'celebrate',
+    },
+  ],
 };
 
-export const defaultContainers: Record<string, Container> = {
-  despensa: {
-    id: 'despensa',
-    name: 'Despensa (All Ingredients - Immutable Catalog)',
-    type: 'storage',
-    entityIds: [...catalogIngredients.map((i) => i.id), ...catalogTools.map((t) => t.id)],
-    rules: {
-      maxCapacity: 30,
-      allowedTypes: ['ingredient', 'tool'],
-      consumesOnDrag: false,
-      isImmutable: true,
-    },
-  },
-  sink: {
-    id: 'sink',
-    name: 'Fregadero (Sink)',
-    type: 'sink',
-    entityIds: [],
-    rules: { maxCapacity: 10, allowedTypes: ['ingredient', 'tool'] },
-  },
-  board: {
-    id: 'board',
-    name: 'Tabla (Cutting Board)',
-    type: 'board',
-    entityIds: [],
-    rules: { maxCapacity: 10, allowedTypes: ['ingredient', 'tool'] },
-  },
-  bowl: {
-    id: 'bowl',
-    name: 'Bol (Preparation Bowl)',
-    type: 'bowl',
-    entityIds: [],
-    rules: { maxCapacity: 10, allowedTypes: ['ingredient', 'tool'] },
-  },
-  burner1: {
-    id: 'burner1',
-    name: 'Fuego 1',
-    type: 'burner',
-    entityIds: [],
-    rules: { maxCapacity: 5, allowedTypes: ['ingredient', 'tool'] },
-    isOn: false,
-  },
-  burner2: {
-    id: 'burner2',
-    name: 'Fuego 2',
-    type: 'burner',
-    entityIds: [],
-    isOn: true,
-    rules: { maxCapacity: 5, allowedTypes: ['ingredient', 'tool'] },
-  },
-  plate: {
-    id: 'plate',
-    name: 'Plato (Plate)',
-    type: 'plate',
-    entityIds: [],
-    rules: { maxCapacity: 5, allowedTypes: ['ingredient', 'tool'] },
-  },
-};
+export const clasicaCooklang = `
+Peel the @potatoes{4%pcs}.
+
+Slice the @potatoes.
+
+Heat the @oil{100%ml}.
+
+Fry the @potatoes until tender.
+
+Beat the @eggs{6%pcs}.
+
+Add @salt{1%tsp}.
+
+Add @black_pepper{1%pinch}.
+
+Mix the potatoes with the beaten eggs, salt and black_pepper.
+
+Pour the mixture into the pan.
+
+Cook for 5 minutes.
+
+With a soft spatula, make sure the tortilla does not stick to the pan.
+
+Flip the tortilla.
+
+Cook for another 5 minutes.
+
+Serve the tortilla.
+
+Celebrate.
+`;
+
+export const recipe = clasicaRecipe;
 `````
 
-## File: src/store/worldStore.test.ts
+## File: src/systems/recipeRunner/handlers/cookHandlers.ts
 `````typescript
 /**
- * FILE: worldStore.test.ts
+ * FILE: src/systems/recipeRunner/handlers/cookHandlers.ts
  *
  * PURPOSE:
- * Unit tests for central world store and container rule enforcement.
- *
- * RESPONSIBILITY:
- * - Validates state transitions, move/add entity actions, and rule checks.
- */
-
-import { describe, it, expect, beforeEach } from 'vitest';
-import { worldStore } from './worldStore';
-import { clearActionLog, getActionLog } from './middleware/actionLog';
-
-function seed() {
-  worldStore.setState({
-    entities: {
-      potato: { id: 'potato', name: 'Potato', type: 'ingredient' },
-      onion: { id: 'onion', name: 'Onion', type: 'ingredient' },
-      knife: { id: 'knife', name: 'Knife', type: 'tool' },
-      chef: { id: 'chef', name: 'Chef', type: 'mascot' },
-    },
-    containers: {
-      kitchen: {
-        id: 'kitchen',
-        name: 'Kitchen',
-        type: 'storage',
-        entityIds: ['potato', 'onion', 'knife'],
-      },
-      burner1: {
-        id: 'burner1',
-        name: 'burner1',
-        type: 'burner',
-        entityIds: [],
-        rules: { maxCapacity: 1 },
-      },
-      board: {
-        id: 'board',
-        name: 'Cutting Board',
-        type: 'board',
-        entityIds: [],
-        rules: { allowedTypes: ['ingredient'] },
-      },
-      recipe: {
-        id: 'recipe',
-        name: 'Recipe',
-        type: 'plate',
-        entityIds: [],
-        rules: { allowedTypes: ['ingredient'], uniqueTypesOnly: true },
-      },
-    },
-  });
-}
-
-describe('worldStore container rule enforcement', () => {
-  beforeEach(() => {
-    seed();
-    clearActionLog();
-  });
-
-  it('allows a move that satisfies the target container rules', () => {
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: { entityId: 'potato', targetContainerId: 'burner1' },
-    });
-
-    const state = worldStore.getState();
-    expect(state.containers.burner1.entityIds).toEqual(['potato']);
-    expect(state.containers.kitchen.entityIds).not.toContain('potato');
-  });
-
-  it('blocks a move once the target container is at capacity', () => {
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: { entityId: 'potato', targetContainerId: 'burner1' },
-    });
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: { entityId: 'onion', targetContainerId: 'burner1' },
-    });
-
-    const state = worldStore.getState();
-    expect(state.containers.burner1.entityIds).toEqual(['potato']);
-    expect(state.containers.kitchen.entityIds).toContain('onion');
-  });
-
-  it('blocks a move that violates allowedTypes', () => {
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: { entityId: 'knife', targetContainerId: 'board' },
-    });
-
-    // knife is a tool; board only allows ingredients
-    const state = worldStore.getState();
-    expect(state.containers.board.entityIds).toEqual([]);
-    expect(state.containers.kitchen.entityIds).toContain('knife');
-  });
-
-  it('blocks a move that would duplicate a type in a uniqueTypesOnly container', () => {
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: { entityId: 'potato', targetContainerId: 'recipe' },
-    });
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: { entityId: 'onion', targetContainerId: 'recipe' },
-    });
-
-    // both are 'ingredient' type; uniqueTypesOnly blocks the second
-    const state = worldStore.getState();
-    expect(state.containers.recipe.entityIds).toEqual(['potato']);
-    expect(state.containers.kitchen.entityIds).toContain('onion');
-  });
-
-  it('never re-validates a same-container reorder', () => {
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: { entityId: 'potato', targetContainerId: 'kitchen', positionIndex: 0 },
-    });
-
-    // would fail uniqueTypesOnly-style self-comparison if the entity
-    // weren't excluded from its own container's current entities
-    const state = worldStore.getState();
-    expect(state.containers.kitchen.entityIds[0]).toBe('potato');
-  });
-
-  it('is a no-op when the entity does not exist', () => {
-    const before = worldStore.getState().containers.burner1.entityIds;
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: { entityId: 'ghost', targetContainerId: 'burner1' },
-    });
-    expect(worldStore.getState().containers.burner1.entityIds).toEqual(before);
-  });
-
-  it('enforces the same rules on ADD_ENTITY', () => {
-    worldStore.getState().dispatch({
-      type: 'ADD_ENTITY',
-      payload: {
-        entity: { id: 'spoon', name: 'Spoon', type: 'tool' },
-        containerId: 'board',
-      },
-    });
-
-    const state = worldStore.getState();
-    expect(state.containers.board.entityIds).toEqual([]);
-    expect(state.entities.spoon).toBeUndefined();
-  });
-
-  it('logs a labelled entry into the action log for each dispatch', () => {
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: { entityId: 'potato', targetContainerId: 'burner1' },
-    });
-
-    const log = getActionLog();
-    expect(log).toHaveLength(1);
-    expect(log[0].action).toBe('MOVE_ENTITY');
-    expect(typeof log[0].timestamp).toBe('number');
-  });
-
-  it('keeps source entity and creates copy in target when moving from an immutable container', () => {
-    worldStore.setState({
-      entities: {
-        potato: { id: 'potato', name: 'Potato', type: 'ingredient' },
-      },
-      containers: {
-        pantry: {
-          id: 'pantry',
-          name: 'Immutable Pantry',
-          type: 'storage',
-          entityIds: ['potato'],
-          rules: { isImmutable: true },
-        },
-        burner1: {
-          id: 'burner1',
-          name: 'burner1',
-          type: 'burner',
-          entityIds: [],
-        },
-      },
-    });
-
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: { entityId: 'potato', targetContainerId: 'burner1' },
-    });
-
-    const state = worldStore.getState();
-    // Source container retains original entity
-    expect(state.containers.pantry.entityIds).toEqual(['potato']);
-    // Target container gets a copy instance
-    expect(state.containers.burner1.entityIds.length).toBe(1);
-    const copyId = state.containers.burner1.entityIds[0];
-    expect(copyId).not.toBe('potato');
-    expect(state.entities[copyId].name).toBe('Potato');
-  });
-
-  it('rejects adding a duplicate ingredient to a container according to Rule 6', () => {
-    worldStore.setState({
-      entities: {
-        potato: { id: 'potato', ingredientId: 'potato', name: 'Potato', type: 'ingredient' },
-        potato_copy: { id: 'potato_copy', ingredientId: 'potato', name: 'Potato Copy', type: 'ingredient' },
-      },
-      containers: {
-        pantry: {
-          id: 'pantry',
-          name: 'Pantry',
-          type: 'storage',
-          entityIds: ['potato_copy'],
-          rules: { isImmutable: true },
-        },
-        burner1: {
-          id: 'burner1',
-          name: 'burner1',
-          type: 'burner',
-          entityIds: ['potato'],
-        },
-      },
-    });
-
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: { entityId: 'potato_copy', targetContainerId: 'burner1' },
-    });
-
-    const state = worldStore.getState();
-    // burner1 should still only have 1 potato because duplicate ingredient is blocked
-    expect(state.containers.burner1.entityIds).toEqual(['potato']);
-  });
-
-  it('updates ingredient status to peeled when preparation is peeled', () => {
-    worldStore.setState({
-      entities: {
-        potato: { id: 'potato', ingredientId: 'potato', name: '🥔 Potatoes', type: 'ingredient' },
-      },
-      containers: {
-        board: { id: 'board', name: 'Board', type: 'board', entityIds: ['potato'] },
-      },
-    });
-
-    worldStore.getState().dispatch({
-      type: 'PREPARE_INGREDIENT',
-      payload: { entityId: 'potato', preparation: 'peeled' },
-    });
-
-    const state = worldStore.getState();
-    const entity = state.entities.potato;
-    expect(entity.state?.preparation).toBe('peeled');
-    expect(entity.state?.status).toBe('peeled');
-    expect(entity.name).toBe('🥔 Peeled Potatoes');
-  });
-
-  it('updates ingredient status to sliced-potatoe and diced-potatoe generically', () => {
-    worldStore.setState({
-      entities: {
-        potato: { id: 'potato', ingredientId: 'potato', name: '🥔 Potatoes', type: 'ingredient' },
-        onion: { id: 'onion', ingredientId: 'onion', name: '🧅 Onion', type: 'ingredient' },
-      },
-      containers: {
-        board: { id: 'board', name: 'Board', type: 'board', entityIds: ['potato', 'onion'] },
-      },
-    });
-
-    worldStore.getState().dispatch({
-      type: 'PREPARE_INGREDIENT',
-      payload: { entityId: 'potato', preparation: 'sliced' },
-    });
-
-    worldStore.getState().dispatch({
-      type: 'PREPARE_INGREDIENT',
-      payload: { entityId: 'onion', preparation: 'diced' },
-    });
-
-    const state = worldStore.getState();
-    expect(state.entities.potato.state?.status).toBe('sliced-potatoe');
-    expect(state.entities.onion.state?.status).toBe('diced-onion');
-  });
-});
-`````
-
-## File: src/systems/recipeRunner/handlers/utilityHandlers.ts
-`````typescript
-/**
- * FILE: src/systems/recipeRunner/handlers/utilityHandlers.ts
- *
- * PURPOSE:
- * Step handlers for utility, narrative, and completion steps ('serve', 'wait', 'instruction', 'speak', 'celebrate').
+ * Step handlers for cooking and thermal steps ('cook', 'flip').
  */
 
 import { worldStore } from '../../../store/worldStore';
-import { moveTortillaTo, flipTortilla, clearTortillaGaze } from '../../mascotActions';
+import { moveTortillaTo, flipTortilla } from '../../mascotActions';
 import type { RecipeStep } from '../../../types/RecipeStep';
 import type { RecipeRunnerContext } from '../types';
 
-type ServeStep = Extract<RecipeStep, { action: 'serve' }>;
-type WaitStep = Extract<RecipeStep, { action: 'wait' }>;
-type InstructionStep = Extract<RecipeStep, { action: 'instruction' }>;
-type SpeakStep = Extract<RecipeStep, { action: 'speak' }>;
-type CelebrateStep = Extract<RecipeStep, { action: 'celebrate' }>;
+type CookStep = Extract<RecipeStep, { action: 'cook' }>;
+type FlipStep = Extract<RecipeStep, { action: 'flip' }>;
 
-export async function handleServeStep(
+export async function handleCookStep(
   ctx: RecipeRunnerContext,
-  step: ServeStep,
+  step: CookStep,
   workstationDefaultContainerId?: string
 ): Promise<void> {
-  const targetContainerId = step.containerId || workstationDefaultContainerId || 'plate';
-  moveTortillaTo(targetContainerId, ctx.mascotId);
-  await ctx.wait();
+  const rawKey = step.target || step.ingredient;
+  const entityId = ctx.getBoundEntityId(rawKey);
 
-  const state = worldStore.getState();
-
-  if (step.target) {
-    const targetEntityId = ctx.getBoundEntityId(step.target);
-    if (targetEntityId) {
-      const currentContainer = Object.values(state.containers).find((c) =>
-        c.entityIds.includes(targetEntityId)
-      );
-      if (currentContainer && currentContainer.id !== targetContainerId) {
-        worldStore.getState().dispatch({
-          type: 'MOVE_ENTITY',
-          payload: {
-            entityId: targetEntityId,
-            targetContainerId,
-          },
-        });
-      }
-    }
-  } else {
-    // Move all active (unconsumed) bound recipe entities to target container (plate)
-    const boundEntityIds = new Set(Object.values(ctx.recipeContext.bindings));
-
-    for (const entityId of boundEntityIds) {
-      const entity = state.entities[entityId];
-      if (entity && !entity.state?.consumed) {
-        const currentContainer = Object.values(state.containers).find((c) =>
-          c.entityIds.includes(entityId)
-        );
-        if (currentContainer && currentContainer.id !== targetContainerId) {
-          worldStore.getState().dispatch({
-            type: 'MOVE_ENTITY',
-            payload: {
-              entityId,
-              targetContainerId,
-            },
-          });
-        }
-      }
-    }
+  if (!entityId) {
+    throw new Error(`[RecipeRunner] No entity bound for cook step target: "${rawKey}"`);
   }
-  await ctx.wait();
-}
 
-export async function handleWaitStep(
-  ctx: RecipeRunnerContext,
-  step: WaitStep
-): Promise<void> {
-  await ctx.wait(step.durationMs);
-}
+  ctx.validateEntity(entityId, 'cook');
 
-export async function handleInstructionStep(
-  ctx: RecipeRunnerContext,
-  step: InstructionStep
-): Promise<void> {
-  const text = step.text || step.instruction;
-  if (text) {
+  const cookingMethod = step.method || 'cooked';
+  const containerId = step.containerId || workstationDefaultContainerId || 'burner1';
+
+  if (step.instruction) {
     worldStore.getState().dispatch({
       type: 'UPDATE_ENTITY_STATE',
       payload: {
         entityId: step.mascotId || ctx.mascotId,
-        changes: { speechMessage: text },
+        changes: { speechMessage: step.instruction },
       },
     });
   }
-  await ctx.wait();
-}
 
-export async function handleSpeakStep(
-  ctx: RecipeRunnerContext,
-  step: SpeakStep
-): Promise<void> {
+  // Ensure bound entity is moved to cooking container if not already there
+  const state = worldStore.getState();
+  const currentContainer = Object.values(state.containers).find((c) =>
+    c.entityIds.includes(entityId!)
+  );
+
+  if (!currentContainer || currentContainer.id !== containerId) {
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: {
+        entityId,
+        targetContainerId: containerId,
+      },
+    });
+  }
+
+  moveTortillaTo(containerId, ctx.mascotId);
+  await ctx.wait();
+
+  // Turn ON fire if currently off
+  const containerBefore = worldStore.getState().containers[containerId];
+  if (containerBefore && !containerBefore.isOn) {
+    worldStore.getState().dispatch({
+      type: 'TOGGLE_BURNER',
+      payload: { containerId },
+    });
+  }
+
   worldStore.getState().dispatch({
-    type: 'UPDATE_ENTITY_STATE',
+    type: 'COOK_INGREDIENT',
     payload: {
-      entityId: step.mascotId || ctx.mascotId,
-      changes: { speechMessage: step.message },
+      entityId,
+      cooking: cookingMethod,
     },
   });
-  await ctx.wait();
-}
 
-export async function handleCelebrateStep(
-  ctx: RecipeRunnerContext,
-  step: CelebrateStep
-): Promise<void> {
-  flipTortilla(step.mascotId || ctx.mascotId);
-  await ctx.wait(900);
-  clearTortillaGaze(step.mascotId || ctx.mascotId);
-}
-`````
+  // Consume cooking medium helper ingredients currently in the cooking container (e.g. oil)
+    /**
+   * IMPORTANT: Distinguish between oil as the primary cooking target vs oil as a cooking medium.
+   *
+   * Scenario 1: Oil is the target (method='heat')
+   *   Step: { action: 'cook', target: 'oil', method: 'heat' }
+   *   Expected: Oil is heated, NOT consumed
+   *   Reason: Oil is the subject being cooked, not a helper ingredient
+   *
+   * Scenario 2: Oil is a cooking medium
+   *   Step: { action: 'cook', target: 'potatoes', method: 'fry' }
+   *   Expected: Oil in the container IS consumed (used for frying)
+   *   Reason: Oil is helping to cook the potatoes
+   * 
+   *   Scenario 3: Oil as dressing
+   *   Step: { action: 'serve', target: 'mixture', method: 'dress' }
+   *   Expected: fresh Oil in the container where the finished tortilla is
+   *   Reason: Oil is dressiing for the tortilla
+   *
+   * Without this check, oil gets consumed even when it's the cooking target,
+   * preventing oil reuse and causing "Heat Olive Oil" name change in Required Materials.
+   */
+  const cookingContainer = worldStore.getState().containers[containerId];
 
-## File: src/systems/clasicaCompletion.test.ts
-`````typescript
-/**
- * FILE: src/systems/clasicaCompletion.test.ts
- *
- * PURPOSE:
- * Integration tests verifying entity states and container cleanups at the completion of clasicaRecipe.
- *
- * VERIFIES:
- * - Preparation bowl (bowl) is empty at the end.
- * - Plato (plate) contains ONLY mixture at the end.
- * - Mixed input ingredients disappear from all world containers.
- */
+  // Only consume helper ingredients (like oil) if they are NOT the target of THIS cooking step
+  const isOilTheTarget =
+    rawKey === 'oil' ||
+    rawKey?.toLowerCase().includes('oil') ||
+    rawKey?.toLowerCase().includes('aceite');
 
-import { beforeEach, describe, expect, it } from 'vitest';
-import { worldStore } from '../store/worldStore';
-import { RecipeRunner } from './recipeRunner';
-import { clasicaRecipe } from '../data/catalog/recipes/clasica';
-import { clearActionLog } from '../store/middleware/actionLog';
+  if (!isOilTheTarget && cookingContainer) {
+    // Consume cooking medium helper ingredients currently in the cooking container (e.g. oil)
+    const otherEntityIds = cookingContainer.entityIds.filter((id) => id !== entityId);
+    for (const otherId of otherEntityIds) {
+      const otherEntity = worldStore.getState().entities[otherId];
+      const isOil =
+        otherEntity?.ingredientId === 'oil' ||
+        otherEntity?.id?.includes('oil') ||
+        otherEntity?.name?.toLowerCase().includes('oil') ||
+        otherEntity?.name?.toLowerCase().includes('aceite');
 
-function seedTestWorld() {
-  worldStore.setState({
-    entities: {
-      chef: { id: 'chef', name: 'Chef Tortilla 🍳', type: 'mascot', state: { gazingAt: null } },
-      potato: { id: 'potato', ingredientId: 'potato', name: 'Potato', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-      egg: { id: 'egg', ingredientId: 'egg', name: 'Egg', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-      oil: { id: 'oil', ingredientId: 'oil', name: 'Oil', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-      salt: { id: 'salt', ingredientId: 'salt', name: 'Salt', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-      black_pepper: { id: 'black_pepper', ingredientId: 'black_pepper', name: 'Pepper', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-    },
-    containers: {
-      despensa: {
-        id: 'despensa',
-        name: 'Despensa',
-        type: 'storage',
-        entityIds: ['potato', 'egg', 'oil', 'salt', 'black_pepper'],
-        rules: { isImmutable: true },
-      },
-      sink: {
-        id: 'sink',
-        name: 'Sink',
-        type: 'sink',
-        entityIds: [],
-        rules: { maxCapacity: 10 },
-      },
-      board: {
-        id: 'board',
-        name: 'Board',
-        type: 'board',
-        entityIds: [],
-        rules: { maxCapacity: 10 },
-      },
-      bowl: {
-        id: 'bowl',
-        name: 'Bowl',
-        type: 'bowl',
-        entityIds: [],
-        rules: { maxCapacity: 10 },
-      },
-      burner1: {
-        id: 'burner1',
-        name: 'burner1',
-        type: 'burner',
-        entityIds: [],
-        rules: { maxCapacity: 5 },
-      },
-      plate: {
-        id: 'plate',
-        name: 'Plate',
-        type: 'plate',
-        entityIds: [],
-        rules: { maxCapacity: 5 },
-      },
-    },
-    dispatch: worldStore.getState().dispatch,
-  });
-}
-
-describe('Clásica Recipe Completion State', () => {
-  beforeEach(() => {
-    seedTestWorld();
-    clearActionLog();
-  });
-
-  it('ensures preparation bowl is empty, and plato contains ONLY mixture', async () => {
-    const runner = new RecipeRunner({ mascotId: 'chef', delayMs: 1 });
-    await runner.runRecipe(clasicaRecipe);
-
-    const state = worldStore.getState();
-
-    // 1. Preparation bowl is empty
-    expect(state.containers.bowl.entityIds).toEqual([]);
-
-    // 2. fireplace is empty
-    //expect(state.containers.pan.entityIds).toEqual([]);
-
-    // 3. Plato (plate) contains ONLY mixture
-    expect(state.containers.plate.entityIds).toHaveLength(1);
-    const servedEntityId = state.containers.plate.entityIds[0];
-    const servedEntity = state.entities[servedEntityId];
-    expect(servedEntity).toBeDefined();
-    expect(servedEntity.name).toBe('mixture');
-
-    // 4. Input ingredients and cooking oil are marked as consumed
-    const mixtureId = runner.recipeContext.bindings['mixture'];
-    expect(mixtureId).toBe(servedEntityId);
-
-    const potatoesId = runner.recipeContext.bindings['potatoes'];
-    const eggsId = runner.recipeContext.bindings['eggs'];
-    const saltId = runner.recipeContext.bindings['salt'];
-    const pepperId = runner.recipeContext.bindings['black_pepper'];
-
-    expect(state.entities[potatoesId]?.state?.consumed).toBe(true);
-    expect(state.entities[eggsId]?.state?.consumed).toBe(true);
-    expect(state.entities[saltId]?.state?.consumed).toBe(true);
-    expect(state.entities[pepperId]?.state?.consumed).toBe(true);
-
-    // Verify none of the consumed ingredients remain in any workstation container
-    const workstationContainerIds = ['sink', 'board', 'bowl', 'burner1', 'plate'];
-    for (const cId of workstationContainerIds) {
-      expect(state.containers[cId].entityIds).not.toContain(potatoesId);
-      expect(state.containers[cId].entityIds).not.toContain(eggsId);
-      expect(state.containers[cId].entityIds).not.toContain(saltId);
-      expect(state.containers[cId].entityIds).not.toContain(pepperId);
-    }
-  });
-});
-`````
-
-## File: src/types/IngredientList.ts
-`````typescript
-/**
- * FILE: IngredientList.ts
- *
- * PURPOSE:
- * Defines container/list data structures.
- *
- * RESPONSIBILITY:
- * - Represents collections of entities.
- */
-
-import type { Ingredient } from './Ingredient'
-
-export interface IngredientList {
-  id: string
-  name: string
-  ingredients: Ingredient[]
-}
-
-export interface List {
-  id: string
-  title: string
-  seedFromCatalog?: boolean
-  seedIngredients?: string[]
-  consumesOnDrag?: boolean   // true = item is removed from this list when dragged out
-}
-`````
-
-## File: src/systems/gaze.test.ts
-`````typescript
-/**
- * FILE: gaze.test.ts
- *
- * PURPOSE:
- * Unit tests for gaze system.
- *
- * RESPONSIBILITY:
- * - Validates mascot gaze target updates, structural equality, and idempotency.
- */
-
-import { describe, it, expect, beforeEach } from 'vitest';
-import { worldStore } from '../store/worldStore';
-import { updateMascotGaze, getMascotGazeTarget } from './gaze';
-import type { GazeTarget } from './gaze';
-
-const  FIRE_GAZE: GazeTarget = { type: 'entity', entityId: ' burner1' };
-
-describe('Gaze System', () => {
-  beforeEach(() => {
-    worldStore.setState({
-      entities: {
-        chef: {
-          id: 'chef',
-          name: 'Chef',
-          type: 'mascot',
-          state: {
-            gazingAt: undefined,
+      if (otherEntity && otherEntity.type === 'ingredient' && !otherEntity.state?.consumed && isOil) {
+        worldStore.getState().dispatch({
+          type: 'USE_INGREDIENT',
+          payload: {
+            entityId: otherId,
+            usedIn: entityId,
           },
-        },
-      },
-      containers: {
-        bench: {
-          id: 'bench',
-          name: 'Workbench',
-          type: 'board',
-          rules: { maxCapacity: 1 },
-          entityIds: [],
-        },
-        burner1: {
-          id: 'burner1',
-          name: 'burner1',
-          type: 'burner',
-          rules: { maxCapacity: Infinity },
-          entityIds: [],
-        },
-        plate: {
-          id: 'plate',
-          name: 'Plate',
-          type: 'storage',
-          rules: { maxCapacity: Infinity },
-          entityIds: [],
-        },
-      },
-    });
-  });
-
-  it('updates mascot gaze target correctly', () => {
-    updateMascotGaze('chef',  FIRE_GAZE);
-    expect(getMascotGazeTarget('chef')).toEqual( FIRE_GAZE);
-  });
-
-  it('is idempotent when gazing at the same target', () => {
-    updateMascotGaze('chef',  FIRE_GAZE);
-    const firstState = worldStore.getState();
-
-    updateMascotGaze('chef', { type: 'entity', entityId: ' burner1' }); // structurally identical
-    const secondState = worldStore.getState();
-
-    expect(firstState).toBe(secondState);
-  });
-
-  it('updates when gazing at a different entity', () => {
-    updateMascotGaze('chef',  FIRE_GAZE);
-    updateMascotGaze('chef', { type: 'entity', entityId: 'plate' });
-    expect(getMascotGazeTarget('chef')).toEqual({ type: 'entity', entityId: 'plate' });
-  });
-
-  it('can gaze at mouse', () => {
-    updateMascotGaze('chef', { type: 'mouse' });
-    expect(getMascotGazeTarget('chef')).toEqual({ type: 'mouse' });
-  });
-
-  it('can gaze at a point', () => {
-    const pointGaze: GazeTarget = { type: 'point', point: { x: 100, y: 200 } };
-    updateMascotGaze('chef', pointGaze);
-    expect(getMascotGazeTarget('chef')).toEqual(pointGaze);
-  });
-
-  it('can clear gaze to null', () => {
-    updateMascotGaze('chef',  FIRE_GAZE);
-    updateMascotGaze('chef', null);
-    expect(getMascotGazeTarget('chef')).toBeNull();
-  });
-});
-`````
-
-## File: src/systems/gaze.ts
-`````typescript
-/**
- * FILE: gaze.ts
- *
- * PURPOSE:
- * Calculates gaze behavior.
- *
- * RESPONSIBILITY:
- * - Determines what objects attract attention.
- * - Updates gaze-related state.
- */
-
-import { worldStore } from '../store/worldStore';
-
-export interface GazePoint {
-  x: number;
-  y: number;
-}
-
-/**
- * Discriminated union describing what the mascot is looking at.
- *
- * - entity  → a specific world entity (container or ingredient) by id
- * - mouse   → the user's cursor position (resolved by the UI layer)
- * - point   → an explicit SVG/screen coordinate
- * - null    → not gazing at anything; fall back to idle eye position
- */
-export type GazeTarget =
-  | { type: 'entity'; entityId: string }
-  | { type: 'mouse' }
-  | { type: 'point'; point: GazePoint }
-  | null;
-
-/** Narrow helper — returns the entityId when gazing at an entity, else null. */
-export function gazeEntityId(target: GazeTarget): string | null {
-  return target?.type === 'entity' ? target.entityId : null;
-}
-
-interface GazeState {
-  gazingAt?: GazeTarget;
-}
-
-/**
- * Updates what target a mascot is looking at.
- * No-ops if the target is structurally identical to the current one.
- */
-export function updateMascotGaze(mascotId: string, targetId: GazeTarget): void {
-  const current = getMascotGazeTarget(mascotId);
-
-  // Structural equality check — avoids redundant dispatches for the same target.
-  if (JSON.stringify(current) === JSON.stringify(targetId)) return;
-
-  worldStore.getState().dispatch({
-    type: 'UPDATE_ENTITY_STATE',
-    payload: {
-      entityId: mascotId,
-      changes: { gazingAt: targetId },
-    },
-  });
-}
-
-/** Returns the current gaze target for a mascot entity. */
-export function getMascotGazeTarget(mascotId: string): GazeTarget {
-  const entity = worldStore.getState().entities[mascotId];
-  if (!entity) return null;
-  const state = entity.state as GazeState | undefined;
-  return state?.gazingAt ?? null;
-}
-
-/**
- * Subscribes to gaze changes for a given mascot.
- * Uses Zustand's vanilla subscribe so callers outside React can react to gaze updates
- * without polling or re-rendering unrelated components.
- *
- * Returns an unsubscribe function.
- *
- * @example
- *   const unsub = subscribeToGaze('chef', (target) => console.log(target));
- *   // later:
- *   unsub();
- */
-export function subscribeToGaze(
-  mascotId: string,
-  callback: (target: GazeTarget) => void
-): () => void {
-  let prev = getMascotGazeTarget(mascotId);
-
-  return worldStore.subscribe((state) => {
-    const next = (state.entities[mascotId]?.state as GazeState | undefined)?.gazingAt ?? null;
-    // Only fire when the gaze actually changes (structural check).
-    if (JSON.stringify(next) !== JSON.stringify(prev)) {
-      prev = next;
-      callback(next);
+        });
+      }
     }
-  });
-}
-`````
+  }
 
-## File: src/systems/mascotActions.ts
-`````typescript
-/**
- * FILE: mascotActions.ts
- *
- * PURPOSE:
- * Action dispatcher helpers for mascot (Tortilla) commands.
- *
- * RESPONSIBILITY:
- * - Provides reusable, generic action dispatchers for AI agents or UI triggers.
- * - Handles tortilla movement, grabbing ingredients from containers, dropping ingredients into containers, and flipping.
- */
+  await ctx.wait();
 
-import { worldStore } from '../store/worldStore';
-import { recipes } from '../data/catalog/recipes';
-import { RecipeRunner } from './recipeRunner';
-
-/**
- * Triggers Tortilla flip animation and records action in store.
- */
-export function flipTortilla(mascotId: string = 'chef'): void {
-  worldStore.getState().dispatch({
-    type: 'MASCOT_FLIP',
-    payload: { mascotId },
-  });
-}
-
-/**
- * Moves Tortilla gaze/focus to a specific container in the world.
- */
-export function moveTortillaTo(targetContainerId: string, mascotId: string = 'chef'): void {
-  worldStore.getState().dispatch({
-    type: 'MASCOT_MOVE',
-    payload: { mascotId, targetContainerId },
-  });
-}
-
-/**
- * Clears Tortilla's gaze — mascot returns to idle eye position (gazingAt: null).
- * Use instead of moveTortillaTo('') when there is no meaningful target.
- */
-export function clearTortillaGaze(mascotId: string = 'chef'): void {
-  worldStore.getState().dispatch({
-    type: 'MASCOT_CLEAR_GAZE',
-    payload: { mascotId },
-  });
-}
-
-/**
- * Commands Tortilla to grab/pick up an ingredient from a container.
- */
-export function grabIngredient(
-  entityId: string,
-  sourceContainerId?: string,
-  mascotId: string = 'chef'
-): void {
-  worldStore.getState().dispatch({
-    type: 'MASCOT_GRAB',
-    payload: { mascotId, entityId, sourceContainerId },
-  });
-}
-
-/**
- * Commands Tortilla to drop the currently held ingredient into a target container.
- */
-export function dropIngredient(
-  targetContainerId: string,
-  positionIndex?: number,
-  mascotId: string = 'chef'
-): void {
-  worldStore.getState().dispatch({
-    type: 'MASCOT_DROP',
-    payload: { mascotId, targetContainerId, positionIndex },
-  });
-}
-
-/**
- * Commands Tortilla to execute a sequence:
- * 1. Move focus to despensa
- * 2. Grab potato from despensa
- * 3. Move focus to board (tabla)
- * 4. Drop potato into board
- * 5. Flip Tortilla mascot
- */
-export async function runTortillaPotatoScript(
-  mascotId: string = 'chef',
-  delayMs: number = 600
-): Promise<void> {
-  const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-  // 1. Look at despensa
-  moveTortillaTo('despensa', mascotId);
-  await wait(delayMs);
-
-  // 2. Grab potato from despensa
-  grabIngredient('potato', 'despensa', mascotId);
-  await wait(delayMs);
-
-  // 3. Look at board (tabla)
-  moveTortillaTo('board', mascotId);
-  await wait(delayMs);
-
-  // 4. Drop potato in board
-  dropIngredient('board', undefined, mascotId);
-  await wait(delayMs);
-
-  // 5. Flip Tortilla
-  flipTortilla(mascotId);
-  await wait(900);
-
-  // 6. Return home gracefully — clear gaze instead of setting an empty string target
-  clearTortillaGaze(mascotId);
-}
-
-/**
- * Commands Tortilla to follow a recipe by running its step-based state machine.
- */
-export async function runFollowRecipeScript(
-  recipeId: string,
-  mascotId: string = 'chef',
-  targetContainerId: string = 'board',
-  delayMs: number = 600
-): Promise<void> {
-  const activeRecipe = recipes.find((r) => r.id === recipeId);
-  if (!activeRecipe) return;
-
-  const runner = new RecipeRunner({
-    mascotId,
-    defaultTargetId: targetContainerId,
-    delayMs,
-  });
-
-  await runner.runRecipe(activeRecipe);
-}
-`````
-
-## File: src/systems/queries.test.ts
-`````typescript
-/**
- * FILE: queries.test.ts
- *
- * PURPOSE:
- * Unit tests for query system functions.
- *
- * RESPONSIBILITY:
- * - Tests entity and container query helpers.
- */
-
-import { describe, expect, it } from 'vitest';
-import { getContainerByEntityId, getEntitiesInContainer, getEntityById } from './queries';
-import type { WorldState } from '../types/world';
-
-describe('Query System', () => {
-  const mockState: WorldState = {
-    entities: {
-      tomato: { id: 'tomato', name: 'Tomato', type: 'ingredient', state: { sliced: false } },
-      onion: { id: 'onion', name: 'Onion', type: 'ingredient', state: { sliced: true } },
-    },
-    containers: {
-      pantry: {
-        id: 'pantry',
-        name: 'Pantry',
-        type: 'storage',
-        rules: { maxCapacity: 10 },
-        entityIds: ['tomato'],
-      },
-      board: {
-        id: 'board',
-        name: 'Cutting Board',
-        type: 'board',
-        rules: { maxCapacity: 2 },
-        entityIds: ['onion'],
-      },
-    },
-    dispatch: () => {},
-  };
-
-  it('retrieves an entity by ID', () => {
-    const entity = getEntityById(mockState, 'tomato');
-    expect(entity).toBeDefined();
-    expect(entity?.name).toBe('Tomato');
-  });
-
-  it('finds the parent container for a given entity ID', () => {
-    const container = getContainerByEntityId(mockState, 'onion');
-    expect(container).toBeDefined();
-    expect(container?.id).toBe('board');
-  });
-
-  it('returns all entities inside a specified container', () => {
-    const boardEntities = getEntitiesInContainer(mockState, 'board');
-    expect(boardEntities).toHaveLength(1);
-    expect(boardEntities[0].id).toBe('onion');
-  });
-});
-`````
-
-## File: package.json
-`````json
-{
-  "name": "tortilla-world",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview",
-    "test": "vitest run"
-  },
-  "dependencies": {
-    "@dnd-kit/core": "^6.3.1",
-    "@dnd-kit/sortable": "^10.0.0",
-    "@dnd-kit/utilities": "^3.2.2",
-    "framer-motion": "^12.42.2",
-    "immer": "^11.1.15",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7",
-    "zustand": "^5.0.14"
-  },
-  "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "@types/node": "^24.13.2",
-    "@types/react": "^19.2.17",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^6.0.3",
-    "eslint": "^10.6.0",
-    "eslint-plugin-react-hooks": "^7.1.1",
-    "eslint-plugin-react-refresh": "^0.5.3",
-    "globals": "^17.7.0",
-    "repomix": "^1.16.1",
-    "sass-embedded": "^1.100.0",
-    "typescript": "~6.0.2",
-    "typescript-eslint": "^8.62.0",
-    "vite": "^8.1.1",
-    "vitest": "^4.1.10"
+  // Turn OFF fire when cooking step finishes
+  const containerAfter = worldStore.getState().containers[containerId];
+  if (containerAfter && containerAfter.isOn) {
+    worldStore.getState().dispatch({
+      type: 'TOGGLE_BURNER',
+      payload: { containerId },
+    });
   }
 }
+
+export async function handleFlipStep(
+  ctx: RecipeRunnerContext,
+  step: FlipStep
+): Promise<void> {
+  const rawKey = step.target;
+  const targetContainer = rawKey === 'mixture' ? 'burner1' : rawKey || 'burner1';
+  const instructionText = step.instruction;
+
+  if (instructionText) {
+    worldStore.getState().dispatch({
+      type: 'UPDATE_ENTITY_STATE',
+      payload: {
+        entityId: step.mascotId || ctx.mascotId,
+        changes: { speechMessage: instructionText },
+      },
+    });
+  }
+
+  moveTortillaTo(targetContainer, ctx.mascotId);
+  await ctx.wait();
+
+  flipTortilla(step.mascotId || ctx.mascotId);
+
+  if (rawKey) {
+    const entityId = ctx.getBoundEntityId(rawKey);
+    if (entityId) {
+      ctx.validateEntity(entityId, 'flip');
+      worldStore.getState().dispatch({
+        type: 'UPDATE_ENTITY_STATE',
+        payload: {
+          entityId,
+          changes: { isFlipped: true, status: 'flipped-tortilla' },
+        },
+      });
+    }
+  } else {
+    // If no target specified, flip all active bound entities in target container
+    const state = worldStore.getState();
+    const container = state.containers[targetContainer];
+    if (container) {
+      container.entityIds.forEach((entityId) => {
+        worldStore.getState().dispatch({
+          type: 'UPDATE_ENTITY_STATE',
+          payload: {
+            entityId,
+            changes: { isFlipped: true, status: 'flipped-tortilla' },
+          },
+        });
+      });
+    }
+  }
+
+  await ctx.wait();
+}
 `````
 
-## File: src/systems/mascot.ts
+## File: src/App.tsx
 `````typescript
 /**
- * FILE: mascot.ts
+ * FILE: App.tsx
  *
  * PURPOSE:
- * Mascot state definitions and behavior functions.
+ * Main React application component.
  *
  * RESPONSIBILITY:
- * - Defines mascot visual states ('idle', 'cooking', 'celebrating', etc.).
- */
-
-export type MascotState = 'idle' | 'cooking' | 'celebrating' | 'thinking' | 'flipping' | string;
-`````
-
-## File: src/systems/queries.ts
-`````typescript
-/**
- * FILE: queries.ts
- *
- * PURPOSE:
- * Read-only world queries and selectors.
- *
- * RESPONSIBILITY:
- * - Finds entities by ID or container.
- * - Filters world state data for systems and components.
+ * - Creates the application layout.
+ * - Connects major UI areas together.
+ * - Acts as the entry point for the game world.
  *
  * SHOULD NOT:
- * - Modify world state.
+ * - Contain game rules.
+ * - Modify world state directly.
  */
 
-import type { Container, Entity, WorldState } from '../types/world';
+import { Scene } from './components/Scene/Scene';
+import { Mascot } from './components/Mascot/Mascot';
+import { RecipePanel } from './components/Recipe/RecipePanel';
 
-/**
- * Retrieves an entity by its unique ID from the world state.
- */
-export const getEntityById = (state: WorldState, entityId: string): Entity | undefined => {
-  return state.entities[entityId];
-};
+function App() {
+  return (
+    <div className="app-container" style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px' }}>
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+        <div>
+          <h1 style={{ margin: 0, fontSize: '28px', color: 'var(--text-h)' }}>Tortilla World</h1>
+          <p style={{ margin: '4px 0 0 0', color: 'var(--text)', opacity: 0.8 }}>
+            An interactive simulation world. Drag entities from the immutable catalog pantry into workspace containers.
+          </p>
+        </div>
+        <Mascot />
+      </header>
 
-/**
- * Retrieves the container that currently holds the given entity ID.
- */
-export const getContainerByEntityId = (
-  state: WorldState,
-  entityId: string
-): Container | undefined => {
-  return Object.values(state.containers).find((container) =>
-    container.entityIds.includes(entityId)
+      <main>
+        <RecipePanel />
+        <Scene />
+      </main>
+    </div>
   );
-};
+}
 
-/**
- * Retrieves all entities contained within a specific container.
- */
-export const getEntitiesInContainer = (state: WorldState, containerId: string): Entity[] => {
-  const container = state.containers[containerId];
-  if (!container) return [];
-
-  return container.entityIds
-    .map((id) => state.entities[id])
-    .filter((entity): entity is Entity => entity !== undefined);
-};
+export default App;
 `````
 
 ## File: docs/decisions.md
@@ -15883,6 +18366,22 @@ User Interaction / RecipeRunner
 
 ---
 
+# Decision: Headless Action Log Replay System
+
+## Context
+In Tortilla World, all world modifications are driven by pure `WorldAction` dispatches through `worldStore`. Actions are logged in real-time during user interaction, mascot execution, or recipe playback. Replaying recorded JSON action logs allows deterministic state reconstruction, automated testing, and session playback.
+
+## Decision
+Created a headless replay engine (`ActionPlayer` in `src/systems/actionPlayer.ts`) and a React upload control (`ActionReplayer` in `src/components/Controls/ActionReplayer.tsx`).
+
+Key rules:
+1. **World State Reset**: Replay resets the simulation to initial default state (`RESET_WORLD`) before executing actions.
+2. **Sequential Execution**: Actions are dispatched sequentially via `worldStore.getState().dispatch(action)` with a configurable delay.
+3. **No Direct DOM Manipulation**: Animations and component positioning react naturally to Zustand store state updates.
+4. **Progress and Control**: Callbacks allow monitoring progress (`onStep`) and stopping playback early (`stop()`).
+
+---
+
 # Final Principle
 
 The rule of Tortilla World:
@@ -15898,514 +18397,6 @@ Actions describe intentions.
 
 The Store remembers the result.
 ```
-`````
-
-## File: src/data/catalog/recipes/clasica.ts
-`````typescript
-/**
- * FILE: clasica.ts
- *
- * PURPOSE:
- * Recipe definition for Tortilla Clásica (without onion).
- *
- * RESPONSIBILITY:
- * - Defines the ingredients, quantities, and cooking process.
- * - Describes recipe actions in a declarative format.
- * - Provides a Cooklang representation for humans.
- *
- * NOTE:
- * Recipes describe WHAT happens.
- * The RecipeRunner decides HOW it happens:
- * - finding ingredients
- * - moving the chef
- * - animations
- * - changing entity state
- * - creating intermediate results
- */
-
-import type { Recipe } from '../../../types/Recipe';
-
-export const clasicaRecipe: Recipe = {
-  id: 'clasica',
-
-  name: 'Clásica',
-
-  requirements: {
-    potatoes: {
-      entityId: 'potato',
-      amount: 4,
-      unit: 'pcs',
-    },
-
-    eggs: {
-      entityId: 'egg',
-      amount: 6,
-      unit: 'pcs',
-    },
-
-    garlic: {
-      entityId: 'garlic',
-      amount: 1,
-      unit: 'head',
-    },
-
-    oil: {
-      entityId: 'oil',
-      amount: 100,
-      unit: 'ml',
-    },
-
-    salt: {
-      entityId: 'salt',
-      amount: 1,
-      unit: 'tsp',
-    },
-
-    black_pepper: {
-      entityId: 'black_pepper',
-      amount: 1,
-      unit: 'pinch',
-    },
-  },
-
-  steps: [
-  {
-    action: 'prepare',
-    target: 'garlic',
-    preparation: 'peeled',
-  },
-
-  // Heat oil first
-  {
-    action: 'cook',
-    target: 'oil',
-    method: 'heat',
-  },
-
-  // Fry garlic (consumes oil)
-  {
-    action: 'cook',
-    target: 'garlic',
-    method: 'fry',
-    instruction: 'Que no se quemen.', // Cook but don't burn
-  },
-
-  // IMPORTANT: Move garlic out IMMEDIATELY after cooking
-  {
-    action: 'move',
-    ingredient: 'garlic',
-    target: 'plate',  // Move to pantry
-    source: 'pan',     // From pan
-  },
-
-  // Now cook potatoes in the same oil (oil already used from garlic step)
-  {
-    action: 'cook',
-    target: 'potatoes',
-    method: 'fry',
-  },
-
-  // Beat eggs
-  {
-    action: 'prepare',
-    target: 'eggs',
-    preparation: 'beaten',
-  },
-
-  // Mix all together including garlic from pantry
-  {
-    action: 'mix',
-    inputs: [
-      'potatoes',      // From pan
-      'eggs',          // Fresh
-      'salt',          // Fresh
-      'black_pepper',  // Fresh
-      'garlic'         // From pantry (cooked earlier)
-    ],
-    output: 'mixture',
-  },
-
-    {
-      action: 'cook',
-      target: 'mixture',
-      method: 'fry',
-      duration: 5,
-      unit: 'min',
-    },
-
-    {
-      action: 'instruction',
-      text: 'Con una espátula blanda, asegúrate de que la tortilla no se pega a la sartén.',
-    },
-
-    {
-      action: 'flip',
-      target: 'mixture',
-      instruction: 'Dale la vuelta a la tortilla.',
-    },
-
-    {
-      action: 'cook',
-      target: 'mixture',
-      method: 'fry',
-      duration: 5,
-      unit: 'min',
-      instruction: 'Deja cocinar por otros 5 min.',
-    },
-
-    {
-      action: 'serve',
-      target: 'mixture',
-    },
-
-    {
-      action: 'celebrate',
-    },
-  ],
-};
-
-export const clasicaCooklang = `
-Peel the @potatoes{4%pcs}.
-
-Slice the @potatoes.
-
-Heat the @oil{100%ml}.
-
-Fry the @potatoes until tender.
-
-Beat the @eggs{6%pcs}.
-
-Add @salt{1%tsp}.
-
-Add @black_pepper{1%pinch}.
-
-Mix the potatoes with the beaten eggs, salt and black_pepper.
-
-Pour the mixture into the pan.
-
-Cook for 5 minutes.
-
-With a soft spatula, make sure the tortilla does not stick to the pan.
-
-Flip the tortilla.
-
-Cook for another 5 minutes.
-
-Serve the tortilla.
-
-Celebrate.
-`;
-
-export const recipe = clasicaRecipe;
-`````
-
-## File: src/systems/recipeRunner/handlers/cookHandlers.ts
-`````typescript
-/**
- * FILE: src/systems/recipeRunner/handlers/cookHandlers.ts
- *
- * PURPOSE:
- * Step handlers for cooking and thermal steps ('cook', 'flip').
- */
-
-import { worldStore } from '../../../store/worldStore';
-import { moveTortillaTo, flipTortilla } from '../../mascotActions';
-import type { RecipeStep } from '../../../types/RecipeStep';
-import type { RecipeRunnerContext } from '../types';
-
-type CookStep = Extract<RecipeStep, { action: 'cook' }>;
-type FlipStep = Extract<RecipeStep, { action: 'flip' }>;
-
-export async function handleCookStep(
-  ctx: RecipeRunnerContext,
-  step: CookStep,
-  workstationDefaultContainerId?: string
-): Promise<void> {
-  const rawKey = step.target || step.ingredient;
-  const entityId = ctx.getBoundEntityId(rawKey);
-
-  if (!entityId) {
-    throw new Error(`[RecipeRunner] No entity bound for cook step target: "${rawKey}"`);
-  }
-
-  ctx.validateEntity(entityId, 'cook');
-
-  const cookingMethod = step.method || 'cooked';
-  const containerId = step.containerId || workstationDefaultContainerId || 'burner1';
-
-  if (step.instruction) {
-    worldStore.getState().dispatch({
-      type: 'UPDATE_ENTITY_STATE',
-      payload: {
-        entityId: step.mascotId || ctx.mascotId,
-        changes: { speechMessage: step.instruction },
-      },
-    });
-  }
-
-  // Ensure bound entity is moved to cooking container if not already there
-  const state = worldStore.getState();
-  const currentContainer = Object.values(state.containers).find((c) =>
-    c.entityIds.includes(entityId!)
-  );
-
-  if (!currentContainer || currentContainer.id !== containerId) {
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: {
-        entityId,
-        targetContainerId: containerId,
-      },
-    });
-  }
-
-  moveTortillaTo(containerId, ctx.mascotId);
-  await ctx.wait();
-
-  // Turn ON fire if currently off
-  const containerBefore = worldStore.getState().containers[containerId];
-  if (containerBefore && !containerBefore.isOn) {
-    worldStore.getState().dispatch({
-      type: 'TOGGLE_BURNER',
-      payload: { containerId },
-    });
-  }
-
-  worldStore.getState().dispatch({
-    type: 'COOK_INGREDIENT',
-    payload: {
-      entityId,
-      cooking: cookingMethod,
-    },
-  });
-
-  // Consume cooking medium helper ingredients currently in the cooking container (e.g. oil)
-    /**
-   * IMPORTANT: Distinguish between oil as the primary cooking target vs oil as a cooking medium.
-   *
-   * Scenario 1: Oil is the target (method='heat')
-   *   Step: { action: 'cook', target: 'oil', method: 'heat' }
-   *   Expected: Oil is heated, NOT consumed
-   *   Reason: Oil is the subject being cooked, not a helper ingredient
-   *
-   * Scenario 2: Oil is a cooking medium
-   *   Step: { action: 'cook', target: 'potatoes', method: 'fry' }
-   *   Expected: Oil in the container IS consumed (used for frying)
-   *   Reason: Oil is helping to cook the potatoes
-   * 
-   *   Scenario 3: Oil as dressing
-   *   Step: { action: 'serve', target: 'mixture', method: 'dress' }
-   *   Expected: fresh Oil in the container where the finished tortilla is
-   *   Reason: Oil is dressiing for the tortilla
-   *
-   * Without this check, oil gets consumed even when it's the cooking target,
-   * preventing oil reuse and causing "Heat Olive Oil" name change in Required Materials.
-   */
-  const cookingContainer = worldStore.getState().containers[containerId];
-
-  // Only consume helper ingredients (like oil) if they are NOT the target of THIS cooking step
-  const isOilTheTarget =
-    rawKey === 'oil' ||
-    rawKey?.toLowerCase().includes('oil') ||
-    rawKey?.toLowerCase().includes('aceite');
-
-  if (!isOilTheTarget && cookingContainer) {
-    // Consume cooking medium helper ingredients currently in the cooking container (e.g. oil)
-    const otherEntityIds = cookingContainer.entityIds.filter((id) => id !== entityId);
-    for (const otherId of otherEntityIds) {
-      const otherEntity = worldStore.getState().entities[otherId];
-      const isOil =
-        otherEntity?.ingredientId === 'oil' ||
-        otherEntity?.id?.includes('oil') ||
-        otherEntity?.name?.toLowerCase().includes('oil') ||
-        otherEntity?.name?.toLowerCase().includes('aceite');
-
-      if (otherEntity && otherEntity.type === 'ingredient' && !otherEntity.state?.consumed && isOil) {
-        worldStore.getState().dispatch({
-          type: 'USE_INGREDIENT',
-          payload: {
-            entityId: otherId,
-            usedIn: entityId,
-          },
-        });
-      }
-    }
-  }
-
-  await ctx.wait();
-
-  // Turn OFF fire when cooking step finishes
-  const containerAfter = worldStore.getState().containers[containerId];
-  if (containerAfter && containerAfter.isOn) {
-    worldStore.getState().dispatch({
-      type: 'TOGGLE_BURNER',
-      payload: { containerId },
-    });
-  }
-}
-
-export async function handleFlipStep(
-  ctx: RecipeRunnerContext,
-  step: FlipStep
-): Promise<void> {
-  const rawKey = step.target;
-  const targetContainer = rawKey === 'mixture' ? 'burner1' : rawKey || 'burner1';
-  const instructionText = step.instruction;
-
-  if (instructionText) {
-    worldStore.getState().dispatch({
-      type: 'UPDATE_ENTITY_STATE',
-      payload: {
-        entityId: step.mascotId || ctx.mascotId,
-        changes: { speechMessage: instructionText },
-      },
-    });
-  }
-
-  moveTortillaTo(targetContainer, ctx.mascotId);
-  await ctx.wait();
-
-  flipTortilla(step.mascotId || ctx.mascotId);
-
-  if (rawKey) {
-    const entityId = ctx.getBoundEntityId(rawKey);
-    if (entityId) {
-      ctx.validateEntity(entityId, 'flip');
-      worldStore.getState().dispatch({
-        type: 'UPDATE_ENTITY_STATE',
-        payload: {
-          entityId,
-          changes: { isFlipped: true, status: 'flipped-tortilla' },
-        },
-      });
-    }
-  } else {
-    // If no target specified, flip all active bound entities in target container
-    const state = worldStore.getState();
-    const container = state.containers[targetContainer];
-    if (container) {
-      container.entityIds.forEach((entityId) => {
-        worldStore.getState().dispatch({
-          type: 'UPDATE_ENTITY_STATE',
-          payload: {
-            entityId,
-            changes: { isFlipped: true, status: 'flipped-tortilla' },
-          },
-        });
-      });
-    }
-  }
-
-  await ctx.wait();
-}
-`````
-
-## File: src/components/Ingredients/IngredientList.tsx
-`````typescript
-/**
- * FILE: IngredientList.tsx
- *
- * PURPOSE:
- * Displays a collection/container of ingredients.
- *
- * RESPONSIBILITY:
- * - Renders container title and its inner entities.
- * - Acts as a droppable target for drag-and-drop.
- */
-
-import { useStore } from 'zustand';
-import { useDroppable } from '@dnd-kit/core';
-import { worldStore } from '../../store/worldStore';
-import type { Container, Entity } from '../../types/world';
-import { IngredientListItem } from './IngredientListItem';
-
-interface IngredientListProps {
-  key?: string | number;
-  container: Container;
-}
-
-export function IngredientList({ container }: IngredientListProps) {
-  const entities = useStore(worldStore, (state) => state.entities);
-
-  // Set up dnd-kit droppable binding for this container
-  const { setNodeRef, isOver } = useDroppable({
-    id: container.id,
-  });
-
-  const containerEntities = container.entityIds
-    .map((id: string) => entities[id])
-    .filter((e: Entity | undefined): e is Entity => Boolean(e));
-
-  const getWorkstationBadge = (id: string) => {
-    switch (id) {
-      case 'sink': return 'Washing Area 💧';
-      case 'board': return 'Cutting Workspace 🔪';
-      case 'bowl': return 'Preparation 🥣';
-      case 'pan': return 'Cooking Heat 🍳';
-      case 'plate': return 'Serving Stage 🍽️';
-      case 'despensa': return 'Pantry 🧺';
-      default: return 'Workstation 🍳';
-    }
-  };
-
-  return (
-    <div 
-      ref={setNodeRef} 
-      data-container-id={container.id}
-      className={`ingredient-list workstation-${container.id} ${isOver ? 'drag-over' : ''}`}
-    >
-      <div className="workstation-header">
-        <h3>{container.name}</h3>
-        <span className="workstation-type-badge">{getWorkstationBadge(container.id)}</span>
-      </div>
-      <div className="items-container">
-        {containerEntities.map((entity: Entity) => (
-          <IngredientListItem key={entity.id} entity={entity} containerId={container.id} />
-        ))}
-        {containerEntities.length === 0 && (
-          <span className="empty-hint">Drop ingredients here</span>
-        )}
-      </div>
-    </div>
-  );
-}
-`````
-
-## File: src/components/Recipe/RecipePanel.tsx
-`````typescript
-/**
- * FILE: RecipePanel.tsx
- *
- * PURPOSE:
- * Compact, unintrusive recipe selector and catalog viewer.
- *
- * RESPONSIBILITY:
- * - Wires catalog recipes (Con Cebolla, Sin Cebolla) with RecipeRequirements.
- * - Displays active recipe requirements and matches with current world state.
- */
-
-import { useStore } from 'zustand';
-import { worldStore } from '../../store/worldStore';
-import './RecipePanel.scss';
-
-export function RecipePanel() {
-  const dispatch = useStore(worldStore, (state) => state.dispatch);
-
-  return (
-    <div className="recipe-panel compact-recipe-panel">
-      <div className="recipe-panel-header">
-        <button
-          type="button"
-          className="recipe-reset-btn"
-          onClick={() => dispatch({ type: 'RESET_WORLD' })}
-          title="Clean the kitchen and start over"
-        >
-          🔄 Reset Kitchen
-        </button>
-      </div>
-    </div>
-  );
-}
 `````
 
 ## File: src/data/catalog/recipes/concebolla.ts
@@ -17090,126 +19081,28 @@ describe('RecipeRunner System', () => {
     const mixtureId = runner.recipeContext.bindings['mixture'];
     expect(finalBowlEntityIds).toContain(mixtureId);
   });
-});
-`````
 
-## File: src/components/Ingredients/IngredientListItem.tsx
-`````typescript
-/**
- * FILE: IngredientListItem.tsx
- *
- * PURPOSE:
- * UI wrapper for an ingredient inside a list.
- *
- * RESPONSIBILITY:
- * - Connects ingredient rendering with list interactions.
- * - Provides drag/drop related UI behavior.
- */
+  it('translates instruction step "Toggle heat on burner1" into UPDATE_ENTITY_STATE and TOGGLE_BURNER actions', async () => {
+    const runner = new RecipeRunner({ mascotId: 'chef', delayMs: 1 });
+    const initialBurnerState = worldStore.getState().containers.burner1.isOn;
 
-import React from 'react';
-import { useDraggable } from '@dnd-kit/core';
-import type { Entity } from '../../types/world';
+    await runner.runSteps([
+      {
+        action: 'instruction',
+        text: 'Toggle heat on burner1',
+      },
+    ]);
 
-interface IngredientListItemProps {
-  entity: Entity;
-  containerId?: string;
-}
+    const state = worldStore.getState();
+    const actionLog = getActionLog();
+    const actionTypes = actionLog.map((a) => a.action);
 
-export const IngredientListItem: React.FC<IngredientListItemProps> = ({ entity, containerId }) => {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-    id: entity.id,
+    expect(actionTypes).toContain('UPDATE_ENTITY_STATE');
+    expect(actionTypes).toContain('TOGGLE_BURNER');
+    expect(state.entities.chef.state?.speechMessage).toBe('Toggle heat on burner1');
+    expect(state.containers.burner1.isOn).toBe(!initialBurnerState);
   });
-
-  const style: React.CSSProperties | undefined = transform
-    ? {
-        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-        opacity: isDragging ? 0.6 : 1,
-        zIndex: isDragging ? 1000 : 1,
-        cursor: 'grab',
-      }
-    : {
-        cursor: 'grab',
-      };
-
-  // Determine ingredient state badge (Raw, Prepared, Cooking, Finished)
-  const renderStateBadge = () => {
-    if (entity.type !== 'ingredient') return null;
-
-    const prep = entity.state?.preparation as string | undefined;
-    const cooking = entity.state?.cooking as string | undefined;
-    const status = entity.state?.status as string | undefined;
-
-    if (containerId === 'plate' || status?.includes('cooked') || status?.includes('fried') || status?.includes('tortilla')) {
-      return <span className="ingredient-state-badge state-finished">Finished ✨</span>;
-    }
-    if (cooking && cooking !== 'raw') {
-      return <span className="ingredient-state-badge state-cooking">Cooking 🔥</span>;
-    }
-    if (prep) {
-      return <span className="ingredient-state-badge state-prepared">Prepared 🔪</span>;
-    }
-    return <span className="ingredient-state-badge state-raw">Raw 🌾</span>;
-  };
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...listeners}
-      {...attributes}
-      className={`ingredient-list-item ${isDragging ? 'dragging' : ''}`}
-    >
-      <span className="ingredient-name">{entity.name}</span>
-      {renderStateBadge()}
-    </div>
-  );
-};
-`````
-
-## File: src/App.tsx
-`````typescript
-/**
- * FILE: App.tsx
- *
- * PURPOSE:
- * Main React application component.
- *
- * RESPONSIBILITY:
- * - Creates the application layout.
- * - Connects major UI areas together.
- * - Acts as the entry point for the game world.
- *
- * SHOULD NOT:
- * - Contain game rules.
- * - Modify world state directly.
- */
-
-import { Scene } from './components/Scene/Scene';
-import { Mascot } from './components/Mascot/Mascot';
-import { RecipePanel } from './components/Recipe/RecipePanel';
-
-function App() {
-  return (
-    <div className="app-container" style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px' }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
-        <div>
-          <h1 style={{ margin: 0, fontSize: '28px', color: 'var(--text-h)' }}>Tortilla World</h1>
-          <p style={{ margin: '4px 0 0 0', color: 'var(--text)', opacity: 0.8 }}>
-            An interactive simulation world. Drag entities from the immutable catalog pantry into workspace containers.
-          </p>
-        </div>
-        <Mascot />
-      </header>
-
-      <main>
-        <RecipePanel />
-        <Scene />
-      </main>
-    </div>
-  );
-}
-
-export default App;
+});
 `````
 
 ## File: src/components/Mascot/TortillaSvg.tsx
@@ -17743,133 +19636,41 @@ export function TortillaSvg({
 }
 `````
 
-## File: src/types/actions.ts
+## File: src/components/Recipe/RecipePanel.tsx
 `````typescript
 /**
- * FILE: actions.ts
+ * FILE: RecipePanel.tsx
  *
  * PURPOSE:
- * Defines world actions/events.
+ * Compact, unintrusive recipe selector and catalog viewer.
  *
  * RESPONSIBILITY:
- * - Creates the communication contract between systems and store.
+ * - Wires catalog recipes (Con Cebolla, Sin Cebolla) with RecipeRequirements.
+ * - Displays active recipe requirements and matches with current world state.
  */
 
-import type { EntityType } from './world';
-import type { PreparationStyle, CookingMethod } from './RecipeStep';
+import { useStore } from 'zustand';
+import { worldStore } from '../../store/worldStore';
+import './RecipePanel.scss';
 
-export type WorldAction =
-  | {
-    type: 'MOVE_ENTITY';
-    payload: {
-      entityId: string;
-      targetContainerId: string;
-      positionIndex?: number;
-    };
-  }
-  | {
-    type: 'ADD_ENTITY';
-    payload: {
-      entity: {
-        id: string;
-        name: string;
-        type: EntityType;
-        icon?: string;
-        ingredientId?: string;
-        state?: Record<string, unknown>;
-      };
-      containerId: string;
-    };
-  }
-  | {
-    type: 'TOGGLE_BURNER';
-    payload: {
-      containerId: string;
-    };
-  }
-  | {
-    type: 'REMOVE_ENTITY';
-    payload: {
-      entityId: string;
-    };
-  }
-  | {
-    type: 'UPDATE_ENTITY_STATE';
-    payload: {
-      entityId: string;
-      changes: Record<string, unknown>;
-    };
-  }
-  | {
-    type: 'PREPARE_INGREDIENT';
-    payload: {
-      entityId: string;
-      preparation: PreparationStyle;
-    };
-  }
-  | {
-    type: 'COOK_INGREDIENT';
-    payload: {
-      entityId: string;
-      cooking: CookingMethod;
-    };
-  }
-  | {
-    type: 'USE_INGREDIENT';
-    payload: {
-      entityId: string;
-      usedIn?: string;
-    };
-  }
-  | {
-    type: 'MASCOT_FLIP';
-    payload: {
-      mascotId?: string;
-    };
-  }
-  | {
-    type: 'MASCOT_MOVE';
-    payload: {
-      mascotId?: string;
-      targetContainerId: string;
-    };
-  }
-  | {
-    type: 'MASCOT_GRAB';
-    payload: {
-      mascotId?: string;
-      entityId: string;
-      sourceContainerId?: string;
-    };
-  }
-  | {
-    type: 'MASCOT_DROP';
-    payload: {
-      mascotId?: string;
-      targetContainerId: string;
-      positionIndex?: number;
-    };
-  }
-  | {
-    type: 'MASCOT_CLEAR_GAZE';
-    payload: {
-      mascotId?: string;
-    };
-  }
-  | {
-    type: 'RESET_WORLD';
-    payload?: Record<string, never>;
-  };
+export function RecipePanel() {
+  const dispatch = useStore(worldStore, (state) => state.dispatch);
 
-
-export type WorldEvent =
-  | {
-    type: 'INGREDIENT_CONSUMED';
-    payload: {
-      entityId: string;
-      consumedBy?: string;
-    };
-  };
+  return (
+    <div className="recipe-panel compact-recipe-panel">
+      <div className="recipe-panel-header">
+        <button
+          type="button"
+          className="recipe-reset-btn"
+          onClick={() => dispatch({ type: 'RESET_WORLD' })}
+          title="Clean the kitchen and start over"
+        >
+          🔄 Reset Kitchen
+        </button>
+      </div>
+    </div>
+  );
+}
 `````
 
 ## File: src/types/world.ts
@@ -18013,220 +19814,310 @@ export function useSceneDragAndDrop() {
 }
 `````
 
-## File: src/components/Mascot/Mascot.tsx
+## File: src/types/actions.ts
 `````typescript
 /**
- * FILE: Mascot.tsx
+ * FILE: actions.ts
  *
  * PURPOSE:
- * Main Tortilla mascot component with physical movement and grabbing animations.
+ * Defines world actions/events.
  *
  * RESPONSIBILITY:
- * - Controls mascot visual representation.
- * - Animates physical movement to target containers across the scene.
- * - Displays held ingredient badge and grab/drop motion feedback.
- *
- * SHOULD NOT:
- * - Own world state.
- * - Contain gameplay rules.
+ * - Creates the communication contract between systems and store.
  */
 
-import React, { useState, useEffect, useRef } from 'react';
-import { useStore } from 'zustand';
-import { worldStore } from '../../store/worldStore';
-import { TortillaSvg } from './TortillaSvg';
-import { runTortillaPotatoScript } from '../../systems/mascotActions';
-import { ingredients } from '../../data/catalog/ingredients';
-import type { GazeTarget } from '../../systems/gaze';
-import { gazeEntityId } from '../../systems/gaze';
+import type { EntityType } from './world';
+import type { PreparationStyle, CookingMethod } from './RecipeStep';
 
-interface MascotProps {
-  mascotId?: string;
-}
-
-export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
-  const mascotEntity = useStore(worldStore, (state) => state.entities[mascotId]);
-  const entities = useStore(worldStore, (state) => state.entities);
-  const dispatch = useStore(worldStore, (state) => state.dispatch);
-  
-  const [isRunningScript, setIsRunningScript] = useState(false);
-  const [offset, setOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const mascotAnchorRef = useRef<HTMLDivElement>(null);
-
-  // Derived from mascotEntity.state — use optional chaining so these stay safe
-  // when mascotEntity is undefined, keeping every hook below unconditional.
-  const gazingAt = (mascotEntity?.state?.gazingAt ?? null) as GazeTarget;
-  const gazingAtEntityId = gazeEntityId(gazingAt);
-  const targetContainerId = (mascotEntity?.state?.targetContainerId as string | undefined) ?? gazingAtEntityId ?? undefined;
-  const state = (mascotEntity?.state?.state as string | undefined) || 'idle';
-  const holdingEntityId = mascotEntity?.state?.holdingEntityId as string | undefined;
-  const speechMessage = mascotEntity?.state?.speechMessage as string | undefined;
-
-  // Resolve held entity and ingredient metadata
-  const heldEntity = holdingEntityId ? entities[holdingEntityId] : undefined;
-  const heldIngredientInfo = heldEntity
-    ? ingredients.find(
-        (i) => i.id === heldEntity.ingredientId || i.id === heldEntity.id || heldEntity.id.startsWith(i.id)
-      )
-    : undefined;
-
-  // Calculate physical DOM position offset to target container
-  useEffect(() => {
-    const updatePosition = () => {
-      if (!targetContainerId || !mascotAnchorRef.current) {
-        setOffset({ x: 0, y: 0 });
-        return;
-      }
-
-      const containerEl = document.querySelector(`[data-container-id="${targetContainerId}"]`);
-      if (!containerEl) {
-        setOffset({ x: 0, y: 0 });
-        return;
-      }
-
-      const containerRect = containerEl.getBoundingClientRect();
-      const mascotRect = mascotAnchorRef.current.getBoundingClientRect();
-
-      // Calculate translation offset so mascot hovers above the container center
-      const x = containerRect.left + containerRect.width / 2 - (mascotRect.left + mascotRect.width / 2);
-      const y = containerRect.top - mascotRect.top - 15;
-
-      setOffset({ x, y });
+export type WorldAction =
+  | {
+    type: 'MOVE_ENTITY';
+    payload: {
+      entityId: string;
+      targetContainerId: string;
+      positionIndex?: number;
     };
-
-    updatePosition();
-    window.addEventListener('resize', updatePosition);
-    window.addEventListener('scroll', updatePosition);
-    return () => {
-      window.removeEventListener('resize', updatePosition);
-      window.removeEventListener('scroll', updatePosition);
+  }
+  | {
+    type: 'ADD_ENTITY';
+    payload: {
+      entity: {
+        id: string;
+        name: string;
+        type: EntityType;
+        icon?: string;
+        ingredientId?: string;
+        state?: Record<string, unknown>;
+      };
+      containerId: string;
     };
-  }, [targetContainerId]);
-
-  // Guarded until after all hooks so hook call order never changes between renders.
-  if (!mascotEntity) return null;
-
-  const handleDoubleClick = () => {
-    dispatch({ type: 'MASCOT_FLIP', payload: { mascotId } });
-  };
-
-  const handleRunScript = async () => {
-    if (isRunningScript) return;
-    setIsRunningScript(true);
-    try {
-      await runTortillaPotatoScript(mascotId, 650);
-    } finally {
-      setIsRunningScript(false);
+  }
+  | {
+    type: 'TOGGLE_BURNER';
+    payload: {
+      containerId: string;
+    };
+  }
+  | {
+    type: 'REMOVE_ENTITY';
+    payload: {
+      entityId: string;
+    };
+  }
+  | {
+    type: 'UPDATE_ENTITY_STATE';
+    payload: {
+      entityId: string;
+      changes: Record<string, unknown>;
+    };
+  }
+  | {
+    type: 'PREPARE_INGREDIENT';
+    payload: {
+      entityId: string;
+      preparation: PreparationStyle;
+    };
+  }
+  | {
+    type: 'COOK_INGREDIENT';
+    payload: {
+      entityId: string;
+      cooking: CookingMethod;
+    };
+  }
+  | {
+    type: 'USE_INGREDIENT';
+    payload: {
+      entityId: string;
+      usedIn?: string;
+    };
+  }
+  | {
+    type: 'MASCOT_FLIP';
+    payload: {
+      mascotId?: string;
+    };
+  }
+  | {
+    type: 'MASCOT_MOVE';
+    payload: {
+      mascotId?: string;
+      targetContainerId: string;
+    };
+  }
+  | {
+    type: 'MASCOT_GRAB';
+    payload: {
+      mascotId?: string;
+      entityId: string;
+      sourceContainerId?: string;
+    };
+  }
+  | {
+    type: 'MASCOT_DROP';
+    payload: {
+      mascotId?: string;
+      targetContainerId: string;
+      positionIndex?: number;
+    };
+  }
+  | {
+    type: 'MASCOT_CLEAR_GAZE';
+    payload: {
+      mascotId?: string;
+    };
+  }
+  | {
+      type: 'TOGGLE_HEAT';
+      payload: {
+        containerId: string;
+      };
     }
-  };
+  | {
+      type: 'WASH_CONTAINER_CONTENTS';
+      payload: {
+        containerId: string;
+      };
+    }
+  | {
+      type: 'CUT_CONTAINER_CONTENTS';
+      payload: {
+        containerId: string;
+      };
+    }
+  | {
+      type: 'PEEL_CONTAINER_CONTENTS';
+      payload: {
+        containerId: string;
+      };
+    }
+  | {
+      type: 'MIX_CONTAINER_CONTENTS';
+      payload: {
+        containerId: string;
+      };
+    }
+  | {
+      type: 'RESET_WORLD';
+      payload?: Record<string, never>;
+    };
 
-  const isFloating = offset.x !== 0 || offset.y !== 0;
+
+export type WorldEvent =
+  | {
+      type: 'INGREDIENT_CONSUMED';
+      payload: {
+        entityId: string;
+        consumedBy?: string;
+      };
+    }
+  | {
+      type: 'CONTAINER_HEAT_TOGGLED';
+      payload: {
+        containerId: string;
+        isOn: boolean;
+      };
+    }
+  | {
+      type: 'CONTAINER_WASHED';
+      payload: {
+        containerId: string;
+        entityIds: string[];
+      };
+    }
+  | {
+      type: 'CONTAINER_CUT';
+      payload: {
+        containerId: string;
+        entityIds: string[];
+      };
+    }
+  | {
+      type: 'CONTAINER_PEELED';
+      payload: {
+        containerId: string;
+        entityIds: string[];
+      };
+    }
+  | {
+      type: 'CONTAINER_MIXED';
+      payload: {
+        containerId: string;
+        entityIds: string[];
+      };
+    };
+`````
+
+## File: src/components/Scene/Scene.tsx
+`````typescript
+/**
+ * FILE: Scene.tsx
+ *
+ * PURPOSE:
+ * Main game scene renderer.
+ *
+ * RESPONSIBILITY:
+ * - Displays entities in the world.
+ * - Connects world state with visual components.
+ *
+ * DOMAIN:
+ * The bridge between game world and React UI.
+ */
+
+import React, { useState } from 'react';
+import { useStore } from 'zustand';
+import { DndContext } from '@dnd-kit/core';
+import { worldStore } from '../../store/worldStore';
+import { ContainerView } from '../World/ContainerView';
+import { useSceneDragAndDrop } from './useSceneDragAndDrop';
+import { RecipePlayer } from './RecipePlayer';
+import { ActionRecorder } from '../Controls/ActionRecorder';
+import { IngredientsSidebar } from '../Controls/IngredientsSidebar';
+import './RecipePlayer.scss';
+
+export const Scene: React.FC = () => {
+  const [activeMode, setActiveMode] = useState<'player' | 'recorder'>('player');
+
+  // 1. Mount the drag-and-drop input listeners and dispatch handler
+  const { sensors, handleDragStart, handleDragOver, handleDragEnd } = useSceneDragAndDrop();
+
+  // 2. Query the pure simulation state for rendering (hiding despensa container from UI view)
+  const containersMap = useStore(worldStore, (state) => state.containers);
+  const containers = Object.values(containersMap).filter((c) => c.id !== 'despensa');
+
+  const renderWorkspace = (leftNode?: React.ReactNode, rightNode?: React.ReactNode) => (
+    <div className="scene-workspace">
+      {leftNode}
+      <div className="scene">
+        {containers.map((container) => (
+          <ContainerView key={container.id} container={container} />
+        ))}
+      </div>
+      {rightNode}
+    </div>
+  );
 
   return (
-    <div
-      className="mascot-card"
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '16px',
-        padding: '12px 16px',
-        background: 'var(--code-bg)',
-        border: '1px solid var(--border)',
-        borderRadius: '12px',
-        flexWrap: 'wrap',
-      }}
+    // 3. The DndContext wrapper acts as the physical input boundary
+    <DndContext
+      sensors={sensors}
+      onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
+      onDragEnd={handleDragEnd}
     >
-      {/* Anchor box holding mascot location in layout */}
-      <div
-        ref={mascotAnchorRef}
-        style={{
-          width: '100px',
-          height: '100px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          position: 'relative',
-        }}
-      >
-        <div
-          className={`mascot-wrapper ${isFloating ? 'is-floating' : ''} ${holdingEntityId ? 'is-holding' : ''}`}
-          style={
-            {
-              '--offset-x': `${offset.x}px`,
-              '--offset-y': `${offset.y}px`,
-            } as React.CSSProperties
-          }
-        >
-          <TortillaSvg
-            state={state}
-            gazingAt={gazingAt}
-            onDoubleClick={handleDoubleClick}
-          />
-
-          {/* Held Ingredient Badge ("Really Grab") */}
-          {holdingEntityId && (
-            <div className="mascot-held-badge">
-              <span style={{ fontSize: '16px' }}>{heldIngredientInfo?.icon || '🥔'}</span>
-              <span>{heldEntity?.name || heldIngredientInfo?.name || holdingEntityId}</span>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div>
-        <h3 style={{ margin: 0, fontSize: '16px', color: 'var(--text-h)' }}>{mascotEntity.name}</h3>
-        {speechMessage && (
-          <div
-            className="mascot-speech-bubble"
+      <div className="scene-container">
+        {/* Mode Selector Navigation Tabs */}
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
+          <button
+            type="button"
+            className={`mode-tab-btn ${activeMode === 'player' ? 'active' : ''}`}
+            onClick={() => setActiveMode('player')}
             style={{
-              margin: '6px 0',
-              padding: '8px 12px',
-              fontSize: '13px',
-              fontWeight: 500,
-              color: 'var(--text-h)',
-              background: 'var(--card-bg, #ffffff)',
-              border: '1px solid var(--primary, #e8b84a)',
+              padding: '10px 18px',
               borderRadius: '8px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
+              fontWeight: 700,
+              fontSize: '15px',
+              cursor: 'pointer',
+              border: '2px solid var(--warm-border, #e2e8f0)',
+              background: activeMode === 'player' ? '#d97706' : '#ffffff',
+              color: activeMode === 'player' ? '#ffffff' : '#334155',
+              boxShadow: activeMode === 'player' ? '0 2px 6px rgba(217,119,6,0.3)' : 'none',
+              transition: 'all 0.2s ease',
             }}
           >
-            <span>💬</span>
-            <span>{speechMessage}</span>
+            📖 Play Catalog Recipe Mode
+          </button>
+          <button
+            type="button"
+            className={`mode-tab-btn ${activeMode === 'recorder' ? 'active' : ''}`}
+            onClick={() => setActiveMode('recorder')}
+            style={{
+              padding: '10px 18px',
+              borderRadius: '8px',
+              fontWeight: 700,
+              fontSize: '15px',
+              cursor: 'pointer',
+              border: '2px solid var(--warm-border, #e2e8f0)',
+              background: activeMode === 'recorder' ? '#8b5cf6' : '#ffffff',
+              color: activeMode === 'recorder' ? '#ffffff' : '#334155',
+              boxShadow: activeMode === 'recorder' ? '0 2px 6px rgba(139,92,246,0.3)' : 'none',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            🎥 Action Recorder & Translator Mode
+          </button>
+        </div>
+
+        {activeMode === 'player' ? (
+          <RecipePlayer renderWorkspace={renderWorkspace} />
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <ActionRecorder />
+            {renderWorkspace(null, <IngredientsSidebar />)}
           </div>
         )}
-        <p style={{ margin: '4px 0 8px 0', fontSize: '13px', color: 'var(--text)' }}>
-          Focus / Target: <strong>{targetContainerId || gazingAtEntityId || 'Kitchen Home'}</strong>
-          {holdingEntityId && (
-            <span style={{ marginLeft: '8px', color: 'var(--primary, #e8b84a)', fontWeight: 600 }}>
-              (Carrying: {heldIngredientInfo?.icon || '🥔'} {heldEntity?.name || holdingEntityId})
-            </span>
-          )}
-        </p>
-        <button
-          onClick={handleRunScript}
-          disabled={isRunningScript}
-          style={{
-            padding: '8px 14px',
-            fontSize: '12px',
-            fontWeight: 600,
-            color: '#ffffff',
-            background: isRunningScript
-              ? 'var(--border)'
-              : 'linear-gradient(135deg, #e8b84a 0%, #d4953a 100%)',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: isRunningScript ? 'not-allowed' : 'pointer',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
-            transition: 'all 0.2s ease',
-          }}
-        >
-          {isRunningScript ? '⏳ Executing Action Script...' : '▶ Script: Grab Potato ➔ Drop in Tabla ➔ Flip'}
-        </button>
       </div>
-    </div>
+    </DndContext>
   );
 };
 `````
@@ -35571,64 +37462,220 @@ export const worldStore = createStore<WorldStateStore>()(
 </files>
 `````
 
-## File: src/components/Scene/Scene.tsx
+## File: src/components/Mascot/Mascot.tsx
 `````typescript
 /**
- * FILE: Scene.tsx
+ * FILE: Mascot.tsx
  *
  * PURPOSE:
- * Main game scene renderer.
+ * Main Tortilla mascot component with physical movement and grabbing animations.
  *
  * RESPONSIBILITY:
- * - Displays entities in the world.
- * - Connects world state with visual components.
+ * - Controls mascot visual representation.
+ * - Animates physical movement to target containers across the scene.
+ * - Displays held ingredient badge and grab/drop motion feedback.
  *
- * DOMAIN:
- * The bridge between game world and React UI.
+ * SHOULD NOT:
+ * - Own world state.
+ * - Contain gameplay rules.
  */
 
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from 'zustand';
-import { DndContext } from '@dnd-kit/core';
 import { worldStore } from '../../store/worldStore';
-import { ContainerView } from '../World/ContainerView';
-import { useSceneDragAndDrop } from './useSceneDragAndDrop';
-import { RecipePlayer } from './RecipePlayer';
+import { TortillaSvg } from './TortillaSvg';
+import { runTortillaPotatoScript } from '../../systems/mascotActions';
+import { ingredients } from '../../data/catalog/ingredients';
+import type { GazeTarget } from '../../systems/gaze';
+import { gazeEntityId } from '../../systems/gaze';
 
-export const Scene: React.FC = () => {
-  // 1. Mount the drag-and-drop input listeners and dispatch handler
-  const { sensors, handleDragStart, handleDragOver, handleDragEnd } = useSceneDragAndDrop();
+interface MascotProps {
+  mascotId?: string;
+}
 
-  // 2. Query the pure simulation state for rendering (hiding despensa container from UI view)
-  const containersMap = useStore(worldStore, (state) => state.containers);
-  const containers = Object.values(containersMap).filter((c) => c.id !== 'despensa');
+export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
+  const mascotEntity = useStore(worldStore, (state) => state.entities[mascotId]);
+  const entities = useStore(worldStore, (state) => state.entities);
+  const dispatch = useStore(worldStore, (state) => state.dispatch);
+  
+  const [isRunningScript, setIsRunningScript] = useState(false);
+  const [offset, setOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const mascotAnchorRef = useRef<HTMLDivElement>(null);
+
+  // Derived from mascotEntity.state — use optional chaining so these stay safe
+  // when mascotEntity is undefined, keeping every hook below unconditional.
+  const gazingAt = (mascotEntity?.state?.gazingAt ?? null) as GazeTarget;
+  const gazingAtEntityId = gazeEntityId(gazingAt);
+  const targetContainerId = (mascotEntity?.state?.targetContainerId as string | undefined) ?? gazingAtEntityId ?? undefined;
+  const state = (mascotEntity?.state?.state as string | undefined) || 'idle';
+  const holdingEntityId = mascotEntity?.state?.holdingEntityId as string | undefined;
+  const speechMessage = mascotEntity?.state?.speechMessage as string | undefined;
+
+  // Resolve held entity and ingredient metadata
+  const heldEntity = holdingEntityId ? entities[holdingEntityId] : undefined;
+  const heldIngredientInfo = heldEntity
+    ? ingredients.find(
+        (i) => i.id === heldEntity.ingredientId || i.id === heldEntity.id || heldEntity.id.startsWith(i.id)
+      )
+    : undefined;
+
+  // Calculate physical DOM position offset to target container
+  useEffect(() => {
+    const updatePosition = () => {
+      if (!targetContainerId || !mascotAnchorRef.current) {
+        setOffset({ x: 0, y: 0 });
+        return;
+      }
+
+      const containerEl = document.querySelector(`[data-container-id="${targetContainerId}"]`);
+      if (!containerEl) {
+        setOffset({ x: 0, y: 0 });
+        return;
+      }
+
+      const containerRect = containerEl.getBoundingClientRect();
+      const mascotRect = mascotAnchorRef.current.getBoundingClientRect();
+
+      // Calculate translation offset so mascot hovers above the container center
+      const x = containerRect.left + containerRect.width / 2 - (mascotRect.left + mascotRect.width / 2);
+      const y = containerRect.top - mascotRect.top - 15;
+
+      setOffset({ x, y });
+    };
+
+    updatePosition();
+    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition);
+    return () => {
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition);
+    };
+  }, [targetContainerId]);
+
+  // Guarded until after all hooks so hook call order never changes between renders.
+  if (!mascotEntity) return null;
+
+  const handleDoubleClick = () => {
+    dispatch({ type: 'MASCOT_FLIP', payload: { mascotId } });
+  };
+
+  const handleRunScript = async () => {
+    if (isRunningScript) return;
+    setIsRunningScript(true);
+    try {
+      await runTortillaPotatoScript(mascotId, 650);
+    } finally {
+      setIsRunningScript(false);
+    }
+  };
+
+  const isFloating = offset.x !== 0 || offset.y !== 0;
 
   return (
-    // 3. The DndContext wrapper acts as the physical input boundary
-    <DndContext
-      sensors={sensors}
-      onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
-      onDragEnd={handleDragEnd}
+    <div
+      className="mascot-card"
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '16px',
+        padding: '12px 16px',
+        background: 'var(--code-bg)',
+        border: '1px solid var(--border)',
+        borderRadius: '12px',
+        flexWrap: 'wrap',
+      }}
     >
-      <div className="scene-container">
-        <RecipePlayer
-          renderWorkspace={(requirementsNode) => (
-            <div className="scene-workspace">
-              {requirementsNode}
-              <div className="scene">
-                {containers.map((container) => (
-                  <ContainerView
-                    key={container.id}
-                    container={container}
-                  />
-                ))}
-              </div>
+      {/* Anchor box holding mascot location in layout */}
+      <div
+        ref={mascotAnchorRef}
+        style={{
+          width: '100px',
+          height: '100px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          position: 'relative',
+        }}
+      >
+        <div
+          className={`mascot-wrapper ${isFloating ? 'is-floating' : ''} ${holdingEntityId ? 'is-holding' : ''}`}
+          style={
+            {
+              '--offset-x': `${offset.x}px`,
+              '--offset-y': `${offset.y}px`,
+            } as React.CSSProperties
+          }
+        >
+          <TortillaSvg
+            state={state}
+            gazingAt={gazingAt}
+            onDoubleClick={handleDoubleClick}
+          />
+
+          {/* Held Ingredient Badge ("Really Grab") */}
+          {holdingEntityId && (
+            <div className="mascot-held-badge">
+              <span style={{ fontSize: '16px' }}>{heldIngredientInfo?.icon || '🥔'}</span>
+              <span>{heldEntity?.name || heldIngredientInfo?.name || holdingEntityId}</span>
             </div>
           )}
-        />
+        </div>
       </div>
-    </DndContext>
+
+      <div>
+        <h3 style={{ margin: 0, fontSize: '16px', color: 'var(--text-h)' }}>{mascotEntity.name}</h3>
+        {speechMessage && (
+          <div
+            className="mascot-speech-bubble"
+            style={{
+              margin: '6px 0',
+              padding: '8px 12px',
+              fontSize: '13px',
+              fontWeight: 500,
+              color: 'var(--text-h)',
+              background: 'var(--card-bg, #ffffff)',
+              border: '1px solid var(--primary, #e8b84a)',
+              borderRadius: '8px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            <span>💬</span>
+            <span>{speechMessage}</span>
+          </div>
+        )}
+        <p style={{ margin: '4px 0 8px 0', fontSize: '13px', color: 'var(--text)' }}>
+          Focus / Target: <strong>{targetContainerId || gazingAtEntityId || 'Kitchen Home'}</strong>
+          {holdingEntityId && (
+            <span style={{ marginLeft: '8px', color: 'var(--primary, #e8b84a)', fontWeight: 600 }}>
+              (Carrying: {heldIngredientInfo?.icon || '🥔'} {heldEntity?.name || holdingEntityId})
+            </span>
+          )}
+        </p>
+        <button
+          onClick={handleRunScript}
+          disabled={isRunningScript}
+          style={{
+            padding: '8px 14px',
+            fontSize: '12px',
+            fontWeight: 600,
+            color: '#ffffff',
+            background: isRunningScript
+              ? 'var(--border)'
+              : 'linear-gradient(135deg, #e8b84a 0%, #d4953a 100%)',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: isRunningScript ? 'not-allowed' : 'pointer',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
+            transition: 'all 0.2s ease',
+          }}
+        >
+          {isRunningScript ? '⏳ Executing Action Script...' : '▶ Script: Grab Potato ➔ Drop in Tabla ➔ Flip'}
+        </button>
+      </div>
+    </div>
   );
 };
 `````
@@ -35717,14 +37764,33 @@ export const worldStore = createStore<WorldStateStore>()(
                 action.payload.positionIndex
               );
               break;
-            case 'TOGGLE_BURNER': {
-              set((draft) => {
-                const burner = draft.containers[action.payload.containerId];
-                if (burner) {
-                  burner.isOn = !burner.isOn;
-                }
-              }, false, 'TOGGLE_BURNER');
+            case 'TOGGLE_BURNER':
+            case 'TOGGLE_HEAT': {
+              let updatedIsOn = false;
+              let containerExists = false;
 
+              set(
+                (draft) => {
+                  const targetContainer = draft.containers[action.payload.containerId];
+                  if (targetContainer) {
+                    targetContainer.isOn = !targetContainer.isOn;
+                    updatedIsOn = targetContainer.isOn;
+                    containerExists = true;
+                  }
+                },
+                false,
+                action.type
+              );
+
+              if (containerExists) {
+                get().emitEvent({
+                  type: 'CONTAINER_HEAT_TOGGLED',
+                  payload: {
+                    containerId: action.payload.containerId,
+                    isOn: updatedIsOn,
+                  },
+                });
+              }
               break;
             }
             case 'COOK_INGREDIENT':
@@ -35778,6 +37844,66 @@ export const worldStore = createStore<WorldStateStore>()(
             case 'MASCOT_CLEAR_GAZE':
               store.mascotClearGaze(action.payload.mascotId);
               break;
+
+            case 'WASH_CONTAINER_CONTENTS': {
+              const targetContainer = get().containers[action.payload.containerId];
+              if (targetContainer) {
+                const entityIds = [...targetContainer.entityIds];
+                get().emitEvent({
+                  type: 'CONTAINER_WASHED',
+                  payload: {
+                    containerId: action.payload.containerId,
+                    entityIds,
+                  },
+                });
+              }
+              break;
+            }
+
+            case 'CUT_CONTAINER_CONTENTS': {
+              const targetContainer = get().containers[action.payload.containerId];
+              if (targetContainer) {
+                const entityIds = [...targetContainer.entityIds];
+                get().emitEvent({
+                  type: 'CONTAINER_CUT',
+                  payload: {
+                    containerId: action.payload.containerId,
+                    entityIds,
+                  },
+                });
+              }
+              break;
+            }
+
+            case 'PEEL_CONTAINER_CONTENTS': {
+              const targetContainer = get().containers[action.payload.containerId];
+              if (targetContainer) {
+                const entityIds = [...targetContainer.entityIds];
+                get().emitEvent({
+                  type: 'CONTAINER_PEELED',
+                  payload: {
+                    containerId: action.payload.containerId,
+                    entityIds,
+                  },
+                });
+              }
+              break;
+            }
+
+            case 'MIX_CONTAINER_CONTENTS': {
+              const targetContainer = get().containers[action.payload.containerId];
+              if (targetContainer) {
+                const entityIds = [...targetContainer.entityIds];
+                get().emitEvent({
+                  type: 'CONTAINER_MIXED',
+                  payload: {
+                    containerId: action.payload.containerId,
+                    entityIds,
+                  },
+                });
+              }
+              break;
+            }
 
             case 'RESET_WORLD':
               store.resetWorld();

@@ -48,6 +48,18 @@ function seed() {
         entityIds: [],
         rules: { allowedTypes: ['ingredient'], uniqueTypesOnly: true },
       },
+      sink: {
+        id: 'sink',
+        name: 'Sink',
+        type: 'sink',
+        entityIds: [],
+      },
+      bowl: {
+        id: 'bowl',
+        name: 'Bowl',
+        type: 'bowl',
+        entityIds: [],
+      },
     },
   });
 }
@@ -334,5 +346,169 @@ describe('worldStore container rule enforcement', () => {
     });
 
     unsubscribe();
+  });
+
+  it('emits workstation container action world events for WASH, CUT, PEEL, and MIX actions', () => {
+    const eventsReceived: Array<{ type: string; payload: unknown }> = [];
+    const unsubscribe = worldStore.getState().onEvent((event) => {
+      eventsReceived.push(event);
+    });
+
+    // WASH
+    worldStore.getState().dispatch({
+      type: 'WASH_CONTAINER_CONTENTS',
+      payload: { containerId: 'sink' },
+    });
+
+    // CUT
+    worldStore.getState().dispatch({
+      type: 'CUT_CONTAINER_CONTENTS',
+      payload: { containerId: 'board' },
+    });
+
+    // PEEL
+    worldStore.getState().dispatch({
+      type: 'PEEL_CONTAINER_CONTENTS',
+      payload: { containerId: 'board' },
+    });
+
+    // MIX
+    worldStore.getState().dispatch({
+      type: 'MIX_CONTAINER_CONTENTS',
+      payload: { containerId: 'bowl' },
+    });
+
+    expect(eventsReceived).toHaveLength(4);
+
+    expect(eventsReceived[0]).toEqual({
+      type: 'CONTAINER_WASHED',
+      payload: {
+        containerId: 'sink',
+        entityIds: worldStore.getState().containers.sink?.entityIds || [],
+      },
+    });
+
+    expect(eventsReceived[1]).toEqual({
+      type: 'CONTAINER_CUT',
+      payload: {
+        containerId: 'board',
+        entityIds: worldStore.getState().containers.board?.entityIds || [],
+      },
+    });
+
+    expect(eventsReceived[2]).toEqual({
+      type: 'CONTAINER_PEELED',
+      payload: {
+        containerId: 'board',
+        entityIds: worldStore.getState().containers.board?.entityIds || [],
+      },
+    });
+
+    expect(eventsReceived[3]).toEqual({
+      type: 'CONTAINER_MIXED',
+      payload: {
+        containerId: 'bowl',
+        entityIds: worldStore.getState().containers.bowl?.entityIds || [],
+      },
+    });
+
+    unsubscribe();
+  });
+
+  it('transforms ingredient status and name when container actions are dispatched (washed-onion, washed-egg, peeled-potatoes)', () => {
+    worldStore.setState({
+      entities: {
+        egg: { id: 'egg', ingredientId: 'egg', name: '🥚 Eggs', type: 'ingredient' },
+        onion: { id: 'onion', ingredientId: 'onion', name: '🧅 Onion', type: 'ingredient' },
+        potato: { id: 'potato', ingredientId: 'potatoes', name: '🥔 Potatoes', type: 'ingredient' },
+      },
+      containers: {
+        sink: { id: 'sink', name: 'Sink', type: 'sink', entityIds: ['egg', 'onion'] },
+        board: { id: 'board', name: 'Board', type: 'board', entityIds: ['potato'] },
+      },
+    });
+
+    // Wash sink contents
+    worldStore.getState().dispatch({
+      type: 'WASH_CONTAINER_CONTENTS',
+      payload: { containerId: 'sink' },
+    });
+
+    let state = worldStore.getState();
+    expect(state.entities.egg.status).toBe('washed-egg');
+    expect(state.entities.egg.name).toBe('🥚 Washed Eggs');
+    expect(state.entities.onion.status).toBe('washed-onion');
+    expect(state.entities.onion.name).toBe('🧅 Washed Onion');
+
+    // Peel board contents
+    worldStore.getState().dispatch({
+      type: 'PEEL_CONTAINER_CONTENTS',
+      payload: { containerId: 'board' },
+    });
+
+    state = worldStore.getState();
+    expect(state.entities.potato.status).toBe('peeled-potatoes');
+    expect(state.entities.potato.name).toBe('🥔 Peeled Potatoes');
+  });
+
+  it('prevents duplicate transformations when washing or cutting multiple times (idempotency)', () => {
+    worldStore.setState({
+      entities: {
+        onion: { id: 'onion', ingredientId: 'onion', name: '🧅 Onion', type: 'ingredient' },
+      },
+      containers: {
+        sink: { id: 'sink', name: 'Sink', type: 'sink', entityIds: ['onion'] },
+      },
+    });
+
+    // First wash
+    worldStore.getState().dispatch({
+      type: 'WASH_CONTAINER_CONTENTS',
+      payload: { containerId: 'sink' },
+    });
+
+    let onion = worldStore.getState().entities.onion;
+    expect(onion.status).toBe('washed-onion');
+    expect(onion.name).toBe('🧅 Washed Onion');
+
+    // Second wash (should have no extra effect)
+    worldStore.getState().dispatch({
+      type: 'WASH_CONTAINER_CONTENTS',
+      payload: { containerId: 'sink' },
+    });
+
+    onion = worldStore.getState().entities.onion;
+    expect(onion.status).toBe('washed-onion');
+    expect(onion.name).toBe('🧅 Washed Onion');
+  });
+
+  it('chains multiple transformations into cumulative status e.g. peeled-cutted-cooked-tomatoes', () => {
+    worldStore.setState({
+      entities: {
+        tomatoes: { id: 'tomatoes', ingredientId: 'tomatoes', name: '🍅 Tomatoes', type: 'ingredient' },
+      },
+      containers: {
+        board: { id: 'board', name: 'Board', type: 'board', entityIds: ['tomatoes'] },
+      },
+    });
+
+    // 1. Peel
+    worldStore.getState().dispatch({
+      type: 'PEEL_CONTAINER_CONTENTS',
+      payload: { containerId: 'board' },
+    });
+
+    // 2. Cut
+    worldStore.getState().dispatch({
+      type: 'CUT_CONTAINER_CONTENTS',
+      payload: { containerId: 'board' },
+    });
+
+    // 3. Cook
+    worldStore.getState().transformIngredient('tomatoes', 'cook');
+
+    const tomato = worldStore.getState().entities.tomatoes;
+    expect(tomato.status).toBe('peeled-cutted-cooked-tomatoes');
+    expect(tomato.name).toBe('🍅 Peeled Cut Cooked Tomatoes');
   });
 });

@@ -97,3 +97,125 @@ export function formatCookedName(targetEntity: Entity, cooking: string): string 
   const prepWord = prep && prep !== 'whole' && prep !== 'raw' ? prep.charAt(0).toUpperCase() + prep.slice(1) + ' ' : '';
   return `${icon} ${cookingWord} ${prepWord}${baseName}`.trim();
 }
+
+/**
+ * Extracts applied stage verbs from entity state or status string.
+ */
+export function getTransformationsFromEntity(entity: Entity): string[] {
+  if (Array.isArray(entity.state?.transformations)) {
+    return [...(entity.state.transformations as string[])];
+  }
+
+  const status = (entity.state?.status || entity.status || '').toLowerCase();
+  const prep = (entity.state?.preparation || '').toLowerCase();
+  const cooking = (entity.state?.cooking || '').toLowerCase();
+
+  const stages: string[] = [];
+
+  if (status.includes('washed') || prep === 'washed') {
+    stages.push('washed');
+  }
+  if (status.includes('peeled') || prep === 'peeled') {
+    stages.push('peeled');
+  }
+  if (
+    status.includes('cutted') ||
+    status.includes('sliced') ||
+    status.includes('diced') ||
+    status.includes('cut') ||
+    prep === 'sliced' ||
+    prep === 'diced' ||
+    prep === 'cut'
+  ) {
+    stages.push('cutted');
+  }
+  if (status.includes('cooked') || status.includes('fried') || (cooking && cooking !== 'raw')) {
+    stages.push('cooked');
+  }
+  if (status.includes('mixed') || prep === 'mixed') {
+    stages.push('mixed');
+  }
+
+  return stages;
+}
+
+/**
+ * Applies a workstation transformation ('wash', 'cut', 'peel', 'cook', 'mix') to an ingredient entity.
+ * Ensures idempotency (cannot wash or cut multiple times with extra effect) and
+ * updates both state.status (e.g., 'washed-onion', 'peeled-cutted-cooked-tomatoes') and display name.
+ */
+export function applyIngredientTransformation(
+  entity: Entity,
+  transformation: 'wash' | 'cut' | 'peel' | 'cook' | 'mix'
+): { status: string; name: string; state: Record<string, unknown> } | null {
+  if (entity.type !== 'ingredient') return null;
+
+  const stageMap: Record<string, string> = {
+    wash: 'washed',
+    peel: 'peeled',
+    cut: 'cutted',
+    cook: 'cooked',
+    mix: 'mixed',
+  };
+  const stage = stageMap[transformation] || transformation;
+
+  const currentTransformations = getTransformationsFromEntity(entity);
+
+  // Idempotency: if already transformed with this stage, return null (no extra effect)
+  if (currentTransformations.includes(stage)) {
+    return null;
+  }
+
+  const updatedTransformations = [...currentTransformations, stage];
+
+  // Base key derivation (e.g., 'onion', 'egg', 'tomatoes', 'potatoes')
+  const rawBase = (entity.ingredientId || entity.id.split('_')[0] || 'ingredient').toLowerCase();
+
+  // Create combined status string e.g., 'washed-onion', 'peeled-cutted-cooked-tomatoes'
+  const newStatus = `${updatedTransformations.join('-')}-${rawBase}`;
+
+  // Retrieve metadata for icon and base name
+  const singularKey = getIngredientSingularKey(entity);
+  const catalogItem = catalogIngredients.find(
+    (i) => i.id === entity.ingredientId || i.id === rawBase || i.id === singularKey
+  );
+
+  const icon = catalogItem?.icon || (entity.name.match(/^(\p{Emoji}|\p{Extended_Pictographic})/u)?.[0] ?? '');
+  let baseName = entity.name
+    .replace(/^(\p{Emoji}|\p{Extended_Pictographic})\s*/u, '')
+    .replace(/\b(Washed|Peeled|Cutted|Cut|Sliced|Diced|Cooked|Fried|Mixed)\b/gi, '')
+    .trim();
+
+  if (!baseName && catalogItem?.name) {
+    baseName = catalogItem.name;
+  }
+
+  const titleCaseStage = (s: string) => {
+    if (s === 'cutted') return 'Cut';
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  };
+
+  const formattedAdjectives = updatedTransformations.map(titleCaseStage).join(' ');
+  const newName = `${icon} ${formattedAdjectives} ${baseName}`.trim();
+
+  const updatedState = {
+    ...entity.state,
+    status: newStatus,
+    transformations: updatedTransformations,
+    preparation:
+      stage === 'peeled'
+        ? 'peeled'
+        : stage === 'cutted'
+        ? 'cut'
+        : stage === 'washed'
+        ? 'washed'
+        : (entity.state?.preparation as string),
+    cooking: stage === 'cooked' ? 'cooked' : (entity.state?.cooking as string),
+  };
+
+  return {
+    status: newStatus,
+    name: newName,
+    state: updatedState,
+  };
+}

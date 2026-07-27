@@ -27,6 +27,7 @@ export interface Entity {
   type: EntityType;
   icon?: string;
   ingredientId?: string;
+  status?: string;
   state?: IngredientState;
 }
 
