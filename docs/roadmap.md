@@ -196,8 +196,7 @@ Status:
 ✅ Traceability — every `dispatch` call is logged (`devtools` +
 `src/store/middleware/actionLog.ts`) and validated through
 `engine/containerRules.ts`.
-🚧 Replay — the log is in-memory only; replaying a recorded sequence back
-into the store is not implemented.
+✅ Replay — headless `ActionPlayer` utility (`src/systems/actionPlayer.ts`) and UI `ActionReplayer` component (`src/components/Controls/ActionReplayer.tsx`) allow loading JSON logs, resetting `worldStore`, and stepping through action sequences sequentially with configurable step delays.
 
 ---
 

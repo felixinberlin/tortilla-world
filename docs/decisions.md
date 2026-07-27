@@ -762,6 +762,22 @@ User Interaction / RecipeRunner
 
 ---
 
+# Decision: Headless Action Log Replay System
+
+## Context
+In Tortilla World, all world modifications are driven by pure `WorldAction` dispatches through `worldStore`. Actions are logged in real-time during user interaction, mascot execution, or recipe playback. Replaying recorded JSON action logs allows deterministic state reconstruction, automated testing, and session playback.
+
+## Decision
+Created a headless replay engine (`ActionPlayer` in `src/systems/actionPlayer.ts`) and a React upload control (`ActionReplayer` in `src/components/Controls/ActionReplayer.tsx`).
+
+Key rules:
+1. **World State Reset**: Replay resets the simulation to initial default state (`RESET_WORLD`) before executing actions.
+2. **Sequential Execution**: Actions are dispatched sequentially via `worldStore.getState().dispatch(action)` with a configurable delay.
+3. **No Direct DOM Manipulation**: Animations and component positioning react naturally to Zustand store state updates.
+4. **Progress and Control**: Callbacks allow monitoring progress (`onStep`) and stopping playback early (`stop()`).
+
+---
+
 # Final Principle
 
 The rule of Tortilla World:

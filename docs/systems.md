@@ -425,6 +425,25 @@ Action queues provide:
 
 ---
 
+# Action Replay System (`ActionPlayer` & `ActionReplayer`)
+
+## Responsibility
+
+The Action Replay System enables recording, storing, and sequentially replaying discrete `WorldAction` JSON logs in Tortilla World.
+
+It consists of:
+1. **Headless Replay Utility (`src/systems/actionPlayer.ts`)**:
+   - `ActionPlayer` class / `actionPlayer` singleton.
+   - `playLog(actions: WorldAction[], options?: PlaybackOptions)`: Resets world state via `RESET_WORLD` action, then dispatches each action step sequentially to `worldStore.getState().dispatch(action)` with configurable delays.
+   - Provides step progress callbacks (`onStep(current, total, action)`), completion callbacks (`onComplete()`), and early cancellation (`stop()`).
+
+2. **React Controls UI (`src/components/Controls/ActionReplayer.tsx`)**:
+   - Accepts uploaded `.json` files via `FileReader`.
+   - Validates JSON format to ensure an array of valid `WorldAction` objects.
+   - Displays live step progress (`Step X / Y`), progress bar, step delay selector, and a Stop button.
+
+---
+
 # Animation System
 
 ## Responsibility
