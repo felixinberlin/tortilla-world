@@ -20,6 +20,7 @@ import type { WorldAction } from '../../types/actions';
 import './ActionRecorder.scss';
 
 export const ActionRecorder: React.FC = () => {
+  const dispatch = useStore(worldStore, (state) => state.dispatch);
   const isRecording = useStore(worldStore, (state) => state.isRecording);
   const recordedActions = useStore(worldStore, (state) => state.recordedActions);
   const usedIngredients = useStore(worldStore, (state) => state.usedIngredients);
@@ -130,6 +131,15 @@ export const ActionRecorder: React.FC = () => {
           title="Translate human recorded actions into a mascot recipe with movement"
         >
           🪄 {showTranslator ? 'Hide Translator' : 'Translate to Mascot Recipe'}
+        </button>
+
+        <button
+          type="button"
+          className="rec-btn reset-kitchen-btn"
+          onClick={() => dispatch({ type: 'RESET_WORLD' })}
+          title="Clean the kitchen and reset all containers"
+        >
+          🔄 Reset Kitchen
         </button>
 
         <ActionReplayer defaultDelayMs={300} />

@@ -7,6 +7,7 @@
 
 import { worldStore } from '../../../store/worldStore';
 import { moveTortillaTo } from '../../mascotActions';
+import { resolveContainerId } from '../../../engine/containerRules';
 import type { RecipeStep } from '../../../types/RecipeStep';
 import type { RecipeRunnerContext } from '../types';
 
@@ -29,7 +30,9 @@ export async function handlePrepStep(
 
   ctx.validateEntity(entityId, step.action);
 
-  const targetContainerId = step.containerId || workstationDefaultContainerId || ctx.defaultTargetId;
+  const targetContainerId = resolveContainerId(
+    step.containerId || workstationDefaultContainerId || ctx.defaultTargetId
+  );
 
   // Ensure bound entity is in workspace
   entityId = await ctx.ensureEntityInWorkspace(entityId, targetContainerId);

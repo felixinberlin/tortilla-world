@@ -130,6 +130,46 @@ describe('RecipeRunner System', () => {
     expect(actionNames).toContain('COOK_INGREDIENT');
   });
 
+  it('clasica recipe: cook potatoes (fry) brings potatoes from board to burner1', async () => {
+    const runner = new RecipeRunner({ mascotId: 'chef', delayMs: 1 });
+    runner.bindRecipeContext(clasicaRecipe);
+
+    // Prepare state: Potato is on board (after cut step in clasica recipe)
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: {
+        entityId: 'potato',
+        targetContainerId: 'board',
+      },
+    });
+
+    // Run the cook potatoes step (step from clasica recipe)
+    await runner.runSteps([
+      {
+        action: 'cook',
+        target: 'potatoes',
+        method: 'fry',
+      },
+    ]);
+
+    const state = worldStore.getState();
+    const burner1Entities = state.containers.burner1.entityIds.map((id) => state.entities[id]);
+    const friedPotato = burner1Entities.find(
+      (e) => e && (e.ingredientId === 'potato' || e.id.includes('potato'))
+    );
+
+    // Verify potato was moved from board to burner1 and cooked
+    expect(friedPotato).toBeDefined();
+    expect(friedPotato?.state?.cooking).toBe('fry');
+    expect(state.containers.board.entityIds).not.toContain('potato');
+
+    // Verify mascot grab and drop actions were performed to move it
+    const actionNames = getActionLog().map((a) => a.action);
+    expect(actionNames).toContain('MASCOT_GRAB');
+    expect(actionNames).toContain('MASCOT_DROP');
+    expect(actionNames).toContain('COOK_INGREDIENT');
+  });
+
   it('handles speak, wait, and celebrate steps', async () => {
     const customRecipe: Recipe = {
       id: 'custom-test',

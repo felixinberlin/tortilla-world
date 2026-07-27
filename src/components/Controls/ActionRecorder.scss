@@ -96,6 +96,18 @@
           transform: translateY(-1px);
         }
       }
+
+      &.reset-kitchen-btn {
+        background: #ffffff;
+        border: 2px solid #d9534f;
+        color: #d9534f;
+        font-weight: 800;
+
+        &:hover:not(:disabled) {
+          background: #d9534f;
+          color: #ffffff;
+        }
+      }
     }
   }
 

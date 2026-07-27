@@ -820,9 +820,9 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
             type="button"
             className="ctrl-btn reset-btn"
             onClick={handleReset}
-            title="Reset kitchen world to starting state"
+            title="Clean the kitchen and reset all containers"
           >
-            🔄 Reset
+            🔄 Reset Kitchen
           </button>
         </div>
 

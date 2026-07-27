@@ -13,6 +13,7 @@
  */
 
 import type { Container, Entity } from '../types/world';
+import { worldStore } from '../store/worldStore';
 
 export interface ValidationResult {
   allowed: boolean;
@@ -22,6 +23,46 @@ export interface ValidationResult {
 export function getIngredientCatalogId(entity: Entity): string {
   if (entity.ingredientId) return entity.ingredientId;
   return entity.id.split('_')[0];
+}
+
+export function resolveContainerId(containerId: string): string {
+  if (!containerId) return 'burner1';
+  const state = worldStore.getState();
+  if (state.containers[containerId]) return containerId;
+
+  const lower = containerId.toLowerCase().trim();
+  if (
+    lower === 'pan' ||
+    lower === 'burner' ||
+    lower === 'fuego' ||
+    lower === 'fuego1' ||
+    lower === 'fuego 1' ||
+    lower === 'stove' ||
+    lower === 'sarten' ||
+    lower === 'sartén'
+  ) {
+    return 'burner1';
+  }
+  if (lower === 'fuego2' || lower === 'fuego 2' || lower === 'burner2') {
+    return 'burner2';
+  }
+  if (lower === 'pantry' || lower === 'despensa') {
+    return 'despensa';
+  }
+  if (lower === 'fregadero' || lower === 'sink') {
+    return 'sink';
+  }
+  if (lower === 'tabla' || lower === 'board' || lower === 'cutting_board') {
+    return 'board';
+  }
+  if (lower === 'bol' || lower === 'bowl') {
+    return 'bowl';
+  }
+  if (lower === 'plato' || lower === 'plate') {
+    return 'plate';
+  }
+
+  return containerId;
 }
 
 export function validateContainerRules(

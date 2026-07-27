@@ -7,6 +7,7 @@
 
 import { worldStore } from '../../../store/worldStore';
 import { moveTortillaTo, flipTortilla, clearTortillaGaze } from '../../mascotActions';
+import { resolveContainerId } from '../../../engine/containerRules';
 import type { RecipeStep } from '../../../types/RecipeStep';
 import type { RecipeRunnerContext } from '../types';
 
@@ -21,7 +22,9 @@ export async function handleServeStep(
   step: ServeStep,
   workstationDefaultContainerId?: string
 ): Promise<void> {
-  const targetContainerId = step.containerId || workstationDefaultContainerId || 'plate';
+  const targetContainerId = resolveContainerId(
+    step.containerId || workstationDefaultContainerId || 'plate'
+  );
   moveTortillaTo(targetContainerId, ctx.mascotId);
   await ctx.wait();
 

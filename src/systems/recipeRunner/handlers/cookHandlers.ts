@@ -7,6 +7,7 @@
 
 import { worldStore } from '../../../store/worldStore';
 import { moveTortillaTo, flipTortilla } from '../../mascotActions';
+import { resolveContainerId } from '../../../engine/containerRules';
 import type { RecipeStep } from '../../../types/RecipeStep';
 import type { RecipeRunnerContext } from '../types';
 
@@ -19,16 +20,17 @@ export async function handleCookStep(
   workstationDefaultContainerId?: string
 ): Promise<void> {
   const rawKey = step.target || step.ingredient;
-  const entityId = ctx.getBoundEntityId(rawKey);
+  let entityId = ctx.getBoundEntityId(rawKey);
 
   if (!entityId) {
     throw new Error(`[RecipeRunner] No entity bound for cook step target: "${rawKey}"`);
   }
 
-  ctx.validateEntity(entityId, 'cook');
+  entityId = ctx.validateEntity(entityId, 'cook').id;
 
   const cookingMethod = step.method || 'cooked';
-  const containerId = step.containerId || workstationDefaultContainerId || 'burner1';
+  const rawContainerId = step.containerId || workstationDefaultContainerId || 'burner1';
+  const containerId = resolveContainerId(rawContainerId);
 
   if (step.instruction) {
     worldStore.getState().dispatch({
@@ -40,21 +42,8 @@ export async function handleCookStep(
     });
   }
 
-  // Ensure bound entity is moved to cooking container if not already there
-  const state = worldStore.getState();
-  const currentContainer = Object.values(state.containers).find((c) =>
-    c.entityIds.includes(entityId!)
-  );
-
-  if (!currentContainer || currentContainer.id !== containerId) {
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: {
-        entityId,
-        targetContainerId: containerId,
-      },
-    });
-  }
+  // Ensure bound entity is brought to cooking container via mascot actions if not already there
+  entityId = await ctx.ensureEntityInWorkspace(entityId, containerId);
 
   moveTortillaTo(containerId, ctx.mascotId);
   await ctx.wait();
@@ -146,7 +135,8 @@ export async function handleFlipStep(
   step: FlipStep
 ): Promise<void> {
   const rawKey = step.target;
-  const targetContainer = rawKey === 'mixture' ? 'burner1' : rawKey || 'burner1';
+  const rawContainer = rawKey === 'mixture' ? 'burner1' : rawKey || 'burner1';
+  const targetContainer = resolveContainerId(rawContainer);
   const instructionText = step.instruction;
 
   if (instructionText) {

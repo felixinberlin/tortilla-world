@@ -44,11 +44,23 @@ function createMockContext(overrides?: Partial<RecipeRunnerContext>): RecipeRunn
       };
       return mapping[key] || null;
     }),
-    validateEntity: vi.fn(),
+    validateEntity: vi.fn((id: string) => ({ id })),
     updateBindingIfCopied: vi.fn(),
     wait: vi.fn(async () => {}),
     bindStepsContext: vi.fn(),
-    ensureEntityInWorkspace: vi.fn(async (id: string) => id),
+    ensureEntityInWorkspace: vi.fn(async (id: string, targetContainerId: string) => {
+      const state = worldStore.getState();
+      const currentContainer = Object.values(state.containers).find((c) =>
+        c.entityIds.includes(id)
+      );
+      if (!currentContainer || currentContainer.id !== targetContainerId) {
+        state.dispatch({
+          type: 'MOVE_ENTITY',
+          payload: { entityId: id, targetContainerId },
+        });
+      }
+      return id;
+    }),
     ensureIngredientInWorkspace: vi.fn(async (id: string) => id),
     resolveIngredientId: vi.fn((key: string) => key),
     currentRecipe: undefined,

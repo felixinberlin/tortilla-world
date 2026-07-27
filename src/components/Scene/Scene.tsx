@@ -25,6 +25,7 @@ import './RecipePlayer.scss';
 
 export const Scene: React.FC = () => {
   const [activeMode, setActiveMode] = useState<'player' | 'recorder'>('player');
+  const dispatch = useStore(worldStore, (state) => state.dispatch);
 
   // 1. Mount the drag-and-drop input listeners and dispatch handler
   const { sensors, handleDragStart, handleDragOver, handleDragEnd } = useSceneDragAndDrop();
@@ -68,7 +69,7 @@ export const Scene: React.FC = () => {
         </div>
 
         <div className={`scene-controls-wrapper ${isPanelExpanded ? 'expanded' : 'collapsed'}`}>
-          {/* Mode Selector Navigation Tabs */}
+          {/* Mode Selector Navigation Tabs & Reset Control */}
           <div className="mode-tabs">
             <button
               type="button"
@@ -83,6 +84,14 @@ export const Scene: React.FC = () => {
               onClick={() => setActiveMode('recorder')}
             >
               🎥 Action Recorder & Translator Mode
+            </button>
+            <button
+              type="button"
+              className="reset-kitchen-header-btn"
+              onClick={() => dispatch({ type: 'RESET_WORLD' })}
+              title="Clean the kitchen and reset all containers"
+            >
+              🔄 Reset Kitchen
             </button>
           </div>
 

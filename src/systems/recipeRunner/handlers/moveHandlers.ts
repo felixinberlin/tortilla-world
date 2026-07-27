@@ -7,6 +7,7 @@
 
 import { worldStore } from '../../../store/worldStore';
 import { moveTortillaTo, grabIngredient, dropIngredient } from '../../mascotActions';
+import { resolveContainerId } from '../../../engine/containerRules';
 import type { RecipeStep } from '../../../types/RecipeStep';
 import type { RecipeRunnerContext } from '../types';
 
@@ -19,8 +20,8 @@ export async function handleMoveStep(
   step: MoveStep,
   workstationDefaultContainerId?: string
 ): Promise<void> {
-  const source = step.source || ctx.defaultSourceId;
-  const target = step.target || workstationDefaultContainerId || ctx.defaultTargetId;
+  const source = resolveContainerId(step.source || ctx.defaultSourceId);
+  const target = resolveContainerId(step.target || workstationDefaultContainerId || ctx.defaultTargetId);
   const rawKey = step.ingredient || step.target;
 
 
@@ -71,7 +72,7 @@ export async function handleGrabStep(
   ctx: RecipeRunnerContext,
   step: GrabStep
 ): Promise<void> {
-  const source = step.source || ctx.defaultSourceId;
+  const source = resolveContainerId(step.source || ctx.defaultSourceId);
   const entityId = ctx.getBoundEntityId(step.ingredient) || step.ingredient;
 
   if (entityId) {
@@ -92,7 +93,7 @@ export async function handleDropStep(
   step: DropStep,
   workstationDefaultContainerId?: string
 ): Promise<void> {
-  const target = step.target || workstationDefaultContainerId || ctx.defaultTargetId;
+  const target = resolveContainerId(step.target || workstationDefaultContainerId || ctx.defaultTargetId);
   moveTortillaTo(target, ctx.mascotId);
   await ctx.wait();
 

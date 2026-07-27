@@ -7,6 +7,7 @@
 
 import { worldStore } from '../../../store/worldStore';
 import { moveTortillaTo, flipTortilla } from '../../mascotActions';
+import { resolveContainerId } from '../../../engine/containerRules';
 import type { RecipeStep } from '../../../types/RecipeStep';
 import type { RecipeRunnerContext } from '../types';
 
@@ -17,7 +18,9 @@ export async function handleMixStep(
   step: MixStep,
   workstationDefaultContainerId?: string
 ): Promise<void> {
-  const targetContainerId = step.targetContainerId || workstationDefaultContainerId || 'bowl';
+  const targetContainerId = resolveContainerId(
+    step.targetContainerId || workstationDefaultContainerId || 'bowl'
+  );
   const inputKeys = step.inputs || step.ingredients || [];
   const inputEntityIds: string[] = [];
 
