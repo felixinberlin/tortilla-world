@@ -96,7 +96,7 @@ export const Scene: React.FC = () => {
           </div>
 
           {activeMode === 'player' ? (
-            <RecipePlayer renderWorkspace={() => null} />
+            <RecipePlayer />
           ) : (
             <div className="action-recorder-layout">
               <ActionRecorder />
