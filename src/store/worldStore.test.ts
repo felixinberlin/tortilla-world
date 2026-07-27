@@ -276,4 +276,63 @@ describe('worldStore container rule enforcement', () => {
     expect(state.entities.potato.state?.status).toBe('sliced-potatoe');
     expect(state.entities.onion.state?.status).toBe('diced-onion');
   });
+
+  it('toggles container heat state and emits CONTAINER_HEAT_TOGGLED world event on TOGGLE_HEAT', () => {
+    const eventsReceived: Array<{ type: string; payload: unknown }> = [];
+    const unsubscribe = worldStore.getState().onEvent((event) => {
+      eventsReceived.push(event);
+    });
+
+    expect(worldStore.getState().containers.burner1.isOn).toBeFalsy();
+
+    // Toggle heat ON
+    worldStore.getState().dispatch({
+      type: 'TOGGLE_HEAT',
+      payload: { containerId: 'burner1' },
+    });
+
+    expect(worldStore.getState().containers.burner1.isOn).toBe(true);
+    expect(eventsReceived).toHaveLength(1);
+    expect(eventsReceived[0]).toEqual({
+      type: 'CONTAINER_HEAT_TOGGLED',
+      payload: { containerId: 'burner1', isOn: true },
+    });
+
+    // Toggle heat OFF
+    worldStore.getState().dispatch({
+      type: 'TOGGLE_HEAT',
+      payload: { containerId: 'burner1' },
+    });
+
+    expect(worldStore.getState().containers.burner1.isOn).toBe(false);
+    expect(eventsReceived).toHaveLength(2);
+    expect(eventsReceived[1]).toEqual({
+      type: 'CONTAINER_HEAT_TOGGLED',
+      payload: { containerId: 'burner1', isOn: false },
+    });
+
+    unsubscribe();
+  });
+
+  it('toggles container heat state and emits CONTAINER_HEAT_TOGGLED world event on TOGGLE_BURNER', () => {
+    const eventsReceived: Array<{ type: string; payload: unknown }> = [];
+    const unsubscribe = worldStore.getState().onEvent((event) => {
+      eventsReceived.push(event);
+    });
+
+    expect(worldStore.getState().containers.board.isOn).toBeFalsy();
+
+    worldStore.getState().dispatch({
+      type: 'TOGGLE_BURNER',
+      payload: { containerId: 'board' },
+    });
+
+    expect(worldStore.getState().containers.board.isOn).toBe(true);
+    expect(eventsReceived[0]).toEqual({
+      type: 'CONTAINER_HEAT_TOGGLED',
+      payload: { containerId: 'board', isOn: true },
+    });
+
+    unsubscribe();
+  });
 });

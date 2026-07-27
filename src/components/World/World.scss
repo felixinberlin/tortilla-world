@@ -16,87 +16,16 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
 
   &--drag-over {
     border-color: $tortilla-yellow;
     background-color: color.mix($tortilla-yellow, $warm-surface, 10%);
-    transform: translateY(-2px);
-    box-shadow: $shadow-ceramic-hover;
   }
 
   &--mixture {
     border-color: $tortilla-yellow;
     box-shadow: 0 0 16px rgba(245, 180, 50, 0.35);
-  }
-
-  // Workstation-specific variations using variables from _variables.scss
-  &--board {
-    background-color: $cutting-bg;
-    border-color: $cutting-border;
-    border-width: 2px;
-    background-image: repeating-linear-gradient(90deg, transparent, transparent 40px, rgba($cutting-accent, 0.03) 40px, rgba($cutting-accent, 0.03) 80px);
-
-    .container-view__title { color: $cutting-text; }
-    .container-view__badge { color: $cutting-accent; }
-  }
-
-  &--bowl {
-    background-color: $mixing-bg;
-    border-color: $mixing-border;
-    border-radius: 40px 40px 24px 24px;
-
-    .container-view__title { color: $mixing-text; }
-    .container-view__badge { color: $mixing-accent; }
-  }
-
-  &--sink {
-    background-color: $washing-bg;
-    border-color: $washing-border;
-    border-radius: $radius-lg $radius-lg $radius-xl $radius-xl;
-    box-shadow: inset 0 -8px 12px rgba($washing-accent, 0.05), $shadow-ceramic;
-
-    .container-view__title { color: $washing-text; }
-    .container-view__badge { color: $washing-accent; }
-  }
-
-  &--plate {
-    background-color: $serving-bg;
-    border-color: $serving-border;
-    border-radius: 50% / 10%;
-
-    .container-view__title { color: $serving-text; }
-    .container-view__badge { color: $serving-accent; }
-  }
-
-  &--despensa {
-    background-color: $pantry-bg;
-    border-color: $pantry-border;
-    border-top: 6px solid $pantry-accent;
-    border-radius: $radius-sm;
-
-    .container-view__title { color: $dark-brown; }
-    .container-view__badge { color: $pantry-accent; }
-  }
-
-  &--trash {
-    background-color: #f8f9fa;
-    border-color: #dee2e6;
-    border-style: dashed;
-    border-width: 2px;
-
-    .container-view__title { color: #6c757d; }
-    .container-view__badge { color: #495057; }
-  }
-
-  // Cooking areas are handled slightly differently due to the fire animation
-  &--burner, &--burner1, &--burner2 {
-    background-color: $cooking-bg;
-    border-color: $cooking-border;
-    border-bottom: 4px solid $cooking-accent;
-
-    .container-view__title { color: $cooking-text; }
-    .container-view__badge { color: $cooking-accent; }
   }
 }
 
@@ -132,60 +61,16 @@
 }
 
 .container-onFire {
-  position: relative;
-  z-index: 1;
-  border-color: #ff6b00;
-  box-shadow:
-    0 0 15px rgba(255, 107, 0, 0.4),
-    inset 0 -10px 20px rgba(255, 107, 0, 0.15);
-  animation: burnerGlow 1.5s infinite alternate ease-in-out;
-
-  // Create a stylized fire effect pseudo-element
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: -4px; // Align with the bottom border
-    left: 10%;
-    width: 80%;
-    height: 12px;
-    background: linear-gradient(90deg,
-      transparent 0%,
-      rgba(255, 0, 0, 0.4) 20%,
-      rgba(255, 165, 0, 0.7) 50%,
-      rgba(255, 0, 0, 0.4) 80%,
-      transparent 100%);
-    filter: blur(4px);
-    border-radius: 50%;
-    z-index: -1;
-    animation: fireFlicker 0.4s infinite alternate;
-  }
+  animation: burnerGlow 1s infinite alternate;
 }
 
 @keyframes burnerGlow {
   from {
-    box-shadow:
-      0 0 10px rgba(255, 107, 0, 0.3),
-      inset 0 -5px 15px rgba(255, 107, 0, 0.1);
+    box-shadow: 0 0 5px red;
   }
-  to {
-    box-shadow:
-      0 0 25px rgba(255, 107, 0, 0.6),
-      inset 0 -15px 30px rgba(255, 107, 0, 0.25);
-  }
-}
 
-@keyframes fireFlicker {
-  0% {
-    opacity: 0.7;
-    transform: scaleY(0.8) scaleX(0.95);
-  }
-  50% {
-    opacity: 1;
-    transform: scaleY(1.2) scaleX(1.05);
-  }
-  100% {
-    opacity: 0.8;
-    transform: scaleY(0.9) scaleX(0.98);
+  to {
+    box-shadow: 0 0 25px orange;
   }
 }
 

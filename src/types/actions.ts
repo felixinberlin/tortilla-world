@@ -147,9 +147,44 @@ export type WorldAction =
 
 export type WorldEvent =
   | {
-    type: 'INGREDIENT_CONSUMED';
-    payload: {
-      entityId: string;
-      consumedBy?: string;
+      type: 'INGREDIENT_CONSUMED';
+      payload: {
+        entityId: string;
+        consumedBy?: string;
+      };
+    }
+  | {
+      type: 'CONTAINER_HEAT_TOGGLED';
+      payload: {
+        containerId: string;
+        isOn: boolean;
+      };
+    }
+  | {
+      type: 'CONTAINER_WASHED';
+      payload: {
+        containerId: string;
+        entityIds: string[];
+      };
+    }
+  | {
+      type: 'CONTAINER_CUT';
+      payload: {
+        containerId: string;
+        entityIds: string[];
+      };
+    }
+  | {
+      type: 'CONTAINER_PEELED';
+      payload: {
+        containerId: string;
+        entityIds: string[];
+      };
+    }
+  | {
+      type: 'CONTAINER_MIXED';
+      payload: {
+        containerId: string;
+        entityIds: string[];
+      };
     };
-  };

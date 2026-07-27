@@ -80,14 +80,33 @@ export const worldStore = createStore<WorldStateStore>()(
                 action.payload.positionIndex
               );
               break;
-            case 'TOGGLE_BURNER': {
-              set((draft) => {
-                const burner = draft.containers[action.payload.containerId];
-                if (burner) {
-                  burner.isOn = !burner.isOn;
-                }
-              }, false, 'TOGGLE_BURNER');
+            case 'TOGGLE_BURNER':
+            case 'TOGGLE_HEAT': {
+              let updatedIsOn = false;
+              let containerExists = false;
 
+              set(
+                (draft) => {
+                  const targetContainer = draft.containers[action.payload.containerId];
+                  if (targetContainer) {
+                    targetContainer.isOn = !targetContainer.isOn;
+                    updatedIsOn = targetContainer.isOn;
+                    containerExists = true;
+                  }
+                },
+                false,
+                action.type
+              );
+
+              if (containerExists) {
+                get().emitEvent({
+                  type: 'CONTAINER_HEAT_TOGGLED',
+                  payload: {
+                    containerId: action.payload.containerId,
+                    isOn: updatedIsOn,
+                  },
+                });
+              }
               break;
             }
             case 'COOK_INGREDIENT':
@@ -142,25 +161,65 @@ export const worldStore = createStore<WorldStateStore>()(
               store.mascotClearGaze(action.payload.mascotId);
               break;
 
-            case 'TOGGLE_HEAT':
-              console.log('TOGGLE_HEAT dispatched for container:', action.payload.containerId);
+            case 'WASH_CONTAINER_CONTENTS': {
+              const targetContainer = get().containers[action.payload.containerId];
+              if (targetContainer) {
+                const entityIds = [...targetContainer.entityIds];
+                get().emitEvent({
+                  type: 'CONTAINER_WASHED',
+                  payload: {
+                    containerId: action.payload.containerId,
+                    entityIds,
+                  },
+                });
+              }
               break;
+            }
 
-            case 'WASH_CONTAINER_CONTENTS':
-              console.log('WASH_CONTAINER_CONTENTS dispatched for container:', action.payload.containerId);
+            case 'CUT_CONTAINER_CONTENTS': {
+              const targetContainer = get().containers[action.payload.containerId];
+              if (targetContainer) {
+                const entityIds = [...targetContainer.entityIds];
+                get().emitEvent({
+                  type: 'CONTAINER_CUT',
+                  payload: {
+                    containerId: action.payload.containerId,
+                    entityIds,
+                  },
+                });
+              }
               break;
+            }
 
-            case 'CUT_CONTAINER_CONTENTS':
-              console.log('CUT_CONTAINER_CONTENTS dispatched for container:', action.payload.containerId);
+            case 'PEEL_CONTAINER_CONTENTS': {
+              const targetContainer = get().containers[action.payload.containerId];
+              if (targetContainer) {
+                const entityIds = [...targetContainer.entityIds];
+                get().emitEvent({
+                  type: 'CONTAINER_PEELED',
+                  payload: {
+                    containerId: action.payload.containerId,
+                    entityIds,
+                  },
+                });
+              }
               break;
+            }
 
-            case 'PEEL_CONTAINER_CONTENTS':
-              console.log('PEEL_CONTAINER_CONTENTS dispatched for container:', action.payload.containerId);
+            case 'MIX_CONTAINER_CONTENTS': {
+              const targetContainer = get().containers[action.payload.containerId];
+              if (targetContainer) {
+                const entityIds = [...targetContainer.entityIds];
+                get().emitEvent({
+                  type: 'CONTAINER_MIXED',
+                  payload: {
+                    containerId: action.payload.containerId,
+                    entityIds,
+                  },
+                });
+              }
               break;
-
-            case 'MIX_CONTAINER_CONTENTS':
-              console.log('MIX_CONTAINER_CONTENTS dispatched for container:', action.payload.containerId);
-              break;
+            }
 
             case 'RESET_WORLD':
               store.resetWorld();
