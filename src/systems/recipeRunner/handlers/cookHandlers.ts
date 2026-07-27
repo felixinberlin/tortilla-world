@@ -59,6 +59,15 @@ export async function handleCookStep(
   moveTortillaTo(containerId, ctx.mascotId);
   await ctx.wait();
 
+  // Turn ON fire if currently off
+  const containerBefore = worldStore.getState().containers[containerId];
+  if (containerBefore && !containerBefore.isOn) {
+    worldStore.getState().dispatch({
+      type: 'TOGGLE_BURNER',
+      payload: { containerId },
+    });
+  }
+
   worldStore.getState().dispatch({
     type: 'COOK_INGREDIENT',
     payload: {
@@ -121,6 +130,15 @@ export async function handleCookStep(
   }
 
   await ctx.wait();
+
+  // Turn OFF fire when cooking step finishes
+  const containerAfter = worldStore.getState().containers[containerId];
+  if (containerAfter && containerAfter.isOn) {
+    worldStore.getState().dispatch({
+      type: 'TOGGLE_BURNER',
+      payload: { containerId },
+    });
+  }
 }
 
 export async function handleFlipStep(

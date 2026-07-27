@@ -19,6 +19,9 @@ import { handleCookStep, handleFlipStep } from './cookHandlers';
 import type { RecipeStep } from '../../../types/RecipeStep';
 import type { RecipeRunnerContext } from '../types';
 
+type CookStep = Extract<RecipeStep, { action: 'cook' }>;
+type FlipStep = Extract<RecipeStep, { action: 'flip' }>;
+
 /**
  * Helper: Create mock RecipeRunnerContext
  */
@@ -129,13 +132,13 @@ describe('Cook Handlers - Oil & Ingredient Cooking', () => {
     it('1.1: Heat oil - Oil should NOT be marked as consumed', async () => {
       const ctx = createMockContext();
 
-      const heatOilStep: RecipeStep = {
+      const heatOilStep: CookStep = {
         action: 'cook',
         target: 'oil',
         method: 'heat',
       };
 
-      await handleCookStep(ctx, heatOilStep as any, 'burner1');
+      await handleCookStep(ctx, heatOilStep, 'burner1');
 
       const state = worldStore.getState();
       const oil = state.entities.oil_1;
@@ -147,13 +150,13 @@ describe('Cook Handlers - Oil & Ingredient Cooking', () => {
     it('1.2: Heat oil - Oil should be moved to burner1', async () => {
       const ctx = createMockContext();
 
-      const heatOilStep: RecipeStep = {
+      const heatOilStep: CookStep = {
         action: 'cook',
         target: 'oil',
         method: 'heat',
       };
 
-      await handleCookStep(ctx, heatOilStep as any, 'burner1');
+      await handleCookStep(ctx, heatOilStep, 'burner1');
 
       const state = worldStore.getState();
       const burner1Container = state.containers.burner1;
@@ -164,13 +167,13 @@ describe('Cook Handlers - Oil & Ingredient Cooking', () => {
     it('1.3: Heat oil - Oil state should show cooking method "heat"', async () => {
       const ctx = createMockContext();
 
-      const heatOilStep: RecipeStep = {
+      const heatOilStep: CookStep = {
         action: 'cook',
         target: 'oil',
         method: 'heat',
       };
 
-      await handleCookStep(ctx, heatOilStep as any, 'burner1');
+      await handleCookStep(ctx, heatOilStep, 'burner1');
 
       const state = worldStore.getState();
       const oil = state.entities.oil_1;
@@ -184,14 +187,14 @@ describe('Cook Handlers - Oil & Ingredient Cooking', () => {
     it('2.1: Fry garlic - Garlic should be marked with cooking state', async () => {
       const ctx = createMockContext();
 
-      const fryGarlicStep: RecipeStep = {
+      const fryGarlicStep: CookStep = {
         action: 'cook',
         target: 'garlic',
         method: 'fry',
         instruction: 'Que no se quemen.', // Don't let them burn
       };
 
-      await handleCookStep(ctx, fryGarlicStep as any, 'burner1');
+      await handleCookStep(ctx, fryGarlicStep, 'burner1');
 
       const state = worldStore.getState();
       const garlic = state.entities.garlic_1;
@@ -202,13 +205,13 @@ describe('Cook Handlers - Oil & Ingredient Cooking', () => {
     it('2.2: Fry garlic - Garlic should be moved to burner1', async () => {
       const ctx = createMockContext();
 
-      const fryGarlicStep: RecipeStep = {
+      const fryGarlicStep: CookStep = {
         action: 'cook',
         target: 'garlic',
         method: 'fry',
       };
 
-      await handleCookStep(ctx, fryGarlicStep as any, 'burner1');
+      await handleCookStep(ctx, fryGarlicStep, 'burner1');
 
       const state = worldStore.getState();
       const burner1Container = state.containers.burner1;
@@ -219,13 +222,13 @@ describe('Cook Handlers - Oil & Ingredient Cooking', () => {
     it('2.3: Fry garlic - Garlic should NOT be consumed (it\'s the target)', async () => {
       const ctx = createMockContext();
 
-      const fryGarlicStep: RecipeStep = {
+      const fryGarlicStep: CookStep = {
         action: 'cook',
         target: 'garlic',
         method: 'fry',
       };
 
-      await handleCookStep(ctx, fryGarlicStep as any, 'burner1');
+      await handleCookStep(ctx, fryGarlicStep, 'burner1');
 
       const state = worldStore.getState();
       const garlic = state.entities.garlic_1;
@@ -238,20 +241,20 @@ describe('Cook Handlers - Oil & Ingredient Cooking', () => {
       const ctx = createMockContext();
 
       // First heat oil
-      const heatOilStep: RecipeStep = {
+      const heatOilStep: CookStep = {
         action: 'cook',
         target: 'oil',
         method: 'heat',
       };
-      await handleCookStep(ctx, heatOilStep as any, 'burner1');
+      await handleCookStep(ctx, heatOilStep, 'burner1');
 
       // Now fry garlic
-      const fryGarlicStep: RecipeStep = {
+      const fryGarlicStep: CookStep = {
         action: 'cook',
         target: 'garlic',
         method: 'fry',
       };
-      await handleCookStep(ctx, fryGarlicStep as any, 'burner1');
+      await handleCookStep(ctx, fryGarlicStep, 'burner1');
 
       const state = worldStore.getState();
       const oil = state.entities.oil_1;
@@ -267,12 +270,12 @@ describe('Cook Handlers - Oil & Ingredient Cooking', () => {
       const ctx = createMockContext();
 
       // Heat oil first
-      const heatOilStep: RecipeStep = {
+      const heatOilStep: CookStep = {
         action: 'cook',
         target: 'oil',
         method: 'heat',
       };
-      await handleCookStep(ctx, heatOilStep as any, 'burner1');
+      await handleCookStep(ctx, heatOilStep, 'burner1');
 
       // Move potatoes to burner1 manually for test
       worldStore.getState().dispatch({
@@ -284,12 +287,12 @@ describe('Cook Handlers - Oil & Ingredient Cooking', () => {
       });
 
       // Fry potatoes
-      const fryPotatoesStep: RecipeStep = {
+      const fryPotatoesStep: CookStep = {
         action: 'cook',
         target: 'potatoes',
         method: 'fry',
       };
-      await handleCookStep(ctx, fryPotatoesStep as any, 'burner1');
+      await handleCookStep(ctx, fryPotatoesStep, 'burner1');
 
       const state = worldStore.getState();
       const oil = state.entities.oil_1;
@@ -303,12 +306,12 @@ describe('Cook Handlers - Oil & Ingredient Cooking', () => {
       const ctx = createMockContext();
 
       // Heat oil
-      const heatOilStep: RecipeStep = {
+      const heatOilStep: CookStep = {
         action: 'cook',
         target: 'oil',
         method: 'heat',
       };
-      await handleCookStep(ctx, heatOilStep as any, 'burner1');
+      await handleCookStep(ctx, heatOilStep, 'burner1');
 
       // Move potatoes to burner1
       worldStore.getState().dispatch({
@@ -320,12 +323,12 @@ describe('Cook Handlers - Oil & Ingredient Cooking', () => {
       });
 
       // Fry potatoes
-      const fryPotatoesStep: RecipeStep = {
+      const fryPotatoesStep: CookStep = {
         action: 'cook',
         target: 'potatoes',
         method: 'fry',
       };
-      await handleCookStep(ctx, fryPotatoesStep as any, 'burner1');
+      await handleCookStep(ctx, fryPotatoesStep, 'burner1');
 
       const state = worldStore.getState();
       const potatoes = state.entities.potatoes_1;
@@ -340,12 +343,12 @@ describe('Cook Handlers - Oil & Ingredient Cooking', () => {
       const ctx = createMockContext();
 
       // Step 1: Heat oil
-      const heatOilStep: RecipeStep = {
+      const heatOilStep: CookStep = {
         action: 'cook',
         target: 'oil',
         method: 'heat',
       };
-      await handleCookStep(ctx, heatOilStep as any, 'burner1');
+      await handleCookStep(ctx, heatOilStep, 'burner1');
 
       // Verify oil is in burner1 but not consumed
       let state = worldStore.getState();
@@ -355,16 +358,16 @@ describe('Cook Handlers - Oil & Ingredient Cooking', () => {
       expect(oil.state?.cooking).toBe('heat');
 
       // Step 2: Fry garlic
-      const fryGarlicStep: RecipeStep = {
+      const fryGarlicStep: CookStep = {
         action: 'cook',
         target: 'garlic',
         method: 'fry',
       };
-      await handleCookStep(ctx, fryGarlicStep as any, 'burner1');
+      await handleCookStep(ctx, fryGarlicStep, 'burner1');
 
       // Verify garlic is in burner1, oil is consumed
       state = worldStore.getState();
-      let garlic = state.entities.garlic_1;
+      const garlic = state.entities.garlic_1;
       oil = state.entities.oil_1;
       expect(state.containers.burner1.entityIds).toContain('garlic_1');
       expect(garlic.state?.cooking).toBe('fry');
@@ -380,12 +383,12 @@ describe('Cook Handlers - Oil & Ingredient Cooking', () => {
       });
 
       // Step 4: Fry potatoes (oil already consumed, won't be consumed again)
-      const fryPotatoesStep: RecipeStep = {
+      const fryPotatoesStep: CookStep = {
         action: 'cook',
         target: 'potatoes',
         method: 'fry',
       };
-      await handleCookStep(ctx, fryPotatoesStep as any, 'burner1');
+      await handleCookStep(ctx, fryPotatoesStep, 'burner1');
 
       // Final state check
       state = worldStore.getState();
@@ -401,12 +404,12 @@ describe('Cook Handlers - Oil & Ingredient Cooking', () => {
       const ctx = createMockContext();
 
       // Heat oil
-      const heatOilStep: RecipeStep = {
+      const heatOilStep: CookStep = {
         action: 'cook',
         target: 'oil',
         method: 'heat',
       };
-      await handleCookStep(ctx, heatOilStep as any, 'burner1');
+      await handleCookStep(ctx, heatOilStep, 'burner1');
 
       // Fry garlic (consumes oil)
       worldStore.getState().dispatch({
@@ -417,12 +420,12 @@ describe('Cook Handlers - Oil & Ingredient Cooking', () => {
         },
       });
 
-      const fryGarlicStep: RecipeStep = {
+      const fryGarlicStep: CookStep = {
         action: 'cook',
         target: 'garlic',
         method: 'fry',
       };
-      await handleCookStep(ctx, fryGarlicStep as any, 'burner1');
+      await handleCookStep(ctx, fryGarlicStep, 'burner1');
 
       let state = worldStore.getState();
       let oil = state.entities.oil_1;
@@ -437,12 +440,12 @@ describe('Cook Handlers - Oil & Ingredient Cooking', () => {
         },
       });
 
-      const fryPotatoesStep: RecipeStep = {
+      const fryPotatoesStep: CookStep = {
         action: 'cook',
         target: 'potatoes',
         method: 'fry',
       };
-      await handleCookStep(ctx, fryPotatoesStep as any, 'burner1');
+      await handleCookStep(ctx, fryPotatoesStep, 'burner1');
 
       state = worldStore.getState();
       oil = state.entities.oil_1;
@@ -472,13 +475,13 @@ describe('Cook Handlers - Oil & Ingredient Cooking', () => {
         },
       });
 
-      const flipStep: RecipeStep = {
+      const flipStep: FlipStep = {
         action: 'flip',
         target: 'mixture',
         instruction: 'Dale la vuelta a la tortilla.',
       };
 
-      await handleFlipStep(ctx, flipStep as any);
+      await handleFlipStep(ctx, flipStep);
 
       const state = worldStore.getState();
       const mixture = state.entities.mixture_1;
@@ -492,24 +495,24 @@ describe('Cook Handlers - Oil & Ingredient Cooking', () => {
       const ctx = createMockContext();
 
       // Heat oil first time
-      const heatOilStep1: RecipeStep = {
+      const heatOilStep1: CookStep = {
         action: 'cook',
         target: 'oil',
         method: 'heat',
       };
-      await handleCookStep(ctx, heatOilStep1 as any, 'burner1');
+      await handleCookStep(ctx, heatOilStep1, 'burner1');
 
       let state = worldStore.getState();
       let oil = state.entities.oil_1;
       expect(oil.state?.cooking).toBe('heat');
 
       // Try to heat oil again (should just update state)
-      const heatOilStep2: RecipeStep = {
+      const heatOilStep2: CookStep = {
         action: 'cook',
         target: 'oil',
         method: 'heat',
       };
-      await handleCookStep(ctx, heatOilStep2 as any, 'burner1');
+      await handleCookStep(ctx, heatOilStep2, 'burner1');
 
       state = worldStore.getState();
       oil = state.entities.oil_1;
@@ -547,13 +550,13 @@ describe('Cook Handlers - Oil & Ingredient Cooking', () => {
         },
       });
 
-      const fryStep: RecipeStep = {
+      const fryStep: CookStep = {
         action: 'cook',
         target: 'potatoes',
         method: 'fry',
       };
 
-      await handleCookStep(ctx, fryStep as any, 'burner1');
+      await handleCookStep(ctx, fryStep, 'burner1');
 
       const state = worldStore.getState();
       const oil = state.entities.oil_1;
@@ -564,6 +567,47 @@ describe('Cook Handlers - Oil & Ingredient Cooking', () => {
 
       // Eggs should not be consumed (not detected as cooking medium)
       expect(eggs.state?.consumed).not.toBe(true);
+    });
+
+    it('6.3: Fire control - Mascot turns fire ON before cooking and OFF after cooking', async () => {
+      const fireStates: boolean[] = [];
+
+      const ctx = createMockContext({
+        wait: vi.fn(async () => {
+          // Record burner1 isOn state during wait
+          const isOn = Boolean(worldStore.getState().containers.burner1?.isOn);
+          fireStates.push(isOn);
+        }),
+      });
+
+      // Ensure burner1 is off initially
+      worldStore.setState({
+        containers: {
+          ...worldStore.getState().containers,
+          burner1: {
+            id: 'burner1',
+            name: 'burner1',
+            type: 'workstation',
+            entityIds: [],
+            isOn: false,
+          },
+        },
+      });
+
+      const cookStep: CookStep = {
+        action: 'cook',
+        target: 'potatoes',
+        method: 'fry',
+      };
+
+      await handleCookStep(ctx, cookStep, 'burner1');
+
+      // During cooking (in first wait after toggle or second wait), fire was turned ON
+      expect(fireStates).toContain(true);
+
+      // After cooking step finishes, burner1 fire is turned OFF
+      const finalBurnerState = worldStore.getState().containers.burner1;
+      expect(finalBurnerState.isOn).toBe(false);
     });
   });
 });
