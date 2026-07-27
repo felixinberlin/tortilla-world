@@ -14,6 +14,7 @@
 import React, { useRef, useState, useCallback } from 'react';
 import { actionPlayer } from '../../systems/actionPlayer';
 import { worldStore } from '../../store/worldStore';
+import { useStore } from 'zustand';
 import type { WorldAction } from '../../types/actions';
 import type { RecordedAction } from '../../types/recording';
 import './ActionReplayer.scss';
@@ -36,11 +37,14 @@ export const ActionReplayer: React.FC<ActionReplayerProps> = ({
   onPlaybackComplete,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const recordedActions = useStore(worldStore, (state) => state.recordedActions);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [currentStep, setCurrentStep] = useState<number>(0);
-  const [totalSteps, setTotalSteps] = useState<number>(0);
   const [delayMs, setDelayMs] = useState<number>(defaultDelayMs);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const totalSteps = recordedActions.length;
+  const effectiveCurrentStep = Math.min(currentStep, totalSteps);
 
   const handleUploadClick = () => {
     setErrorMessage(null);
@@ -94,26 +98,7 @@ export const ActionReplayer: React.FC<ActionReplayerProps> = ({
 
           setErrorMessage(null);
           worldStore.getState().setRecordedActions(actions as unknown as RecordedAction[]);
-          setIsPlaying(true);
           setCurrentStep(0);
-          setTotalSteps(actions.length);
-          onPlaybackStart?.();
-
-          await actionPlayer.playLog(actions, {
-            delayMs,
-            resetWorld: true,
-            onStep: (curr, tot) => {
-              setCurrentStep(curr);
-              setTotalSteps(tot);
-            },
-            onComplete: () => {
-              setIsPlaying(false);
-              onPlaybackComplete?.();
-            },
-            onStop: () => {
-              setIsPlaying(false);
-            },
-          });
         } catch (err) {
           console.error('Failed to parse action log JSON:', err);
           setErrorMessage('Failed to read or parse JSON file.');
@@ -122,15 +107,64 @@ export const ActionReplayer: React.FC<ActionReplayerProps> = ({
 
       reader.readAsText(file);
     },
-    [delayMs, onPlaybackStart, onPlaybackComplete]
+    []
   );
+
+  const handlePlayAll = useCallback(async () => {
+    if (recordedActions.length === 0) return;
+    setIsPlaying(true);
+    onPlaybackStart?.();
+
+    const reset = currentStep === 0;
+    const remainingActions = recordedActions.slice(currentStep) as unknown as WorldAction[];
+    const startOffset = currentStep;
+
+    await actionPlayer.playLog(remainingActions, {
+      delayMs,
+      resetWorld: reset,
+      onStep: (curr) => {
+        setCurrentStep(startOffset + curr);
+      },
+      onComplete: () => {
+        setIsPlaying(false);
+        onPlaybackComplete?.();
+      },
+      onStop: () => {
+        setIsPlaying(false);
+      },
+    });
+  }, [recordedActions, currentStep, delayMs, onPlaybackStart, onPlaybackComplete]);
 
   const handleStop = () => {
     actionPlayer.stop();
     setIsPlaying(false);
   };
 
-  const percent = totalSteps > 0 ? Math.round((currentStep / totalSteps) * 100) : 0;
+  const handleStepForward = useCallback(() => {
+    if (currentStep < recordedActions.length) {
+      const nextAction = recordedActions[currentStep];
+      worldStore.getState().dispatch(nextAction as unknown as WorldAction);
+      setCurrentStep((prev) => prev + 1);
+    }
+  }, [currentStep, recordedActions]);
+
+  const handleStepBack = useCallback(() => {
+    if (currentStep > 0) {
+      const targetIndex = currentStep - 1;
+      worldStore.getState().dispatch({ type: 'RESET_WORLD' });
+      for (let i = 0; i < targetIndex; i++) {
+        worldStore.getState().dispatch(recordedActions[i] as unknown as WorldAction);
+      }
+      setCurrentStep(targetIndex);
+    }
+  }, [currentStep, recordedActions]);
+
+  const handleResetSteps = useCallback(() => {
+    worldStore.getState().dispatch({ type: 'RESET_WORLD' });
+    setCurrentStep(0);
+  }, []);
+
+  const percent = totalSteps > 0 ? Math.round((effectiveCurrentStep / totalSteps) * 100) : 0;
 
   return (
     <div className={`action-replayer ${className}`}>
@@ -142,16 +176,58 @@ export const ActionReplayer: React.FC<ActionReplayerProps> = ({
         onChange={handleFileChange}
       />
 
-      {!isPlaying ? (
-        <button
-          type="button"
-          className="replayer-btn load-btn"
-          onClick={handleUploadClick}
-          title="Upload and replay a recorded action log JSON file"
-        >
-          📂 Load Action Log (.json)
-        </button>
-      ) : (
+      <button
+        type="button"
+        className="replayer-btn load-btn"
+        onClick={handleUploadClick}
+        title="Upload and replay a recorded action log JSON file"
+      >
+        📂 Load Action Log (.json)
+      </button>
+
+      {totalSteps > 0 && !isPlaying && (
+        <div className="step-controls-group">
+          <button
+            type="button"
+            className="replayer-btn step-btn"
+            onClick={handleStepBack}
+            disabled={effectiveCurrentStep === 0}
+            title="Step back to previous recorded action"
+          >
+            ⏮️ Step Back
+          </button>
+
+          <button
+            type="button"
+            className="replayer-btn step-btn step-forward-btn"
+            onClick={handleStepForward}
+            disabled={effectiveCurrentStep >= totalSteps}
+            title="Step forward to next recorded action"
+          >
+            ⏭️ Step Forward
+          </button>
+
+          <button
+            type="button"
+            className="replayer-btn play-btn"
+            onClick={handlePlayAll}
+            title="Play all remaining actions"
+          >
+            ▶️ Play
+          </button>
+
+          <button
+            type="button"
+            className="replayer-btn reset-btn"
+            onClick={handleResetSteps}
+            title="Reset world state to step 0"
+          >
+            🔄 Reset
+          </button>
+        </div>
+      )}
+
+      {isPlaying && (
         <button
           type="button"
           className="replayer-btn stop-btn"
@@ -175,10 +251,10 @@ export const ActionReplayer: React.FC<ActionReplayerProps> = ({
         </select>
       )}
 
-      {isPlaying && (
+      {totalSteps > 0 && (
         <div className="playback-status">
           <span>
-            Step {currentStep} / {totalSteps}
+            Step {effectiveCurrentStep} / {totalSteps}
           </span>
           <div className="progress-bar-container">
             <div className="progress-bar-fill" style={{ width: `${percent}%` }} />

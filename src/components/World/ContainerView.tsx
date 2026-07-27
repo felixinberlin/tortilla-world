@@ -56,6 +56,18 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
   const containerOnFireClass = container.isOn ? 'container-onFire' : '';
   const dispatch = useStore(worldStore, (state) => state.dispatch);
 
+  const isCookingArea =
+    container.type === 'burner' ||
+    container.id.includes('burner') ||
+    container.id.includes('pan') ||
+    container.id.includes('stove');
+  const isSink = container.type === 'sink' || container.id.includes('sink');
+  const isCuttingBoard =
+    container.type === 'board' ||
+    container.id.includes('board') ||
+    container.id.includes('cutting');
+  const isBowl = container.type === 'bowl' || container.id.includes('bowl');
+
   return (
     <div
       ref={setNodeRef}
@@ -65,20 +77,108 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
       <div className="container-view__header">
         <h3 className="container-view__title">{container.name}</h3>
         <span className="container-view__badge">{getWorkstationBadge(container.id)}</span>
-        <button
-          className={`burner-toggle ${container.isOn ? 'burner-toggle--on' : ''}`}
-          onClick={(e) => {
-            e.stopPropagation();
+        {isCookingArea && (
+          <button
+            type="button"
+            className={`burner-toggle ${container.isOn ? 'burner-toggle--on' : ''}`}
+            title="Toggle Heat"
+            onClick={(e) => {
+              e.stopPropagation();
 
-            dispatch({
-              type: 'TOGGLE_BURNER',
-              payload: {
-                containerId: container.id,
-              },
-            });
-          }}
-        />
+              dispatch({
+                type: 'TOGGLE_HEAT',
+                payload: {
+                  containerId: container.id,
+                },
+              });
+            }}
+          />
+        )}
       </div>
+
+      {(isCookingArea || isSink || isCuttingBoard || isBowl) && (
+        <div className="container-view__actions">
+          {isCookingArea && (
+            <button
+              type="button"
+              className={`container-action-btn toggle-heat-btn ${container.isOn ? 'container-action-btn--active' : ''}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                dispatch({
+                  type: 'TOGGLE_HEAT',
+                  payload: { containerId: container.id },
+                });
+              }}
+            >
+              🔥 On/Off
+            </button>
+          )}
+
+          {isSink && (
+            <button
+              type="button"
+              className="container-action-btn wash-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                dispatch({
+                  type: 'WASH_CONTAINER_CONTENTS',
+                  payload: { containerId: container.id },
+                });
+              }}
+            >
+              🧼 Wash
+            </button>
+          )}
+
+          {isCuttingBoard && (
+            <>
+              <button
+                type="button"
+                className="container-action-btn cut-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  dispatch({
+                    type: 'CUT_CONTAINER_CONTENTS',
+                    payload: { containerId: container.id },
+                  });
+                }}
+              >
+                🔪 Cut
+              </button>
+              <button
+                type="button"
+                className="container-action-btn peel-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  dispatch({
+                    type: 'PEEL_CONTAINER_CONTENTS',
+                    payload: { containerId: container.id },
+                  });
+                }}
+              >
+                🥔 Peel
+              </button>
+            </>
+          )}
+
+          {isBowl && (
+            <button
+              type="button"
+              className="container-action-btn mix-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                dispatch({
+                  type: 'MIX_CONTAINER_CONTENTS',
+                  payload: { containerId: container.id },
+                });
+              }}
+            >
+              🥣 Mix
+            </button>
+          )}
+        </div>
+      )}
+
       <div className="container-view__items">
         <AnimatePresence mode="popLayout">
           {containerEntities.map((entity: Entity) => {

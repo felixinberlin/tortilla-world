@@ -290,4 +290,25 @@ describe('RecipeRunner System', () => {
     const mixtureId = runner.recipeContext.bindings['mixture'];
     expect(finalBowlEntityIds).toContain(mixtureId);
   });
+
+  it('translates instruction step "Toggle heat on burner1" into UPDATE_ENTITY_STATE and TOGGLE_BURNER actions', async () => {
+    const runner = new RecipeRunner({ mascotId: 'chef', delayMs: 1 });
+    const initialBurnerState = worldStore.getState().containers.burner1.isOn;
+
+    await runner.runSteps([
+      {
+        action: 'instruction',
+        text: 'Toggle heat on burner1',
+      },
+    ]);
+
+    const state = worldStore.getState();
+    const actionLog = getActionLog();
+    const actionTypes = actionLog.map((a) => a.action);
+
+    expect(actionTypes).toContain('UPDATE_ENTITY_STATE');
+    expect(actionTypes).toContain('TOGGLE_BURNER');
+    expect(state.entities.chef.state?.speechMessage).toBe('Toggle heat on burner1');
+    expect(state.containers.burner1.isOn).toBe(!initialBurnerState);
+  });
 });

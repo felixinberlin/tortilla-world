@@ -11,12 +11,17 @@
 
 .container-view {
   @include ceramic-card($warm-surface, $warm-border);
-  min-width: 240px;
+  min-width: unset; // Allow grid to dictate width
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
   transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+
+  @media (max-width: 600px) {
+    padding: 10px;
+    gap: 8px;
+  }
 
   &--drag-over {
     border-color: $tortilla-yellow;
@@ -193,6 +198,43 @@
   align-items: center;
   display: flex;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.container-view__actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+
+  .container-action-btn {
+    padding: 4px 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: $radius-sm;
+    border: 1px solid $warm-border;
+    background: #ffffff;
+    color: $dark-brown;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: color.mix($tortilla-yellow, #ffffff, 20%);
+      border-color: $tortilla-yellow;
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+
+    &--active {
+      background: #ff6b00;
+      color: #ffffff;
+      border-color: #ff9d4d;
+      box-shadow: 0 0 6px rgba(255, 120, 0, 0.5);
+    }
+  }
 }
 
 .container-view__title {
@@ -200,12 +242,21 @@
   font-size: 1rem;
   font-weight: 700;
   margin: 0;
+
+  @media (max-width: 600px) {
+    font-size: 0.9rem;
+  }
 }
 
 .container-view__badge {
   color: $wood-muted;
   font-size: 0.82rem;
   font-weight: 600;
+
+  @media (max-width: 600px) {
+    font-size: 0.7rem;
+    line-height: 1.1;
+  }
 }
 
 .container-view__items {

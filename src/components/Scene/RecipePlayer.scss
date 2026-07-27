@@ -10,6 +10,97 @@
 @use '../../styles/variables' as *;
 @use '../../styles/mixins' as *;
 
+/* === Mobile Layout Controls === */
+.mobile-panel-toggle {
+  display: none;
+  margin-bottom: 12px;
+
+  @media (max-width: 900px) {
+    display: flex;
+    justify-content: center;
+  }
+
+  .panel-toggle-btn {
+    width: 100%;
+    padding: 12px;
+    background: $warm-surface;
+    border: 1px solid $warm-border;
+    border-radius: $radius-md;
+    font-weight: 700;
+    color: $dark-brown;
+    box-shadow: $shadow-ceramic;
+    cursor: pointer;
+    font-size: 0.95rem;
+
+    &:hover {
+      background: $tortilla-yellow-light;
+      border-color: $tortilla-yellow;
+    }
+  }
+}
+
+.scene-controls-wrapper {
+  transition: max-height 0.3s ease, opacity 0.3s ease, margin-bottom 0.3s ease;
+
+  @media (max-width: 900px) {
+    &.collapsed {
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+      margin-bottom: 0;
+    }
+
+    &.expanded {
+      max-height: 2000px; /* large enough to fit content */
+      opacity: 1;
+      margin-bottom: 20px;
+    }
+  }
+}
+
+.mode-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+
+  .mode-tab-btn {
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    border: 2px solid $warm-border;
+    background: #ffffff;
+    color: $wood-muted;
+    flex: 1;
+    min-width: 150px;
+    text-align: center;
+    transition: all 0.2s ease;
+
+    &:nth-child(1).active {
+      background: #d97706;
+      color: #ffffff;
+      border-color: #d97706;
+      box-shadow: 0 2px 6px rgba(217,119,6,0.3);
+    }
+
+    &:nth-child(2).active {
+      background: #8b5cf6;
+      color: #ffffff;
+      border-color: #8b5cf6;
+      box-shadow: 0 2px 6px rgba(139,92,246,0.3);
+    }
+  }
+}
+
+.action-recorder-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+
 .recipe-player-container {
   @include ceramic-card($warm-surface, $warm-border);
   padding: 16px 20px;

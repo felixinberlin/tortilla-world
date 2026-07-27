@@ -142,6 +142,26 @@ export const worldStore = createStore<WorldStateStore>()(
               store.mascotClearGaze(action.payload.mascotId);
               break;
 
+            case 'TOGGLE_HEAT':
+              console.log('TOGGLE_HEAT dispatched for container:', action.payload.containerId);
+              break;
+
+            case 'WASH_CONTAINER_CONTENTS':
+              console.log('WASH_CONTAINER_CONTENTS dispatched for container:', action.payload.containerId);
+              break;
+
+            case 'CUT_CONTAINER_CONTENTS':
+              console.log('CUT_CONTAINER_CONTENTS dispatched for container:', action.payload.containerId);
+              break;
+
+            case 'PEEL_CONTAINER_CONTENTS':
+              console.log('PEEL_CONTAINER_CONTENTS dispatched for container:', action.payload.containerId);
+              break;
+
+            case 'MIX_CONTAINER_CONTENTS':
+              console.log('MIX_CONTAINER_CONTENTS dispatched for container:', action.payload.containerId);
+              break;
+
             case 'RESET_WORLD':
               store.resetWorld();
               break;

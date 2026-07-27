@@ -110,9 +110,39 @@ export type WorldAction =
     };
   }
   | {
-    type: 'RESET_WORLD';
-    payload?: Record<string, never>;
-  };
+      type: 'TOGGLE_HEAT';
+      payload: {
+        containerId: string;
+      };
+    }
+  | {
+      type: 'WASH_CONTAINER_CONTENTS';
+      payload: {
+        containerId: string;
+      };
+    }
+  | {
+      type: 'CUT_CONTAINER_CONTENTS';
+      payload: {
+        containerId: string;
+      };
+    }
+  | {
+      type: 'PEEL_CONTAINER_CONTENTS';
+      payload: {
+        containerId: string;
+      };
+    }
+  | {
+      type: 'MIX_CONTAINER_CONTENTS';
+      payload: {
+        containerId: string;
+      };
+    }
+  | {
+      type: 'RESET_WORLD';
+      payload?: Record<string, never>;
+    };
 
 
 export type WorldEvent =
