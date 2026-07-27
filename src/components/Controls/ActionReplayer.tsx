@@ -13,7 +13,9 @@
 
 import React, { useRef, useState, useCallback } from 'react';
 import { actionPlayer } from '../../systems/actionPlayer';
+import { worldStore } from '../../store/worldStore';
 import type { WorldAction } from '../../types/actions';
+import type { RecordedAction } from '../../types/recording';
 import './ActionReplayer.scss';
 
 export interface ActionReplayerProps {
@@ -91,6 +93,7 @@ export const ActionReplayer: React.FC<ActionReplayerProps> = ({
           }
 
           setErrorMessage(null);
+          worldStore.getState().setRecordedActions(actions as unknown as RecordedAction[]);
           setIsPlaying(true);
           setCurrentStep(0);
           setTotalSteps(actions.length);

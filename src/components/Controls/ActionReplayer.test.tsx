@@ -38,4 +38,21 @@ describe('ActionReplayer component logic', () => {
     expect(store.containers.burner1.isOn).toBe(true);
     expect(store.containers.burner1.entityIds).toContain('potato_test_1');
   });
+
+  it('syncs uploaded actions with setRecordedActions in worldStore', () => {
+    worldStore.getState().resetWorld();
+
+    const sampleActions = [
+      {
+        type: 'MOVE_ENTITY',
+        payload: { entityId: 'patata', targetContainerId: 'board' },
+        timestampMs: Date.now(),
+      },
+    ];
+
+    worldStore.getState().setRecordedActions(sampleActions);
+
+    expect(worldStore.getState().recordedActions).toHaveLength(1);
+    expect(worldStore.getState().recordedActions[0].type).toBe('MOVE_ENTITY');
+  });
 });

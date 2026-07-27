@@ -29,6 +29,7 @@ export interface SerializedRecipeExport {
   recordedAt: string;
   durationMs: number;
   actionCount: number;
+  usedIngredients?: Array<{ id: string; name: string; icon?: string }>;
   initialState: SerializedWorldState;
   finalState: SerializedWorldState;
   actions: RecordedAction[];

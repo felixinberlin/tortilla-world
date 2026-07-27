@@ -95,7 +95,7 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
 
   return (
     <>
-      {/* Invisible anchor box holding mascot home location in layout */}
+      {/* Anchor box holding mascot location in layout */}
       <div
         ref={mascotAnchorRef}
         style={{
