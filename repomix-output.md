@@ -51,6 +51,10 @@ src/
   assets/
     hero.png
   components/
+    Controls/
+      ActionReplayer.scss
+      ActionReplayer.test.tsx
+      ActionReplayer.tsx
     Ingredients/
       Ingredient.tsx
       IngredientList.tsx
@@ -102,6 +106,8 @@ src/
       containerSlice.ts
       entitySlice.ts
       mascotSlice.ts
+      recordSlice.test.ts
+      recordSlice.ts
     defaults.ts
     gazeStore.ts
     selectors.ts
@@ -122,6 +128,8 @@ src/
         utilityHandlers.ts
       RecipeRunner.ts
       types.ts
+    actionPlayer.test.ts
+    actionPlayer.ts
     clasicaCompletion.test.ts
     gaze.test.ts
     gaze.ts
@@ -144,6 +152,7 @@ src/
     RecipeIngredient.ts
     RecipeList.ts
     RecipeStep.ts
+    recording.ts
     Requirement.ts
     tools.ts
     workstations.ts
@@ -386,6 +395,364 @@ export default defineConfig({
     }
   }
 ]
+`````
+
+## File: src/components/Controls/ActionReplayer.scss
+`````scss
+/**
+ * FILE: src/components/Controls/ActionReplayer.scss
+ *
+ * PURPOSE:
+ * SCSS styles for the ActionReplayer JSON load/playback component.
+ */
+
+@use 'sass:color';
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.action-replayer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+
+  .file-input-hidden {
+    display: none;
+  }
+
+  .replayer-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    border-radius: $radius-sm;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid $warm-border;
+    background: #ffffff;
+    color: $dark-brown;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+    &:hover:not(:disabled) {
+      background: $tortilla-yellow-light;
+      border-color: $tortilla-yellow;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    &.load-btn {
+      border-color: $olive-green;
+      color: $olive-green-hover;
+
+      &:hover:not(:disabled) {
+        background: rgba(107, 142, 35, 0.1);
+      }
+    }
+
+    &.stop-btn {
+      border-color: $terracotta;
+      color: $terracotta;
+      background: $terracotta-light;
+
+      &:hover:not(:disabled) {
+        background: $terracotta;
+        color: #ffffff;
+      }
+    }
+  }
+
+  .playback-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: $warm-surface;
+    border: 1px solid $warm-border;
+    padding: 4px 12px;
+    border-radius: $radius-sm;
+    font-size: 12px;
+    font-weight: 700;
+    color: $dark-brown;
+
+    .progress-bar-container {
+      width: 80px;
+      height: 6px;
+      background: rgba(0, 0, 0, 0.08);
+      border-radius: 3px;
+      overflow: hidden;
+
+      .progress-bar-fill {
+        height: 100%;
+        background: $olive-green;
+        transition: width 0.15s ease-out;
+      }
+    }
+  }
+
+  .delay-select {
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: $radius-sm;
+    border: 1px solid $warm-border;
+    background: #ffffff;
+    color: $dark-brown;
+    cursor: pointer;
+
+    &:focus {
+      outline: none;
+      border-color: $tortilla-yellow;
+    }
+  }
+
+  .error-message {
+    font-size: 12px;
+    color: $terracotta;
+    font-weight: 600;
+  }
+}
+`````
+
+## File: src/components/Controls/ActionReplayer.test.tsx
+`````typescript
+/**
+ * FILE: ActionReplayer.test.tsx
+ *
+ * PURPOSE:
+ * Unit tests for ActionReplayer component logic.
+ */
+
+import { describe, it, expect } from 'vitest';
+import { actionPlayer } from '../../systems/actionPlayer';
+import { worldStore } from '../../store/worldStore';
+import type { WorldAction } from '../../types/actions';
+
+describe('ActionReplayer component logic', () => {
+  it('integrates with ActionPlayer to replay uploaded actions', async () => {
+    worldStore.getState().resetWorld();
+
+    const actions: WorldAction[] = [
+      {
+        type: 'TOGGLE_BURNER',
+        payload: { containerId: 'burner1' },
+      },
+      {
+        type: 'ADD_ENTITY',
+        payload: {
+          entity: {
+            id: 'potato_test_1',
+            name: 'Potato',
+            type: 'ingredient',
+          },
+          containerId: 'burner1',
+        },
+      },
+    ];
+
+    await actionPlayer.playLog(actions, { delayMs: 10 });
+
+    const store = worldStore.getState();
+    expect(store.containers.burner1.isOn).toBe(true);
+    expect(store.containers.burner1.entityIds).toContain('potato_test_1');
+  });
+});
+`````
+
+## File: src/components/Controls/ActionReplayer.tsx
+`````typescript
+/**
+ * FILE: ActionReplayer.tsx
+ *
+ * PURPOSE:
+ * React UI component for uploading, validating, and playing back JSON action logs.
+ *
+ * RESPONSIBILITY:
+ * - Handles JSON file loading via FileReader input.
+ * - Validates JSON structure into WorldAction[].
+ * - Controls playback execution using ActionPlayer.
+ * - Displays active progress and stop/cancel controls during playback.
+ */
+
+import React, { useRef, useState, useCallback } from 'react';
+import { actionPlayer } from '../../systems/actionPlayer';
+import type { WorldAction } from '../../types/actions';
+import './ActionReplayer.scss';
+
+export interface ActionReplayerProps {
+  /** Optional custom delay default in ms. Default: 300 */
+  defaultDelayMs?: number;
+  /** Optional class name override */
+  className?: string;
+  /** Callback fired when playback starts */
+  onPlaybackStart?: () => void;
+  /** Callback fired when playback completes */
+  onPlaybackComplete?: () => void;
+}
+
+export const ActionReplayer: React.FC<ActionReplayerProps> = ({
+  defaultDelayMs = 300,
+  className = '',
+  onPlaybackStart,
+  onPlaybackComplete,
+}) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [currentStep, setCurrentStep] = useState<number>(0);
+  const [totalSteps, setTotalSteps] = useState<number>(0);
+  const [delayMs, setDelayMs] = useState<number>(defaultDelayMs);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const handleUploadClick = () => {
+    setErrorMessage(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+      fileInputRef.current.click();
+    }
+  };
+
+  const validateActions = (parsed: unknown): WorldAction[] | null => {
+    let actionArray: unknown[] | null = null;
+
+    if (Array.isArray(parsed)) {
+      actionArray = parsed;
+    } else if (parsed && typeof parsed === 'object') {
+      const obj = parsed as Record<string, unknown>;
+      if (Array.isArray(obj.actions)) {
+        actionArray = obj.actions;
+      } else if (Array.isArray(obj.actionLog)) {
+        actionArray = obj.actionLog;
+      }
+    }
+
+    if (!actionArray || !Array.isArray(actionArray) || actionArray.length === 0) {
+      return null;
+    }
+
+    const isValid = actionArray.every(
+      (item) => item && typeof item === 'object' && typeof (item as Record<string, unknown>).type === 'string'
+    );
+
+    return isValid ? (actionArray as WorldAction[]) : null;
+  };
+
+  const handleFileChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const content = e.target?.result as string;
+          const parsed = JSON.parse(content);
+          const actions = validateActions(parsed);
+
+          if (!actions) {
+            setErrorMessage('Invalid JSON format: Expected array of WorldActions.');
+            return;
+          }
+
+          setErrorMessage(null);
+          setIsPlaying(true);
+          setCurrentStep(0);
+          setTotalSteps(actions.length);
+          onPlaybackStart?.();
+
+          await actionPlayer.playLog(actions, {
+            delayMs,
+            resetWorld: true,
+            onStep: (curr, tot) => {
+              setCurrentStep(curr);
+              setTotalSteps(tot);
+            },
+            onComplete: () => {
+              setIsPlaying(false);
+              onPlaybackComplete?.();
+            },
+            onStop: () => {
+              setIsPlaying(false);
+            },
+          });
+        } catch (err) {
+          console.error('Failed to parse action log JSON:', err);
+          setErrorMessage('Failed to read or parse JSON file.');
+        }
+      };
+
+      reader.readAsText(file);
+    },
+    [delayMs, onPlaybackStart, onPlaybackComplete]
+  );
+
+  const handleStop = () => {
+    actionPlayer.stop();
+    setIsPlaying(false);
+  };
+
+  const percent = totalSteps > 0 ? Math.round((currentStep / totalSteps) * 100) : 0;
+
+  return (
+    <div className={`action-replayer ${className}`}>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json"
+        className="file-input-hidden"
+        onChange={handleFileChange}
+      />
+
+      {!isPlaying ? (
+        <button
+          type="button"
+          className="replayer-btn load-btn"
+          onClick={handleUploadClick}
+          title="Upload and replay a recorded action log JSON file"
+        >
+          📂 Load Action Log (.json)
+        </button>
+      ) : (
+        <button
+          type="button"
+          className="replayer-btn stop-btn"
+          onClick={handleStop}
+          title="Stop action playback"
+        >
+          ⏹ Stop Playback
+        </button>
+      )}
+
+      {!isPlaying && (
+        <select
+          className="delay-select"
+          value={delayMs}
+          onChange={(e) => setDelayMs(Number(e.target.value))}
+          title="Playback speed step delay"
+        >
+          <option value={100}>Fast (100ms)</option>
+          <option value={300}>Normal (300ms)</option>
+          <option value={600}>Slow (600ms)</option>
+        </select>
+      )}
+
+      {isPlaying && (
+        <div className="playback-status">
+          <span>
+            Step {currentStep} / {totalSteps}
+          </span>
+          <div className="progress-bar-container">
+            <div className="progress-bar-fill" style={{ width: `${percent}%` }} />
+          </div>
+        </div>
+      )}
+
+      {errorMessage && <span className="error-message">{errorMessage}</span>}
+    </div>
+  );
+};
 `````
 
 ## File: src/components/Recipe/RecipeRequirements.tsx
@@ -829,6 +1196,278 @@ export const createContainerSlice: StateCreator<
 });
 `````
 
+## File: src/store/slices/recordSlice.test.ts
+`````typescript
+/**
+ * FILE: recordSlice.test.ts
+ *
+ * PURPOSE:
+ * Unit tests for worldStore recording slice.
+ *
+ * RESPONSIBILITY:
+ * - Validates recording start/stop state transitions.
+ * - Verifies interaction recording (MOVE_ENTITY, TOGGLE_BURNER, etc.).
+ * - Verifies creation of initial and final WorldState snapshots and JSON export payload.
+ */
+
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { worldStore } from '../worldStore';
+
+describe('recordSlice', () => {
+  beforeEach(() => {
+    worldStore.getState().resetWorld();
+    worldStore.getState().clearRecording();
+  });
+
+  it('starts recording and captures initial world snapshot', () => {
+    const store = worldStore.getState();
+    expect(store.isRecording).toBe(false);
+
+    store.startRecording();
+
+    const updated = worldStore.getState();
+    expect(updated.isRecording).toBe(true);
+    expect(updated.recordingStartTime).toBeTypeOf('number');
+    expect(updated.initialRecordingState).not.toBeNull();
+    expect(updated.initialRecordingState?.entities).toBeDefined();
+    expect(updated.initialRecordingState?.containers).toBeDefined();
+    expect(updated.recordedActions).toEqual([]);
+  });
+
+  it('records dispatched MOVE_ENTITY and TOGGLE_BURNER actions when recording is active', () => {
+    worldStore.getState().startRecording();
+
+    // 1. Move potato to burner1
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: {
+        entityId: 'potatoes_1',
+        targetContainerId: 'burner1',
+      },
+    });
+
+    // 2. Turn on burner1
+    worldStore.getState().dispatch({
+      type: 'TOGGLE_BURNER',
+      payload: {
+        containerId: 'burner1',
+      },
+    });
+
+    const recorded = worldStore.getState().recordedActions;
+    expect(recorded).toHaveLength(2);
+
+    expect(recorded[0].type).toBe('MOVE_ENTITY');
+    expect(recorded[0].payload).toEqual({
+      entityId: 'potatoes_1',
+      targetContainerId: 'burner1',
+    });
+    expect(recorded[0].timestampMs).toBeGreaterThanOrEqual(0);
+
+    expect(recorded[1].type).toBe('TOGGLE_BURNER');
+    expect(recorded[1].payload).toEqual({
+      containerId: 'burner1',
+    });
+    expect(recorded[1].timestampMs).toBeGreaterThanOrEqual(0);
+  });
+
+  it('does not record actions when isRecording is false', () => {
+    worldStore.getState().dispatch({
+      type: 'TOGGLE_BURNER',
+      payload: {
+        containerId: 'burner1',
+      },
+    });
+
+    expect(worldStore.getState().recordedActions).toHaveLength(0);
+  });
+
+  it('stops recording and generates download URL & serialized JSON', () => {
+    // Mock URL methods for Node environment
+    if (!globalThis.URL.createObjectURL) {
+      globalThis.URL.createObjectURL = vi.fn(() => 'blob:mock-url-1234');
+      globalThis.URL.revokeObjectURL = vi.fn();
+    }
+
+    worldStore.getState().startRecording();
+
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: {
+        entityId: 'eggs_1',
+        targetContainerId: 'plato',
+      },
+    });
+
+    worldStore.getState().stopRecording();
+
+    const store = worldStore.getState();
+    expect(store.isRecording).toBe(false);
+    expect(store.recordedDownloadUrl).toBeTruthy();
+    expect(store.recordedFilename).toContain('tortilla-recorded-recipe-');
+  });
+
+  it('clears recording state and resets properties', () => {
+    worldStore.getState().startRecording();
+    worldStore.getState().dispatch({
+      type: 'TOGGLE_BURNER',
+      payload: { containerId: 'burner1' },
+    });
+
+    worldStore.getState().clearRecording();
+
+    const store = worldStore.getState();
+    expect(store.isRecording).toBe(false);
+    expect(store.recordedActions).toEqual([]);
+    expect(store.initialRecordingState).toBeNull();
+    expect(store.recordedDownloadUrl).toBeNull();
+    expect(store.recordedFilename).toBeNull();
+  });
+});
+`````
+
+## File: src/store/slices/recordSlice.ts
+`````typescript
+/**
+ * FILE: recordSlice.ts
+ *
+ * PURPOSE:
+ * Zustand slice for recording user interactions into a serialized WorldState recipe.
+ *
+ * RESPONSIBILITY:
+ * - Manages recording state (active/inactive, start time).
+ * - Captures initial and final WorldState snapshots (entities + containers).
+ * - Logs dispatched WorldActions with relative timestamps.
+ * - Serializes recorded data into JSON blob with download URL generation.
+ */
+
+import type { StateCreator } from 'zustand/vanilla';
+import type { WorldAction } from '../../types/world';
+import type { RecordedAction, SerializedRecipeExport, SerializedWorldState } from '../../types/recording';
+import type { WorldStateStore } from '../types';
+
+export interface RecordSlice {
+  isRecording: boolean;
+  recordingStartTime: number | null;
+  recordedActions: RecordedAction[];
+  initialRecordingState: SerializedWorldState | null;
+  recordedDownloadUrl: string | null;
+  recordedFilename: string | null;
+
+  startRecording: () => void;
+  stopRecording: () => void;
+  recordAction: (action: WorldAction) => void;
+  clearRecording: () => void;
+}
+
+export const createRecordSlice: StateCreator<
+  WorldStateStore,
+  [['zustand/devtools', never], ['zustand/immer', never]],
+  [],
+  RecordSlice
+> = (set, get) => ({
+  isRecording: false,
+  recordingStartTime: null,
+  recordedActions: [],
+  initialRecordingState: null,
+  recordedDownloadUrl: null,
+  recordedFilename: null,
+
+  startRecording: () => {
+    const prevUrl = get().recordedDownloadUrl;
+    if (prevUrl) {
+      URL.revokeObjectURL(prevUrl);
+    }
+
+    const { entities, containers } = get();
+
+    set((state) => {
+      state.isRecording = true;
+      state.recordingStartTime = Date.now();
+      state.recordedActions = [];
+      state.recordedDownloadUrl = null;
+      state.recordedFilename = null;
+      state.initialRecordingState = JSON.parse(
+        JSON.stringify({
+          entities,
+          containers,
+        })
+      );
+    });
+  },
+
+  recordAction: (action: WorldAction) => {
+    const { isRecording, recordingStartTime } = get();
+    if (!isRecording) return;
+
+    const timestampMs = Date.now() - (recordingStartTime || Date.now());
+    set((state) => {
+      state.recordedActions.push({
+        type: action.type,
+        payload: JSON.parse(JSON.stringify(action.payload)),
+        timestampMs,
+      });
+    });
+  },
+
+  stopRecording: () => {
+    const { isRecording, recordingStartTime, recordedActions, initialRecordingState, recordedDownloadUrl } = get();
+    if (!isRecording) return;
+
+    if (recordedDownloadUrl) {
+      URL.revokeObjectURL(recordedDownloadUrl);
+    }
+
+    const { entities, containers } = get();
+    const finalState = JSON.parse(
+      JSON.stringify({
+        entities,
+        containers,
+      })
+    );
+
+    const durationMs = Date.now() - (recordingStartTime || Date.now());
+    const exportData: SerializedRecipeExport = {
+      version: '1.0.0',
+      title: 'Recorded Tortilla Recipe',
+      recordedAt: new Date().toISOString(),
+      durationMs,
+      actionCount: recordedActions.length,
+      initialState: initialRecordingState || { entities: {}, containers: {} },
+      finalState,
+      actions: recordedActions,
+    };
+
+    const jsonString = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const downloadUrl = URL.createObjectURL(blob);
+    const dateStr = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const filename = `tortilla-recorded-recipe-${dateStr}.json`;
+
+    set((state) => {
+      state.isRecording = false;
+      state.recordedDownloadUrl = downloadUrl;
+      state.recordedFilename = filename;
+    });
+  },
+
+  clearRecording: () => {
+    const prevUrl = get().recordedDownloadUrl;
+    if (prevUrl) {
+      URL.revokeObjectURL(prevUrl);
+    }
+    set((state) => {
+      state.isRecording = false;
+      state.recordingStartTime = null;
+      state.recordedActions = [];
+      state.initialRecordingState = null;
+      state.recordedDownloadUrl = null;
+      state.recordedFilename = null;
+    });
+  },
+});
+`````
+
 ## File: src/store/selectors.ts
 `````typescript
 /**
@@ -871,6 +1510,229 @@ export const selectContainerEntities = (containerId: string) => (state: WorldSta
 /** Selects the mascot entity */
 export const selectMascot = (mascotId: string = 'chef') => (state: WorldState): Entity | undefined =>
   state.entities[mascotId];
+`````
+
+## File: src/systems/actionPlayer.test.ts
+`````typescript
+/**
+ * FILE: actionPlayer.test.ts
+ *
+ * PURPOSE:
+ * Unit tests for ActionPlayer replay engine.
+ */
+
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { actionPlayer } from './actionPlayer';
+import { worldStore } from '../store/worldStore';
+import type { WorldAction } from '../types/actions';
+
+describe('ActionPlayer', () => {
+  beforeEach(() => {
+    actionPlayer.stop();
+    worldStore.getState().resetWorld();
+  });
+
+  it('resets world state and dispatches actions sequentially', async () => {
+    const actions: WorldAction[] = [
+      {
+        type: 'ADD_ENTITY',
+        payload: {
+          entity: {
+            id: 'potato_test_1',
+            name: 'Potato',
+            type: 'ingredient',
+          },
+          containerId: 'burner1',
+        },
+      },
+      {
+        type: 'TOGGLE_BURNER',
+        payload: { containerId: 'burner1' },
+      },
+    ];
+
+    const onStep = vi.fn();
+    const onComplete = vi.fn();
+
+    await actionPlayer.playLog(actions, {
+      delayMs: 10,
+      onStep,
+      onComplete,
+    });
+
+    expect(onStep).toHaveBeenCalledTimes(2);
+    expect(onStep).toHaveBeenNthCalledWith(1, 1, 2, actions[0]);
+    expect(onStep).toHaveBeenNthCalledWith(2, 2, 2, actions[1]);
+    expect(onComplete).toHaveBeenCalledTimes(1);
+
+    const store = worldStore.getState();
+    expect(store.containers.burner1.isOn).toBe(true);
+    expect(store.containers.burner1.entityIds).toContain('potato_test_1');
+  });
+
+  it('can stop playback prematurely', async () => {
+    const actions: WorldAction[] = [
+      {
+        type: 'TOGGLE_BURNER',
+        payload: { containerId: 'burner1' },
+      },
+      {
+        type: 'TOGGLE_BURNER',
+        payload: { containerId: 'burner1' },
+      },
+      {
+        type: 'TOGGLE_BURNER',
+        payload: { containerId: 'burner1' },
+      },
+    ];
+
+    const onStep = vi.fn();
+    const onStop = vi.fn();
+
+    const playbackPromise = actionPlayer.playLog(actions, {
+      delayMs: 100,
+      onStep,
+      onStop,
+    });
+
+    // Let step 1 run then stop
+    await new Promise((r) => setTimeout(r, 20));
+    actionPlayer.stop();
+
+    await playbackPromise;
+
+    expect(onStop).toHaveBeenCalled();
+    expect(onStep).toHaveBeenCalledTimes(1);
+  });
+});
+`````
+
+## File: src/systems/actionPlayer.ts
+`````typescript
+/**
+ * FILE: actionPlayer.ts
+ *
+ * PURPOSE:
+ * Headless replay engine utility for sequential dispatching of recorded WorldActions.
+ *
+ * RESPONSIBILITY:
+ * - Resets world state to initial default before playback.
+ * - Dispatches actions sequentially to worldStore with configurable delay.
+ * - Provides progress callbacks and cancellation mechanism.
+ */
+
+import { worldStore } from '../store/worldStore';
+import type { WorldAction } from '../types/actions';
+
+export interface PlaybackOptions {
+  /** Configurable delay between action steps in milliseconds. Default: 300ms */
+  delayMs?: number;
+  /** Whether to reset world state before starting playback. Default: true */
+  resetWorld?: boolean;
+  /** Progress callback invoked after each action step */
+  onStep?: (currentStep: number, totalSteps: number, action: WorldAction) => void;
+  /** Callback invoked when playback successfully completes all actions */
+  onComplete?: () => void;
+  /** Callback invoked if playback is stopped early */
+  onStop?: () => void;
+}
+
+export class ActionPlayer {
+  private isPlaying = false;
+  private isStopped = false;
+  private timerId: ReturnType<typeof setTimeout> | null = null;
+  private resolveCurrentDelay: (() => void) | null = null;
+
+  /**
+   * Returns whether playback is currently running.
+   */
+  public getIsPlaying(): boolean {
+    return this.isPlaying;
+  }
+
+  /**
+   * Cancels and stops ongoing action playback.
+   */
+  public stop(): void {
+    if (!this.isPlaying) return;
+    this.isStopped = true;
+
+    if (this.timerId !== null) {
+      clearTimeout(this.timerId);
+      this.timerId = null;
+    }
+
+    if (this.resolveCurrentDelay) {
+      this.resolveCurrentDelay();
+      this.resolveCurrentDelay = null;
+    }
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise((resolve) => {
+      this.resolveCurrentDelay = resolve;
+      this.timerId = setTimeout(() => {
+        this.timerId = null;
+        this.resolveCurrentDelay = null;
+        resolve();
+      }, ms);
+    });
+  }
+
+  /**
+   * Replays an array of WorldActions sequentially through worldStore.
+   */
+  public async playLog(actions: WorldAction[], options: PlaybackOptions = {}): Promise<void> {
+    if (this.isPlaying) {
+      this.stop();
+    }
+
+    const {
+      delayMs = 300,
+      resetWorld = true,
+      onStep,
+      onComplete,
+      onStop,
+    } = options;
+
+    this.isPlaying = true;
+    this.isStopped = false;
+
+    if (resetWorld) {
+      worldStore.getState().dispatch({ type: 'RESET_WORLD' });
+    }
+
+    const total = actions.length;
+
+    for (let i = 0; i < total; i++) {
+      if (this.isStopped) {
+        this.isPlaying = false;
+        onStop?.();
+        return;
+      }
+
+      const action = actions[i];
+      worldStore.getState().dispatch(action);
+
+      onStep?.(i + 1, total, action);
+
+      if (i < total - 1 && delayMs > 0) {
+        await this.delay(delayMs);
+      }
+    }
+
+    if (this.isStopped) {
+      this.isPlaying = false;
+      onStop?.();
+      return;
+    }
+
+    this.isPlaying = false;
+    onComplete?.();
+  }
+}
+
+export const actionPlayer = new ActionPlayer();
 `````
 
 ## File: src/systems/ingredientUsage.test.ts
@@ -1053,6 +1915,45 @@ import type { Recipe, RecipeList as RecipeListArray } from './Recipe'
 
 export type { Recipe }
 export type RecipeList = RecipeListArray
+`````
+
+## File: src/types/recording.ts
+`````typescript
+/**
+ * FILE: recording.ts
+ *
+ * PURPOSE:
+ * Type definitions for serialized world state recipes and recorded user interaction sequences.
+ *
+ * RESPONSIBILITY:
+ * - Defines the JSON schema for serialized recipe exports.
+ * - Captures initial and final WorldState snapshots (entities + containers).
+ * - Stores interaction sequences with relative timestamps for replay / serialization.
+ */
+
+import type { Container, Entity, WorldAction } from './world';
+
+export interface RecordedAction {
+  type: WorldAction['type'] | string;
+  payload: Record<string, unknown>;
+  timestampMs: number;
+}
+
+export interface SerializedWorldState {
+  entities: Record<string, Entity>;
+  containers: Record<string, Container>;
+}
+
+export interface SerializedRecipeExport {
+  version: '1.0.0';
+  title: string;
+  recordedAt: string;
+  durationMs: number;
+  actionCount: number;
+  initialState: SerializedWorldState;
+  finalState: SerializedWorldState;
+  actions: RecordedAction[];
+}
 `````
 
 ## File: src/types/Requirement.ts
@@ -3827,6 +4728,638 @@ dist-ssr
 *.patch
 `````
 
+## File: AGENTS.md
+`````markdown
+# AGENTS.md
+
+## Tortilla World — AI Coding Agent Guide
+
+Welcome to Tortilla World.
+
+This file explains the project context, architecture rules, development environment, and expectations for AI coding agents.
+
+Before changing code:
+
+1. Read this file completely.
+2. Understand the entity/container architecture.
+3. Check related documentation.
+4. Make the smallest correct change.
+5. Keep the simulation model consistent.
+
+---
+
+# Project Overview
+
+Tortilla World is an interactive cooking simulation built with:
+
+* React
+* TypeScript
+* Vite
+* Zustand
+* dnd-kit
+* Framer Motion
+
+It is not a traditional CRUD application.
+
+The application models a small living world.
+
+Objects exist as entities.
+
+Entities are placed inside containers.
+
+Systems modify the world.
+
+---
+
+# Core Mental Model
+
+The most important concept:
+
+```
+Entities exist in Containers.
+
+Systems create Actions.
+
+Actions modify the World State.
+```
+
+Example:
+
+```
+Kitchen
+
+ ├── Potato
+ ├── Egg
+ ├── Knife
+ └── Pan
+
+
+User action:
+
+Move Potato to Pan
+
+
+Result:
+
+Kitchen
+
+ ├── Egg
+ ├── Knife
+ └── Pan
+
+
+Pan
+
+ └── Potato
+```
+
+The potato is not recreated.
+
+Ownership changes.
+
+---
+
+# Important Terminology
+
+## Entity
+
+Anything that exists in the world.
+
+Examples:
+
+* ingredient
+* tool
+* container
+* character
+* machine
+
+---
+
+## Container
+
+A world object that owns entities.
+
+Examples:
+
+* kitchen
+* pantry
+* recipe
+* pan
+* plate
+
+Containers define:
+
+* what they accept
+* ordering
+* uniqueness rules
+* transfer behaviour
+
+Do not call these "lists".
+
+They are not simple arrays.
+
+---
+
+## System
+
+A piece of logic that changes the world.
+
+Examples:
+
+* Movement System
+* Interaction System
+* Cooking System
+* AI System
+
+React components are not systems.
+
+---
+
+# Architectural Rules
+
+## Rule 1 — Do Not Put Business Logic Into Components
+
+Bad:
+
+```tsx
+onDrop={() => {
+   moveIngredient()
+   validateRecipe()
+   updateCooking()
+}}
+```
+
+Good:
+
+```tsx
+onDrop={() => {
+   dispatchAction()
+}}
+```
+
+Components display.
+
+Systems decide.
+
+---
+
+# Rule 2 — Zustand Is the World State
+
+Zustand stores:
+
+* entities
+* containers
+* relationships
+* world state
+
+Zustand should not know:
+
+* mouse events
+* DOM elements
+* animations
+* React components
+
+---
+
+# Rule 3 — Entities Keep Identity
+
+Never solve movement by deleting and recreating objects.
+
+Bad:
+
+```
+delete potato
+
+create new potato
+```
+
+Good:
+
+```
+Kitchen owns potato
+
+changes to:
+
+Pan owns potato
+```
+
+---
+
+# Rule 4 — Containers Enforce Rules
+
+Entities do not decide where they can go.
+
+The container decides.
+
+Example:
+
+Potato:
+
+```
+Allowed:
+
+Kitchen
+Recipe
+Pan
+Plate
+```
+
+The rule belongs to the container.
+
+---
+
+# Rule 5 — Container Contents Are Ordered
+
+Do not replace container contents with Set.
+
+Order matters.
+
+Reasons:
+
+* rendering
+* animations
+* drag and drop
+* visual arrangement
+
+Uniqueness is handled by validation.
+
+---
+
+# Rule 6 — Ingredient Uniqueness
+
+A container cannot contain two identical ingredients.
+
+Valid:
+
+```
+Recipe
+
+Potato
+Egg
+Onion
+```
+
+Invalid:
+
+```
+Recipe
+
+Potato
+Potato
+```
+
+Tools are different.
+
+Valid:
+
+```
+Kitchen
+
+Pan
+Pan
+Knife
+Knife
+```
+
+---
+
+# Repository Structure
+
+```
+src/
+
+├── components/
+│   React rendering components
+
+├── store/
+│   Zustand world state
+
+├── systems/
+│   World behaviour
+
+├── types/
+│   TypeScript contracts
+
+├── data/
+│   Static definitions
+
+└── assets/
+    Images and visual resources
+
+
+docs/
+
+├── entities.md
+├── architecture.md
+├── systems.md
+├── decisions.md
+└── roadmap.md
+```
+
+---
+
+# Development Environment
+
+## Requirements
+
+Node.js
+
+npm
+
+---
+
+## Install
+
+```bash
+npm install
+```
+
+---
+
+## Development Server
+
+```bash
+npm run dev
+```
+
+---
+
+## Build
+
+```bash
+npm run build
+```
+
+---
+
+## Tests
+
+Run:
+
+```bash
+npm run test
+```
+
+---
+
+## Lint
+
+Run:
+
+```bash
+npm run lint
+```
+
+---
+
+# Current Technology Choices
+
+## Frontend
+
+React 19
+
+TypeScript
+
+Vite
+
+---
+
+## State
+
+Zustand
+
+The store represents the simulation state.
+
+---
+
+## Drag and Drop
+
+dnd-kit
+
+Drag and drop is only input.
+
+It does not contain world rules.
+
+---
+
+## Animation
+
+Framer Motion
+
+Animations react to world changes.
+
+---
+
+# Coding Style
+
+## Prefer
+
+Small functions.
+
+Explicit types.
+
+Clear names.
+
+Domain terminology.
+
+Example:
+
+Good:
+
+```ts
+moveEntity()
+validateContainer()
+transferOwnership()
+```
+
+Avoid:
+
+```ts
+handleStuff()
+processData()
+updateThing()
+```
+
+---
+
+# Before Adding New Features
+
+Ask:
+
+## Is this a new entity?
+
+Example:
+
+```
+Knife
+Plate
+Customer
+```
+
+Add entity definition.
+
+---
+
+## Is this a new container?
+
+Example:
+
+```
+Fridge
+Oven
+Table
+```
+
+Add container rules.
+
+---
+
+## Is this behaviour?
+
+Example:
+
+```
+Cooking
+Cutting
+Heating
+```
+
+Add a system.
+
+---
+
+## Is this only visual?
+
+Example:
+
+```
+animation
+sprite
+layout
+```
+
+Keep it inside components.
+
+---
+
+# Common Mistakes To Avoid
+
+## Do not create local copies of world state
+
+Bad:
+
+```ts
+const [items,setItems]=useState([])
+```
+
+for world objects.
+
+Use the world store.
+
+---
+
+## Do not bypass systems
+
+Bad:
+
+```ts
+world.entities[id].container="pan"
+```
+
+Good:
+
+```ts
+dispatch({
+ type:"MOVE_ENTITY"
+})
+```
+
+---
+
+## Do not create generic abstractions too early
+
+Prefer:
+
+```
+one clear system
+```
+
+over:
+
+```
+many configurable frameworks
+```
+
+---
+
+# When Changing Architecture
+
+Update documentation.
+
+Required files:
+
+Architecture change:
+
+```
+docs/architecture.md
+docs/decisions.md
+```
+
+Entity change:
+
+```
+docs/entities.md
+```
+
+System change:
+
+```
+docs/systems.md
+```
+
+Future direction:
+
+```
+docs/roadmap.md
+```
+
+---
+
+# Current Development Priority
+
+The priority order is:
+
+1. Stable entity/container model
+2. Reliable movement system
+3. Correct drag and drop behaviour
+4. Animation layer
+5. Cooking mechanics
+6. AI actions
+
+Do not skip the foundation.
+
+---
+
+# Final Instruction For Agents
+
+Treat Tortilla World as a simulation engine.
+
+Do not optimize for the shortest React implementation.
+
+Optimize for:
+
+* predictable world behaviour
+* clear ownership
+* extensibility
+* understandable systems
+
+The goal is not a page.
+
+The goal is a living world.
+
+The actual whole code of this repo is in: [repomix-output.xml](https://github.com/felixinberlin/tortilla-world/blob/main/repomix-output.xml)
+`````
+
 ## File: README.md
 `````markdown
 # Tortilla World 🌮
@@ -5200,1062 +6733,6 @@ export function Ingredient({ ingredient }: IngredientProps) {
 }
 `````
 
-## File: src/components/Scene/RecipePlayer.scss
-`````scss
-/**
- * FILE: RecipePlayer.scss
- *
- * PURPOSE:
- * Stylesheet for RecipePlayer component.
- * Uses warm Spanish kitchen ceramic palette with sleek interactive controls.
- */
-
-@use 'sass:color';
-@use '../../styles/variables' as *;
-@use '../../styles/mixins' as *;
-
-.recipe-player-container {
-  @include ceramic-card($warm-surface, $warm-border);
-  padding: 16px 20px;
-  margin-bottom: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  box-shadow: $shadow-ceramic;
-  position: relative;
-  overflow: hidden;
-
-  // Header Row
-  .player-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 12px;
-
-    .recipe-select-group {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-
-      .recipe-label {
-        font-weight: 800;
-        font-size: 0.9rem;
-        color: $dark-brown;
-      }
-
-      .recipe-buttons {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex-wrap: wrap;
-
-        .recipe-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          background: #ffffff;
-          border: 2px solid $warm-border;
-          border-radius: $radius-sm;
-          padding: 6px 14px;
-          font-size: 0.88rem;
-          font-weight: 700;
-          color: $dark-brown;
-          cursor: pointer;
-          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-          box-shadow: 0 2px 4px rgba(44, 26, 20, 0.04);
-          user-select: none;
-
-          .recipe-btn-icon {
-            font-size: 1.1rem;
-            line-height: 1;
-            transition: transform 0.2s ease;
-          }
-
-          &:hover {
-            border-color: $tortilla-yellow;
-            background: $tortilla-yellow-light;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(232, 168, 56, 0.2);
-
-            .recipe-btn-icon {
-              transform: scale(1.2) rotate(-5deg);
-            }
-          }
-
-          &:active {
-            transform: translateY(0);
-          }
-
-          &.active {
-            background: linear-gradient(135deg, $tortilla-yellow, $tortilla-yellow-hover);
-            color: #ffffff;
-            border-color: $tortilla-yellow-hover;
-            box-shadow: 0 4px 10px rgba(232, 168, 56, 0.35);
-
-            .recipe-btn-icon {
-              transform: scale(1.15);
-            }
-          }
-        }
-      }
-    }
-
-    .player-status-badge {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-
-      .step-count {
-        font-size: 0.88rem;
-        color: $wood-muted;
-        background: $warm-beige;
-        padding: 4px 10px;
-        border-radius: $radius-sm;
-        border: 1px solid $warm-border;
-
-        strong {
-          color: $dark-brown;
-          font-weight: 800;
-        }
-      }
-
-      .speed-badge {
-        font-size: 0.82rem;
-        font-weight: 700;
-        padding: 4px 10px;
-        border-radius: $radius-sm;
-        background: $olive-green-light;
-        color: $olive-green;
-        border: 1px solid $olive-green-border;
-      }
-    }
-  }
-
-  // Recipe Requirements Section (Left Sidebar Panel)
-  .recipe-requirements-section {
-    width: 260px;
-    min-width: 230px;
-    flex-shrink: 0;
-    background: #ffffff;
-    border: 1px solid $warm-border;
-    border-radius: $radius-md;
-    padding: 14px 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    box-shadow: $shadow-ceramic;
-    box-sizing: border-box;
-
-    @media (max-width: 860px) {
-      width: 100%;
-    }
-
-    .requirements-header {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      padding-bottom: 8px;
-      border-bottom: 2px dashed color.mix($dark-brown, white, 15%);
-
-      .requirements-title {
-        font-size: 0.85rem;
-        font-weight: 800;
-        color: $dark-brown;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-      }
-
-      .requirements-subtitle {
-        font-size: 0.75rem;
-        font-weight: 600;
-        color: $wood-muted;
-      }
-    }
-
-    .recipe-requirements {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      width: 100%;
-
-      .requirement-view {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background: $warm-surface;
-        border: 1px solid $warm-border;
-        border-radius: $radius-md;
-        padding: 8px 12px;
-        font-size: 0.88rem;
-        font-weight: 700;
-        color: $dark-brown;
-        box-shadow: 0 1px 3px rgba(44, 26, 20, 0.04);
-        width: 100%;
-        box-sizing: border-box;
-        transition: all 0.2s ease;
-
-        &:hover {
-          border-color: $tortilla-yellow;
-          box-shadow: 0 3px 6px rgba(232, 168, 56, 0.15);
-          transform: translateX(2px);
-        }
-
-        &__amount {
-          font-size: 0.8rem;
-          font-weight: 800;
-          color: $terracotta;
-          background: $terracotta-light;
-          padding: 3px 8px;
-          border-radius: 6px;
-          border: 1px solid $terracotta-border;
-          white-space: nowrap;
-        }
-      }
-    }
-  }
-
-  // Progress Bar Track
-  .player-progress-track {
-    width: 100%;
-    height: 6px;
-    background: $warm-beige;
-    border-radius: 999px;
-    overflow: hidden;
-    position: relative;
-
-    .player-progress-bar {
-      height: 100%;
-      background: linear-gradient(90deg, $tortilla-yellow, $terracotta);
-      border-radius: 999px;
-      transition: width 0.25s ease-out;
-    }
-  }
-
-  // Active Step Description Card
-  .current-step-card {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    background: #ffffff;
-    border: 1px solid $warm-border;
-    border-radius: $radius-md;
-    padding: 12px 16px;
-    box-shadow: 0 2px 5px rgba(44, 26, 20, 0.04);
-
-    .step-icon-area {
-      font-size: 1.8rem;
-      width: 44px;
-      height: 44px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: $tortilla-yellow-light;
-      border: 1px solid $tortilla-yellow-border;
-      border-radius: $radius-sm;
-      flex-shrink: 0;
-    }
-
-    .step-text-area {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-
-      .step-action-badge {
-        display: inline-block;
-        align-self: flex-start;
-        font-size: 0.68rem;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        padding: 2px 6px;
-        border-radius: 4px;
-        background: $terracotta-light;
-        color: $terracotta;
-        border: 1px solid $terracotta-border;
-      }
-
-      .step-description {
-        margin: 0;
-        font-size: 0.95rem;
-        font-weight: 600;
-        color: $dark-brown;
-        line-height: 1.35;
-      }
-    }
-  }
-
-  // Controls Row
-  .player-controls-bar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 10px;
-    padding-top: 4px;
-
-    .ctrl-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 14px;
-      font-size: 0.85rem;
-      font-weight: 700;
-      border-radius: $radius-sm;
-      border: 1px solid $warm-border;
-      background: #ffffff;
-      color: $dark-brown;
-      cursor: pointer;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
-      transition: all 0.18s ease;
-      user-select: none;
-
-      &:hover:not(:disabled) {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        border-color: $tortilla-yellow;
-      }
-
-      &:active:not(:disabled) {
-        transform: translateY(0);
-      }
-
-      &:disabled {
-        opacity: 0.45;
-        cursor: not-allowed;
-        box-shadow: none;
-      }
-
-      // Primary Play Button
-      &.play-btn {
-        background: $tortilla-yellow;
-        color: #ffffff;
-        border-color: $tortilla-yellow-hover;
-        padding: 10px 22px;
-        font-size: 0.95rem;
-
-        &:hover:not(:disabled) {
-          background: $tortilla-yellow-hover;
-        }
-
-        &.is-playing {
-          background: $terracotta;
-          border-color: $terracotta-hover;
-        }
-      }
-
-      // Slow & Fast buttons
-      &.slow-btn, &.fast-btn {
-        background: $warm-surface;
-      }
-
-      // Reset button
-      &.reset-btn {
-        margin-left: auto;
-        background: #ffffff;
-        border: 2px solid $terracotta;
-        color: $terracotta;
-        font-size: 0.9rem;
-        font-weight: 800;
-        padding: 9px 18px;
-
-        &:hover:not(:disabled) {
-          background: $terracotta;
-          color: #ffffff;
-          border-color: $terracotta-hover;
-          box-shadow: 0 4px 8px rgba(217, 83, 79, 0.25);
-        }
-      }
-    }
-  }
-
-  // Footer: Speed Pills & Stepper Dots
-  .player-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 12px;
-    padding-top: 6px;
-    border-top: 1px dashed $warm-border;
-
-    .speed-pills {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-
-      .speed-title {
-        font-size: 0.8rem;
-        font-weight: 700;
-        color: $wood-muted;
-        margin-right: 2px;
-      }
-
-      .speed-pill {
-        border: 1px solid $warm-border;
-        background: #ffffff;
-        color: $dark-brown;
-        font-size: 0.75rem;
-        font-weight: 700;
-        padding: 3px 8px;
-        border-radius: $radius-sm;
-        cursor: pointer;
-        transition: all 0.15s;
-
-        &:hover {
-          border-color: $olive-green;
-        }
-
-        &.active {
-          background: $olive-green;
-          color: #ffffff;
-          border-color: $olive-green-hover;
-        }
-      }
-    }
-
-    .stepper-dots {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      flex-wrap: wrap;
-
-      .step-dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background: $warm-border;
-        border: none;
-        padding: 0;
-        cursor: pointer;
-        transition: all 0.2s;
-
-        &:hover {
-          transform: scale(1.3);
-          background: $tortilla-yellow;
-        }
-
-        &.completed {
-          background: $olive-green;
-        }
-
-        &.active {
-          background: $terracotta;
-          transform: scale(1.3);
-          box-shadow: 0 0 0 2px $terracotta-light;
-        }
-      }
-    }
-  }
-}
-`````
-
-## File: src/components/Scene/RecipePlayer.tsx
-`````typescript
-/**
- * FILE: RecipePlayer.tsx
- *
- * PURPOSE:
- * Interactive recipe playback and step navigation control component.
- *
- * RESPONSIBILITY:
- * - Provides play/pause, slow, fast, step up (forward), and step down (backward) controls.
- * - Displays active recipe progress, current step index, and human-readable step description.
- * - Manages automated execution using RecipeRunner engine.
- * - Supports instant step navigation and timeline jumping while maintaining simulation world state.
- */
-
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { recipes } from '../../data/catalog/recipes';
-import { ingredients } from '../../data/catalog/ingredients';
-import { catalogTools as tools } from '../../data/catalog/tools';
-import { RecipeRunner } from '../../systems/recipeRunner';
-import { worldStore } from '../../store/worldStore';
-import type { RecipeStep } from '../../types/RecipeStep';
-import type { Recipe } from '../../types/Recipe';
-import { getRecipeRequirementsArray } from '../../types/Recipe';
-import { RecipeRequirements } from '../Recipe/RecipeRequirements';
-import './RecipePlayer.scss';
-
-// Speed options and corresponding delays in ms
-const SPEED_DELAYS: Record<number, number> = {
-  0.5: 1200, // Slow
-  1: 600,    // Normal
-  2: 300,    // Fast
-  3: 150,    // Turbo
-};
-
-/**
- * Formats an ingredient key with its current preparation and cooking state from worldStore.
- */
-function formatIngredientWithState(inputKey: string): string {
-  const store = worldStore.getState();
-
-  const singularKey =
-    inputKey.endsWith('es') && inputKey.length > 3
-      ? inputKey.slice(0, -2)
-      : inputKey.endsWith('s') && inputKey.length > 2
-      ? inputKey.slice(0, -1)
-      : inputKey;
-
-  const entity = Object.values(store.entities).find(
-    (e) =>
-      e &&
-      (e.id === inputKey ||
-        e.ingredientId === inputKey ||
-        e.ingredientId === singularKey ||
-        e.id.startsWith(inputKey + '_') ||
-        e.id.startsWith(singularKey + '_'))
-  );
-
-  const parts: string[] = [];
-
-  if (entity?.state) {
-    // Cooking state
-    const cooking = entity.state.cooking as string | undefined;
-    if (cooking && cooking !== 'raw') {
-      if (cooking === 'fry' || cooking === 'fried' || cooking === 'cooked') {
-        parts.push('cooked');
-      } else {
-        parts.push(cooking);
-      }
-    }
-
-    // Preparation state
-    const prep = entity.state.preparation as string | undefined;
-    if (prep && prep !== 'whole' && prep !== 'raw') {
-      parts.push(prep);
-    }
-  }
-
-  // Fallback defaults for recipe step descriptions when state is not yet populated
-  if (parts.length === 0) {
-    if (inputKey === 'potatoes') {
-      parts.push('cooked', 'sliced');
-    } else if (inputKey === 'eggs') {
-      parts.push('beaten');
-    } else if (inputKey === 'onions') {
-      parts.push('cooked', 'diced');
-    }
-  }
-
-  parts.push(inputKey);
-  return parts.join(' ');
-}
-
-/**
- * Generates human-readable step details (icon, text label, badge) for a given RecipeStep.
- */
-function getStepDetails(step?: RecipeStep): { icon: string; text: string; actionName: string } {
-  if (!step) {
-    return { icon: '✨', text: 'Select a recipe and press Play or Step Up to begin!', actionName: 'Ready' };
-  }
-
-  switch (step.action) {
-    case 'move':
-      return {
-        icon: '🚚',
-        text: `Move ${step.ingredient || 'ingredient'} from ${step.source || 'storage'} to ${step.target || 'workspace'}`,
-        actionName: 'Move',
-      };
-    case 'grab':
-      return {
-        icon: '🫳',
-        text: `Grab ${step.ingredient} from ${step.source || 'storage'}`,
-        actionName: 'Grab',
-      };
-    case 'drop':
-      return {
-        icon: '⬇️',
-        text: `Drop held ingredient into ${step.target || 'workspace'}`,
-        actionName: 'Drop',
-      };
-    case 'cut':
-    case 'prepare':
-    case 'peel':
-      return {
-        icon: '🔪',
-        text: `${step.action.toUpperCase()} ${step.ingredient || step.target || ''} (${step.preparation || step.style || 'prepared'})`,
-        actionName: step.action,
-      };
-    case 'wash':
-    case 'rinse':
-    case 'drain':
-      return {
-        icon: '💧',
-        text: `${step.action.toUpperCase()} ${step.ingredient || step.target || ''}`,
-        actionName: step.action,
-      };
-    case 'cook':
-      return {
-        icon: '🍳',
-        text: `Cook ${step.target || step.ingredient || ''} (${step.method || 'fry'}${step.duration ? `, ${step.duration} ${step.unit || 'min'}` : ''})`,
-        actionName: 'Cook',
-      };
-    case 'flip':
-      return {
-        icon: '🍳',
-        text: step.instruction || `Flip ${step.target || 'tortilla'} in the pan`,
-        actionName: 'Flip',
-      };
-    case 'mix':
-    case 'beat':
-    case 'combine': {
-      const formattedInputs = (step.inputs || step.ingredients || []).map(formatIngredientWithState);
-      const targetContainer = step.targetContainerId;
-      const containerName =
-        !targetContainer || targetContainer === 'bowl' || targetContainer === 'preparation_bowl'
-          ? 'preparation bowl'
-          : targetContainer.replace('_', ' ');
-      return {
-        icon: '🥣',
-        text: `Mix ${formattedInputs.join(', ')} in the ${containerName} -> ${step.output || 'mixture'}`,
-        actionName: step.action,
-      };
-    }
-    case 'serve':
-      return {
-        icon: '🍽️',
-        text: `Serve ${step.target || 'dish'} to ${step.containerId || 'plate'}`,
-        actionName: 'Serve',
-      };
-    case 'instruction':
-      return {
-        icon: '👨‍🍳',
-        text: step.text || step.instruction || 'Follow recipe instruction',
-        actionName: 'Instruction',
-      };
-    case 'speak':
-      return {
-        icon: '💬',
-        text: `Tortilla says: "${step.message}"`,
-        actionName: 'Speak',
-      };
-    case 'celebrate':
-      return {
-        icon: '🎉',
-        text: 'Flip celebration! Recipe completed successfully!',
-        actionName: 'Celebrate',
-      };
-    case 'wait':
-      return {
-        icon: '⏳',
-        text: `Wait for ${step.durationMs || 600}ms`,
-        actionName: 'Wait',
-      };
-    default:
-      return {
-        icon: '📝',
-        text: 'Execute recipe step',
-        actionName: 'Step',
-      };
-  }
-}
-
-interface RecipePlayerProps {
-  renderWorkspace?: (requirementsNode: React.ReactNode) => React.ReactNode;
-}
-
-export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) => {
-  const [selectedRecipeId, setSelectedRecipeId] = useState<string>(recipes[0]?.id || 'concebolla');
-  const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
-  const [isPlaying, setIsPlaying] = useState<boolean>(false);
-  const [speed, setSpeed] = useState<number>(1); // 0.5, 1, 2, 3
-
-  const activeRecipe: Recipe = useMemo(
-    () => recipes.find((r) => r.id === selectedRecipeId) || recipes[0],
-    [selectedRecipeId]
-  );
-  const steps: RecipeStep[] = useMemo(() => activeRecipe?.steps || [], [activeRecipe]);
-  const totalSteps = steps.length;
-
-  const runnerRef = useRef<RecipeRunner | null>(null);
-  const isExecutingRef = useRef<boolean>(false);
-
-  // Get delay in ms based on active speed multiplier
-  const currentDelayMs = SPEED_DELAYS[speed] || 600;
-
-  // Synchronize required materials for active recipe in despensa container
-  useEffect(() => {
-    const store = worldStore.getState();
-    const reqs = getRecipeRequirementsArray(activeRecipe);
-    reqs.forEach((req) => {
-      const existing = store.entities[req.entityId];
-      if (!existing) {
-        const catalogIng = ingredients.find((i) => i.id === req.entityId);
-        const catalogTool = tools.find((t: { id: string }) => t.id === req.entityId);
-        store.dispatch({
-          type: 'ADD_ENTITY',
-          payload: {
-            entity: {
-              id: req.entityId,
-              name: req.name || catalogIng?.name || catalogTool?.name || req.entityId,
-              type: (catalogTool ? 'tool' : 'ingredient') as 'tool' | 'ingredient',
-              icon: catalogIng?.icon || catalogTool?.icon,
-              ingredientId: req.entityId,
-              state: {},
-            },
-            containerId: 'despensa',
-          },
-        });
-      }
-    });
-  }, [activeRecipe]);
-
-  // Re-sync runner context or reset when recipe changes
-  const handleRecipeChange = (newRecipeId: string) => {
-    setIsPlaying(false);
-    setSelectedRecipeId(newRecipeId);
-    setCurrentStepIndex(0);
-    runnerRef.current = null;
-    worldStore.getState().dispatch({ type: 'RESET_WORLD' });
-  };
-
-  // Full reset of world and player step
-  const handleReset = useCallback(() => {
-    setIsPlaying(false);
-    setCurrentStepIndex(0);
-    runnerRef.current = null;
-    worldStore.getState().dispatch({ type: 'RESET_WORLD' });
-  }, []);
-
-  // Jump to a specific target step index by replaying from step 0
-  const jumpToStep = useCallback(
-    async (targetIndex: number) => {
-      if (isExecutingRef.current) return;
-      setIsPlaying(false);
-
-      const clampedTarget = Math.min(Math.max(0, targetIndex), totalSteps);
-      isExecutingRef.current = true;
-
-      try {
-        // Reset world state to initial kitchen
-        worldStore.getState().dispatch({ type: 'RESET_WORLD' });
-
-        // Instantiate zero-delay runner for fast-forward
-        const fastRunner = new RecipeRunner({
-          mascotId: 'chef',
-          defaultTargetId: 'board',
-          delayMs: 0,
-        });
-        fastRunner.bindRecipeContext(activeRecipe);
-
-        for (let i = 0; i < clampedTarget; i++) {
-          await fastRunner.executeStep(steps[i]);
-        }
-
-        fastRunner.delayMs = currentDelayMs;
-        runnerRef.current = fastRunner;
-        setCurrentStepIndex(clampedTarget);
-      } catch (err) {
-        console.error('[RecipePlayer] Error jumping to step:', err);
-      } finally {
-        isExecutingRef.current = false;
-      }
-    },
-    [activeRecipe, totalSteps, steps, currentDelayMs]
-  );
-
-  // Step Up (Step forward 1 step)
-  const handleStepUp = useCallback(async () => {
-    if (isExecutingRef.current) return;
-    setIsPlaying(false);
-
-    if (currentStepIndex >= totalSteps) return;
-
-    isExecutingRef.current = true;
-
-    try {
-      if (!runnerRef.current || currentStepIndex === 0) {
-        if (currentStepIndex === 0) {
-          worldStore.getState().dispatch({ type: 'RESET_WORLD' });
-        }
-        runnerRef.current = new RecipeRunner({
-          mascotId: 'chef',
-          defaultTargetId: 'board',
-          delayMs: currentDelayMs,
-        });
-        runnerRef.current.bindRecipeContext(activeRecipe);
-      } else {
-        runnerRef.current.delayMs = currentDelayMs;
-      }
-
-      const stepToRun = steps[currentStepIndex];
-      await runnerRef.current.executeStep(stepToRun);
-      setCurrentStepIndex((prev) => Math.min(prev + 1, totalSteps));
-    } catch (err) {
-      console.error('[RecipePlayer] Error stepping up:', err);
-    } finally {
-      isExecutingRef.current = false;
-    }
-  }, [currentStepIndex, totalSteps, activeRecipe, steps, currentDelayMs]);
-
-  // Step Down (Step back 1 step)
-  const handleStepDown = useCallback(() => {
-    if (currentStepIndex <= 0) return;
-    jumpToStep(currentStepIndex - 1);
-  }, [currentStepIndex, jumpToStep]);
-
-  // Toggle Play / Pause
-  const handleTogglePlay = () => {
-    if (isPlaying) {
-      setIsPlaying(false);
-    } else {
-      // If at end of recipe, restart from beginning
-      if (currentStepIndex >= totalSteps) {
-        handleReset();
-      }
-      setIsPlaying(true);
-    }
-  };
-
-  // Decrease speed (Slow button)
-  const handleSlow = () => {
-    if (speed === 3) setSpeed(2);
-    else if (speed === 2) setSpeed(1);
-    else if (speed === 1) setSpeed(0.5);
-    else setSpeed(0.5);
-  };
-
-  // Increase speed (Fast button)
-  const handleFast = () => {
-    if (speed === 0.5) setSpeed(1);
-    else if (speed === 1) setSpeed(2);
-    else if (speed === 2) setSpeed(3);
-    else setSpeed(3);
-  };
-
-  // Auto-play step loop effect
-  useEffect(() => {
-    if (!isPlaying) return;
-
-    let isCancelled = false;
-
-    const playNextStep = async () => {
-      if (currentStepIndex >= totalSteps) {
-        setIsPlaying(false);
-        return;
-      }
-
-      if (isExecutingRef.current) return;
-      isExecutingRef.current = true;
-
-      try {
-        if (!runnerRef.current || currentStepIndex === 0) {
-          if (currentStepIndex === 0) {
-            worldStore.getState().dispatch({ type: 'RESET_WORLD' });
-          }
-          runnerRef.current = new RecipeRunner({
-            mascotId: 'chef',
-            defaultTargetId: 'board',
-            delayMs: currentDelayMs,
-          });
-          runnerRef.current.bindRecipeContext(activeRecipe);
-        } else {
-          runnerRef.current.delayMs = currentDelayMs;
-        }
-
-        const stepToRun = steps[currentStepIndex];
-        await runnerRef.current.executeStep(stepToRun);
-
-        if (!isCancelled) {
-          const nextIndex = currentStepIndex + 1;
-          setCurrentStepIndex(nextIndex);
-          if (nextIndex >= totalSteps) {
-            setIsPlaying(false);
-          }
-        }
-      } catch (err) {
-        console.error('[RecipePlayer] Playback loop error:', err);
-        if (!isCancelled) setIsPlaying(false);
-      } finally {
-        isExecutingRef.current = false;
-      }
-    };
-
-    playNextStep();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [isPlaying, currentStepIndex, totalSteps, activeRecipe, steps, currentDelayMs]);
-
-  // Details for current step
-  const currentStep = steps[currentStepIndex < totalSteps ? currentStepIndex : totalSteps - 1];
-  const stepDetails = getStepDetails(currentStepIndex < totalSteps ? currentStep : undefined);
-  const progressPercent = totalSteps > 0 ? Math.min(100, (currentStepIndex / totalSteps) * 100) : 0;
-
-  const requirementsNode = (
-    <div className="recipe-requirements-section" data-container-id="despensa">
-      <div className="requirements-header">
-        <span className="requirements-title">📋 Required Materials</span>
-        <span className="requirements-subtitle">(Drag items to workstation)</span>
-      </div>
-      <RecipeRequirements requirements={getRecipeRequirementsArray(activeRecipe)} />
-    </div>
-  );
-
-  return (
-    <>
-      <div className="recipe-player-container">
-        {/* Header Row */}
-        <div className="player-header">
-          <div className="recipe-select-group">
-            <span className="recipe-label">Recipe:</span>
-            <div className="recipe-buttons">
-              {recipes.map((r) => {
-                const isActive = r.id === selectedRecipeId;
-                const recipeIcon = r.id === 'concebolla' ? '🧅' : '🥔';
-                return (
-                  <button
-                    key={r.id}
-                    type="button"
-                    className={`recipe-btn ${isActive ? 'active' : ''}`}
-                    onClick={() => handleRecipeChange(r.id)}
-                  >
-                    <span className="recipe-btn-icon">{recipeIcon}</span>
-                    <span className="recipe-btn-text">{r.name}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="player-status-badge">
-            <span className="step-count">
-              Step <strong>{currentStepIndex}</strong> / {totalSteps}
-            </span>
-            <span className={`speed-badge speed-${speed.toString().replace('.', '_')}`}>
-              ⚡ {speed}x
-            </span>
-          </div>
-        </div>
-
-        {/* Progress Bar */}
-        <div className="player-progress-track">
-          <div
-            className="player-progress-bar"
-            style={{ width: `${progressPercent}%` }}
-          />
-        </div>
-
-        {/* Active Step Description Card */}
-        <div className="current-step-card">
-          <div className="step-icon-area">{stepDetails.icon}</div>
-          <div className="step-text-area">
-            <div className="step-action-badge">{stepDetails.actionName}</div>
-            <p className="step-description">{stepDetails.text}</p>
-          </div>
-        </div>
-
-        {/* Main Controls Row */}
-        <div className="player-controls-bar">
-          {/* Slow Control */}
-          <button
-            type="button"
-            className="ctrl-btn slow-btn"
-            onClick={handleSlow}
-            title="Slow down playback speed (0.5x)"
-          >
-            🐢 Slow
-          </button>
-
-          {/* Step Down (Step Back) */}
-          <button
-            type="button"
-            className="ctrl-btn step-down-btn"
-            onClick={handleStepDown}
-            disabled={currentStepIndex <= 0}
-            title="Step Down: Go back to previous step"
-          >
-            ⏮ Step Down
-          </button>
-
-          {/* Play / Pause Toggle */}
-          <button
-            type="button"
-            className={`ctrl-btn play-btn ${isPlaying ? 'is-playing' : ''}`}
-            onClick={handleTogglePlay}
-            title={isPlaying ? 'Pause recipe auto-play' : 'Play recipe step-by-step'}
-          >
-            {isPlaying ? '⏸ Pause' : currentStepIndex >= totalSteps ? '🔄 Replay' : '▶ Play'}
-          </button>
-
-          {/* Step Up (Step Forward) */}
-          <button
-            type="button"
-            className="ctrl-btn step-up-btn"
-            onClick={handleStepUp}
-            disabled={currentStepIndex >= totalSteps}
-            title="Step Up: Advance to next step"
-          >
-            Step Up ⏭
-          </button>
-
-          {/* Fast Control */}
-          <button
-            type="button"
-            className="ctrl-btn fast-btn"
-            onClick={handleFast}
-            title="Speed up playback speed (2x/3x)"
-          >
-            Fast ⚡
-          </button>
-
-          {/* Kitchen Reset Button */}
-          <button
-            type="button"
-            className="ctrl-btn reset-btn"
-            onClick={handleReset}
-            title="Reset kitchen world to starting state"
-          >
-            🔄 Reset
-          </button>
-        </div>
-
-        {/* Speed Presets & Step Timeline Dots */}
-        <div className="player-footer">
-          <div className="speed-pills">
-            <span className="speed-title">Speed:</span>
-            {[0.5, 1, 2, 3].map((sp) => (
-              <button
-                key={sp}
-                type="button"
-                className={`speed-pill ${speed === sp ? 'active' : ''}`}
-                onClick={() => setSpeed(sp)}
-              >
-                {sp}x
-              </button>
-            ))}
-          </div>
-
-          {/* Interactive Step Stepper Dots */}
-          <div className="stepper-dots">
-            {steps.map((_, idx) => (
-              <button
-                key={`step-dot-${idx}`}
-                type="button"
-                className={`step-dot ${idx < currentStepIndex ? 'completed' : ''} ${
-                  idx === currentStepIndex ? 'active' : ''
-                }`}
-                onClick={() => jumpToStep(idx)}
-                title={`Jump to step ${idx + 1}`}
-              />
-            ))}
-          </div>
-        </div>
-
-        {!renderWorkspace && requirementsNode}
-      </div>
-      {renderWorkspace && renderWorkspace(requirementsNode)}
-    </>
-  );
-};
-`````
-
 ## File: src/components/World/EntityView.tsx
 `````typescript
 /**
@@ -7099,638 +7576,6 @@ createRoot(document.getElementById('root')!).render(
     <App />
   </StrictMode>,
 )
-`````
-
-## File: AGENTS.md
-`````markdown
-# AGENTS.md
-
-## Tortilla World — AI Coding Agent Guide
-
-Welcome to Tortilla World.
-
-This file explains the project context, architecture rules, development environment, and expectations for AI coding agents.
-
-Before changing code:
-
-1. Read this file completely.
-2. Understand the entity/container architecture.
-3. Check related documentation.
-4. Make the smallest correct change.
-5. Keep the simulation model consistent.
-
----
-
-# Project Overview
-
-Tortilla World is an interactive cooking simulation built with:
-
-* React
-* TypeScript
-* Vite
-* Zustand
-* dnd-kit
-* Framer Motion
-
-It is not a traditional CRUD application.
-
-The application models a small living world.
-
-Objects exist as entities.
-
-Entities are placed inside containers.
-
-Systems modify the world.
-
----
-
-# Core Mental Model
-
-The most important concept:
-
-```
-Entities exist in Containers.
-
-Systems create Actions.
-
-Actions modify the World State.
-```
-
-Example:
-
-```
-Kitchen
-
- ├── Potato
- ├── Egg
- ├── Knife
- └── Pan
-
-
-User action:
-
-Move Potato to Pan
-
-
-Result:
-
-Kitchen
-
- ├── Egg
- ├── Knife
- └── Pan
-
-
-Pan
-
- └── Potato
-```
-
-The potato is not recreated.
-
-Ownership changes.
-
----
-
-# Important Terminology
-
-## Entity
-
-Anything that exists in the world.
-
-Examples:
-
-* ingredient
-* tool
-* container
-* character
-* machine
-
----
-
-## Container
-
-A world object that owns entities.
-
-Examples:
-
-* kitchen
-* pantry
-* recipe
-* pan
-* plate
-
-Containers define:
-
-* what they accept
-* ordering
-* uniqueness rules
-* transfer behaviour
-
-Do not call these "lists".
-
-They are not simple arrays.
-
----
-
-## System
-
-A piece of logic that changes the world.
-
-Examples:
-
-* Movement System
-* Interaction System
-* Cooking System
-* AI System
-
-React components are not systems.
-
----
-
-# Architectural Rules
-
-## Rule 1 — Do Not Put Business Logic Into Components
-
-Bad:
-
-```tsx
-onDrop={() => {
-   moveIngredient()
-   validateRecipe()
-   updateCooking()
-}}
-```
-
-Good:
-
-```tsx
-onDrop={() => {
-   dispatchAction()
-}}
-```
-
-Components display.
-
-Systems decide.
-
----
-
-# Rule 2 — Zustand Is the World State
-
-Zustand stores:
-
-* entities
-* containers
-* relationships
-* world state
-
-Zustand should not know:
-
-* mouse events
-* DOM elements
-* animations
-* React components
-
----
-
-# Rule 3 — Entities Keep Identity
-
-Never solve movement by deleting and recreating objects.
-
-Bad:
-
-```
-delete potato
-
-create new potato
-```
-
-Good:
-
-```
-Kitchen owns potato
-
-changes to:
-
-Pan owns potato
-```
-
----
-
-# Rule 4 — Containers Enforce Rules
-
-Entities do not decide where they can go.
-
-The container decides.
-
-Example:
-
-Potato:
-
-```
-Allowed:
-
-Kitchen
-Recipe
-Pan
-Plate
-```
-
-The rule belongs to the container.
-
----
-
-# Rule 5 — Container Contents Are Ordered
-
-Do not replace container contents with Set.
-
-Order matters.
-
-Reasons:
-
-* rendering
-* animations
-* drag and drop
-* visual arrangement
-
-Uniqueness is handled by validation.
-
----
-
-# Rule 6 — Ingredient Uniqueness
-
-A container cannot contain two identical ingredients.
-
-Valid:
-
-```
-Recipe
-
-Potato
-Egg
-Onion
-```
-
-Invalid:
-
-```
-Recipe
-
-Potato
-Potato
-```
-
-Tools are different.
-
-Valid:
-
-```
-Kitchen
-
-Pan
-Pan
-Knife
-Knife
-```
-
----
-
-# Repository Structure
-
-```
-src/
-
-├── components/
-│   React rendering components
-
-├── store/
-│   Zustand world state
-
-├── systems/
-│   World behaviour
-
-├── types/
-│   TypeScript contracts
-
-├── data/
-│   Static definitions
-
-└── assets/
-    Images and visual resources
-
-
-docs/
-
-├── entities.md
-├── architecture.md
-├── systems.md
-├── decisions.md
-└── roadmap.md
-```
-
----
-
-# Development Environment
-
-## Requirements
-
-Node.js
-
-npm
-
----
-
-## Install
-
-```bash
-npm install
-```
-
----
-
-## Development Server
-
-```bash
-npm run dev
-```
-
----
-
-## Build
-
-```bash
-npm run build
-```
-
----
-
-## Tests
-
-Run:
-
-```bash
-npm run test
-```
-
----
-
-## Lint
-
-Run:
-
-```bash
-npm run lint
-```
-
----
-
-# Current Technology Choices
-
-## Frontend
-
-React 19
-
-TypeScript
-
-Vite
-
----
-
-## State
-
-Zustand
-
-The store represents the simulation state.
-
----
-
-## Drag and Drop
-
-dnd-kit
-
-Drag and drop is only input.
-
-It does not contain world rules.
-
----
-
-## Animation
-
-Framer Motion
-
-Animations react to world changes.
-
----
-
-# Coding Style
-
-## Prefer
-
-Small functions.
-
-Explicit types.
-
-Clear names.
-
-Domain terminology.
-
-Example:
-
-Good:
-
-```ts
-moveEntity()
-validateContainer()
-transferOwnership()
-```
-
-Avoid:
-
-```ts
-handleStuff()
-processData()
-updateThing()
-```
-
----
-
-# Before Adding New Features
-
-Ask:
-
-## Is this a new entity?
-
-Example:
-
-```
-Knife
-Plate
-Customer
-```
-
-Add entity definition.
-
----
-
-## Is this a new container?
-
-Example:
-
-```
-Fridge
-Oven
-Table
-```
-
-Add container rules.
-
----
-
-## Is this behaviour?
-
-Example:
-
-```
-Cooking
-Cutting
-Heating
-```
-
-Add a system.
-
----
-
-## Is this only visual?
-
-Example:
-
-```
-animation
-sprite
-layout
-```
-
-Keep it inside components.
-
----
-
-# Common Mistakes To Avoid
-
-## Do not create local copies of world state
-
-Bad:
-
-```ts
-const [items,setItems]=useState([])
-```
-
-for world objects.
-
-Use the world store.
-
----
-
-## Do not bypass systems
-
-Bad:
-
-```ts
-world.entities[id].container="pan"
-```
-
-Good:
-
-```ts
-dispatch({
- type:"MOVE_ENTITY"
-})
-```
-
----
-
-## Do not create generic abstractions too early
-
-Prefer:
-
-```
-one clear system
-```
-
-over:
-
-```
-many configurable frameworks
-```
-
----
-
-# When Changing Architecture
-
-Update documentation.
-
-Required files:
-
-Architecture change:
-
-```
-docs/architecture.md
-docs/decisions.md
-```
-
-Entity change:
-
-```
-docs/entities.md
-```
-
-System change:
-
-```
-docs/systems.md
-```
-
-Future direction:
-
-```
-docs/roadmap.md
-```
-
----
-
-# Current Development Priority
-
-The priority order is:
-
-1. Stable entity/container model
-2. Reliable movement system
-3. Correct drag and drop behaviour
-4. Animation layer
-5. Cooking mechanics
-6. AI actions
-
-Do not skip the foundation.
-
----
-
-# Final Instruction For Agents
-
-Treat Tortilla World as a simulation engine.
-
-Do not optimize for the shortest React implementation.
-
-Optimize for:
-
-* predictable world behaviour
-* clear ownership
-* extensibility
-* understandable systems
-
-The goal is not a page.
-
-The goal is a living world.
-
-The actual whole code of this repo is in: [repomix-output.xml](https://github.com/felixinberlin/tortilla-world/blob/main/repomix-output.xml)
 `````
 
 ## File: docs/entities.md
@@ -8815,6 +8660,1173 @@ export const RequirementView: React.FC<RequirementViewProps> = ({ requirement })
 };
 `````
 
+## File: src/components/Scene/RecipePlayer.scss
+`````scss
+/**
+ * FILE: RecipePlayer.scss
+ *
+ * PURPOSE:
+ * Stylesheet for RecipePlayer component.
+ * Uses warm Spanish kitchen ceramic palette with sleek interactive controls.
+ */
+
+@use 'sass:color';
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.recipe-player-container {
+  @include ceramic-card($warm-surface, $warm-border);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: $shadow-ceramic;
+  position: relative;
+  overflow: hidden;
+
+  // Header Row
+  .player-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+
+    .recipe-select-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .recipe-label {
+        font-weight: 800;
+        font-size: 0.9rem;
+        color: $dark-brown;
+      }
+
+      .recipe-buttons {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+
+        .recipe-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          background: #ffffff;
+          border: 2px solid $warm-border;
+          border-radius: $radius-sm;
+          padding: 6px 14px;
+          font-size: 0.88rem;
+          font-weight: 700;
+          color: $dark-brown;
+          cursor: pointer;
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          box-shadow: 0 2px 4px rgba(44, 26, 20, 0.04);
+          user-select: none;
+
+          .recipe-btn-icon {
+            font-size: 1.1rem;
+            line-height: 1;
+            transition: transform 0.2s ease;
+          }
+
+          &:hover {
+            border-color: $tortilla-yellow;
+            background: $tortilla-yellow-light;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(232, 168, 56, 0.2);
+
+            .recipe-btn-icon {
+              transform: scale(1.2) rotate(-5deg);
+            }
+          }
+
+          &:active {
+            transform: translateY(0);
+          }
+
+          &.active {
+            background: linear-gradient(135deg, $tortilla-yellow, $tortilla-yellow-hover);
+            color: #ffffff;
+            border-color: $tortilla-yellow-hover;
+            box-shadow: 0 4px 10px rgba(232, 168, 56, 0.35);
+
+            .recipe-btn-icon {
+              transform: scale(1.15);
+            }
+          }
+        }
+      }
+    }
+
+    .player-status-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      .step-count {
+        font-size: 0.88rem;
+        color: $wood-muted;
+        background: $warm-beige;
+        padding: 4px 10px;
+        border-radius: $radius-sm;
+        border: 1px solid $warm-border;
+
+        strong {
+          color: $dark-brown;
+          font-weight: 800;
+        }
+      }
+
+      .speed-badge {
+        font-size: 0.82rem;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: $radius-sm;
+        background: $olive-green-light;
+        color: $olive-green;
+        border: 1px solid $olive-green-border;
+      }
+    }
+  }
+
+  // Recipe Requirements Section (Left Sidebar Panel)
+  .recipe-requirements-section {
+    width: 260px;
+    min-width: 230px;
+    flex-shrink: 0;
+    background: #ffffff;
+    border: 1px solid $warm-border;
+    border-radius: $radius-md;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: $shadow-ceramic;
+    box-sizing: border-box;
+
+    @media (max-width: 860px) {
+      width: 100%;
+    }
+
+    .requirements-header {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding-bottom: 8px;
+      border-bottom: 2px dashed color.mix($dark-brown, white, 15%);
+
+      .requirements-title {
+        font-size: 0.85rem;
+        font-weight: 800;
+        color: $dark-brown;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .requirements-subtitle {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: $wood-muted;
+      }
+    }
+
+    .recipe-requirements {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      width: 100%;
+
+      .requirement-view {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: $warm-surface;
+        border: 1px solid $warm-border;
+        border-radius: $radius-md;
+        padding: 8px 12px;
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: $dark-brown;
+        box-shadow: 0 1px 3px rgba(44, 26, 20, 0.04);
+        width: 100%;
+        box-sizing: border-box;
+        transition: all 0.2s ease;
+
+        &:hover {
+          border-color: $tortilla-yellow;
+          box-shadow: 0 3px 6px rgba(232, 168, 56, 0.15);
+          transform: translateX(2px);
+        }
+
+        &__amount {
+          font-size: 0.8rem;
+          font-weight: 800;
+          color: $terracotta;
+          background: $terracotta-light;
+          padding: 3px 8px;
+          border-radius: 6px;
+          border: 1px solid $terracotta-border;
+          white-space: nowrap;
+        }
+      }
+    }
+  }
+
+  // Progress Bar Track
+  .player-progress-track {
+    width: 100%;
+    height: 6px;
+    background: $warm-beige;
+    border-radius: 999px;
+    overflow: hidden;
+    position: relative;
+
+    .player-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, $tortilla-yellow, $terracotta);
+      border-radius: 999px;
+      transition: width 0.25s ease-out;
+    }
+  }
+
+  // Active Step Description Card
+  .current-step-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: #ffffff;
+    border: 1px solid $warm-border;
+    border-radius: $radius-md;
+    padding: 12px 16px;
+    box-shadow: 0 2px 5px rgba(44, 26, 20, 0.04);
+
+    .step-icon-area {
+      font-size: 1.8rem;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: $tortilla-yellow-light;
+      border: 1px solid $tortilla-yellow-border;
+      border-radius: $radius-sm;
+      flex-shrink: 0;
+    }
+
+    .step-text-area {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      .step-action-badge {
+        display: inline-block;
+        align-self: flex-start;
+        font-size: 0.68rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 2px 6px;
+        border-radius: 4px;
+        background: $terracotta-light;
+        color: $terracotta;
+        border: 1px solid $terracotta-border;
+      }
+
+      .step-description {
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: $dark-brown;
+        line-height: 1.35;
+      }
+    }
+  }
+
+  // Controls Row
+  .player-controls-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-top: 4px;
+
+    .ctrl-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      border-radius: $radius-sm;
+      border: 1px solid $warm-border;
+      background: #ffffff;
+      color: $dark-brown;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+      transition: all 0.18s ease;
+      user-select: none;
+
+      &:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-color: $tortilla-yellow;
+      }
+
+      &:active:not(:disabled) {
+        transform: translateY(0);
+      }
+
+      &:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+        box-shadow: none;
+      }
+
+      // Primary Play Button
+      &.play-btn {
+        background: $tortilla-yellow;
+        color: #ffffff;
+        border-color: $tortilla-yellow-hover;
+        padding: 10px 22px;
+        font-size: 0.95rem;
+
+        &:hover:not(:disabled) {
+          background: $tortilla-yellow-hover;
+        }
+
+        &.is-playing {
+          background: $terracotta;
+          border-color: $terracotta-hover;
+        }
+      }
+
+      // Slow & Fast buttons
+      &.slow-btn, &.fast-btn {
+        background: $warm-surface;
+      }
+
+      // Record button
+      &.record-btn {
+        background: #ffffff;
+        border: 2px solid $terracotta;
+        color: $terracotta;
+        font-weight: 800;
+
+        .record-indicator {
+          display: inline-block;
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          background: $terracotta;
+          transition: transform 0.2s ease;
+
+          &.active {
+            animation: record-pulse 1.2s infinite ease-in-out;
+          }
+        }
+
+        &:hover:not(:disabled) {
+          background: $terracotta-light;
+          border-color: $terracotta-hover;
+        }
+
+        &.is-recording {
+          background: $terracotta;
+          color: #ffffff;
+          border-color: $terracotta-hover;
+          box-shadow: 0 4px 10px rgba(217, 83, 79, 0.35);
+
+          .record-indicator {
+            background: #ffffff;
+          }
+
+          &:hover:not(:disabled) {
+            background: $terracotta-hover;
+          }
+        }
+      }
+
+      // Download button
+      &.download-btn {
+        background: linear-gradient(135deg, $olive-green, $olive-green-hover);
+        color: #ffffff;
+        border: 2px solid $olive-green-hover;
+        font-weight: 800;
+        text-decoration: none;
+        box-shadow: 0 3px 8px rgba(107, 142, 35, 0.3);
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 5px 12px rgba(107, 142, 35, 0.4);
+        }
+      }
+
+      // Reset button
+      &.reset-btn {
+        margin-left: auto;
+        background: #ffffff;
+        border: 2px solid $terracotta;
+        color: $terracotta;
+        font-size: 0.9rem;
+        font-weight: 800;
+        padding: 9px 18px;
+
+        &:hover:not(:disabled) {
+          background: $terracotta;
+          color: #ffffff;
+          border-color: $terracotta-hover;
+          box-shadow: 0 4px 8px rgba(217, 83, 79, 0.25);
+        }
+      }
+    }
+  }
+
+  // Footer: Speed Pills & Stepper Dots
+  .player-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-top: 6px;
+    border-top: 1px dashed $warm-border;
+
+    .speed-pills {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      .speed-title {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: $wood-muted;
+        margin-right: 2px;
+      }
+
+      .speed-pill {
+        border: 1px solid $warm-border;
+        background: #ffffff;
+        color: $dark-brown;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: $radius-sm;
+        cursor: pointer;
+        transition: all 0.15s;
+
+        &:hover {
+          border-color: $olive-green;
+        }
+
+        &.active {
+          background: $olive-green;
+          color: #ffffff;
+          border-color: $olive-green-hover;
+        }
+      }
+    }
+
+    .stepper-dots {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: wrap;
+
+      .step-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: $warm-border;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &:hover {
+          transform: scale(1.3);
+          background: $tortilla-yellow;
+        }
+
+        &.completed {
+          background: $olive-green;
+        }
+
+        &.active {
+          background: $terracotta;
+          transform: scale(1.3);
+          box-shadow: 0 0 0 2px $terracotta-light;
+        }
+      }
+    }
+  }
+}
+
+@keyframes record-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.4);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+`````
+
+## File: src/components/Scene/RecipePlayer.tsx
+`````typescript
+/**
+ * FILE: RecipePlayer.tsx
+ *
+ * PURPOSE:
+ * Interactive recipe playback and step navigation control component.
+ *
+ * RESPONSIBILITY:
+ * - Provides play/pause, slow, fast, step up (forward), and step down (backward) controls.
+ * - Displays active recipe progress, current step index, and human-readable step description.
+ * - Manages automated execution using RecipeRunner engine.
+ * - Supports instant step navigation and timeline jumping while maintaining simulation world state.
+ */
+
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useStore } from 'zustand';
+import { recipes } from '../../data/catalog/recipes';
+import { ingredients } from '../../data/catalog/ingredients';
+import { catalogTools as tools } from '../../data/catalog/tools';
+import { RecipeRunner } from '../../systems/recipeRunner';
+import { worldStore } from '../../store/worldStore';
+import type { RecipeStep } from '../../types/RecipeStep';
+import type { Recipe } from '../../types/Recipe';
+import { getRecipeRequirementsArray } from '../../types/Recipe';
+import { RecipeRequirements } from '../Recipe/RecipeRequirements';
+import { ActionReplayer } from '../Controls/ActionReplayer';
+import './RecipePlayer.scss';
+
+// Speed options and corresponding delays in ms
+const SPEED_DELAYS: Record<number, number> = {
+  0.5: 1200, // Slow
+  1: 600,    // Normal
+  2: 300,    // Fast
+  3: 150,    // Turbo
+};
+
+/**
+ * Formats an ingredient key with its current preparation and cooking state from worldStore.
+ */
+function formatIngredientWithState(inputKey: string): string {
+  const store = worldStore.getState();
+
+  const singularKey =
+    inputKey.endsWith('es') && inputKey.length > 3
+      ? inputKey.slice(0, -2)
+      : inputKey.endsWith('s') && inputKey.length > 2
+      ? inputKey.slice(0, -1)
+      : inputKey;
+
+  const entity = Object.values(store.entities).find(
+    (e) =>
+      e &&
+      (e.id === inputKey ||
+        e.ingredientId === inputKey ||
+        e.ingredientId === singularKey ||
+        e.id.startsWith(inputKey + '_') ||
+        e.id.startsWith(singularKey + '_'))
+  );
+
+  const parts: string[] = [];
+
+  if (entity?.state) {
+    // Cooking state
+    const cooking = entity.state.cooking as string | undefined;
+    if (cooking && cooking !== 'raw') {
+      if (cooking === 'fry' || cooking === 'fried' || cooking === 'cooked') {
+        parts.push('cooked');
+      } else {
+        parts.push(cooking);
+      }
+    }
+
+    // Preparation state
+    const prep = entity.state.preparation as string | undefined;
+    if (prep && prep !== 'whole' && prep !== 'raw') {
+      parts.push(prep);
+    }
+  }
+
+  // Fallback defaults for recipe step descriptions when state is not yet populated
+  if (parts.length === 0) {
+    if (inputKey === 'potatoes') {
+      parts.push('cooked', 'sliced');
+    } else if (inputKey === 'eggs') {
+      parts.push('beaten');
+    } else if (inputKey === 'onions') {
+      parts.push('cooked', 'diced');
+    }
+  }
+
+  parts.push(inputKey);
+  return parts.join(' ');
+}
+
+/**
+ * Generates human-readable step details (icon, text label, badge) for a given RecipeStep.
+ */
+function getStepDetails(step?: RecipeStep): { icon: string; text: string; actionName: string } {
+  if (!step) {
+    return { icon: '✨', text: 'Select a recipe and press Play or Step Up to begin!', actionName: 'Ready' };
+  }
+
+  switch (step.action) {
+    case 'move':
+      return {
+        icon: '🚚',
+        text: `Move ${step.ingredient || 'ingredient'} from ${step.source || 'storage'} to ${step.target || 'workspace'}`,
+        actionName: 'Move',
+      };
+    case 'grab':
+      return {
+        icon: '🫳',
+        text: `Grab ${step.ingredient} from ${step.source || 'storage'}`,
+        actionName: 'Grab',
+      };
+    case 'drop':
+      return {
+        icon: '⬇️',
+        text: `Drop held ingredient into ${step.target || 'workspace'}`,
+        actionName: 'Drop',
+      };
+    case 'cut':
+    case 'prepare':
+    case 'peel':
+      return {
+        icon: '🔪',
+        text: `${step.action.toUpperCase()} ${step.ingredient || step.target || ''} (${step.preparation || step.style || 'prepared'})`,
+        actionName: step.action,
+      };
+    case 'wash':
+    case 'rinse':
+    case 'drain':
+      return {
+        icon: '💧',
+        text: `${step.action.toUpperCase()} ${step.ingredient || step.target || ''}`,
+        actionName: step.action,
+      };
+    case 'cook':
+      return {
+        icon: '🍳',
+        text: `Cook ${step.target || step.ingredient || ''} (${step.method || 'fry'}${step.duration ? `, ${step.duration} ${step.unit || 'min'}` : ''})`,
+        actionName: 'Cook',
+      };
+    case 'flip':
+      return {
+        icon: '🍳',
+        text: step.instruction || `Flip ${step.target || 'tortilla'} in the pan`,
+        actionName: 'Flip',
+      };
+    case 'mix':
+    case 'beat':
+    case 'combine': {
+      const formattedInputs = (step.inputs || step.ingredients || []).map(formatIngredientWithState);
+      const targetContainer = step.targetContainerId;
+      const containerName =
+        !targetContainer || targetContainer === 'bowl' || targetContainer === 'preparation_bowl'
+          ? 'preparation bowl'
+          : targetContainer.replace('_', ' ');
+      return {
+        icon: '🥣',
+        text: `Mix ${formattedInputs.join(', ')} in the ${containerName} -> ${step.output || 'mixture'}`,
+        actionName: step.action,
+      };
+    }
+    case 'serve':
+      return {
+        icon: '🍽️',
+        text: `Serve ${step.target || 'dish'} to ${step.containerId || 'plate'}`,
+        actionName: 'Serve',
+      };
+    case 'instruction':
+      return {
+        icon: '👨‍🍳',
+        text: step.text || step.instruction || 'Follow recipe instruction',
+        actionName: 'Instruction',
+      };
+    case 'speak':
+      return {
+        icon: '💬',
+        text: `Tortilla says: "${step.message}"`,
+        actionName: 'Speak',
+      };
+    case 'celebrate':
+      return {
+        icon: '🎉',
+        text: 'Flip celebration! Recipe completed successfully!',
+        actionName: 'Celebrate',
+      };
+    case 'wait':
+      return {
+        icon: '⏳',
+        text: `Wait for ${step.durationMs || 600}ms`,
+        actionName: 'Wait',
+      };
+    default:
+      return {
+        icon: '📝',
+        text: 'Execute recipe step',
+        actionName: 'Step',
+      };
+  }
+}
+
+interface RecipePlayerProps {
+  renderWorkspace?: (requirementsNode: React.ReactNode) => React.ReactNode;
+}
+
+export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) => {
+  const [selectedRecipeId, setSelectedRecipeId] = useState<string>(recipes[0]?.id || 'concebolla');
+  const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [speed, setSpeed] = useState<number>(1); // 0.5, 1, 2, 3
+
+  // WorldStore recording state
+  const isRecording = useStore(worldStore, (state) => state.isRecording);
+  const recordedActions = useStore(worldStore, (state) => state.recordedActions);
+  const recordedDownloadUrl = useStore(worldStore, (state) => state.recordedDownloadUrl);
+  const recordedFilename = useStore(worldStore, (state) => state.recordedFilename);
+  const startRecording = useStore(worldStore, (state) => state.startRecording);
+  const stopRecording = useStore(worldStore, (state) => state.stopRecording);
+
+  const activeRecipe: Recipe = useMemo(
+    () => recipes.find((r) => r.id === selectedRecipeId) || recipes[0],
+    [selectedRecipeId]
+  );
+  const steps: RecipeStep[] = useMemo(() => activeRecipe?.steps || [], [activeRecipe]);
+  const totalSteps = steps.length;
+
+  const runnerRef = useRef<RecipeRunner | null>(null);
+  const isExecutingRef = useRef<boolean>(false);
+
+  // Get delay in ms based on active speed multiplier
+  const currentDelayMs = SPEED_DELAYS[speed] || 600;
+
+  // Synchronize required materials for active recipe in despensa container
+  useEffect(() => {
+    const store = worldStore.getState();
+    const reqs = getRecipeRequirementsArray(activeRecipe);
+    reqs.forEach((req) => {
+      const existing = store.entities[req.entityId];
+      if (!existing) {
+        const catalogIng = ingredients.find((i) => i.id === req.entityId);
+        const catalogTool = tools.find((t: { id: string }) => t.id === req.entityId);
+        store.dispatch({
+          type: 'ADD_ENTITY',
+          payload: {
+            entity: {
+              id: req.entityId,
+              name: req.name || catalogIng?.name || catalogTool?.name || req.entityId,
+              type: (catalogTool ? 'tool' : 'ingredient') as 'tool' | 'ingredient',
+              icon: catalogIng?.icon || catalogTool?.icon,
+              ingredientId: req.entityId,
+              state: {},
+            },
+            containerId: 'despensa',
+          },
+        });
+      }
+    });
+  }, [activeRecipe]);
+
+  // Re-sync runner context or reset when recipe changes
+  const handleRecipeChange = (newRecipeId: string) => {
+    setIsPlaying(false);
+    setSelectedRecipeId(newRecipeId);
+    setCurrentStepIndex(0);
+    runnerRef.current = null;
+    worldStore.getState().dispatch({ type: 'RESET_WORLD' });
+  };
+
+  // Full reset of world and player step
+  const handleReset = useCallback(() => {
+    setIsPlaying(false);
+    setCurrentStepIndex(0);
+    runnerRef.current = null;
+    worldStore.getState().dispatch({ type: 'RESET_WORLD' });
+  }, []);
+
+  // Jump to a specific target step index by replaying from step 0
+  const jumpToStep = useCallback(
+    async (targetIndex: number) => {
+      if (isExecutingRef.current) return;
+      setIsPlaying(false);
+
+      const clampedTarget = Math.min(Math.max(0, targetIndex), totalSteps);
+      isExecutingRef.current = true;
+
+      try {
+        // Reset world state to initial kitchen
+        worldStore.getState().dispatch({ type: 'RESET_WORLD' });
+
+        // Instantiate zero-delay runner for fast-forward
+        const fastRunner = new RecipeRunner({
+          mascotId: 'chef',
+          defaultTargetId: 'board',
+          delayMs: 0,
+        });
+        fastRunner.bindRecipeContext(activeRecipe);
+
+        for (let i = 0; i < clampedTarget; i++) {
+          await fastRunner.executeStep(steps[i]);
+        }
+
+        fastRunner.delayMs = currentDelayMs;
+        runnerRef.current = fastRunner;
+        setCurrentStepIndex(clampedTarget);
+      } catch (err) {
+        console.error('[RecipePlayer] Error jumping to step:', err);
+      } finally {
+        isExecutingRef.current = false;
+      }
+    },
+    [activeRecipe, totalSteps, steps, currentDelayMs]
+  );
+
+  // Step Up (Step forward 1 step)
+  const handleStepUp = useCallback(async () => {
+    if (isExecutingRef.current) return;
+    setIsPlaying(false);
+
+    if (currentStepIndex >= totalSteps) return;
+
+    isExecutingRef.current = true;
+
+    try {
+      if (!runnerRef.current || currentStepIndex === 0) {
+        if (currentStepIndex === 0) {
+          worldStore.getState().dispatch({ type: 'RESET_WORLD' });
+        }
+        runnerRef.current = new RecipeRunner({
+          mascotId: 'chef',
+          defaultTargetId: 'board',
+          delayMs: currentDelayMs,
+        });
+        runnerRef.current.bindRecipeContext(activeRecipe);
+      } else {
+        runnerRef.current.delayMs = currentDelayMs;
+      }
+
+      const stepToRun = steps[currentStepIndex];
+      await runnerRef.current.executeStep(stepToRun);
+      setCurrentStepIndex((prev) => Math.min(prev + 1, totalSteps));
+    } catch (err) {
+      console.error('[RecipePlayer] Error stepping up:', err);
+    } finally {
+      isExecutingRef.current = false;
+    }
+  }, [currentStepIndex, totalSteps, activeRecipe, steps, currentDelayMs]);
+
+  // Step Down (Step back 1 step)
+  const handleStepDown = useCallback(() => {
+    if (currentStepIndex <= 0) return;
+    jumpToStep(currentStepIndex - 1);
+  }, [currentStepIndex, jumpToStep]);
+
+  // Toggle Play / Pause
+  const handleTogglePlay = () => {
+    if (isPlaying) {
+      setIsPlaying(false);
+    } else {
+      // If at end of recipe, restart from beginning
+      if (currentStepIndex >= totalSteps) {
+        handleReset();
+      }
+      setIsPlaying(true);
+    }
+  };
+
+  // Decrease speed (Slow button)
+  const handleSlow = () => {
+    if (speed === 3) setSpeed(2);
+    else if (speed === 2) setSpeed(1);
+    else if (speed === 1) setSpeed(0.5);
+    else setSpeed(0.5);
+  };
+
+  // Increase speed (Fast button)
+  const handleFast = () => {
+    if (speed === 0.5) setSpeed(1);
+    else if (speed === 1) setSpeed(2);
+    else if (speed === 2) setSpeed(3);
+    else setSpeed(3);
+  };
+
+  // Auto-play step loop effect
+  useEffect(() => {
+    if (!isPlaying) return;
+
+    let isCancelled = false;
+
+    const playNextStep = async () => {
+      if (currentStepIndex >= totalSteps) {
+        setIsPlaying(false);
+        return;
+      }
+
+      if (isExecutingRef.current) return;
+      isExecutingRef.current = true;
+
+      try {
+        if (!runnerRef.current || currentStepIndex === 0) {
+          if (currentStepIndex === 0) {
+            worldStore.getState().dispatch({ type: 'RESET_WORLD' });
+          }
+          runnerRef.current = new RecipeRunner({
+            mascotId: 'chef',
+            defaultTargetId: 'board',
+            delayMs: currentDelayMs,
+          });
+          runnerRef.current.bindRecipeContext(activeRecipe);
+        } else {
+          runnerRef.current.delayMs = currentDelayMs;
+        }
+
+        const stepToRun = steps[currentStepIndex];
+        await runnerRef.current.executeStep(stepToRun);
+
+        if (!isCancelled) {
+          const nextIndex = currentStepIndex + 1;
+          setCurrentStepIndex(nextIndex);
+          if (nextIndex >= totalSteps) {
+            setIsPlaying(false);
+          }
+        }
+      } catch (err) {
+        console.error('[RecipePlayer] Playback loop error:', err);
+        if (!isCancelled) setIsPlaying(false);
+      } finally {
+        isExecutingRef.current = false;
+      }
+    };
+
+    playNextStep();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [isPlaying, currentStepIndex, totalSteps, activeRecipe, steps, currentDelayMs]);
+
+  // Details for current step
+  const currentStep = steps[currentStepIndex < totalSteps ? currentStepIndex : totalSteps - 1];
+  const stepDetails = getStepDetails(currentStepIndex < totalSteps ? currentStep : undefined);
+  const progressPercent = totalSteps > 0 ? Math.min(100, (currentStepIndex / totalSteps) * 100) : 0;
+
+  const requirementsNode = (
+    <div className="recipe-requirements-section" data-container-id="despensa">
+      <div className="requirements-header">
+        <span className="requirements-title">📋 Required Materials</span>
+        <span className="requirements-subtitle">(Drag items to workstation)</span>
+      </div>
+      <RecipeRequirements requirements={getRecipeRequirementsArray(activeRecipe)} />
+    </div>
+  );
+
+  return (
+    <>
+      <div className="recipe-player-container">
+        {/* Header Row */}
+        <div className="player-header">
+          <div className="recipe-select-group">
+            <span className="recipe-label">Recipe:</span>
+            <div className="recipe-buttons">
+              {recipes.map((r) => {
+                const isActive = r.id === selectedRecipeId;
+                const recipeIcon = r.id === 'concebolla' ? '🧅' : '🥔';
+                return (
+                  <button
+                    key={r.id}
+                    type="button"
+                    className={`recipe-btn ${isActive ? 'active' : ''}`}
+                    onClick={() => handleRecipeChange(r.id)}
+                  >
+                    <span className="recipe-btn-icon">{recipeIcon}</span>
+                    <span className="recipe-btn-text">{r.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="player-status-badge">
+            <span className="step-count">
+              Step <strong>{currentStepIndex}</strong> / {totalSteps}
+            </span>
+            <span className={`speed-badge speed-${speed.toString().replace('.', '_')}`}>
+              ⚡ {speed}x
+            </span>
+          </div>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="player-progress-track">
+          <div
+            className="player-progress-bar"
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
+
+        {/* Active Step Description Card */}
+        <div className="current-step-card">
+          <div className="step-icon-area">{stepDetails.icon}</div>
+          <div className="step-text-area">
+            <div className="step-action-badge">{stepDetails.actionName}</div>
+            <p className="step-description">{stepDetails.text}</p>
+          </div>
+        </div>
+
+        {/* Main Controls Row */}
+        <div className="player-controls-bar">
+          {/* Slow Control */}
+          <button
+            type="button"
+            className="ctrl-btn slow-btn"
+            onClick={handleSlow}
+            title="Slow down playback speed (0.5x)"
+          >
+            🐢 Slow
+          </button>
+
+          {/* Step Down (Step Back) */}
+          <button
+            type="button"
+            className="ctrl-btn step-down-btn"
+            onClick={handleStepDown}
+            disabled={currentStepIndex <= 0}
+            title="Step Down: Go back to previous step"
+          >
+            ⏮ Step Down
+          </button>
+
+          {/* Play / Pause Toggle */}
+          <button
+            type="button"
+            className={`ctrl-btn play-btn ${isPlaying ? 'is-playing' : ''}`}
+            onClick={handleTogglePlay}
+            title={isPlaying ? 'Pause recipe auto-play' : 'Play recipe step-by-step'}
+          >
+            {isPlaying ? '⏸ Pause' : currentStepIndex >= totalSteps ? '🔄 Replay' : '▶ Play'}
+          </button>
+
+          {/* Step Up (Step Forward) */}
+          <button
+            type="button"
+            className="ctrl-btn step-up-btn"
+            onClick={handleStepUp}
+            disabled={currentStepIndex >= totalSteps}
+            title="Step Up: Advance to next step"
+          >
+            Step Up ⏭
+          </button>
+
+          {/* Fast Control */}
+          <button
+            type="button"
+            className="ctrl-btn fast-btn"
+            onClick={handleFast}
+            title="Speed up playback speed (2x/3x)"
+          >
+            Fast ⚡
+          </button>
+
+          {/* Record / Stop Recording Toggle */}
+          <button
+            type="button"
+            className={`ctrl-btn record-btn ${isRecording ? 'is-recording' : ''}`}
+            onClick={isRecording ? stopRecording : startRecording}
+            title={
+              isRecording
+                ? 'Stop recording world interactions'
+                : 'Record world interactions into a serialized recipe'
+            }
+          >
+            <span className={`record-indicator ${isRecording ? 'active' : ''}`}></span>
+            {isRecording ? `⏹ Stop (${recordedActions.length})` : '⏺ Record'}
+          </button>
+
+          {/* Download Recipe JSON Link */}
+          {recordedDownloadUrl && (
+            <a
+              href={recordedDownloadUrl}
+              download={recordedFilename || 'tortilla-recorded-recipe.json'}
+              className="ctrl-btn download-btn"
+              title="Download serialized recipe JSON file"
+            >
+              💾 Download Recipe (.json)
+            </a>
+          )}
+
+          {/* Action Log Replayer */}
+          <ActionReplayer />
+
+          {/* Kitchen Reset Button */}
+          <button
+            type="button"
+            className="ctrl-btn reset-btn"
+            onClick={handleReset}
+            title="Reset kitchen world to starting state"
+          >
+            🔄 Reset
+          </button>
+        </div>
+
+        {/* Speed Presets & Step Timeline Dots */}
+        <div className="player-footer">
+          <div className="speed-pills">
+            <span className="speed-title">Speed:</span>
+            {[0.5, 1, 2, 3].map((sp) => (
+              <button
+                key={sp}
+                type="button"
+                className={`speed-pill ${speed === sp ? 'active' : ''}`}
+                onClick={() => setSpeed(sp)}
+              >
+                {sp}x
+              </button>
+            ))}
+          </div>
+
+          {/* Interactive Step Stepper Dots */}
+          <div className="stepper-dots">
+            {steps.map((_, idx) => (
+              <button
+                key={`step-dot-${idx}`}
+                type="button"
+                className={`step-dot ${idx < currentStepIndex ? 'completed' : ''} ${
+                  idx === currentStepIndex ? 'active' : ''
+                }`}
+                onClick={() => jumpToStep(idx)}
+                title={`Jump to step ${idx + 1}`}
+              />
+            ))}
+          </div>
+        </div>
+
+        {!renderWorkspace && requirementsNode}
+      </div>
+      {renderWorkspace && renderWorkspace(requirementsNode)}
+    </>
+  );
+};
+`````
+
 ## File: src/components/World/ContainerView.tsx
 `````typescript
 /**
@@ -9559,33 +10571,6 @@ export const useGazeStore = create<GazeState>()(
 
 // Re-export the narrow helper so consumers don't need a separate import.
 export { gazeEntityId };
-`````
-
-## File: src/store/types.ts
-`````typescript
-/**
- * FILE: types.ts
- *
- * PURPOSE:
- * Type contract for Zustand world store and its slices.
- */
-
-import type { Container, Entity, WorldAction, WorldEvent } from '../types/world';
-import type { EntitySlice } from './slices/entitySlice';
-import type { ContainerSlice } from './slices/containerSlice';
-import type { MascotSlice } from './slices/mascotSlice';
-
-export type WorldStateStore = {
-  entities: Record<string, Entity>;
-  containers: Record<string, Container>;
-  events: WorldEvent[];
-  dispatch: (action: WorldAction) => void;
-  emitEvent: (event: WorldEvent) => void;
-  onEvent: (listener: (event: WorldEvent) => void) => () => void;
-  resetWorld: () => void;
-} & EntitySlice &
-  ContainerSlice &
-  MascotSlice;
 `````
 
 ## File: src/systems/recipeRunner/handlers/cookHandlers.test.ts
@@ -11154,6 +12139,35 @@ export const createEntitySlice: StateCreator<
     get().useIngredient(entityId, consumedBy);
   },
 });
+`````
+
+## File: src/store/types.ts
+`````typescript
+/**
+ * FILE: types.ts
+ *
+ * PURPOSE:
+ * Type contract for Zustand world store and its slices.
+ */
+
+import type { Container, Entity, WorldAction, WorldEvent } from '../types/world';
+import type { EntitySlice } from './slices/entitySlice';
+import type { ContainerSlice } from './slices/containerSlice';
+import type { MascotSlice } from './slices/mascotSlice';
+import type { RecordSlice } from './slices/recordSlice';
+
+export type WorldStateStore = {
+  entities: Record<string, Entity>;
+  containers: Record<string, Container>;
+  events: WorldEvent[];
+  dispatch: (action: WorldAction) => void;
+  emitEvent: (event: WorldEvent) => void;
+  onEvent: (listener: (event: WorldEvent) => void) => () => void;
+  resetWorld: () => void;
+} & EntitySlice &
+  ContainerSlice &
+  MascotSlice &
+  RecordSlice;
 `````
 
 ## File: src/systems/recipeRunner/handlers/mixHandlers.ts
@@ -34642,6 +35656,7 @@ import { defaultEntities, defaultContainers } from './defaults';
 import { createEntitySlice } from './slices/entitySlice';
 import { createContainerSlice } from './slices/containerSlice';
 import { createMascotSlice } from './slices/mascotSlice';
+import { createRecordSlice } from './slices/recordSlice';
 import type { WorldStateStore } from './types';
 
 const eventListeners = new Set<(event: WorldEvent) => void>();
@@ -34653,6 +35668,7 @@ export const worldStore = createStore<WorldStateStore>()(
         ...createEntitySlice(set, get, api),
         ...createContainerSlice(set, get, api),
         ...createMascotSlice(set, get, api),
+        ...createRecordSlice(set, get, api),
 
         // Deep clone initial state to avoid reference mutations
         entities: JSON.parse(JSON.stringify(defaultEntities)),
@@ -34687,6 +35703,12 @@ export const worldStore = createStore<WorldStateStore>()(
 
         dispatch: (action: WorldAction) => {
           const store = get();
+
+          // Record action if recording is currently active
+          if (store.isRecording) {
+            store.recordAction(action);
+          }
+
           switch (action.type) {
             case 'MOVE_ENTITY':
               store.moveEntity(
@@ -34698,8 +35720,10 @@ export const worldStore = createStore<WorldStateStore>()(
             case 'TOGGLE_BURNER': {
               set((draft) => {
                 const burner = draft.containers[action.payload.containerId];
-                burner.isOn = !burner.isOn;
-              });
+                if (burner) {
+                  burner.isOn = !burner.isOn;
+                }
+              }, false, 'TOGGLE_BURNER');
 
               break;
             }
