@@ -32,6 +32,84 @@
     border-color: $tortilla-yellow;
     box-shadow: 0 0 16px rgba(245, 180, 50, 0.35);
   }
+
+  // Pantry Storage Theme
+  &.container-view--pantry, &.container-view--despensa {
+    background: $pantry-bg;
+    border-color: $pantry-border;
+    .container-view__badge {
+      background: color.mix($pantry-accent, white, 15%);
+      color: $pantry-accent;
+      border: 1px solid color.mix($pantry-accent, white, 30%);
+      padding: 2px 8px;
+      border-radius: $radius-sm;
+    }
+  }
+
+  // Washing Station Theme (Sink)
+  &.container-view--sink, &.container-view--washing_station {
+    background: $washing-bg;
+    border-color: $washing-border;
+    .container-view__badge {
+      background: color.mix($washing-accent, white, 15%);
+      color: $washing-accent;
+      border: 1px solid color.mix($washing-accent, white, 30%);
+      padding: 2px 8px;
+      border-radius: $radius-sm;
+    }
+  }
+
+  // Cutting Station Theme (Board)
+  &.container-view--board, &.container-view--cutting_station {
+    background: $cutting-bg;
+    border-color: $cutting-border;
+    .container-view__badge {
+      background: color.mix($cutting-accent, white, 15%);
+      color: $cutting-accent;
+      border: 1px solid color.mix($cutting-accent, white, 30%);
+      padding: 2px 8px;
+      border-radius: $radius-sm;
+    }
+  }
+
+  // Preparation Station Theme (Bowl)
+  &.container-view--bowl, &.container-view--preparation_station {
+    background: $mixing-bg;
+    border-color: $mixing-border;
+    .container-view__badge {
+      background: color.mix($mixing-accent, white, 15%);
+      color: $mixing-accent;
+      border: 1px solid color.mix($mixing-accent, white, 30%);
+      padding: 2px 8px;
+      border-radius: $radius-sm;
+    }
+  }
+
+  // Cooking Station Theme (Burner)
+  &.container-view--burner, &.container-view--burner1, &.container-view--burner2, &.container-view--cooking_station {
+    background: $cooking-bg;
+    border-color: $cooking-border;
+    .container-view__badge {
+      background: color.mix($cooking-accent, white, 15%);
+      color: $cooking-accent;
+      border: 1px solid color.mix($cooking-accent, white, 30%);
+      padding: 2px 8px;
+      border-radius: $radius-sm;
+    }
+  }
+
+  // Serving Station Theme (Plate)
+  &.container-view--plate, &.container-view--serving_station {
+    background: $serving-bg;
+    border-color: $serving-border;
+    .container-view__badge {
+      background: color.mix($serving-accent, white, 15%);
+      color: $serving-accent;
+      border: 1px solid color.mix($serving-accent, white, 30%);
+      padding: 2px 8px;
+      border-radius: $radius-sm;
+    }
+  }
 }
 
 .burner-toggle {
@@ -67,15 +145,18 @@
 
 .container-onFire {
   animation: burnerGlow 1s infinite alternate;
+  background-image: linear-gradient(to top, rgba(255, 107, 0, 0.15) 0%, transparent 80%);
 }
 
 @keyframes burnerGlow {
   from {
-    box-shadow: 0 0 5px red;
+    box-shadow: 0 4px 12px rgba(255, 0, 0, 0.2);
+    border-color: rgba(255, 0, 0, 0.3);
   }
 
   to {
-    box-shadow: 0 0 25px orange;
+    box-shadow: 0 8px 25px rgba(255, 140, 0, 0.6);
+    border-color: rgba(255, 140, 0, 0.8);
   }
 }
 
