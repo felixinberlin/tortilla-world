@@ -20,6 +20,8 @@ import { RecipeRunner } from '../../systems/recipeRunner';
 import { worldStore } from '../../store/worldStore';
 import type { RecipeStep } from '../../types/RecipeStep';
 import type { Recipe } from '../../types/Recipe';
+import type { WorldAction } from '../../types/actions';
+import type { RecordedAction } from '../../types/recording';
 import { getRecipeRequirementsArray } from '../../types/Recipe';
 import { RecipeRequirements } from '../Recipe/RecipeRequirements';
 import { ActionReplayer } from '../Controls/ActionReplayer';
@@ -32,6 +34,149 @@ const SPEED_DELAYS: Record<number, number> = {
   2: 300,    // Fast
   3: 150,    // Turbo
 };
+
+/**
+ * Generates human-readable step details for a recorded WorldAction.
+ */
+function getActionDetails(recordedAction?: RecordedAction | WorldAction): {
+  icon: string;
+  text: string;
+  actionName: string;
+} {
+  if (!recordedAction) {
+    return {
+      icon: '🎥',
+      text: 'Recording mode active. Perform kitchen actions or press Play / Step Up to replay recorded actions.',
+      actionName: 'Recording Mode',
+    };
+  }
+
+  const { type, payload } = recordedAction as { type: string; payload?: Record<string, unknown> };
+  const p = payload || {};
+
+  const formatName = (id?: unknown) => {
+    if (typeof id !== 'string' || !id) return '';
+    return id
+      .replace(/_\d+$/, '')
+      .replace(/_/g, ' ')
+      .replace(/([a-z])([A-Z])/g, '$1 $2')
+      .trim();
+  };
+
+  switch (type) {
+    case 'MOVE_ENTITY': {
+      const entity = formatName(p.entityId);
+      const target = formatName(p.targetContainerId);
+      return {
+        icon: '🚚',
+        actionName: 'Move Entity',
+        text: `Move ${entity || 'item'} to ${target || 'container'}`,
+      };
+    }
+    case 'ADD_ENTITY': {
+      const entityObj = p.entity as { name?: string; id?: string } | undefined;
+      const entity = entityObj?.name || formatName(entityObj?.id);
+      const target = formatName(p.containerId);
+      return {
+        icon: '➕',
+        actionName: 'Add Entity',
+        text: `Add ${entity || 'item'} into ${target || 'container'}`,
+      };
+    }
+    case 'REMOVE_ENTITY': {
+      const entity = formatName(p.entityId);
+      return {
+        icon: '🗑️',
+        actionName: 'Remove Entity',
+        text: `Remove ${entity || 'item'} from container`,
+      };
+    }
+    case 'TOGGLE_BURNER': {
+      const container = formatName(p.containerId);
+      return {
+        icon: '🔥',
+        actionName: 'Toggle Heat',
+        text: `Toggle heat on ${container || 'burner'}`,
+      };
+    }
+    case 'PREPARE_INGREDIENT': {
+      const entity = formatName(p.entityId);
+      return {
+        icon: '🔪',
+        actionName: 'Prepare',
+        text: `Prepare ${entity || 'ingredient'} (${p.preparation || 'prepared'})`,
+      };
+    }
+    case 'COOK_INGREDIENT': {
+      const entity = formatName(p.entityId);
+      return {
+        icon: '🍳',
+        actionName: 'Cook',
+        text: `Cook ${entity || 'ingredient'} (${p.cooking || 'cooked'})`,
+      };
+    }
+    case 'USE_INGREDIENT': {
+      const entity = formatName(p.entityId);
+      return {
+        icon: '🥣',
+        actionName: 'Use Ingredient',
+        text: `Use ${entity || 'ingredient'} in recipe`,
+      };
+    }
+    case 'UPDATE_ENTITY_STATE': {
+      const entity = formatName(p.entityId);
+      const changesObj = (p.changes as Record<string, unknown>) || {};
+      const keys = Object.keys(changesObj).join(', ');
+      return {
+        icon: '✨',
+        actionName: 'Update State',
+        text: `Update ${keys || 'state'} for ${entity || 'entity'}`,
+      };
+    }
+    case 'MASCOT_MOVE': {
+      return {
+        icon: '🤖',
+        actionName: 'Mascot Move',
+        text: `Mascot moves to ${formatName(p.targetContainerId)}`,
+      };
+    }
+    case 'MASCOT_GRAB': {
+      return {
+        icon: '🫳',
+        actionName: 'Mascot Grab',
+        text: `Mascot grabs ${formatName(p.entityId)}`,
+      };
+    }
+    case 'MASCOT_DROP': {
+      return {
+        icon: '⬇️',
+        actionName: 'Mascot Drop',
+        text: `Mascot drops item into ${formatName(p.targetContainerId)}`,
+      };
+    }
+    case 'MASCOT_FLIP': {
+      return {
+        icon: '🍳',
+        actionName: 'Mascot Flip',
+        text: 'Mascot performs pan flip',
+      };
+    }
+    case 'RESET_WORLD': {
+      return {
+        icon: '🔄',
+        actionName: 'Reset World',
+        text: 'Reset world state to default initial layout',
+      };
+    }
+    default: {
+      return {
+        icon: '⚡',
+        actionName: type || 'Action',
+        text: `Execute recorded action ${type}`,
+      };
+    }
+  }
+}
 
 /**
  * Formats an ingredient key with its current preparation and cooking state from worldStore.
@@ -218,12 +363,15 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
   const startRecording = useStore(worldStore, (state) => state.startRecording);
   const stopRecording = useStore(worldStore, (state) => state.stopRecording);
 
+  const isRecordingMode = selectedRecipeId === 'recording' || isRecording;
+
   const activeRecipe: Recipe = useMemo(
     () => recipes.find((r) => r.id === selectedRecipeId) || recipes[0],
     [selectedRecipeId]
   );
   const steps: RecipeStep[] = useMemo(() => activeRecipe?.steps || [], [activeRecipe]);
-  const totalSteps = steps.length;
+
+  const totalSteps = isRecordingMode ? recordedActions.length : steps.length;
 
   const runnerRef = useRef<RecipeRunner | null>(null);
   const isExecutingRef = useRef<boolean>(false);
@@ -231,8 +379,26 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
   // Get delay in ms based on active speed multiplier
   const currentDelayMs = SPEED_DELAYS[speed] || 600;
 
+  // Details for current step / recorded action
+  const stepDetails = useMemo(() => {
+    if (isRecordingMode) {
+      if (recordedActions.length === 0) {
+        return getActionDetails(undefined);
+      }
+      const activeIndex =
+        currentStepIndex < recordedActions.length
+          ? currentStepIndex
+          : recordedActions.length - 1;
+      return getActionDetails(recordedActions[activeIndex]);
+    } else {
+      const activeStep = steps[currentStepIndex < steps.length ? currentStepIndex : steps.length - 1];
+      return getStepDetails(currentStepIndex < steps.length ? activeStep : undefined);
+    }
+  }, [isRecordingMode, recordedActions, steps, currentStepIndex]);
+
   // Synchronize required materials for active recipe in despensa container
   useEffect(() => {
+    if (isRecordingMode) return;
     const store = worldStore.getState();
     const reqs = getRecipeRequirementsArray(activeRecipe);
     reqs.forEach((req) => {
@@ -256,7 +422,7 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
         });
       }
     });
-  }, [activeRecipe]);
+  }, [activeRecipe, isRecordingMode]);
 
   // Re-sync runner context or reset when recipe changes
   const handleRecipeChange = (newRecipeId: string) => {
@@ -275,7 +441,7 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
     worldStore.getState().dispatch({ type: 'RESET_WORLD' });
   }, []);
 
-  // Jump to a specific target step index by replaying from step 0
+  // Jump to a specific target step index
   const jumpToStep = useCallback(
     async (targetIndex: number) => {
       if (isExecutingRef.current) return;
@@ -288,28 +454,39 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
         // Reset world state to initial kitchen
         worldStore.getState().dispatch({ type: 'RESET_WORLD' });
 
-        // Instantiate zero-delay runner for fast-forward
-        const fastRunner = new RecipeRunner({
-          mascotId: 'chef',
-          defaultTargetId: 'board',
-          delayMs: 0,
-        });
-        fastRunner.bindRecipeContext(activeRecipe);
+        if (isRecordingMode) {
+          // Replay recorded actions up to targetIndex
+          for (let i = 0; i < clampedTarget; i++) {
+            const act = recordedActions[i];
+            if (act) {
+              worldStore.getState().dispatch(act as unknown as WorldAction);
+            }
+          }
+          setCurrentStepIndex(clampedTarget);
+        } else {
+          // Fast-forward recipe runner
+          const fastRunner = new RecipeRunner({
+            mascotId: 'chef',
+            defaultTargetId: 'board',
+            delayMs: 0,
+          });
+          fastRunner.bindRecipeContext(activeRecipe);
 
-        for (let i = 0; i < clampedTarget; i++) {
-          await fastRunner.executeStep(steps[i]);
+          for (let i = 0; i < clampedTarget; i++) {
+            await fastRunner.executeStep(steps[i]);
+          }
+
+          fastRunner.delayMs = currentDelayMs;
+          runnerRef.current = fastRunner;
+          setCurrentStepIndex(clampedTarget);
         }
-
-        fastRunner.delayMs = currentDelayMs;
-        runnerRef.current = fastRunner;
-        setCurrentStepIndex(clampedTarget);
       } catch (err) {
         console.error('[RecipePlayer] Error jumping to step:', err);
       } finally {
         isExecutingRef.current = false;
       }
     },
-    [activeRecipe, totalSteps, steps, currentDelayMs]
+    [activeRecipe, totalSteps, steps, currentDelayMs, isRecordingMode, recordedActions]
   );
 
   // Step Up (Step forward 1 step)
@@ -322,29 +499,37 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
     isExecutingRef.current = true;
 
     try {
-      if (!runnerRef.current || currentStepIndex === 0) {
-        if (currentStepIndex === 0) {
-          worldStore.getState().dispatch({ type: 'RESET_WORLD' });
+      if (isRecordingMode) {
+        const act = recordedActions[currentStepIndex];
+        if (act) {
+          worldStore.getState().dispatch(act as unknown as WorldAction);
         }
-        runnerRef.current = new RecipeRunner({
-          mascotId: 'chef',
-          defaultTargetId: 'board',
-          delayMs: currentDelayMs,
-        });
-        runnerRef.current.bindRecipeContext(activeRecipe);
+        setCurrentStepIndex((prev) => Math.min(prev + 1, totalSteps));
       } else {
-        runnerRef.current.delayMs = currentDelayMs;
-      }
+        if (!runnerRef.current || currentStepIndex === 0) {
+          if (currentStepIndex === 0) {
+            worldStore.getState().dispatch({ type: 'RESET_WORLD' });
+          }
+          runnerRef.current = new RecipeRunner({
+            mascotId: 'chef',
+            defaultTargetId: 'board',
+            delayMs: currentDelayMs,
+          });
+          runnerRef.current.bindRecipeContext(activeRecipe);
+        } else {
+          runnerRef.current.delayMs = currentDelayMs;
+        }
 
-      const stepToRun = steps[currentStepIndex];
-      await runnerRef.current.executeStep(stepToRun);
-      setCurrentStepIndex((prev) => Math.min(prev + 1, totalSteps));
+        const stepToRun = steps[currentStepIndex];
+        await runnerRef.current.executeStep(stepToRun);
+        setCurrentStepIndex((prev) => Math.min(prev + 1, totalSteps));
+      }
     } catch (err) {
       console.error('[RecipePlayer] Error stepping up:', err);
     } finally {
       isExecutingRef.current = false;
     }
-  }, [currentStepIndex, totalSteps, activeRecipe, steps, currentDelayMs]);
+  }, [currentStepIndex, totalSteps, activeRecipe, steps, currentDelayMs, isRecordingMode, recordedActions]);
 
   // Step Down (Step back 1 step)
   const handleStepDown = useCallback(() => {
@@ -357,7 +542,7 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
     if (isPlaying) {
       setIsPlaying(false);
     } else {
-      // If at end of recipe, restart from beginning
+      // If at end of steps, restart from beginning
       if (currentStepIndex >= totalSteps) {
         handleReset();
       }
@@ -397,28 +582,42 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
       isExecutingRef.current = true;
 
       try {
-        if (!runnerRef.current || currentStepIndex === 0) {
-          if (currentStepIndex === 0) {
-            worldStore.getState().dispatch({ type: 'RESET_WORLD' });
+        if (isRecordingMode) {
+          const act = recordedActions[currentStepIndex];
+          if (act) {
+            worldStore.getState().dispatch(act as unknown as WorldAction);
           }
-          runnerRef.current = new RecipeRunner({
-            mascotId: 'chef',
-            defaultTargetId: 'board',
-            delayMs: currentDelayMs,
-          });
-          runnerRef.current.bindRecipeContext(activeRecipe);
+          if (!isCancelled) {
+            const nextIndex = currentStepIndex + 1;
+            setCurrentStepIndex(nextIndex);
+            if (nextIndex >= totalSteps) {
+              setIsPlaying(false);
+            }
+          }
         } else {
-          runnerRef.current.delayMs = currentDelayMs;
-        }
+          if (!runnerRef.current || currentStepIndex === 0) {
+            if (currentStepIndex === 0) {
+              worldStore.getState().dispatch({ type: 'RESET_WORLD' });
+            }
+            runnerRef.current = new RecipeRunner({
+              mascotId: 'chef',
+              defaultTargetId: 'board',
+              delayMs: currentDelayMs,
+            });
+            runnerRef.current.bindRecipeContext(activeRecipe);
+          } else {
+            runnerRef.current.delayMs = currentDelayMs;
+          }
 
-        const stepToRun = steps[currentStepIndex];
-        await runnerRef.current.executeStep(stepToRun);
+          const stepToRun = steps[currentStepIndex];
+          await runnerRef.current.executeStep(stepToRun);
 
-        if (!isCancelled) {
-          const nextIndex = currentStepIndex + 1;
-          setCurrentStepIndex(nextIndex);
-          if (nextIndex >= totalSteps) {
-            setIsPlaying(false);
+          if (!isCancelled) {
+            const nextIndex = currentStepIndex + 1;
+            setCurrentStepIndex(nextIndex);
+            if (nextIndex >= totalSteps) {
+              setIsPlaying(false);
+            }
           }
         }
       } catch (err) {
@@ -429,16 +628,16 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
       }
     };
 
-    playNextStep();
+    const timeoutId = setTimeout(() => {
+      playNextStep();
+    }, isRecordingMode ? currentDelayMs : 0);
 
     return () => {
       isCancelled = true;
+      clearTimeout(timeoutId);
     };
-  }, [isPlaying, currentStepIndex, totalSteps, activeRecipe, steps, currentDelayMs]);
+  }, [isPlaying, currentStepIndex, totalSteps, activeRecipe, steps, currentDelayMs, isRecordingMode, recordedActions]);
 
-  // Details for current step
-  const currentStep = steps[currentStepIndex < totalSteps ? currentStepIndex : totalSteps - 1];
-  const stepDetails = getStepDetails(currentStepIndex < totalSteps ? currentStep : undefined);
   const progressPercent = totalSteps > 0 ? Math.min(100, (currentStepIndex / totalSteps) * 100) : 0;
 
   const requirementsNode = (
@@ -474,6 +673,21 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
                   </button>
                 );
               })}
+
+              {(recordedActions.length > 0 || isRecording) && (
+                <button
+                  type="button"
+                  className={`recipe-btn recording-mode-btn ${selectedRecipeId === 'recording' ? 'active' : ''}`}
+                  onClick={() => handleRecipeChange('recording')}
+                >
+                  <span className="recipe-btn-icon">{isRecording ? '🔴' : '🎥'}</span>
+                  <span className="recipe-btn-text">
+                    {isRecording
+                      ? `Recording (${recordedActions.length})`
+                      : `Recorded Session (${recordedActions.length})`}
+                  </span>
+                </button>
+              )}
             </div>
           </div>
 
@@ -562,7 +776,15 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
           <button
             type="button"
             className={`ctrl-btn record-btn ${isRecording ? 'is-recording' : ''}`}
-            onClick={isRecording ? stopRecording : startRecording}
+            onClick={
+              isRecording
+                ? stopRecording
+                : () => {
+                    startRecording();
+                    setSelectedRecipeId('recording');
+                    setCurrentStepIndex(0);
+                  }
+            }
             title={
               isRecording
                 ? 'Stop recording world interactions'
@@ -586,7 +808,12 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
           )}
 
           {/* Action Log Replayer */}
-          <ActionReplayer />
+          <ActionReplayer
+            onPlaybackStart={() => {
+              setSelectedRecipeId('recording');
+              setCurrentStepIndex(0);
+            }}
+          />
 
           {/* Kitchen Reset Button */}
           <button
@@ -617,7 +844,7 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
 
           {/* Interactive Step Stepper Dots */}
           <div className="stepper-dots">
-            {steps.map((_, idx) => (
+            {Array.from({ length: totalSteps }).map((_, idx) => (
               <button
                 key={`step-dot-${idx}`}
                 type="button"

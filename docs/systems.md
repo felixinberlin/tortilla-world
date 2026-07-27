@@ -756,6 +756,29 @@ The Recipe System executes declarative, step-based recipe state machines via `Re
 
 ---
 
+### Action Recording & Replay System
+
+* **Action Log Integration**: World actions are captured in `recordSlice` when recording mode is active.
+* **Store Synchronization**: Loaded action sequences are loaded directly into `worldStore` state via `setRecordedActions`.
+* **Controls Reference Recorded Actions**: When recording mode or a loaded recorded session is active, player controls (`Play`, `Pause`, `Step Up`, `Step Down`, stepper dots) reference the sequence of actual `WorldAction` items instead of static recipe steps, stepping through or jumping across logged world state mutations directly.
+
+---
+
+### Recipe Translator System (`src/systems/recipeTranslator.ts`)
+
+* **Purpose**: Converts human-recorded kitchen interactions into executable mascot-guided recipes where Tortilla moves focus, grabs, and places ingredients across containers.
+* **Mascot Action Expansion** (`translateHumanActionsToMascotActions`):
+  - Injects `MASCOT_MOVE` focus, `MASCOT_GRAB`, and `MASCOT_DROP` steps around raw human `MOVE_ENTITY` actions.
+  - Injects `MASCOT_MOVE` focus steps prior to `TOGGLE_BURNER`, `PREPARE_INGREDIENT`, `COOK_INGREDIENT`, and `ADD_ENTITY` actions.
+* **Declarative Recipe File Generation** (`translateHumanActionsToRecipe`):
+  - Extracts clean entity names and requirements.
+  - Generates a valid `Recipe` definition (with `id`, `name`, `requirements`, and `steps`) suitable for export as `.json` or execution via `RecipeRunner`.
+* **UI Mode Separation**:
+  - `📖 Play Catalog Recipe Mode`: Dedicated to catalog recipe execution (`RecipePlayer.tsx`).
+  - `🎥 Action Recorder & Translator Mode`: Dedicated to live action recording, log replaying, human-to-mascot recipe translation (`ActionRecorder.tsx`), tracking used ingredients (`usedIngredients`), and an interactive right-side ingredients catalog panel (`IngredientsSidebar.tsx`).
+
+---
+
 # Final Principle
 
 The rule of Tortilla World:

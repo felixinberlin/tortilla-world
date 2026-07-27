@@ -93,6 +93,22 @@
               transform: scale(1.15);
             }
           }
+
+          &.recording-mode-btn {
+            border-color: $terracotta;
+            color: $terracotta;
+
+            &:hover {
+              background: rgba(217, 83, 79, 0.08);
+            }
+
+            &.active {
+              background: linear-gradient(135deg, $terracotta, color.adjust($terracotta, $lightness: -10%));
+              color: #ffffff;
+              border-color: $terracotta;
+              box-shadow: 0 4px 10px rgba(217, 83, 79, 0.35);
+            }
+          }
         }
       }
     }
@@ -130,7 +146,8 @@
 
   // Recipe Requirements Section (Left Sidebar Panel)
   .recipe-requirements-section {
-    width: 100%;
+    width: 260px;
+    min-width: 230px;
     flex-shrink: 0;
     background: #ffffff;
     border: 1px solid $warm-border;
@@ -142,9 +159,8 @@
     box-shadow: $shadow-ceramic;
     box-sizing: border-box;
 
-    @media (min-width: 860px) {
-      width: 260px;
-      min-width: 230px;
+    @media (max-width: 860px) {
+      width: 100%;
     }
 
     .requirements-header {

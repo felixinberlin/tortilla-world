@@ -17,8 +17,8 @@ export function RecipePanel() {
   const dispatch = useStore(worldStore, (state) => state.dispatch);
 
   return (
-    <section className="recipe-panel compact-recipe-panel" aria-label="Recipe Panel">
-      <header className="recipe-panel-header">
+    <div className="recipe-panel compact-recipe-panel">
+      <div className="recipe-panel-header">
         <button
           type="button"
           className="recipe-reset-btn"
@@ -27,8 +27,8 @@ export function RecipePanel() {
         >
           🔄 Reset Kitchen
         </button>
-      </header>
-    </section>
+      </div>
+    </div>
   );
 }
 

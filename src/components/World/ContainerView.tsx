@@ -57,12 +57,12 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
   const dispatch = useStore(worldStore, (state) => state.dispatch);
 
   return (
-    <article
+    <div
       ref={setNodeRef}
       data-container-id={container.id}
       className={`${container.isOn ? 'container-view--on' : ''} ${containerOnFireClass} container-view container-view--${container.id} ${isOver ? 'container-view--drag-over' : ''} ${isMixturePresent ? 'container-view--mixture' : ''}`}
     >
-      <header className="container-view__header">
+      <div className="container-view__header">
         <h3 className="container-view__title">{container.name}</h3>
         <span className="container-view__badge">{getWorkstationBadge(container.id)}</span>
         <button
@@ -78,7 +78,7 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
             });
           }}
         />
-      </header>
+      </div>
       <div className="container-view__items">
         <AnimatePresence mode="popLayout">
           {containerEntities.map((entity: Entity) => {
@@ -120,6 +120,6 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
           <span className="container-view__empty-hint">Drop entities here</span>
         )}
       </div>
-    </article>
+    </div>
   );
 };
