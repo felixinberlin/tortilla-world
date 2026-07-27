@@ -15,6 +15,7 @@
 import { worldStore } from '../../store/worldStore';
 import { getIngredientCatalogId } from '../../engine/containerRules';
 import { findWorkstationForStep } from '../../engine/workstations';
+import { loadRecipe } from '../recipeLoader';
 import type { Recipe, RecipeRequirementDictItem } from '../../types/Recipe';
 import type { RecipeStep } from '../../types/RecipeStep';
 import type { Entity } from '../../types/world';
@@ -56,7 +57,8 @@ export class RecipeRunner implements RecipeRunnerContext {
     await new Promise((resolve) => setTimeout(resolve, duration));
   }
 
-  public bindRecipeContext(recipe: Recipe): void {
+  public bindRecipeContext(recipeOrId: Recipe | string): void {
+    const recipe: Recipe = typeof recipeOrId === 'string' ? loadRecipe(recipeOrId) : recipeOrId;
     this.currentRecipe = recipe;
     this.recipeContext = {
       recipeId: recipe.id,
@@ -363,7 +365,8 @@ export class RecipeRunner implements RecipeRunnerContext {
     return undefined;
   }
 
-  public async runRecipe(recipe: Recipe): Promise<void> {
+  public async runRecipe(recipeOrId: Recipe | string): Promise<void> {
+    const recipe: Recipe = typeof recipeOrId === 'string' ? loadRecipe(recipeOrId) : recipeOrId;
     this.bindRecipeContext(recipe);
     await this.runSteps(recipe.steps);
   }

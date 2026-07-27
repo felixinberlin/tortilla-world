@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RecipeJSON",
+  "type": "object",
+  "required": ["id", "name", "steps"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the recipe"
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable name of the recipe"
+    },
+    "description": {
+      "type": "string",
+      "description": "Short summary or narrative description"
+    },
+    "difficulty": {
+      "type": "string",
+      "enum": ["easy", "medium", "hard"]
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "hints": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "cooklang": {
+      "type": "string",
+      "description": "Human-friendly Cooklang representation"
+    },
+    "requirements": {
+      "type": ["object", "array"],
+      "description": "Required ingredients either as dictionary or array"
+    },
+    "ingredients": {
+      "type": ["object", "array"],
+      "description": "Alias for requirements"
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["action"],
+        "properties": {
+          "action": { "type": "string" }
+        }
+      }
+    }
+  }
+}

@@ -54,6 +54,7 @@
   position: absolute;
   top: 0;
   left: 0;
+  transform: translate3d(var(--offset-x, 0px), var(--offset-y, 0px), 0);
   transition: transform 0.65s cubic-bezier(0.34, 1.25, 0.64, 1), filter 0.3s ease;
   will-change: transform, filter;
   z-index: 1;

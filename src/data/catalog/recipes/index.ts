@@ -5,38 +5,19 @@
  * Master export and catalog for all recipe definitions.
  *
  * RESPONSIBILITY:
- * - Collects all available recipes into a typed RecipeList.
+ * - Collects all available JSON recipes dynamically via loadAllRecipes.
  * - Provides a single entry point for accessing recipes.
- * - New recipes only need to be added here to appear in the catalog.
  */
 
-import type { RecipeList } from '../../../types/Recipe'
+import type { RecipeList, Recipe } from '../../../types/Recipe';
+import { loadAllRecipes, loadRecipe } from '../../../systems/recipeLoader';
 
-import { concebollaRecipe } from './concebolla';
-import { clasicaRecipe } from './clasica';
+export const concebollaRecipe: Recipe = loadRecipe('concebolla');
+export const clasicaRecipe: Recipe = loadRecipe('clasica');
+export const sincebollaRecipe: Recipe = clasicaRecipe;
 
 /**
  * Master recipe catalog.
- *
- * Used by systems that need access to all available recipes.
+ * Loaded dynamically from decoupled JSON recipe definitions.
  */
-export const recipes: RecipeList = [
-  concebollaRecipe,
-  clasicaRecipe,
-];
-
-export const sincebollaRecipe = clasicaRecipe;
-
-/**
- * Individual recipe exports.
- *
- * Useful for:
- * - Recipe detail views
- * - Testing
- * - Debugging
- * - Future recipe editors
- */
-export {
-  concebollaRecipe,
-  clasicaRecipe,
-};
+export const recipes: RecipeList = loadAllRecipes();

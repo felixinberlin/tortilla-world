@@ -54,34 +54,14 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
   // Calculate physical DOM position offset to target container
   useEffect(() => {
     const updatePosition = () => {
-      if (!mascotAnchorRef.current) return;
-
-      let containerEl = null;
-      if (targetContainerId) {
-        containerEl = document.querySelector(`[data-container-id="${targetContainerId}"]`);
+      if (!targetContainerId || !mascotAnchorRef.current) {
+        setOffset({ x: 0, y: 0 });
+        return;
       }
 
-      // If no target container is specified, default to despensa (pantry) or recipe requirements
+      const containerEl = document.querySelector(`[data-container-id="${targetContainerId}"]`);
       if (!containerEl) {
-        containerEl = document.querySelector(`[data-container-id="despensa"]`);
-      }
-
-      // Fallback 1: Any container with recipe requirements
-      if (!containerEl) {
-        containerEl = document.querySelector(`.recipe-requirements-section`);
-      }
-
-      // Fallback 2: General safe position if absolutely no containers found
-      if (!containerEl) {
-        // Safe position in the middle right
-        const safeX = window.innerWidth - 120;
-        const safeY = window.innerHeight / 2 - 50;
-        const mascotRect = mascotAnchorRef.current.getBoundingClientRect();
-
-        setOffset({
-          x: safeX - mascotRect.left,
-          y: safeY - mascotRect.top
-        });
+        setOffset({ x: 0, y: 0 });
         return;
       }
 
@@ -126,38 +106,20 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
       <div
         ref={mascotAnchorRef}
         style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '1px',
-          height: '1px',
-          visibility: 'hidden',
-          pointerEvents: 'none'
-        }}
-      />
-
-      <div
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          pointerEvents: 'none',
-          zIndex: 9999
+          width: '100px',
+          height: '100px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          position: 'relative',
         }}
       >
         <div
           className={`mascot-wrapper ${isFloating ? 'is-floating' : ''} ${holdingEntityId ? 'is-holding' : ''}`}
           style={
             {
-              position: 'absolute',
-              top: '0',
-              left: '0',
-              pointerEvents: 'auto',
               '--offset-x': `${offset.x}px`,
               '--offset-y': `${offset.y}px`,
-              transform: `translate3d(${offset.x}px, ${offset.y}px, 0)`,
             } as React.CSSProperties
           }
         >
