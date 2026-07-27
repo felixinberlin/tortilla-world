@@ -49,6 +49,7 @@ export interface Container {
   type: ContainerType;
   entityIds: string[];
   rules?: ContainerRules;
+  isOn?: boolean;
 }
 
 export interface WorldState {

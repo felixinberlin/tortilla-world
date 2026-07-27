@@ -72,7 +72,14 @@ export const worldStore = createStore<WorldStateStore>()(
                 action.payload.positionIndex
               );
               break;
+            case 'TOGGLE_BURNER': {
+              set((draft) => {
+                const burner = draft.containers[action.payload.containerId];
+                burner.isOn = !burner.isOn;
+              });
 
+              break;
+            }
             case 'ADD_ENTITY':
               store.addEntity(action.payload.entity, action.payload.containerId);
               break;
@@ -135,3 +142,7 @@ export const worldStore = createStore<WorldStateStore>()(
     { name: 'tortilla-world' }
   )
 );
+
+// if (import.meta.env.DEV) {
+//   (window as any).worldStore = worldStore;
+// }

@@ -37,7 +37,7 @@ export type WorldAction =
   | {
     type: 'TOGGLE_BURNER';
     payload: {
-      workstationId: string,
+      containerId: string;
     };
   }
   | {

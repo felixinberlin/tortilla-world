@@ -44,22 +44,40 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
       case 'sink': return 'Washing Area 💧';
       case 'board': return 'Cutting Workspace 🔪';
       case 'bowl': return 'Preparation 🥣';
-      case 'pan': return 'Cooking Heat 🍳';
+      case 'burner': return 'Cooking Heat 🍳';
+      case 'burner1': return 'Cooking Heat 1🍳';
+      case 'burner2': return 'Cooking Heat 2🍳';
       case 'plate': return 'Serving Stage 🍽️';
       case 'despensa': return 'Pantry 🧺';
       default: return 'Workstation 📦';
     }
   };
 
+  const containerOnFireClass = container.isOn ? 'container-onFire' : '';
+  const dispatch = useStore(worldStore, (state) => state.dispatch);
+
   return (
-    <div 
-      ref={setNodeRef} 
+    <div
+      ref={setNodeRef}
       data-container-id={container.id}
-      className={`container-view container-view--${container.id} ${isOver ? 'container-view--drag-over' : ''} ${isMixturePresent ? 'container-view--mixture' : ''}`}
+      className={`${container.isOn ? 'container-view--on' : ''} ${containerOnFireClass} container-view container-view--${container.id} ${isOver ? 'container-view--drag-over' : ''} ${isMixturePresent ? 'container-view--mixture' : ''}`}
     >
       <div className="container-view__header">
         <h3 className="container-view__title">{container.name}</h3>
         <span className="container-view__badge">{getWorkstationBadge(container.id)}</span>
+        <button
+          className={`burner-toggle ${container.isOn ? 'burner-toggle--on' : ''}`}
+          onClick={(e) => {
+            e.stopPropagation();
+
+            dispatch({
+              type: 'TOGGLE_BURNER',
+              payload: {
+                containerId: container.id,
+              },
+            });
+          }}
+        />
       </div>
       <div className="container-view__items">
         <AnimatePresence mode="popLayout">
@@ -77,11 +95,11 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
                 animate={
                   isMixture
                     ? {
-                        scale: [0.2, 1.15, 1],
-                        rotate: [-180, 10, 0],
-                        opacity: 1,
-                        transition: { duration: 0.65, ease: 'easeOut' },
-                      }
+                      scale: [0.2, 1.15, 1],
+                      rotate: [-180, 10, 0],
+                      opacity: 1,
+                      transition: { duration: 0.65, ease: 'easeOut' },
+                    }
                     : { scale: 1, rotate: 0, opacity: 1, y: 0 }
                 }
                 exit={{
