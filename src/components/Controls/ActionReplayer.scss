@@ -19,6 +19,57 @@
     display: none;
   }
 
+  .step-controls-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+
+    .step-btn {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+      color: #334155;
+
+      &:hover:not(:disabled) {
+        background: #e2e8f0;
+        border-color: #94a3b8;
+      }
+
+      &.step-forward-btn {
+        background: #eff6ff;
+        border-color: #93c5fd;
+        color: #1d4ed8;
+
+        &:hover:not(:disabled) {
+          background: #dbeafe;
+          border-color: #3b82f6;
+        }
+      }
+    }
+
+    .play-btn {
+      background: #f0fdf4;
+      border-color: #86efac;
+      color: #15803d;
+
+      &:hover:not(:disabled) {
+        background: #dcfce7;
+        border-color: #22c55e;
+      }
+    }
+
+    .reset-btn {
+      background: #fef2f2;
+      border-color: #fca5a5;
+      color: #b91c1c;
+
+      &:hover:not(:disabled) {
+        background: #fee2e2;
+        border-color: #ef4444;
+      }
+    }
+  }
+
   .replayer-btn {
     display: inline-flex;
     align-items: center;
