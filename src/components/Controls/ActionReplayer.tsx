@@ -172,6 +172,7 @@ export const ActionReplayer: React.FC<ActionReplayerProps> = ({
         ref={fileInputRef}
         type="file"
         accept=".json"
+        aria-label="Upload action log JSON file"
         className="file-input-hidden"
         onChange={handleFileChange}
       />

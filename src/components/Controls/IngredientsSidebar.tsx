@@ -106,6 +106,7 @@ export const IngredientsSidebar: React.FC = () => {
         <input
           type="text"
           placeholder="🔍 Search ingredients or tools..."
+          aria-label="Search ingredients or tools"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />

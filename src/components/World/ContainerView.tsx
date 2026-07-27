@@ -116,6 +116,7 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
                   type="text"
                   className="container-view__input"
                   placeholder="Target (e.g. 10 min, until brown)"
+                  aria-label="Cooking condition target"
                   value={cookConditionInput}
                   onChange={(e) => setCookConditionInput(e.target.value)}
                   onClick={(e) => e.stopPropagation()}
@@ -144,6 +145,7 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
                   type="text"
                   className="container-view__input"
                   placeholder="Final name (e.g. Oma tortilla)"
+                  aria-label="Cooked item final name"
                   value={cookedCustomName}
                   onChange={(e) => setCookedCustomName(e.target.value)}
                   onClick={(e) => e.stopPropagation()}
@@ -223,6 +225,7 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
                   type="text"
                   className="container-view__input"
                   placeholder="Mixture name (optional)"
+                  aria-label="Mixture final name"
                   value={mixCustomName}
                   onChange={(e) => setMixCustomName(e.target.value)}
                   onClick={(e) => e.stopPropagation()}
