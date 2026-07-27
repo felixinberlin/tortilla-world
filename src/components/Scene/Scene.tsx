@@ -36,7 +36,7 @@ export const Scene: React.FC = () => {
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="scene-container">
+      <section className="scene-container" aria-label="Simulation Workspace">
         <RecipePlayer
           renderWorkspace={(requirementsNode) => (
             <div className="scene-workspace">
@@ -52,7 +52,7 @@ export const Scene: React.FC = () => {
             </div>
           )}
         />
-      </div>
+      </section>
     </DndContext>
   );
 };

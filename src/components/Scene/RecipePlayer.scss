@@ -130,8 +130,7 @@
 
   // Recipe Requirements Section (Left Sidebar Panel)
   .recipe-requirements-section {
-    width: 260px;
-    min-width: 230px;
+    width: 100%;
     flex-shrink: 0;
     background: #ffffff;
     border: 1px solid $warm-border;
@@ -143,8 +142,9 @@
     box-shadow: $shadow-ceramic;
     box-sizing: border-box;
 
-    @media (max-width: 860px) {
-      width: 100%;
+    @media (min-width: 860px) {
+      width: 260px;
+      min-width: 230px;
     }
 
     .requirements-header {
