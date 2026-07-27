@@ -33,12 +33,15 @@ function App() {
             An interactive simulation world. Drag entities from the immutable catalog pantry into workspace containers.
           </p>
         </div>
-        <Mascot />
       </header>
 
       <main className="app-main">
         <Scene />
       </main>
+
+      <div style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none', width: '100%', height: '100%' }}>
+        <Mascot />
+      </div>
     </motion.div>
   );
 }
