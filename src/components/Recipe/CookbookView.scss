@@ -54,10 +54,19 @@
   overflow: hidden;
   background: $warm-cream;
   box-shadow: $shadow-floating;
+
+  /* Make it prettier */
+  border: 4px solid #fff;
+  outline: 1px solid $warm-border;
+  background-image:
+    linear-gradient(#f4ebd3 1px, transparent 1px),
+    linear-gradient(90deg, #f4ebd3 1px, transparent 1px);
+  background-size: 20px 20px;
+  background-position: -1px -1px;
 }
 
 .cookbook-header {
-  background: $tortilla-yellow-light;
+  background: rgba(254, 247, 232, 0.9);
   padding: 30px;
   border-bottom: 2px solid $warm-border;
   text-align: center;
@@ -118,7 +127,7 @@
 
 .ingredients-section {
   padding: 30px;
-  background: $pantry-bg;
+  background: rgba(245, 235, 220, 0.8);
   border-bottom: 1px solid $warm-border;
 
   @media (min-width: 768px) {
@@ -189,6 +198,7 @@
 
 .instructions-section {
   padding: 30px;
+  background: rgba(251, 246, 238, 0.8);
 
   @media (min-width: 768px) {
     width: 65%;
