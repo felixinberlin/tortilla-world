@@ -1,0 +1,286 @@
+@use 'sass:color';
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.cookbook-view {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+  width: 100%;
+}
+
+.cookbook-selector {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.cookbook-tab {
+  background: #ffffff;
+  border: 2px solid $warm-border;
+  font-size: 15px;
+  font-weight: 700;
+  color: $dark-brown;
+  cursor: pointer;
+  padding: 10px 20px;
+  border-radius: $radius-md;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
+  &:hover {
+    border-color: $tortilla-yellow;
+    color: $dark-brown;
+    background: $tortilla-yellow-light;
+    transform: translateY(-2px);
+  }
+
+  &.active {
+    background: $tortilla-yellow;
+    color: #ffffff;
+    border-color: $tortilla-yellow-hover;
+    box-shadow: 0 4px 12px rgba(232, 168, 56, 0.4);
+    transform: translateY(-2px);
+  }
+}
+
+.cookbook-card {
+  @include ceramic-card($warm-surface, $warm-border);
+  border-radius: $radius-xl;
+  overflow: hidden;
+  background: $warm-cream;
+  box-shadow: $shadow-floating;
+
+  /* Make it prettier */
+  border: 4px solid #fff;
+  outline: 1px solid $warm-border;
+  background-image:
+    linear-gradient(#f4ebd3 1px, transparent 1px),
+    linear-gradient(90deg, #f4ebd3 1px, transparent 1px);
+  background-size: 20px 20px;
+  background-position: -1px -1px;
+}
+
+.cookbook-header {
+  background: rgba(254, 247, 232, 0.9);
+  padding: 30px;
+  border-bottom: 2px solid $warm-border;
+  text-align: center;
+
+  .recipe-title {
+    margin: 0 0 10px 0;
+    font-size: 2.5rem;
+    color: $dark-brown;
+    font-weight: 800;
+  }
+
+  .recipe-description {
+    font-size: 1.1rem;
+    color: $wood-medium;
+    max-width: 600px;
+    margin: 0 auto 20px auto;
+    line-height: 1.5;
+  }
+
+  .recipe-meta {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+.meta-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  background: #fff;
+  border: 1px solid $warm-border;
+  color: $wood-medium;
+
+  &.difficulty {
+    background: $terracotta-light;
+    color: $terracotta;
+    border-color: $terracotta-border;
+  }
+
+  &.tag {
+    background: $olive-green-light;
+    color: $olive-green;
+    border-color: $olive-green-border;
+  }
+}
+
+.cookbook-body {
+  display: flex;
+  flex-direction: column;
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+  }
+}
+
+.ingredients-section {
+  padding: 30px;
+  background: rgba(245, 235, 220, 0.8);
+  border-bottom: 1px solid $warm-border;
+
+  @media (min-width: 768px) {
+    width: 35%;
+    border-bottom: none;
+    border-right: 1px dashed $warm-border;
+  }
+
+  h3 {
+    margin-top: 0;
+    color: $dark-brown;
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+.ingredients-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.ingredient-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: rgba(255, 255, 255, 0.6);
+  padding: 12px;
+  border-radius: $radius-md;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+
+  .ingredient-icon {
+    font-size: 2rem;
+    background: #fff;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  }
+
+  .ingredient-details {
+    display: flex;
+    flex-direction: column;
+
+    .ingredient-name {
+      font-weight: 700;
+      color: $dark-brown;
+      font-size: 1.1rem;
+      text-transform: capitalize;
+    }
+
+    .ingredient-amount {
+      color: $wood-muted;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+  }
+}
+
+.instructions-section {
+  padding: 30px;
+  background: rgba(251, 246, 238, 0.8);
+
+  @media (min-width: 768px) {
+    width: 65%;
+  }
+
+  h3 {
+    margin-top: 0;
+    color: $dark-brown;
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+.instructions-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.instruction-step {
+  display: flex;
+  gap: 15px;
+
+  .step-number {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    background: $terracotta;
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.1rem;
+    margin-top: 2px;
+  }
+
+  .step-text {
+    margin: 0;
+    font-size: 1.15rem;
+    line-height: 1.6;
+    color: $dark-brown;
+    padding-top: 4px;
+
+    &::first-letter {
+      text-transform: capitalize;
+    }
+  }
+}
+
+.recipe-hints {
+  margin-top: 40px;
+  background: $mixing-bg;
+  border: 1px solid $mixing-border;
+  border-radius: $radius-lg;
+  padding: 20px;
+
+  h4 {
+    margin: 0 0 15px 0;
+    color: $mixing-text;
+    font-size: 1.2rem;
+  }
+
+  ul {
+    margin: 0;
+    padding-left: 20px;
+    color: $dark-brown;
+
+    li {
+      margin-bottom: 8px;
+      line-height: 1.5;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+}
