@@ -21,10 +21,11 @@ import { useSceneDragAndDrop } from './useSceneDragAndDrop';
 import { RecipePlayer } from './RecipePlayer';
 import { ActionRecorder } from '../Controls/ActionRecorder';
 import { IngredientsSidebar } from '../Controls/IngredientsSidebar';
+import { CookbookView } from '../Recipe/CookbookView';
 import './RecipePlayer.scss';
 
 export const Scene: React.FC = () => {
-  const [activeMode, setActiveMode] = useState<'player' | 'recorder'>('player');
+  const [activeMode, setActiveMode] = useState<'player' | 'recorder' | 'cookbook'>('cookbook');
   const dispatch = useStore(worldStore, (state) => state.dispatch);
 
   // 1. Mount the drag-and-drop input listeners and dispatch handler
@@ -73,10 +74,17 @@ export const Scene: React.FC = () => {
           <div className="mode-tabs">
             <button
               type="button"
+              className={`mode-tab-btn ${activeMode === 'cookbook' ? 'active' : ''}`}
+              onClick={() => setActiveMode('cookbook')}
+            >
+              📖 Cookbook Mode
+            </button>
+            <button
+              type="button"
               className={`mode-tab-btn ${activeMode === 'player' ? 'active' : ''}`}
               onClick={() => setActiveMode('player')}
             >
-              📖 Play Catalog Recipe Mode
+              ▶️ Play Catalog Recipe Mode
             </button>
             <button
               type="button"
@@ -95,7 +103,9 @@ export const Scene: React.FC = () => {
             </button>
           </div>
 
-          {activeMode === 'player' ? (
+          {activeMode === 'cookbook' ? (
+            <CookbookView />
+          ) : activeMode === 'player' ? (
             <RecipePlayer />
           ) : (
             <div className="action-recorder-layout">
@@ -106,9 +116,11 @@ export const Scene: React.FC = () => {
         </div>
 
         {/* Render Workspace independently so it doesn't get collapsed */}
-        <div className="scene-workspace-independent" style={{ marginTop: '20px' }}>
-            {renderWorkspace()}
-        </div>
+        {activeMode !== 'cookbook' && (
+          <div className="scene-workspace-independent" style={{ marginTop: '20px' }}>
+              {renderWorkspace()}
+          </div>
+        )}
       </div>
     </DndContext>
   );
