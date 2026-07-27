@@ -9,6 +9,7 @@
 import React, { useState, useMemo } from 'react';
 import { useStore } from 'zustand';
 import { worldStore } from '../../store/worldStore';
+import { eventStore } from '../../systems/EventStore';
 import { ActionReplayer } from './ActionReplayer';
 import { actionPlayer } from '../../systems/actionPlayer';
 import {
@@ -24,39 +25,84 @@ export const ActionRecorder: React.FC = () => {
   const isRecording = useStore(worldStore, (state) => state.isRecording);
   const recordedActions = useStore(worldStore, (state) => state.recordedActions);
   const usedIngredients = useStore(worldStore, (state) => state.usedIngredients);
+  const initialRecordingState = useStore(worldStore, (state) => state.initialRecordingState);
   const startRecording = useStore(worldStore, (state) => state.startRecording);
   const stopRecording = useStore(worldStore, (state) => state.stopRecording);
   const clearRecording = useStore(worldStore, (state) => state.clearRecording);
 
   const [showTranslator, setShowTranslator] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<'mascotActions' | 'recipeFile'>('mascotActions');
+  const [activeTab, setActiveTab] = useState<'mascotActions' | 'recipeFile' | 'fullSessionLog'>('mascotActions');
   const [isPlayingTranslated, setIsPlayingTranslated] = useState<boolean>(false);
 
-  // Translate human actions to mascot actions sequence
-  const translatedMascotActions = useMemo(() => {
-    if (recordedActions.length === 0) return [];
-    return translateHumanActionsToMascotActions(recordedActions);
+  // Sourced actions (either explicit recording or emitted eventStore events)
+  const sourceActions = useMemo(() => {
+    if (recordedActions.length > 0) return recordedActions;
+    return eventStore.getEvents();
   }, [recordedActions]);
 
-  // Translate human actions to declarative Recipe definition
+  // Translate actions to mascot actions sequence
+  const translatedMascotActions = useMemo(() => {
+    if (sourceActions.length === 0) return [];
+    return translateHumanActionsToMascotActions(sourceActions);
+  }, [sourceActions]);
+
+  // Translate actions to declarative Recipe definition
   const translatedRecipe: Recipe | null = useMemo(() => {
-    if (recordedActions.length === 0) return null;
-    return translateHumanActionsToRecipe(recordedActions, {
+    if (sourceActions.length === 0) return null;
+    return translateHumanActionsToRecipe(sourceActions, {
       recipeName: 'Custom Translated Recipe',
     });
-  }, [recordedActions]);
+  }, [sourceActions]);
 
-  // Handle downloading translated recipe JSON
-  const handleDownloadRecipe = () => {
-    if (!translatedRecipe) return;
-    const jsonStr = JSON.stringify(translatedRecipe, null, 2);
+  // Full Session Log (zustand init -> actions/events -> zustand end)
+  const fullSessionLogData = useMemo(() => {
+    const currentState = worldStore.getState();
+    return {
+      version: '1.0.0',
+      title: 'Tortilla World Action Session Log',
+      recordedAt: new Date().toISOString(),
+      zustandInit: initialRecordingState || {
+        entities: currentState.entities,
+        containers: currentState.containers,
+      },
+      actions: recordedActions.length > 0 ? recordedActions : eventStore.getEvents().map((e) => e.action),
+      events: eventStore.getEvents(),
+      zustandEnd: {
+        entities: currentState.entities,
+        containers: currentState.containers,
+      },
+      metadata: {
+        actionCount: recordedActions.length,
+        eventCount: eventStore.getEvents().length,
+      },
+    };
+  }, [recordedActions, initialRecordingState]);
+
+  // Download helper
+  const downloadJSON = (data: unknown, filename: string) => {
+    const jsonStr = JSON.stringify(data, null, 2);
     const blob = new Blob([jsonStr], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${translatedRecipe.id || 'translated-recipe'}.json`;
+    a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  // Downloads
+  const handleDownloadMascotActions = () => {
+    if (translatedMascotActions.length === 0) return;
+    downloadJSON(translatedMascotActions, 'mascot-actions-sequence.json');
+  };
+
+  const handleDownloadRecipe = () => {
+    if (!translatedRecipe) return;
+    downloadJSON(translatedRecipe, `${translatedRecipe.id || 'translated-recipe'}.json`);
+  };
+
+  const handleDownloadSessionLog = () => {
+    downloadJSON(fullSessionLogData, 'tortilla-full-session-log.json');
   };
 
   // Handle replaying translated mascot action sequence
@@ -72,6 +118,8 @@ export const ActionRecorder: React.FC = () => {
     });
   };
 
+  const hasActions = recordedActions.length > 0 || eventStore.getEvents().length > 0;
+
   return (
     <div className="action-recorder-container">
       <div className="recorder-header">
@@ -86,7 +134,7 @@ export const ActionRecorder: React.FC = () => {
 
         <div className="recorder-status">
           <span className="badge">
-            Captured Actions: <strong>{recordedActions.length}</strong>
+            Captured Actions: <strong>{recordedActions.length}</strong> | Events: <strong>{eventStore.getEvents().length}</strong>
           </span>
         </div>
       </div>
@@ -126,11 +174,11 @@ export const ActionRecorder: React.FC = () => {
         <button
           type="button"
           className="rec-btn translate-btn"
-          disabled={recordedActions.length === 0}
+          disabled={!hasActions}
           onClick={() => setShowTranslator(!showTranslator)}
           title="Translate human recorded actions into a mascot recipe with movement"
         >
-          🪄 {showTranslator ? 'Hide Translator' : 'Translate to Mascot Recipe'}
+          🪄 {showTranslator ? 'Hide Translator' : 'Translate / View Formats'}
         </button>
 
         <button
@@ -162,10 +210,10 @@ export const ActionRecorder: React.FC = () => {
         )}
       </div>
 
-      {showTranslator && translatedRecipe && (
+      {showTranslator && hasActions && (
         <div className="translation-preview-panel">
           <div className="translation-header">
-            <h4>🪄 Translated Mascot Recipe Preview</h4>
+            <h4>🪄 Action Export Formats & Translator Preview</h4>
           </div>
 
           <div className="translation-tabs">
@@ -183,13 +231,24 @@ export const ActionRecorder: React.FC = () => {
             >
               📜 Declarative Recipe File (.json)
             </button>
+            <button
+              type="button"
+              className={`tab-btn ${activeTab === 'fullSessionLog' ? 'active' : ''}`}
+              onClick={() => setActiveTab('fullSessionLog')}
+            >
+              💾 Full Session Log (zustand init / actions / end)
+            </button>
           </div>
 
           <div className="translation-content">
-            {activeTab === 'mascotActions' ? (
+            {activeTab === 'mascotActions' && (
               <pre>{JSON.stringify(translatedMascotActions, null, 2)}</pre>
-            ) : (
+            )}
+            {activeTab === 'recipeFile' && (
               <pre>{JSON.stringify(translatedRecipe, null, 2)}</pre>
+            )}
+            {activeTab === 'fullSessionLog' && (
+              <pre>{JSON.stringify(fullSessionLogData, null, 2)}</pre>
             )}
           </div>
 
@@ -198,13 +257,21 @@ export const ActionRecorder: React.FC = () => {
               type="button"
               className="action-btn primary"
               onClick={handleReplayTranslatedMascotSequence}
-              disabled={isPlayingTranslated}
+              disabled={isPlayingTranslated || translatedMascotActions.length === 0}
             >
-              {isPlayingTranslated ? '⏳ Replaying...' : '▶ Replay Translated Mascot Sequence'}
+              {isPlayingTranslated ? '⏳ Replaying...' : '▶ Replay Mascot Sequence'}
+            </button>
+
+            <button type="button" className="action-btn" onClick={handleDownloadMascotActions}>
+              🤖 Download Mascot Sequence (.json)
             </button>
 
             <button type="button" className="action-btn" onClick={handleDownloadRecipe}>
-              💾 Download Translated Recipe File (.json)
+              📜 Download Recipe File (.json)
+            </button>
+
+            <button type="button" className="action-btn" onClick={handleDownloadSessionLog}>
+              💾 Download Full Session Log (.json)
             </button>
           </div>
         </div>

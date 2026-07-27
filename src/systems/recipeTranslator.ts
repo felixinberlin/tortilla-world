@@ -40,7 +40,7 @@ function cleanEntityName(entityId?: string): string {
  * where mascot focus, grab, move, and drop actions are explicitly interleaved.
  */
 export function translateHumanActionsToMascotActions(
-  actions: (RecordedAction | WorldAction)[],
+  actions: readonly (RecordedAction | WorldAction | unknown)[],
   options: TranslatorOptions = {}
 ): RecordedAction[] {
   const mascotId = options.mascotId || 'chef';
@@ -62,7 +62,8 @@ export function translateHumanActionsToMascotActions(
   };
 
   for (const rawAct of actions) {
-    const act = rawAct as RecordedAction;
+    if (!rawAct) continue;
+    const act = (typeof rawAct === 'object' && 'action' in rawAct && rawAct.action ? rawAct.action : rawAct) as RecordedAction;
     const { type, payload = {} } = act;
 
     switch (type) {
@@ -175,7 +176,7 @@ export function translateHumanActionsToMascotActions(
  * that can be saved as a recipe file or executed directly via RecipeRunner.
  */
 export function translateHumanActionsToRecipe(
-  actions: (RecordedAction | WorldAction)[],
+  actions: readonly (RecordedAction | WorldAction | unknown)[],
   options: TranslatorOptions = {}
 ): Recipe {
   const recipeId = options.recipeId || `translated-recipe-${Date.now()}`;
@@ -192,7 +193,8 @@ export function translateHumanActionsToRecipe(
   });
 
   for (const rawAct of actions) {
-    const act = rawAct as RecordedAction;
+    if (!rawAct) continue;
+    const act = (typeof rawAct === 'object' && 'action' in rawAct && rawAct.action ? rawAct.action : rawAct) as RecordedAction;
     const { type, payload = {} } = act;
 
     switch (type) {

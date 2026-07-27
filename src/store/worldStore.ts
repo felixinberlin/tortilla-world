@@ -14,6 +14,7 @@ import { createStore } from 'zustand/vanilla';
 import { devtools } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import type { WorldAction, WorldEvent } from '../types/world';
+import { eventStore } from '../systems/EventStore';
 import { actionLog } from './middleware/actionLog';
 import { defaultEntities, defaultContainers } from './defaults';
 import { createEntitySlice } from './slices/entitySlice';
@@ -70,6 +71,7 @@ export const worldStore = createStore<WorldStateStore>()(
         },
 
         dispatch: (action: WorldAction) => {
+          eventStore.emit(action);
           const store = get();
 
           // Record action if recording is currently active

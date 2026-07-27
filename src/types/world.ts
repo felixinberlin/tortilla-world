@@ -10,6 +10,7 @@
 
 import type { WorldAction, WorldEvent } from './actions';
 import type { PreparationStyle, CookingMethod } from './RecipeStep';
+import type { BaseWorldEvent } from './WorldEvent';
 
 export type EntityType = 'ingredient' | 'tool' | 'product' | 'mascot' | 'container' | string;
 export type ContainerType = 'storage' | 'board' | 'plate' | 'trash' | 'bowl' | 'sink' | 'workstation' | 'burner';
@@ -61,4 +62,4 @@ export interface WorldState {
   dispatch: (action: WorldAction) => void;
 }
 
-export type { WorldAction, WorldEvent };
+export type { WorldAction, WorldEvent, BaseWorldEvent };
