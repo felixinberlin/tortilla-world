@@ -25,7 +25,14 @@ import {
 export interface EntitySlice {
   entities: Record<string, Entity>;
   addEntity: (
-    entity: { id: string; name: string; type: Entity['type']; state?: Record<string, unknown> },
+    entity: {
+      id: string;
+      name: string;
+      type: Entity['type'];
+      icon?: string;
+      ingredientId?: string;
+      state?: Record<string, unknown>;
+    },
     containerId: string
   ) => void;
   removeEntity: (entityId: string) => void;

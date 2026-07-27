@@ -51,6 +51,8 @@ export interface Container {
   entityIds: string[];
   rules?: ContainerRules;
   isOn?: boolean;
+  cookCondition?: string;
+  timer?: string;
 }
 
 export interface WorldState {

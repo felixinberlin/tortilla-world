@@ -38,6 +38,8 @@ export type WorldAction =
     type: 'TOGGLE_BURNER';
     payload: {
       containerId: string;
+      cookCondition?: string;
+      isOn?: boolean;
     };
   }
   | {
@@ -65,6 +67,8 @@ export type WorldAction =
     payload: {
       entityId: string;
       cooking: CookingMethod;
+      customName?: string;
+      cookCondition?: string;
     };
   }
   | {
@@ -113,6 +117,8 @@ export type WorldAction =
       type: 'TOGGLE_HEAT';
       payload: {
         containerId: string;
+        cookCondition?: string;
+        isOn?: boolean;
       };
     }
   | {
@@ -137,6 +143,16 @@ export type WorldAction =
       type: 'MIX_CONTAINER_CONTENTS';
       payload: {
         containerId: string;
+        customName?: string;
+      };
+    }
+  | {
+      type: 'COOK_CONTAINER_CONTENTS';
+      payload: {
+        containerId: string;
+        cooking?: CookingMethod;
+        customName?: string;
+        cookCondition?: string;
       };
     }
   | {
@@ -158,6 +174,7 @@ export type WorldEvent =
       payload: {
         containerId: string;
         isOn: boolean;
+        cookCondition?: string;
       };
     }
   | {
@@ -186,5 +203,16 @@ export type WorldEvent =
       payload: {
         containerId: string;
         entityIds: string[];
+        mixtureId?: string;
+        customName?: string;
+      };
+    }
+  | {
+      type: 'CONTAINER_COOKED';
+      payload: {
+        containerId: string;
+        entityIds: string[];
+        customName?: string;
+        cookCondition?: string;
       };
     };

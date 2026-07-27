@@ -15,6 +15,8 @@ export type WorldStateStore = {
   entities: Record<string, Entity>;
   containers: Record<string, Container>;
   events: WorldEvent[];
+  activeRecipeName?: string;
+  setActiveRecipeName: (name: string) => void;
   dispatch: (action: WorldAction) => void;
   emitEvent: (event: WorldEvent) => void;
   onEvent: (listener: (event: WorldEvent) => void) => () => void;

@@ -398,6 +398,9 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
 
   // Synchronize required materials for active recipe in despensa container
   useEffect(() => {
+    if (activeRecipe?.name) {
+      worldStore.getState().setActiveRecipeName(activeRecipe.name);
+    }
     if (isRecordingMode) return;
     const store = worldStore.getState();
     const reqs = getRecipeRequirementsArray(activeRecipe);

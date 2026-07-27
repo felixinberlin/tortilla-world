@@ -37,6 +37,11 @@ export const worldStore = createStore<WorldStateStore>()(
         entities: JSON.parse(JSON.stringify(defaultEntities)),
         containers: JSON.parse(JSON.stringify(defaultContainers)),
         events: [],
+        activeRecipeName: 'Tortilla Española Clásica',
+
+        setActiveRecipeName: (name: string) => {
+          set({ activeRecipeName: name }, false, 'SET_ACTIVE_RECIPE_NAME');
+        },
 
         emitEvent: (event: WorldEvent) => {
           set(
@@ -84,12 +89,26 @@ export const worldStore = createStore<WorldStateStore>()(
             case 'TOGGLE_HEAT': {
               let updatedIsOn = false;
               let containerExists = false;
+              const currentCondition = action.payload.cookCondition;
 
               set(
                 (draft) => {
                   const targetContainer = draft.containers[action.payload.containerId];
                   if (targetContainer) {
-                    targetContainer.isOn = !targetContainer.isOn;
+                    const nextIsOn =
+                      typeof action.payload.isOn === 'boolean'
+                        ? action.payload.isOn
+                        : !targetContainer.isOn;
+                    targetContainer.isOn = nextIsOn;
+                    if (nextIsOn) {
+                      if (currentCondition) {
+                        targetContainer.cookCondition = currentCondition;
+                        targetContainer.timer = currentCondition;
+                      }
+                    } else {
+                      delete targetContainer.cookCondition;
+                      delete targetContainer.timer;
+                    }
                     updatedIsOn = targetContainer.isOn;
                     containerExists = true;
                   }
@@ -104,14 +123,34 @@ export const worldStore = createStore<WorldStateStore>()(
                   payload: {
                     containerId: action.payload.containerId,
                     isOn: updatedIsOn,
+                    cookCondition: currentCondition,
                   },
                 });
               }
               break;
             }
             case 'COOK_INGREDIENT':
-              // fire on
               store.cookIngredient(action.payload.entityId, action.payload.cooking);
+              if (action.payload.customName || action.payload.cookCondition) {
+                set(
+                  (draft) => {
+                    const ent = draft.entities[action.payload.entityId];
+                    if (ent) {
+                      if (action.payload.customName) {
+                        ent.name = action.payload.customName;
+                      }
+                      if (action.payload.cookCondition) {
+                        ent.state = {
+                          ...ent.state,
+                          cookCondition: action.payload.cookCondition,
+                        };
+                      }
+                    }
+                  },
+                  false,
+                  'COOK_INGREDIENT_CUSTOM'
+                );
+              }
               break;
             case 'ADD_ENTITY':
               store.addEntity(action.payload.entity, action.payload.containerId);
@@ -216,17 +255,133 @@ export const worldStore = createStore<WorldStateStore>()(
             }
 
             case 'MIX_CONTAINER_CONTENTS': {
-              const targetContainer = get().containers[action.payload.containerId];
+              const containerId = action.payload.containerId;
+              const targetContainer = get().containers[containerId];
               if (targetContainer) {
-                const entityIds = [...targetContainer.entityIds];
-                entityIds.forEach((id) => {
-                  get().transformIngredient(id, 'mix');
-                });
+                const inputEntityIds = [...targetContainer.entityIds];
+                let mixtureId: string | undefined;
+
+                if (inputEntityIds.length > 0) {
+                  // Check auto-generated sequential default name count
+                  const existingMixtures = Object.values(get().entities).filter(
+                    (e) =>
+                      e.id.startsWith('mixture_') ||
+                      e.ingredientId === 'mixture' ||
+                      e.name.toLowerCase().includes('mixture')
+                  );
+                  const defaultName = `mixture_${existingMixtures.length + 1}`;
+                  const customNameInput = action.payload.customName?.trim();
+                  const finalName = customNameInput || defaultName;
+                  mixtureId = `mixture_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+
+                  // 1. Add mixture entity to container
+                  get().addEntity(
+                    {
+                      id: mixtureId,
+                      name: finalName,
+                      type: 'ingredient',
+                      ingredientId: 'mixture',
+                      state: {
+                        preparation: 'mixed',
+                        cooking: 'raw',
+                        status: 'mixed',
+                        components: inputEntityIds,
+                      },
+                    },
+                    containerId
+                  );
+
+                  // 2. Mark input ingredients as consumed / used in mixture
+                  inputEntityIds.forEach((id) => {
+                    get().useIngredient(id, mixtureId);
+                  });
+                }
+
+                // 3. Emit event
                 get().emitEvent({
                   type: 'CONTAINER_MIXED',
                   payload: {
-                    containerId: action.payload.containerId,
+                    containerId,
+                    entityIds: inputEntityIds,
+                    mixtureId,
+                    customName: action.payload.customName,
+                  },
+                });
+              }
+              break;
+            }
+
+            case 'COOK_CONTAINER_CONTENTS': {
+              const containerId = action.payload.containerId;
+              const targetContainer = get().containers[containerId];
+              if (targetContainer) {
+                const entityIds = [...targetContainer.entityIds];
+                const cookCondition =
+                  action.payload.cookCondition ||
+                  targetContainer.cookCondition ||
+                  targetContainer.timer;
+                const activeRecipeName = get().activeRecipeName || 'Tortilla Española Clásica';
+                const customName = action.payload.customName?.trim();
+                const cookingMethod = action.payload.cooking || 'cooked';
+
+                if (entityIds.length > 0) {
+                  entityIds.forEach((id) => {
+                    const entity = get().entities[id];
+                    if (!entity) return;
+
+                    const isMixture =
+                      entity.id.startsWith('mixture_') ||
+                      entity.ingredientId === 'mixture' ||
+                      entity.name.toLowerCase().includes('mixture');
+
+                    if (isMixture) {
+                      const finalName = customName || activeRecipeName;
+                      set(
+                        (draft) => {
+                          const ent = draft.entities[id];
+                          if (ent) {
+                            ent.name = finalName;
+                            ent.status = 'cooked';
+                            ent.state = {
+                              ...ent.state,
+                              cooking: cookingMethod,
+                              status: 'cooked',
+                              cookCondition,
+                            };
+                          }
+                        },
+                        false,
+                        'COOK_MIXTURE'
+                      );
+                    } else {
+                      get().cookIngredient(id, cookingMethod);
+                      set(
+                        (draft) => {
+                          const ent = draft.entities[id];
+                          if (ent) {
+                            if (customName) {
+                              ent.name = customName;
+                            }
+                            ent.state = {
+                              ...ent.state,
+                              cookCondition,
+                            };
+                          }
+                        },
+                        false,
+                        'COOK_ENTITY_CUSTOM'
+                      );
+                    }
+                  });
+                }
+
+                get().emitEvent({
+                  type: 'CONTAINER_COOKED',
+                  payload: {
+                    containerId,
                     entityIds,
+                    customName,
+                    cookCondition,
                   },
                 });
               }

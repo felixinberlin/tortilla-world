@@ -77,6 +77,11 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
       <div className="container-view__header">
         <h3 className="container-view__title">{container.name}</h3>
         <span className="container-view__badge">{getWorkstationBadge(container.id)}</span>
+        {(container.cookCondition || container.timer) && (
+          <span className="container-view__badge container-view__badge--timer" title="Active Cooking Target">
+            ⏱️ {container.cookCondition || container.timer}
+          </span>
+        )}
         {isCookingArea && (
           <button
             type="button"
@@ -84,13 +89,25 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
             title="Toggle Heat"
             onClick={(e) => {
               e.stopPropagation();
-
-              dispatch({
-                type: 'TOGGLE_HEAT',
-                payload: {
-                  containerId: container.id,
-                },
-              });
+              if (!container.isOn) {
+                const cookCondition = window.prompt('Enter cooking timer or condition (e.g., "10 min" or "until brown"):');
+                dispatch({
+                  type: 'TOGGLE_HEAT',
+                  payload: {
+                    containerId: container.id,
+                    cookCondition: cookCondition ?? undefined,
+                    isOn: true,
+                  },
+                });
+              } else {
+                dispatch({
+                  type: 'TOGGLE_HEAT',
+                  payload: {
+                    containerId: container.id,
+                    isOn: false,
+                  },
+                });
+              }
             }}
           />
         )}
@@ -99,19 +116,54 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
       {(isCookingArea || isSink || isCuttingBoard || isBowl) && (
         <div className="container-view__actions">
           {isCookingArea && (
-            <button
-              type="button"
-              className={`container-action-btn toggle-heat-btn ${container.isOn ? 'container-action-btn--active' : ''}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                dispatch({
-                  type: 'TOGGLE_HEAT',
-                  payload: { containerId: container.id },
-                });
-              }}
-            >
-              🔥 On/Off
-            </button>
+            <>
+              <button
+                type="button"
+                className={`container-action-btn toggle-heat-btn ${container.isOn ? 'container-action-btn--active' : ''}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!container.isOn) {
+                    const cookCondition = window.prompt('Enter cooking timer or condition (e.g., "10 min" or "until brown"):');
+                    dispatch({
+                      type: 'TOGGLE_HEAT',
+                      payload: {
+                        containerId: container.id,
+                        cookCondition: cookCondition ?? undefined,
+                        isOn: true,
+                      },
+                    });
+                  } else {
+                    dispatch({
+                      type: 'TOGGLE_HEAT',
+                      payload: {
+                        containerId: container.id,
+                        isOn: false,
+                      },
+                    });
+                  }
+                }}
+              >
+                🔥 {container.isOn ? 'Heat On' : 'Heat Off'}
+              </button>
+              <button
+                type="button"
+                className="container-action-btn cook-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const customName = window.prompt('Enter final custom name for cooked item (leave empty for recipe default):');
+                  dispatch({
+                    type: 'COOK_CONTAINER_CONTENTS',
+                    payload: {
+                      containerId: container.id,
+                      customName: customName ?? undefined,
+                      cookCondition: container.cookCondition || container.timer,
+                    },
+                  });
+                }}
+              >
+                🍳 Cook
+              </button>
+            </>
           )}
 
           {isSink && (
@@ -167,9 +219,13 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
               className="container-action-btn mix-btn"
               onClick={(e) => {
                 e.stopPropagation();
+                const customName = window.prompt('Enter custom name for mixture (leave empty for default e.g. mixture_1):');
                 dispatch({
                   type: 'MIX_CONTAINER_CONTENTS',
-                  payload: { containerId: container.id },
+                  payload: {
+                    containerId: container.id,
+                    customName: customName ?? undefined,
+                  },
                 });
               }}
             >
