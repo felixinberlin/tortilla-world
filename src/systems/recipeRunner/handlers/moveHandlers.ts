@@ -41,6 +41,28 @@ export async function handleMoveStep(
     return; // Skip move if entity is already in target container
   }
 
+  // If running in autonomous mode without mascot, dispatch direct MOVE_ENTITY action
+  if (ctx.useMascot === false) {
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: {
+        entityId,
+        targetContainerId: target,
+      },
+    });
+    await ctx.wait();
+
+    const newState = worldStore.getState();
+    const newTargetContainer = newState.containers[target];
+    if (newTargetContainer && !newTargetContainer.entityIds.includes(entityId)) {
+      const copiedId = newTargetContainer.entityIds[newTargetContainer.entityIds.length - 1];
+      if (copiedId) {
+        ctx.updateBindingIfCopied(entityId, copiedId, rawKey);
+      }
+    }
+    return;
+  }
+
   // 1. Move mascot gaze to source container
   moveTortillaTo(source, ctx.mascotId);
   await ctx.wait();

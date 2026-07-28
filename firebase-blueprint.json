@@ -1,0 +1,81 @@
+{
+  "entities": {
+    "recipes": {
+      "title": "Recipes & Saved Games",
+      "description": "Collection of recipes in multiple formats with search indexing and mascot compatibility.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique recipe ID" },
+        "title": { "type": "string", "description": "Name of the recipe" },
+        "description": { "type": "string", "description": "Brief description" },
+        "ingredients": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Normalized array of ingredient IDs for search filtering (e.g. ['egg', 'garlic', 'potato'])"
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Search tags (e.g. ['spanish', 'quick', 'vegetarian'])"
+        },
+        "hasMascotSupport": {
+          "type": "boolean",
+          "description": "Whether the recipe can be performed with or without Ms. Tortilla Mascot"
+        },
+        "author": { "type": "string", "description": "Author or anonymous creator ID" },
+        "formats": {
+          "type": "object",
+          "description": "Multi-format exports (mascotSequence, recipeJson, fullSessionLog)",
+          "properties": {
+            "mascotSequence": { "type": "array" },
+            "recipeJson": { "type": "object" },
+            "fullSessionLog": { "type": "object" }
+          }
+        },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "title", "ingredients", "hasMascotSupport", "formats"]
+    },
+    "kitchen_tools": {
+      "title": "Kitchen Tools Catalog",
+      "description": "Catalog of tools available in Tortilla World workstations.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "type": "string" },
+        "icon": { "type": "string" },
+        "allowedWorkstations": { "type": "array", "items": { "type": "string" } },
+        "description": { "type": "string" }
+      },
+      "required": ["id", "name", "type"]
+    },
+    "ingredients": {
+      "title": "Ingredients Catalog",
+      "description": "Catalog of raw and processed ingredients.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "states": { "type": "array", "items": { "type": "string" } },
+        "icon": { "type": "string" }
+      },
+      "required": ["id", "name"]
+    },
+    "kitchen_configs": {
+      "title": "Kitchen Configurations",
+      "description": "Saved workstation layouts, container limits, and kitchen settings.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "workstations": { "type": "array" },
+        "defaultContainers": { "type": "array" },
+        "isDefault": { "type": "boolean" }
+      },
+      "required": ["id", "name"]
+    }
+  }
+}

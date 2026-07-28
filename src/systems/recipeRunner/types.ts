@@ -21,6 +21,7 @@ export interface RecipeRunnerOptions {
   defaultSourceId?: string;
   defaultTargetId?: string;
   delayMs?: number;
+  useMascot?: boolean;
 }
 
 export interface RecipeRunnerContext {
@@ -28,6 +29,7 @@ export interface RecipeRunnerContext {
   defaultSourceId: string;
   defaultTargetId: string;
   delayMs: number;
+  useMascot?: boolean;
   currentRecipe?: Recipe;
   recipeContext: RecipeContextData;
 

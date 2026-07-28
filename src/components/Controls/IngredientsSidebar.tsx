@@ -14,64 +14,39 @@ import React, { useState, useMemo } from 'react';
 import { useStore } from 'zustand';
 import { worldStore } from '../../store/worldStore';
 import { ingredients } from '../../data/catalog/ingredients';
-import { catalogTools } from '../../data/catalog/tools';
 import { EntityView } from '../World/EntityView';
-import type { Entity } from '../../types/world';
 import './IngredientsSidebar.scss';
 
 export const IngredientsSidebar: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [activeTab, setActiveTab] = useState<'all' | 'ingredients' | 'tools'>('all');
 
   const entities = useStore(worldStore, (state) => state.entities);
   const containers = useStore(worldStore, (state) => state.containers);
 
-  // Combine ingredients and tools catalog list
+  // Ingredients catalog list
   const catalogList = useMemo(() => {
-    const ingEntities: Entity[] = ingredients.map((ing) => {
+    return ingredients.map((ing) => {
       const existing = entities[ing.id];
       if (existing) return existing;
       return {
         id: ing.id,
         ingredientId: ing.id,
         name: `${ing.icon} ${ing.name}`,
-        type: 'ingredient',
+        type: 'ingredient' as const,
         state: {},
       };
     });
-
-    const toolEntities: Entity[] = catalogTools.map((tool) => {
-      const existing = entities[tool.id];
-      if (existing) return existing;
-      return {
-        id: tool.id,
-        name: `${tool.icon} ${tool.name}`,
-        type: 'tool',
-        state: {},
-      };
-    });
-
-    return { ingEntities, toolEntities };
   }, [entities]);
 
-  // Filter items based on activeTab and searchQuery
+  // Filter items based on searchQuery
   const filteredItems = useMemo(() => {
-    let items: Entity[] = [];
-    if (activeTab === 'all') {
-      items = [...catalogList.ingEntities, ...catalogList.toolEntities];
-    } else if (activeTab === 'ingredients') {
-      items = catalogList.ingEntities;
-    } else if (activeTab === 'tools') {
-      items = catalogList.toolEntities;
-    }
-
-    if (!searchQuery.trim()) return items;
+    if (!searchQuery.trim()) return catalogList;
 
     const query = searchQuery.toLowerCase();
-    return items.filter(
+    return catalogList.filter(
       (item) => item.name.toLowerCase().includes(query) || item.id.toLowerCase().includes(query)
     );
-  }, [catalogList, activeTab, searchQuery]);
+  }, [catalogList, searchQuery]);
 
   // Handle quick-adding an entity into the primary workstation (e.g., board or bowl)
   const handleQuickAdd = (entityId: string) => {
@@ -105,34 +80,10 @@ export const IngredientsSidebar: React.FC = () => {
       <div className="sidebar-search">
         <input
           type="text"
-          placeholder="🔍 Search ingredients or tools..."
+          placeholder="🔍 Search ingredients..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
-      </div>
-
-      <div className="sidebar-category-tabs">
-        <button
-          type="button"
-          className={`tab-btn ${activeTab === 'all' ? 'active' : ''}`}
-          onClick={() => setActiveTab('all')}
-        >
-          All ({catalogList.ingEntities.length + catalogList.toolEntities.length})
-        </button>
-        <button
-          type="button"
-          className={`tab-btn ${activeTab === 'ingredients' ? 'active' : ''}`}
-          onClick={() => setActiveTab('ingredients')}
-        >
-          Ingredients ({catalogList.ingEntities.length})
-        </button>
-        <button
-          type="button"
-          className={`tab-btn ${activeTab === 'tools' ? 'active' : ''}`}
-          onClick={() => setActiveTab('tools')}
-        >
-          Tools ({catalogList.toolEntities.length})
-        </button>
       </div>
 
       <div className="items-grid">

@@ -856,8 +856,6 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
                 }`}
                 onClick={() => jumpToStep(idx)}
                 title={`Jump to step ${idx + 1}`}
-                aria-label={`Jump to step ${idx + 1}`}
-                aria-current={idx === currentStepIndex ? 'step' : undefined}
               />
             ))}
           </div>

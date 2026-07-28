@@ -779,6 +779,35 @@ The Recipe System executes declarative, step-based recipe state machines via `Re
 
 ---
 
+### Recipe Loader & Validation System (`src/systems/recipeLoader.ts`, `src/systems/recipeValidator.ts`)
+
+* **Purpose**: Decouples recipe definitions from TypeScript code files into structured, validated JSON assets (`clasica.json`, `concebolla.json`).
+* **Recipe Validator (`recipeValidator.ts`)**:
+  - Validates raw JSON structures against `RecipeJSON` schema.
+  - Ensures required fields (`id`, `name`, `steps`, `requirements`/`ingredients`) exist and meet data type constraints.
+  - Verifies step action types and cross-references inputs and targets against declared recipe requirements.
+* **Recipe Loader (`recipeLoader.ts`)**:
+  - Ingests JSON recipe assets safely and hydrates them into runtime `Recipe` objects.
+  - Provides registry methods (`loadRecipe`, `loadAllRecipes`, `getAvailableRecipeIds`, `getRecipeCooklang`).
+* **RecipeRunner Integration**:
+  - `RecipeRunner` natively accepts recipe ID strings (e.g. `'clasica'`, `'concebolla'`) or hydrated `Recipe` objects.
+
+---
+
+### Event Store & Replay Engine System (`src/systems/EventStore.ts`, `src/systems/replayEngine.ts`, `src/systems/analytics.ts`)
+
+* **Purpose**: Headless, append-only audit trail and deterministic replay engine for Tortilla World.
+* **Event Store Singleton (`EventStore.ts`)**:
+  - Central interceptor integrated into `worldStore.ts`'s `dispatch` function.
+  - Automatically wraps every `WorldAction` in a immutable `BaseWorldEvent` metadata payload (`id`, `timestamp`, `sequenceNumber`, `version`, `actor`, `action`).
+  - Provides headless export/import (`exportJSON`, `importJSON`) and query methods (`getEvents`, `clear`).
+* **Deterministic Replay Engine (`replayEngine.ts`)**:
+  - Resets the world state and sequentially re-dispatches exported event streams onto `worldStore`.
+* **Analytics Utilities (`analytics.ts`)**:
+  - Pure headless functions for calculating recipe metrics (`getRecipeMetrics`), filtering audit trails (`getAuditTrail`), and exporting history to CSV (`exportToCSV`).
+
+---
+
 # Final Principle
 
 The rule of Tortilla World:

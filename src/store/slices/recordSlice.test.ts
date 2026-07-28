@@ -82,6 +82,8 @@ describe('recordSlice', () => {
     expect(worldStore.getState().recordedActions).toHaveLength(0);
   });
 
+
+  // Better while  recording, not at stop
   it('stops recording and generates download URL & serialized JSON', () => {
     // Mock URL methods for Node environment
     if (!globalThis.URL.createObjectURL) {

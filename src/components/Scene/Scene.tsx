@@ -21,11 +21,19 @@ import { useSceneDragAndDrop } from './useSceneDragAndDrop';
 import { RecipePlayer } from './RecipePlayer';
 import { ActionRecorder } from '../Controls/ActionRecorder';
 import { IngredientsSidebar } from '../Controls/IngredientsSidebar';
-import { CookbookView } from '../Recipe/CookbookView';
+import { RecipeDatabaseModal } from '../Controls/RecipeDatabaseModal';
+import { useDevMode } from '../../utils/devMode';
 import './RecipePlayer.scss';
 
 export const Scene: React.FC = () => {
-  const [activeMode, setActiveMode] = useState<'player' | 'recorder' | 'cookbook'>('cookbook');
+  const isDev = useDevMode();
+  const [forcePublishMode, setForcePublishMode] = useState<boolean>(false);
+
+  // Active mode logic: in slim publish mode default to player, in dev mode default to database
+  const effectiveDevMode = isDev && !forcePublishMode;
+  const [activeMode, setActiveMode] = useState<'player' | 'recorder' | 'database'>(
+    effectiveDevMode ? 'database' : 'player'
+  );
   const dispatch = useStore(worldStore, (state) => state.dispatch);
 
   // 1. Mount the drag-and-drop input listeners and dispatch handler
@@ -72,27 +80,32 @@ export const Scene: React.FC = () => {
         <div className={`scene-controls-wrapper ${isPanelExpanded ? 'expanded' : 'collapsed'}`}>
           {/* Mode Selector Navigation Tabs & Reset Control */}
           <div className="mode-tabs">
-            <button
-              type="button"
-              className={`mode-tab-btn ${activeMode === 'cookbook' ? 'active' : ''}`}
-              onClick={() => setActiveMode('cookbook')}
-            >
-              📖 Cookbook Mode
-            </button>
+            {effectiveDevMode && (
+              <button
+                type="button"
+                className={`mode-tab-btn ${activeMode === 'database' ? 'active' : ''}`}
+                onClick={() => setActiveMode('database')}
+              >
+                🗄️ Firestore Recipe Database
+              </button>
+            )}
+
             <button
               type="button"
               className={`mode-tab-btn ${activeMode === 'player' ? 'active' : ''}`}
               onClick={() => setActiveMode('player')}
             >
-              ▶️ Play Catalog Recipe Mode
+              📖 Play Catalog Recipe
             </button>
+
             <button
               type="button"
               className={`mode-tab-btn ${activeMode === 'recorder' ? 'active' : ''}`}
               onClick={() => setActiveMode('recorder')}
             >
-              🎥 Action Recorder & Translator Mode
+              🎥 Action Recorder
             </button>
+
             <button
               type="button"
               className="reset-kitchen-header-btn"
@@ -101,10 +114,36 @@ export const Scene: React.FC = () => {
             >
               🔄 Reset Kitchen
             </button>
+
+            {/* Dev Mode Indicator & Toggle */}
+            {isDev && (
+              <button
+                type="button"
+                className="mode-toggle-pill"
+                style={{
+                  marginLeft: 'auto',
+                  padding: '4px 10px',
+                  borderRadius: '12px',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  border: '1px solid #cbd5e1',
+                  backgroundColor: effectiveDevMode ? '#e0f2fe' : '#f1f5f9',
+                  color: effectiveDevMode ? '#0369a1' : '#475569',
+                }}
+                onClick={() => {
+                  setForcePublishMode(!forcePublishMode);
+                  if (effectiveDevMode) setActiveMode('player');
+                }}
+                title="Toggle between Developer Admin Mode and Slim Published View"
+              >
+                {effectiveDevMode ? '🛠️ Dev Mode (Active) ➔ Switch to Slim Publish' : '👁️ Slim Publish Preview ➔ Switch to Dev'}
+              </button>
+            )}
           </div>
 
-          {activeMode === 'cookbook' ? (
-            <CookbookView />
+          {activeMode === 'database' && effectiveDevMode ? (
+            <RecipeDatabaseModal />
           ) : activeMode === 'player' ? (
             <RecipePlayer />
           ) : (
@@ -116,11 +155,9 @@ export const Scene: React.FC = () => {
         </div>
 
         {/* Render Workspace independently so it doesn't get collapsed */}
-        {activeMode !== 'cookbook' && (
-          <div className="scene-workspace-independent" style={{ marginTop: '20px' }}>
-              {renderWorkspace()}
-          </div>
-        )}
+        <div className="scene-workspace-independent" style={{ marginTop: '20px' }}>
+          {renderWorkspace()}
+        </div>
       </div>
     </DndContext>
   );

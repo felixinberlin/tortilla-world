@@ -47,10 +47,10 @@ export const defaultContainers: Record<string, Container> = {
     id: 'despensa',
     name: 'Despensa (All Ingredients - Immutable Catalog)',
     type: 'storage',
-    entityIds: [...catalogIngredients.map((i) => i.id), ...catalogTools.map((t) => t.id)],
+    entityIds: [...catalogIngredients.map((i) => i.id)],
     rules: {
       maxCapacity: 30,
-      allowedTypes: ['ingredient', 'tool'],
+      allowedTypes: ['ingredient'],
       consumesOnDrag: false,
       isImmutable: true,
     },

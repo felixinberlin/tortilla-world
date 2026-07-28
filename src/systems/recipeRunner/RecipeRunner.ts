@@ -37,6 +37,7 @@ export class RecipeRunner implements RecipeRunnerContext {
   public defaultSourceId: string;
   public defaultTargetId: string;
   public delayMs: number;
+  public useMascot: boolean;
   public currentRecipe?: Recipe;
   public recipeContext: RecipeContextData;
 
@@ -45,6 +46,7 @@ export class RecipeRunner implements RecipeRunnerContext {
     this.defaultSourceId = options.defaultSourceId || 'despensa';
     this.defaultTargetId = options.defaultTargetId || 'board';
     this.delayMs = options.delayMs ?? 600;
+    this.useMascot = options.useMascot ?? true;
     this.recipeContext = {
       recipeId: '',
       bindings: {},
