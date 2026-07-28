@@ -131,6 +131,7 @@ export type WorldAction =
       type: 'CUT_CONTAINER_CONTENTS';
       payload: {
         containerId: string;
+        cutCondition?: string;
       };
     }
   | {
@@ -189,6 +190,7 @@ export type WorldEvent =
       payload: {
         containerId: string;
         entityIds: string[];
+        cutCondition?: string;
       };
     }
   | {

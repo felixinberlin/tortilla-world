@@ -224,14 +224,33 @@ export const worldStore = createStore<WorldStateStore>()(
               const targetContainer = get().containers[action.payload.containerId];
               if (targetContainer) {
                 const entityIds = [...targetContainer.entityIds];
+                const cutCondition = action.payload.cutCondition || '5 min';
+
                 entityIds.forEach((id) => {
                   get().transformIngredient(id, 'cut');
                 });
+
+                set(
+                  (draft) => {
+                    entityIds.forEach((id) => {
+                      const ent = draft.entities[id];
+                      if (ent) {
+                        ent.state = {
+                          ...ent.state,
+                          cutCondition,
+                        };
+                      }
+                    });
+                  },
+                  false,
+                  'CUT_ENTITY_CONDITION'
+                );
                 get().emitEvent({
                   type: 'CONTAINER_CUT',
                   payload: {
                     containerId: action.payload.containerId,
                     entityIds,
+                    cutCondition,
                   },
                 });
               }
@@ -321,7 +340,8 @@ export const worldStore = createStore<WorldStateStore>()(
                 const cookCondition =
                   action.payload.cookCondition ||
                   targetContainer.cookCondition ||
-                  targetContainer.timer;
+                  targetContainer.timer ||
+                  'until done';
                 const activeRecipeName = get().activeRecipeName || 'Tortilla Española Clásica';
                 const customName = action.payload.customName?.trim();
                 const cookingMethod = action.payload.cooking || 'cooked';
