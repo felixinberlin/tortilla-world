@@ -273,11 +273,9 @@
     }
   }
 
-  // Recipe Requirements Section (Left Sidebar Panel)
+  // Recipe Requirements Section (Top Panel)
   .recipe-requirements-section {
-    width: 260px;
-    min-width: 230px;
-    flex-shrink: 0;
+    width: 100%;
     background: #ffffff;
     border: 1px solid $warm-border;
     border-radius: $radius-md;
@@ -288,19 +286,17 @@
     box-shadow: $shadow-ceramic;
     box-sizing: border-box;
 
-    @media (max-width: 860px) {
-      width: 100%;
-    }
-
     .requirements-header {
       display: flex;
-      flex-direction: column;
-      gap: 2px;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
       padding-bottom: 8px;
       border-bottom: 2px dashed color.mix($dark-brown, white, 15%);
 
       .requirements-title {
-        font-size: 0.85rem;
+        font-size: 0.9rem;
         font-weight: 800;
         color: $dark-brown;
         text-transform: uppercase;
@@ -308,15 +304,15 @@
       }
 
       .requirements-subtitle {
-        font-size: 0.75rem;
+        font-size: 0.78rem;
         font-weight: 600;
         color: $wood-muted;
       }
     }
 
     .recipe-requirements {
-      display: flex;
-      flex-direction: column;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
       gap: 10px;
       list-style: none;
       margin: 0;
@@ -342,7 +338,7 @@
         &:hover {
           border-color: $tortilla-yellow;
           box-shadow: 0 3px 6px rgba(232, 168, 56, 0.15);
-          transform: translateX(2px);
+          transform: translateY(-1px);
         }
 
         &__amount {
