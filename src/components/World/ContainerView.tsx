@@ -28,6 +28,7 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
   const [mixCustomName, setMixCustomName] = useState('');
   const [cookConditionInput, setCookConditionInput] = useState('');
   const [cookedCustomName, setCookedCustomName] = useState('');
+  const [temperatureInput, setTemperatureInput] = useState('');
 
   // Set up dnd-kit droppable binding for this container
   const { setNodeRef, isOver } = useDroppable({
@@ -71,6 +72,14 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
     container.id.includes('cutting');
   const isBowl = container.type === 'bowl' || container.id.includes('bowl');
 
+  const getTemperatureBadgeClass = (temp: number | string | undefined) => {
+    if (!temp) return '';
+    const tempStr = String(temp).toLowerCase();
+    if (tempStr.includes('low') || (typeof temp === 'number' && temp < 50)) return 'container-view__badge--temp-low';
+    if (tempStr.includes('high') || (typeof temp === 'number' && temp > 150)) return 'container-view__badge--temp-high';
+    return 'container-view__badge--temp-medium';
+  };
+
   return (
     <div
       ref={setNodeRef}
@@ -80,6 +89,11 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
       <div className="container-view__header">
         <h3 className="container-view__title">{container.name}</h3>
         <span className="container-view__badge">{getWorkstationBadge(container.id)}</span>
+        {container.temperature !== undefined && (
+          <span className={`container-view__badge container-view__badge--temperature ${getTemperatureBadgeClass(container.temperature)}`} title="Current Temperature">
+            🌡️ {container.temperature}
+          </span>
+        )}
         {(container.cookCondition || container.timer) && (
           <span className="container-view__badge container-view__badge--timer" title="Active Cooking Target">
             ⏱️ {container.cookCondition || container.timer}
@@ -165,6 +179,80 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
                 >
                   🍳 Cook
                 </button>
+              </div>
+
+              <div className="container-view__input-row container-view__input-row--temperature">
+                <div className="container-view__temperature-presets">
+                  <button
+                    type="button"
+                    className="container-action-btn temp-btn temp-btn--low"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      dispatch({
+                        type: 'SET_TEMPERATURE',
+                        payload: { containerId: container.id, temperature: 'Low' },
+                      });
+                    }}
+                  >
+                    🔥 Low
+                  </button>
+                  <button
+                    type="button"
+                    className="container-action-btn temp-btn temp-btn--medium"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      dispatch({
+                        type: 'SET_TEMPERATURE',
+                        payload: { containerId: container.id, temperature: 'Medium' },
+                      });
+                    }}
+                  >
+                    🔥🔥 Medium
+                  </button>
+                  <button
+                    type="button"
+                    className="container-action-btn temp-btn temp-btn--high"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      dispatch({
+                        type: 'SET_TEMPERATURE',
+                        payload: { containerId: container.id, temperature: 'High' },
+                      });
+                    }}
+                  >
+                    🔥🔥🔥 High
+                  </button>
+                </div>
+                <div className="container-view__temperature-custom">
+                  <input
+                    type="text"
+                    className="container-view__input"
+                    placeholder="Custom Temp"
+                    value={temperatureInput}
+                    onChange={(e) => setTemperatureInput(e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                  <button
+                    type="button"
+                    className="container-action-btn set-temp-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (temperatureInput.trim()) {
+                        const numValue = Number(temperatureInput);
+                        dispatch({
+                          type: 'SET_TEMPERATURE',
+                          payload: {
+                            containerId: container.id,
+                            temperature: isNaN(numValue) ? temperatureInput.trim() : numValue
+                          },
+                        });
+                        setTemperatureInput('');
+                      }
+                    }}
+                  >
+                    Set
+                  </button>
+                </div>
               </div>
             </div>
           )}

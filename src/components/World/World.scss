@@ -185,6 +185,38 @@
     gap: 6px;
     align-items: center;
     width: 100%;
+
+    &--temperature {
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 4px;
+      border-top: 1px dashed var(--surface-3);
+      padding-top: 8px;
+    }
+  }
+
+  .container-view__temperature-presets, .container-view__temperature-custom {
+    display: flex;
+    gap: 6px;
+    width: 100%;
+  }
+
+  .container-view__temperature-presets {
+    justify-content: space-between;
+
+    .temp-btn {
+      flex: 1;
+      padding: 4px;
+      font-size: 0.75rem;
+
+      &--low { background: #e0f7fa; color: #00838f; border: 1px solid #b2ebf2; }
+      &--medium { background: #fff3e0; color: #e65100; border: 1px solid #ffe0b2; }
+      &--high { background: #fbe9e7; color: #c62828; border: 1px solid #ffccbc; }
+
+      &:hover {
+        filter: brightness(0.95);
+      }
+    }
   }
 
   .container-view__input {
@@ -256,6 +288,25 @@
   color: $wood-muted;
   font-size: 0.82rem;
   font-weight: 600;
+
+  &--temperature {
+    border: 1px solid currentColor;
+  }
+
+  &--temp-low {
+    background: #e0f7fa !important;
+    color: #00838f !important;
+  }
+
+  &--temp-medium {
+    background: #fff3e0 !important;
+    color: #e65100 !important;
+  }
+
+  &--temp-high {
+    background: #fbe9e7 !important;
+    color: #c62828 !important;
+  }
 
   @media (max-width: 600px) {
     font-size: 0.7rem;

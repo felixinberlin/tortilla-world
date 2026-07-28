@@ -54,6 +54,7 @@ export interface Container {
   isOn?: boolean;
   cookCondition?: string;
   timer?: string;
+  temperature?: number | string;
 }
 
 export interface WorldState {
