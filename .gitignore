@@ -22,4 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-*.patch
+
+# Environment variables & secrets / platform configs
+.env
+.env.*
+!.env.example
+firebase-applet-config.json
+firebase-applet-config.*
+firebase-blueprint.json
