@@ -110,6 +110,7 @@ export const worldStore = createStore<WorldStateStore>()(
                     } else {
                       delete targetContainer.cookCondition;
                       delete targetContainer.timer;
+                      // Temperature stays when turned off, so we don't delete it
                     }
                     updatedIsOn = targetContainer.isOn;
                     containerExists = true;
@@ -126,6 +127,32 @@ export const worldStore = createStore<WorldStateStore>()(
                     containerId: action.payload.containerId,
                     isOn: updatedIsOn,
                     cookCondition: currentCondition,
+                  },
+                });
+              }
+              break;
+            }
+            case 'SET_TEMPERATURE': {
+              let containerExists = false;
+              set(
+                (draft) => {
+                  const targetContainer = draft.containers[action.payload.containerId];
+                  if (targetContainer) {
+                    targetContainer.temperature = action.payload.temperature;
+                    targetContainer.isOn = true;
+                    containerExists = true;
+                  }
+                },
+                false,
+                action.type
+              );
+
+              if (containerExists) {
+                get().emitEvent({
+                  type: 'CONTAINER_TEMPERATURE_SET',
+                  payload: {
+                    containerId: action.payload.containerId,
+                    temperature: action.payload.temperature,
                   },
                 });
               }

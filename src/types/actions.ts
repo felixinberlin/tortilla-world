@@ -122,6 +122,13 @@ export type WorldAction =
       };
     }
   | {
+      type: 'SET_TEMPERATURE';
+      payload: {
+        containerId: string;
+        temperature: number | string;
+      };
+    }
+  | {
       type: 'WASH_CONTAINER_CONTENTS';
       payload: {
         containerId: string;
@@ -214,5 +221,12 @@ export type WorldEvent =
         entityIds: string[];
         customName?: string;
         cookCondition?: string;
+      };
+    }
+  | {
+      type: 'CONTAINER_TEMPERATURE_SET';
+      payload: {
+        containerId: string;
+        temperature: number | string;
       };
     };
