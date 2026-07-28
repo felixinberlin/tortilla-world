@@ -28,6 +28,7 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
   const [mixCustomName, setMixCustomName] = useState('');
   const [cookConditionInput, setCookConditionInput] = useState('');
   const [cookedCustomName, setCookedCustomName] = useState('');
+  const [cutConditionInput, setCutConditionInput] = useState('');
 
   // Set up dnd-kit droppable binding for this container
   const { setNodeRef, isOver } = useDroppable({
@@ -186,34 +187,49 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
           )}
 
           {isCuttingBoard && (
-            <>
-              <button
-                type="button"
-                className="container-action-btn cut-btn"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  dispatch({
-                    type: 'CUT_CONTAINER_CONTENTS',
-                    payload: { containerId: container.id },
-                  });
-                }}
-              >
-                🔪 Cut
-              </button>
-              <button
-                type="button"
-                className="container-action-btn peel-btn"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  dispatch({
-                    type: 'PEEL_CONTAINER_CONTENTS',
-                    payload: { containerId: container.id },
-                  });
-                }}
-              >
-                🥔 Peel
-              </button>
-            </>
+            <div className="container-view__action-group">
+              <div className="container-view__input-row">
+                <input
+                  type="text"
+                  className="container-view__input"
+                  placeholder="Cut time (e.g. 5 min)"
+                  value={cutConditionInput}
+                  onChange={(e) => setCutConditionInput(e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                />
+                <button
+                  type="button"
+                  className="container-action-btn cut-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    dispatch({
+                      type: 'CUT_CONTAINER_CONTENTS',
+                      payload: {
+                        containerId: container.id,
+                        cutCondition: cutConditionInput.trim() || undefined
+                      },
+                    });
+                  }}
+                >
+                  🔪 Cut
+                </button>
+              </div>
+              <div className="container-view__input-row">
+                <button
+                  type="button"
+                  className="container-action-btn peel-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    dispatch({
+                      type: 'PEEL_CONTAINER_CONTENTS',
+                      payload: { containerId: container.id },
+                    });
+                  }}
+                >
+                  🥔 Peel
+                </button>
+              </div>
+            </div>
           )}
 
           {isBowl && (

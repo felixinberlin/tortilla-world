@@ -393,6 +393,7 @@ describe('worldStore container rule enforcement', () => {
       payload: {
         containerId: 'board',
         entityIds: worldStore.getState().containers.board?.entityIds || [],
+        cutCondition: '5 min',
       },
     });
 
