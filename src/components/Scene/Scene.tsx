@@ -159,7 +159,7 @@ export const Scene: React.FC = () => {
             <RecipePlayer />
           ) : (
             <div className="action-recorder-layout">
-              <ActionRecorder />
+              <ActionRecorder isDev={effectiveDevMode} />
               <IngredientsSidebar />
             </div>
           )}

@@ -329,37 +329,74 @@
     .recipe-card {
       background-color: #ffffff;
       border: 1px solid #e2e8f0;
-      border-radius: 10px;
-      padding: 16px;
+      border-radius: 8px;
+      padding: 12px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+      gap: 6px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
       transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
       &:hover {
         border-color: #cbd5e1;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
       }
 
-      .card-header {
+      &.compact-card {
+        padding: 10px 12px;
+        gap: 6px;
+      }
+
+      .card-top-row {
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
         gap: 8px;
 
-        .card-title {
-          margin: 0;
-          font-size: 1.05rem;
-          font-weight: 700;
-          color: #0f172a;
+        .card-title-group {
+          display: flex;
+          flex-direction: column;
+
+          .card-title {
+            margin: 0;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1.25;
+          }
+
+          .card-author-date {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-top: 2px;
+          }
+        }
+
+        .card-top-actions {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+
+          .delete-btn {
+            background: none;
+            border: none;
+            padding: 2px 4px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border-radius: 4px;
+            color: #ef4444;
+
+            &:hover {
+              background-color: #fef2f2;
+            }
+          }
         }
 
         .mascot-badge {
-          font-size: 0.72rem;
+          font-size: 0.7rem;
           font-weight: 700;
-          padding: 3px 8px;
-          border-radius: 12px;
+          padding: 2px 6px;
+          border-radius: 10px;
           white-space: nowrap;
 
           &.mascot {
@@ -376,16 +413,18 @@
 
       .card-desc {
         margin: 0;
-        font-size: 0.88rem;
+        font-size: 0.82rem;
         color: #475569;
-        line-height: 1.4;
+        line-height: 1.35;
       }
 
-      .card-meta {
+      .card-mid-row {
         display: flex;
         justify-content: space-between;
-        font-size: 0.78rem;
-        color: #94a3b8;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 2px;
       }
 
       .ingredient-badges {
@@ -394,54 +433,42 @@
         gap: 4px;
 
         .ing-badge {
-          font-size: 0.75rem;
+          font-size: 0.72rem;
           background-color: #f1f5f9;
-          color: #475569;
-          padding: 2px 8px;
+          color: #334155;
+          padding: 1px 6px;
           border-radius: 4px;
           font-weight: 500;
           text-transform: capitalize;
         }
       }
 
-      .card-tags {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-
-        .tag-pill {
-          font-size: 0.75rem;
-          color: #2563eb;
-          font-weight: 500;
-        }
-      }
-
       .formats-available {
         display: flex;
         align-items: center;
-        gap: 6px;
-        font-size: 0.75rem;
-        color: #64748b;
+        gap: 4px;
 
         .fmt-pill {
           background-color: #f8fafc;
           border: 1px solid #e2e8f0;
-          padding: 2px 6px;
+          padding: 1px 5px;
           border-radius: 4px;
+          font-size: 0.7rem;
+          color: #475569;
         }
       }
 
       .card-actions {
         display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-top: 8px;
+        align-items: center;
+        gap: 6px;
+        margin-top: 4px;
 
         .play-btn {
           flex: 1;
-          padding: 7px 10px;
-          border-radius: 6px;
-          font-size: 0.8rem;
+          padding: 5px 8px;
+          border-radius: 5px;
+          font-size: 0.78rem;
           font-weight: 600;
           border: none;
           cursor: pointer;
@@ -466,26 +493,18 @@
           }
         }
 
-        .inspect-btn,
-        .delete-btn {
-          padding: 7px 10px;
-          border-radius: 6px;
-          font-size: 0.8rem;
+        .inspect-btn {
+          padding: 5px 8px;
+          border-radius: 5px;
+          font-size: 0.78rem;
+          font-weight: 500;
           border: 1px solid #cbd5e1;
           background-color: #ffffff;
+          color: #334155;
           cursor: pointer;
 
           &:hover {
             background-color: #f8fafc;
-          }
-        }
-
-        .delete-btn {
-          color: #ef4444;
-          border-color: #fca5a5;
-
-          &:hover {
-            background-color: #fef2f2;
           }
         }
       }
@@ -558,6 +577,80 @@
             max-height: 200px;
             overflow-y: auto;
             margin: 0;
+          }
+        }
+      }
+    }
+  }
+
+  .delete-confirm-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(15, 23, 42, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+
+    .delete-confirm-modal {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 20px 24px;
+      max-width: 440px;
+      width: 90%;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+
+      h3 {
+        margin-top: 0;
+        margin-bottom: 8px;
+        color: #0f172a;
+        font-size: 1.15rem;
+      }
+
+      p {
+        color: #334155;
+        font-size: 0.9rem;
+        margin: 10px 0 20px;
+        line-height: 1.4;
+
+        strong {
+          color: #0f172a;
+        }
+      }
+
+      .confirm-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+
+        .btn-cancel {
+          padding: 8px 16px;
+          border-radius: 6px;
+          border: 1px solid #cbd5e1;
+          background-color: #ffffff;
+          color: #334155;
+          font-weight: 500;
+          cursor: pointer;
+
+          &:hover {
+            background-color: #f1f5f9;
+          }
+        }
+
+        .btn-danger {
+          padding: 8px 16px;
+          border-radius: 6px;
+          border: none;
+          background-color: #ef4444;
+          color: #ffffff;
+          font-weight: 600;
+          cursor: pointer;
+
+          &:hover {
+            background-color: #dc2626;
           }
         }
       }
