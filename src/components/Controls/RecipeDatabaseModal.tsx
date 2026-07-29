@@ -27,6 +27,7 @@ import type { SavedRecipe } from '../../services/dbService';
 import { RecipeRunner } from '../../systems/recipeRunner';
 import type { Recipe } from '../../types/Recipe';
 import './RecipeDatabaseModal.scss';
+import { useDevMode } from '../../utils/devMode';
 
 const POPULAR_INGREDIENTS = [
   { id: 'garlic', name: 'Garlic 🧄' },
@@ -54,6 +55,7 @@ export const RecipeDatabaseModal: React.FC = () => {
   const [recipeToDelete, setRecipeToDelete] = useState<{ id: string; title: string } | null>(null);
 
   const dispatch = useStore(worldStore, (state) => state.dispatch);
+  const isDev = useDevMode();
 
   useEffect(() => {
     let ignore = false;
@@ -239,7 +241,7 @@ export const RecipeDatabaseModal: React.FC = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           {searchQuery && (
-            <button className="clear-btn" aria-label="Clear search" onClick={() => setSearchQuery('')}>
+            <button className="clear-btn" onClick={() => setSearchQuery('')}>
               ✕
             </button>
           )}
@@ -387,9 +389,9 @@ export const RecipeDatabaseModal: React.FC = () => {
                       aria-label={`Delete recipe ${recipe.title}`}
                       onClick={() => handleDeleteRecipe(recipe.id, recipe.title)}
                     >
-                      🗑️
+                      �️
                     </button>
-                  </>
+                 </>
                 )}
               </div>
             </div>
