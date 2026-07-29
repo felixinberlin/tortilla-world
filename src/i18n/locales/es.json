@@ -1,0 +1,84 @@
+{
+  "app": {
+    "title": "Tortilla World",
+    "subtitle": "Simulación Interactiva de Cocina y Recetas",
+    "devMode": "Modo Desarrollador",
+    "publishMode": "Modo Publicación",
+    "recipeCatalog": "Catálogo de Recetas",
+    "language": "Idioma"
+  },
+  "scene": {
+    "pantry": "Despensa e Ingredientes",
+    "workstations": "Estaciones de Trabajo",
+    "preparationBowl": "Bol de Preparación",
+    "cookingPan": "Sartén",
+    "servingPlate": "Plato de Servir",
+    "mascot": "Mascota Asistente"
+  },
+  "recorder": {
+    "startRecording": "⏺️ Grabar Sesión",
+    "recording": "🔴 Grabando Acciones...",
+    "stopRecording": "⏹️ Detener Grabación",
+    "saveToDb": "💾 Guardar Receta en BD",
+    "cancelSave": "💾 Cancelar Guardado",
+    "translatorPreview": "🪄 Formatos de Exportación y Vista Previa del Traductor",
+    "saveTitle": "Título de la Receta",
+    "saveAuthor": "Nombre del Autor",
+    "saveDescription": "Descripción",
+    "includeFormats": "Incluir Formatos para Guardar en la BD:",
+    "formatMascot": "🤖 Secuencia de Acciones para Mascota",
+    "formatRecipeJson": "📜 JSON Declarativo de Receta",
+    "formatSessionLog": "💾 Registro Completo de Sesión",
+    "saving": "⏳ Guardando en Firestore...",
+    "saveSuccess": "✅ ¡Receta guardada con éxito en Cloud Firestore! Puedes reproducirla en cualquier momento desde el Catálogo.",
+    "saveError": "❌ Error al guardar: {{error}}",
+    "usedIngredients": "🛒 Ingredientes Guardados ({{count}}):"
+  },
+  "replayer": {
+    "loadJson": "📂 Cargar Registro (.json)",
+    "selectDbRecipe": "🗄️ Seleccionar Receta de la BD...",
+    "stepProgress": "Paso {{current}} de {{total}}",
+    "play": "▶️ Reproducir",
+    "pause": "⏸️ Pausa",
+    "stepForward": "⏭️ Paso",
+    "stepBack": "⏮️ Atrás",
+    "stop": "⏹️ Detener",
+    "speed": "Velocidad:",
+    "loadedRecipe": "Cargada \"{{title}}\" ({{count}} acciones)"
+  },
+  "database": {
+    "title": "🗄️ Base de Datos de Recetas en Firestore y Partidas Guardadas",
+    "subtitle": "Busca, filtra y reproduce recetas en múltiples formatos directamente desde Cloud Firestore.",
+    "seedCatalog": "🌱 Cargar Catálogo Base en BD",
+    "searchPlaceholder": "🔍 Buscar recetas por título o descripción...",
+    "allIngredients": "Todos los Ingredientes",
+    "noRecipes": "No se encontraron recetas que coincidan con la búsqueda.",
+    "mascotCompatible": "🤖 Mascota",
+    "autonomousDirect": "⚡ Auto",
+    "playMascot": "▶️ Con Mascota",
+    "playAuto": "⚡ Modo Directo",
+    "inspectFormats": "👁️ Formatos",
+    "delete": "🗑️",
+    "downloadJson": "📥 Descargar (.json)",
+    "confirmDeleteTitle": "🗑️ Confirmar Eliminación en Firestore",
+    "confirmDeleteText": "¿Estás seguro de que deseas eliminar \"{{title}}\" de Cloud Firestore? Esta acción no se puede deshacer.",
+    "cancel": "Cancelar",
+    "confirmDelete": "Sí, Eliminar Receta",
+    "deleting": "Eliminando \"{{title}}\" de Firestore...",
+    "deleteSuccess": "✅ Eliminada \"{{title}}\" de Firestore.",
+    "deleteError": "❌ Error al eliminar \"{{title}}\"."
+  },
+  "player": {
+    "playing": "Reproduciendo Receta: {{title}}",
+    "stepCounter": "Paso {{current}} / {{total}}",
+    "nextStep": "Siguiente Paso ➔",
+    "reset": "🔄 Reiniciar Mundo",
+    "finished": "🎉 ¡Receta Completada con Éxito!"
+  },
+  "guide": {
+    "openBtn": "📖 Guía del Jugador",
+    "title": "¡Bienvenido a Tortilla World! 🌮",
+    "subtitle": "Guía para el Jugador de la Simulación de Cocina",
+    "startBtn": "¡Empecemos a Cocinar!"
+  }
+}

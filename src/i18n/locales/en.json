@@ -1,0 +1,84 @@
+{
+  "app": {
+    "title": "Tortilla World",
+    "subtitle": "Interactive Cooking & Recipe Simulation",
+    "devMode": "Dev Mode",
+    "publishMode": "Publish Mode",
+    "recipeCatalog": "Recipe Catalog",
+    "language": "Language"
+  },
+  "scene": {
+    "pantry": "Pantry & Ingredients",
+    "workstations": "Workstations",
+    "preparationBowl": "Preparation Bowl",
+    "cookingPan": "Cooking Pan",
+    "servingPlate": "Serving Plate",
+    "mascot": "Assistant Mascot"
+  },
+  "recorder": {
+    "startRecording": "⏺️ Record Session",
+    "recording": "🔴 Recording Actions...",
+    "stopRecording": "⏹️ Stop Recording",
+    "saveToDb": "💾 Save Recipe to DB",
+    "cancelSave": "💾 Cancel Save",
+    "translatorPreview": "🪄 Action Export Formats & Translator Preview",
+    "saveTitle": "Recipe Title",
+    "saveAuthor": "Author Name",
+    "saveDescription": "Description",
+    "includeFormats": "Include Formats to Save in DB:",
+    "formatMascot": "🤖 Mascot Action Sequence",
+    "formatRecipeJson": "📜 Declarative Recipe JSON",
+    "formatSessionLog": "💾 Full Session Log",
+    "saving": "⏳ Saving to Firestore...",
+    "saveSuccess": "✅ Recipe successfully saved to Cloud Firestore! You can play it anytime in the Recipe Catalog.",
+    "saveError": "❌ Error saving: {{error}}",
+    "usedIngredients": "🛒 Saved Ingredients ({{count}}):"
+  },
+  "replayer": {
+    "loadJson": "📂 Load Log (.json)",
+    "selectDbRecipe": "🗄️ Select DB Recipe...",
+    "stepProgress": "Step {{current}} of {{total}}",
+    "play": "▶️ Play",
+    "pause": "⏸️ Pause",
+    "stepForward": "⏭️ Step",
+    "stepBack": "⏮️ Back",
+    "stop": "⏹️ Stop",
+    "speed": "Speed:",
+    "loadedRecipe": "Loaded \"{{title}}\" ({{count}} actions)"
+  },
+  "database": {
+    "title": "🗄️ Firestore Recipe Database & Saved Games",
+    "subtitle": "Search, filter, and play recipes in multiple formats directly from Cloud Firestore.",
+    "seedCatalog": "🌱 Seed Catalog to DB",
+    "searchPlaceholder": "🔍 Search recipes by title or description...",
+    "allIngredients": "All Ingredients",
+    "noRecipes": "No recipes found matching your search.",
+    "mascotCompatible": "🤖 Mascot",
+    "autonomousDirect": "⚡ Auto",
+    "playMascot": "▶️ Play Mascot",
+    "playAuto": "⚡ Play Auto",
+    "inspectFormats": "👁️ Formats",
+    "delete": "🗑️",
+    "downloadJson": "📥 Download (.json)",
+    "confirmDeleteTitle": "🗑️ Confirm Firestore Deletion",
+    "confirmDeleteText": "Are you sure you want to delete \"{{title}}\" from Cloud Firestore? This action cannot be undone.",
+    "cancel": "Cancel",
+    "confirmDelete": "Yes, Delete Recipe",
+    "deleting": "Deleting \"{{title}}\" from Firestore...",
+    "deleteSuccess": "✅ Deleted \"{{title}}\" from Firestore.",
+    "deleteError": "❌ Failed to delete \"{{title}}\"."
+  },
+  "player": {
+    "playing": "Playing Recipe: {{title}}",
+    "stepCounter": "Step {{current}} / {{total}}",
+    "nextStep": "Next Step ➔",
+    "reset": "🔄 Reset World",
+    "finished": "🎉 Recipe Completed Successfully!"
+  },
+  "guide": {
+    "openBtn": "📖 Player Guide",
+    "title": "Welcome to Tortilla World! 🌮",
+    "subtitle": "A Player's Guide to the Kitchen Simulation",
+    "startBtn": "Let's Start Cooking!"
+  }
+}

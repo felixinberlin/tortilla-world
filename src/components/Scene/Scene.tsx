@@ -24,10 +24,12 @@ import { ActionRecorder } from '../Controls/ActionRecorder';
 import { IngredientsSidebar } from '../Controls/IngredientsSidebar';
 import { RecipeDatabaseModal } from '../Controls/RecipeDatabaseModal';
 import { useDevMode } from '../../utils/devMode';
+import { useTranslation } from '../../i18n/useTranslation';
 import './RecipePlayer.scss';
 
 export const Scene: React.FC = () => {
   const isDev = useDevMode();
+  const { language, setLanguage } = useTranslation();
   const [forcePublishMode, setForcePublishMode] = useState<boolean>(false);
 
   // Active mode logic: in slim publish mode default to player, in dev mode default to database
@@ -122,6 +124,23 @@ export const Scene: React.FC = () => {
               title="Clean the kitchen and reset all containers"
             >
               🔄 Reset Kitchen
+            </button>
+
+            {/* Language Switcher */}
+            <button
+              type="button"
+              className="mode-tab-btn"
+              onClick={() => setLanguage(language === 'en' ? 'es' : 'en')}
+              title="Switch language / Cambiar idioma"
+              style={{
+                fontWeight: 600,
+                backgroundColor: '#f8fafc',
+                border: '1px solid #cbd5e1',
+                padding: '4px 10px',
+                borderRadius: '6px',
+              }}
+            >
+              🌐 {language.toUpperCase()}
             </button>
 
             {/* Dev Mode Indicator & Toggle */}
