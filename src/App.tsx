@@ -16,6 +16,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { ExternalLink } from 'lucide-react';
 import { Scene } from './components/Scene/Scene';
 import { Mascot } from './components/Mascot/Mascot';
 import { PlayerGuideModal } from './components/Controls/PlayerGuideModal';
@@ -40,25 +41,52 @@ function App() {
               An interactive simulation world. Drag entities from the immutable catalog pantry into workspace containers.
             </p>
           </div>
-          <button
-            type="button"
-            className="guide-trigger-btn"
-            onClick={() => setShowGuide(true)}
-            style={{
-              padding: '6px 12px',
-              borderRadius: '8px',
-              border: '1px solid #cbd5e1',
-              backgroundColor: '#ffffff',
-              color: '#0f172a',
-              fontWeight: 600,
-              fontSize: '0.85rem',
-              cursor: 'pointer',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {t('guide.openBtn')}
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <a
+              href="https://tortilladepatatas.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mother-web-link"
+              title="Go to Tortilla Info (tortilladepatatas.org)"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 12px',
+                borderRadius: '8px',
+                border: '1px solid #cbd5e1',
+                backgroundColor: '#ffffff',
+                color: '#0f172a',
+                fontWeight: 600,
+                fontSize: '0.85rem',
+                textDecoration: 'none',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <span>{t('app.tortillaInfo')}</span>
+              <ExternalLink size={14} />
+            </a>
+            <button
+              type="button"
+              className="guide-trigger-btn"
+              onClick={() => setShowGuide(true)}
+              style={{
+                padding: '6px 12px',
+                borderRadius: '8px',
+                border: '1px solid #cbd5e1',
+                backgroundColor: '#ffffff',
+                color: '#0f172a',
+                fontWeight: 600,
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {t('guide.openBtn')}
+            </button>
+          </div>
         </div>
       </header>
 

@@ -5,7 +5,8 @@
     "devMode": "Modo Desarrollador",
     "publishMode": "Modo Publicación",
     "recipeCatalog": "Catálogo de Recetas",
-    "language": "Idioma"
+    "language": "Idioma",
+    "tortillaInfo": "Info Tortilla"
   },
   "scene": {
     "pantry": "Despensa e Ingredientes",

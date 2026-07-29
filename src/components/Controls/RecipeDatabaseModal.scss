@@ -33,32 +33,40 @@
     flex-shrink: 0;
     position: relative;
 
-    .guide-language-btn {
+    .guide-header-actions {
       position: absolute;
       top: 1.25rem;
       right: 1.5rem;
-      background: #ffffff;
-      border: 1px solid #cbd5e1;
-      color: #0f172a;
-      padding: 0.35rem 0.75rem;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: inline-flex;
+      display: flex;
       align-items: center;
-      gap: 0.35rem;
-      transition: all 0.2s ease;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      gap: 0.5rem;
 
-      &:hover {
-        background: #f1f5f9;
-        border-color: #94a3b8;
-        transform: translateY(-1px);
-      }
+      .guide-mother-web-link,
+      .guide-language-btn {
+        background: #ffffff;
+        border: 1px solid #cbd5e1;
+        color: #0f172a;
+        padding: 0.35rem 0.75rem;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 
-      &:active {
-        transform: translateY(0);
+        &:hover {
+          background: #f1f5f9;
+          border-color: #94a3b8;
+          transform: translateY(-1px);
+        }
+
+        &:active {
+          transform: translateY(0);
+        }
       }
     }
 
@@ -235,11 +243,16 @@
 
     .player-guide-header {
       padding: 1.5rem 1rem 1rem;
-      .guide-language-btn {
+      .guide-header-actions {
         top: 0.75rem;
         right: 0.75rem;
-        padding: 0.25rem 0.55rem;
-        font-size: 0.75rem;
+        gap: 0.35rem;
+
+        .guide-mother-web-link,
+        .guide-language-btn {
+          padding: 0.25rem 0.55rem;
+          font-size: 0.75rem;
+        }
       }
       h1 {
         font-size: 1.5rem;

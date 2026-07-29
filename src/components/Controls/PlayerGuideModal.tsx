@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ExternalLink } from 'lucide-react';
 import { useTranslation } from '../../i18n/useTranslation';
 import './PlayerGuideModal.scss';
 
@@ -52,15 +53,27 @@ export const PlayerGuideModal: React.FC<PlayerGuideModalProps> = ({ onClose, isO
             onClick={(e) => e.stopPropagation()}
           >
             <div className="player-guide-header">
-              <button
-                type="button"
-                className="guide-language-btn"
-                onClick={() => setLanguage(language === 'en' ? 'es' : 'en')}
-                aria-label="Switch language / Cambiar idioma"
-                title="Switch language / Cambiar idioma"
-              >
-                🌐 {language === 'en' ? 'Español' : 'English'}
-              </button>
+              <div className="guide-header-actions">
+                <a
+                  href="https://tortilladepatatas.org"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="guide-mother-web-link"
+                  title="Go to Tortilla Info (tortilladepatatas.org)"
+                >
+                  <span>{t('app.tortillaInfo')}</span>
+                  <ExternalLink size={13} />
+                </a>
+                <button
+                  type="button"
+                  className="guide-language-btn"
+                  onClick={() => setLanguage(language === 'en' ? 'es' : 'en')}
+                  aria-label="Switch language / Cambiar idioma"
+                  title="Switch language / Cambiar idioma"
+                >
+                  🌐 {language === 'en' ? 'Español' : 'English'}
+                </button>
+              </div>
               <h1 id="guide-title">{t('guide.title')}</h1>
               <p className="subtitle">{t('guide.subtitle')}</p>
             </div>

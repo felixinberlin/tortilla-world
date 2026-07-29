@@ -5,7 +5,8 @@
     "devMode": "Dev Mode",
     "publishMode": "Publish Mode",
     "recipeCatalog": "Recipe Catalog",
-    "language": "Language"
+    "language": "Language",
+    "tortillaInfo": "Tortilla Info"
   },
   "scene": {
     "pantry": "Pantry & Ingredients",
