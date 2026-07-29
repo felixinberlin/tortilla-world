@@ -19,6 +19,7 @@ import { worldStore } from '../../store/worldStore';
 import { ContainerView } from '../World/ContainerView';
 import { useSceneDragAndDrop } from './useSceneDragAndDrop';
 import { RecipePlayer } from './RecipePlayer';
+import { CookbookView } from '../Recipe/CookbookView';
 import { ActionRecorder } from '../Controls/ActionRecorder';
 import { IngredientsSidebar } from '../Controls/IngredientsSidebar';
 import { RecipeDatabaseModal } from '../Controls/RecipeDatabaseModal';
@@ -31,7 +32,7 @@ export const Scene: React.FC = () => {
 
   // Active mode logic: in slim publish mode default to player, in dev mode default to database
   const effectiveDevMode = isDev && !forcePublishMode;
-  const [activeMode, setActiveMode] = useState<'player' | 'recorder' | 'database'>(
+  const [activeMode, setActiveMode] = useState<'player' | 'cookbook' | 'recorder' | 'database'>(
     effectiveDevMode ? 'database' : 'player'
   );
   const dispatch = useStore(worldStore, (state) => state.dispatch);
@@ -95,7 +96,15 @@ export const Scene: React.FC = () => {
               className={`mode-tab-btn ${activeMode === 'player' ? 'active' : ''}`}
               onClick={() => setActiveMode('player')}
             >
-              📖 Play Catalog Recipe
+              ▶️ Play Recipe
+            </button>
+
+            <button
+              type="button"
+              className={`mode-tab-btn ${activeMode === 'cookbook' ? 'active' : ''}`}
+              onClick={() => setActiveMode('cookbook')}
+            >
+              📕 Cookbook
             </button>
 
             <button
@@ -144,11 +153,13 @@ export const Scene: React.FC = () => {
 
           {activeMode === 'database' && effectiveDevMode ? (
             <RecipeDatabaseModal />
+          ) : activeMode === 'cookbook' ? (
+            <CookbookView />
           ) : activeMode === 'player' ? (
             <RecipePlayer />
           ) : (
             <div className="action-recorder-layout">
-              <ActionRecorder />
+              <ActionRecorder isDev={effectiveDevMode} />
               <IngredientsSidebar />
             </div>
           )}

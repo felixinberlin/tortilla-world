@@ -3,11 +3,11 @@ import { recipes } from '../../data/catalog/recipes';
 import { ingredients as ingredientCatalog } from '../../data/catalog/ingredients';
 import { catalogTools as toolsCatalog } from '../../data/catalog/tools';
 import { getRecipeRequirementsArray } from '../../types/Recipe';
+import type { Recipe } from '../../types/Recipe';
 import './CookbookView.scss';
 
 export const CookbookView: React.FC = () => {
   const [selectedRecipeId, setSelectedRecipeId] = useState(recipes[0]?.id);
-
   const activeRecipe = useMemo(
     () => recipes.find((r) => r.id === selectedRecipeId) || recipes[0],
     [selectedRecipeId]
@@ -17,7 +17,7 @@ export const CookbookView: React.FC = () => {
     if (!activeRecipe) return [];
     return getRecipeRequirementsArray(activeRecipe).map((req) => {
       const catIng = ingredientCatalog.find((i) => i.id === req.entityId);
-      const catTool = toolsCatalog.find((t: any) => t.id === req.entityId);
+      const catTool = toolsCatalog.find((t) => t.id === req.entityId);
       return {
         ...req,
         icon: catIng?.icon || catTool?.icon || '📦',
@@ -29,9 +29,8 @@ export const CookbookView: React.FC = () => {
   // Clean up cooklang string for display
   const instructions = useMemo(() => {
     if (!activeRecipe) return [];
-
     // Check if the recipe has a cooklang string, otherwise use steps
-    const cooklangStr = (activeRecipe as any).cooklang;
+    const cooklangStr = (activeRecipe as Recipe & { cooklang?: string }).cooklang;
     if (cooklangStr) {
       // Split by newline and clean up the cooklang syntax
       return cooklangStr
@@ -39,34 +38,38 @@ export const CookbookView: React.FC = () => {
         .filter((line: string) => line.trim().length > 0)
         .map((line: string) => {
           // Replace @ingredient{amount%unit} with "ingredient (amount unit)"
-          // Simplified regex for @ingredient{amount%unit} or @ingredient
           let cleaned = line.replace(/@([a-zA-Z0-9_-]+)\{([^}]+)\}/g, (_match: string, name: string, qty: string) => {
-             const cleanName = name.replace(/_/g, ' ');
-             const cleanQty = qty.replace('%', ' ');
-             return `${cleanName} (${cleanQty})`;
+            const cleanName = name.replace(/_/g, ' ');
+            const cleanQty = qty.replace('%', ' ');
+            return `${cleanName} (${cleanQty})`;
           });
-
           cleaned = cleaned.replace(/@([a-zA-Z0-9_-]+)/g, (_match: string, name: string) => {
             return name.replace(/_/g, ' ');
           });
-
           // Clean up ~timer{duration%unit}
           cleaned = cleaned.replace(/~([a-zA-Z0-9_-]*)\{([^}]+)\}/g, (_match: string, _name: string, duration: string) => {
-             return duration.replace('%', ' ');
+            return duration.replace('%', ' ');
           });
-
           return cleaned;
         });
     }
-
     // Fallback to step instructions if no cooklang
-    return activeRecipe.steps.map((step: any, idx) => {
-       if (step.action === 'instruction') return step.text || step.instruction || `Step ${idx + 1}`;
-       return `${step.action} ${step.target || step.ingredient || ''}`;
+    return activeRecipe.steps.map((step, idx) => {
+      const stepAny = step as Record<string, unknown>;
+      if (step.action === 'instruction') return (stepAny.text as string) || (stepAny.instruction as string) || `Step ${idx + 1}`;
+      const stepTarget = (stepAny.target as string) || (stepAny.ingredient as string) || '';
+      return `${step.action} ${stepTarget}`;
     });
   }, [activeRecipe]);
 
   if (!activeRecipe) return <div>No recipes available.</div>;
+
+  const recipeMeta = activeRecipe as Recipe & {
+    description?: string;
+    difficulty?: string;
+    tags?: string[];
+    hints?: string[];
+  };
 
   return (
     <div className="cookbook-view">
@@ -82,27 +85,23 @@ export const CookbookView: React.FC = () => {
           </button>
         ))}
       </div>
-
       <div className="cookbook-card">
         <div className="cookbook-header">
           <h2 className="recipe-title">{activeRecipe.name}</h2>
-          {/* Casting to any since these are optional metadata added in loader */}
-          {(activeRecipe as any).description && (
-            <p className="recipe-description">{(activeRecipe as any).description}</p>
+          {recipeMeta.description && (
+            <p className="recipe-description">{recipeMeta.description}</p>
           )}
-
           <div className="recipe-meta">
-            {(activeRecipe as any).difficulty && (
+            {recipeMeta.difficulty && (
               <span className="meta-badge difficulty">
-                ⭐ {(activeRecipe as any).difficulty}
+                ⭐ {recipeMeta.difficulty}
               </span>
             )}
-            {(activeRecipe as any).tags && (activeRecipe as any).tags.map((tag: string) => (
+            {recipeMeta.tags && recipeMeta.tags.map((tag: string) => (
               <span key={tag} className="meta-badge tag">🏷️ {tag}</span>
             ))}
           </div>
         </div>
-
         <div className="cookbook-body">
           <div className="ingredients-section">
             <h3>🛒 Ingredients</h3>
@@ -120,7 +119,6 @@ export const CookbookView: React.FC = () => {
               ))}
             </ul>
           </div>
-
           <div className="instructions-section">
             <h3>🍳 Instructions</h3>
             <ol className="instructions-list">
@@ -131,12 +129,11 @@ export const CookbookView: React.FC = () => {
                 </li>
               ))}
             </ol>
-
-            {(activeRecipe as any).hints && (activeRecipe as any).hints.length > 0 && (
+            {recipeMeta.hints && recipeMeta.hints.length > 0 && (
               <div className="recipe-hints">
                 <h4>💡 Chef's Hints</h4>
                 <ul>
-                  {(activeRecipe as any).hints.map((hint: string, i: number) => (
+                  {recipeMeta.hints.map((hint: string, i: number) => (
                     <li key={i}>{hint}</li>
                   ))}
                 </ul>

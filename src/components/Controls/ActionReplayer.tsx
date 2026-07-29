@@ -11,10 +11,11 @@
  * - Displays active progress and stop/cancel controls during playback.
  */
 
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { actionPlayer } from '../../systems/actionPlayer';
 import { worldStore } from '../../store/worldStore';
 import { useStore } from 'zustand';
+import { fetchAllRecipesFromDb, type SavedRecipe } from '../../services/dbService';
 import type { WorldAction } from '../../types/actions';
 import type { RecordedAction } from '../../types/recording';
 import './ActionReplayer.scss';
@@ -42,12 +43,40 @@ export const ActionReplayer: React.FC<ActionReplayerProps> = ({
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [delayMs, setDelayMs] = useState<number>(defaultDelayMs);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
+
+  const [dbRecipes, setDbRecipes] = useState<SavedRecipe[]>([]);
+  const [selectedRecipeId, setSelectedRecipeId] = useState<string>('');
+
+  const loadDbRecipes = useCallback(async () => {
+    try {
+      const recipes = await fetchAllRecipesFromDb();
+      setDbRecipes(recipes);
+    } catch (err) {
+      console.warn('Failed to load DB recipes in ActionReplayer:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    fetchAllRecipesFromDb()
+      .then((recipes) => {
+        if (active) setDbRecipes(recipes);
+      })
+      .catch((err) => {
+        console.warn('Failed to load DB recipes in ActionReplayer:', err);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const totalSteps = recordedActions.length;
   const effectiveCurrentStep = Math.min(currentStep, totalSteps);
 
   const handleUploadClick = () => {
     setErrorMessage(null);
+    setInfoMessage(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
       fileInputRef.current.click();
@@ -77,6 +106,38 @@ export const ActionReplayer: React.FC<ActionReplayerProps> = ({
     );
 
     return isValid ? (actionArray as WorldAction[]) : null;
+  };
+
+  const handleSelectDbRecipe = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const recipeId = e.target.value;
+    setSelectedRecipeId(recipeId);
+    if (!recipeId) return;
+
+    const found = dbRecipes.find((r) => r.id === recipeId);
+    if (!found) return;
+
+    let actionsToLoad: WorldAction[] | null = null;
+
+    if (found.formats?.mascotSequence && Array.isArray(found.formats.mascotSequence) && found.formats.mascotSequence.length > 0) {
+      actionsToLoad = validateActions(found.formats.mascotSequence);
+    }
+
+    if (!actionsToLoad && found.formats?.fullSessionLog) {
+      const logObj = found.formats.fullSessionLog as Record<string, unknown>;
+      if (Array.isArray(logObj.actions)) {
+        actionsToLoad = validateActions(logObj.actions);
+      }
+    }
+
+    if (actionsToLoad && actionsToLoad.length > 0) {
+      worldStore.getState().setRecordedActions(actionsToLoad as unknown as RecordedAction[]);
+      setCurrentStep(0);
+      setErrorMessage(null);
+      setInfoMessage(`Loaded "${found.title}" (${actionsToLoad.length} actions)`);
+    } else {
+      setErrorMessage(`Selected recipe "${found.title}" does not contain valid playable action sequences.`);
+      setInfoMessage(null);
+    }
   };
 
   const handleFileChange = useCallback(
@@ -182,8 +243,34 @@ export const ActionReplayer: React.FC<ActionReplayerProps> = ({
         onClick={handleUploadClick}
         title="Upload and replay a recorded action log JSON file"
       >
-        📂 Load Action Log (.json)
+        📂 Load Log (.json)
       </button>
+
+      <select
+        className="db-recipe-select"
+        value={selectedRecipeId}
+        onChange={handleSelectDbRecipe}
+        onFocus={loadDbRecipes}
+        title="Select and load a saved recipe from Cloud Firestore"
+        style={{
+          padding: '6px 10px',
+          borderRadius: '6px',
+          border: '1px solid #cbd5e1',
+          fontSize: '0.85rem',
+          backgroundColor: '#ffffff',
+          color: '#0f172a',
+          fontWeight: 500,
+          cursor: 'pointer',
+          maxWidth: '220px',
+        }}
+      >
+        <option value="">🗄️ Select DB Recipe...</option>
+        {dbRecipes.map((r) => (
+          <option key={r.id} value={r.id}>
+            {r.title} ({r.ingredients?.join(', ') || 'recipe'})
+          </option>
+        ))}
+      </select>
 
       {totalSteps > 0 && !isPlaying && (
         <div className="step-controls-group">
@@ -262,6 +349,7 @@ export const ActionReplayer: React.FC<ActionReplayerProps> = ({
         </div>
       )}
 
+      {infoMessage && <span className="info-message" style={{ color: '#0d9488', fontSize: '0.8rem', fontWeight: 600 }}>{infoMessage}</span>}
       {errorMessage && <span className="error-message">{errorMessage}</span>}
     </div>
   );

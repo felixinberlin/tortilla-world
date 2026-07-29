@@ -16,15 +16,16 @@ import {
   translateHumanActionsToMascotActions,
   translateHumanActionsToRecipe,
 } from '../../systems/recipeTranslator';
-import { saveRecipeToDb } from '../../services/dbService';
+import { saveRecipeToDb, type SavedRecipe } from '../../services/dbService';
 import type { Recipe } from '../../types/Recipe';
 import type { WorldAction } from '../../types/actions';
 import './ActionRecorder.scss';
 
-import { useDevMode } from '../../utils/devMode';
+interface ActionRecorderProps {
+  isDev?: boolean;
+}
 
-export const ActionRecorder: React.FC = () => {
-  const isDev = useDevMode();
+export const ActionRecorder: React.FC<ActionRecorderProps> = ({ isDev = true }) => {
   const dispatch = useStore(worldStore, (state) => state.dispatch);
   const isRecording = useStore(worldStore, (state) => state.isRecording);
   const recordedActions = useStore(worldStore, (state) => state.recordedActions);
@@ -36,6 +37,8 @@ export const ActionRecorder: React.FC = () => {
 
   const [showTranslator, setShowTranslator] = useState<boolean>(false);
   const [showSaveForm, setShowSaveForm] = useState<boolean>(false);
+  const effectiveShowSaveForm = isDev && showSaveForm;
+
   const [saveTitle, setSaveTitle] = useState<string>('Mi Tortilla de Patatas');
   const [saveAuthor, setSaveAuthor] = useState<string>('Chef Tortilla');
   const [saveDesc, setSaveDesc] = useState<string>('Custom recorded session from Tortilla World.');
@@ -43,6 +46,10 @@ export const ActionRecorder: React.FC = () => {
   const [saveStatus, setSaveStatus] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'mascotActions' | 'recipeFile' | 'fullSessionLog'>('mascotActions');
   const [isPlayingTranslated, setIsPlayingTranslated] = useState<boolean>(false);
+
+  const [saveMascotFormat, setSaveMascotFormat] = useState<boolean>(true);
+  const [saveRecipeJsonFormat, setSaveRecipeJsonFormat] = useState<boolean>(true);
+  const [saveSessionLogFormat, setSaveSessionLogFormat] = useState<boolean>(true);
 
   // Sourced actions (either explicit recording or emitted eventStore events)
   const sourceActions = useMemo(() => {
@@ -148,13 +155,48 @@ export const ActionRecorder: React.FC = () => {
       });
       const mascotSeq = translateHumanActionsToMascotActions(rawActions);
 
-      const detectedIngredients = Array.from(
-        new Set(
-          Object.values(state.entities)
-            .filter((e) => e.type === 'ingredient')
-            .map((e) => e.ingredientId || e.id)
-        )
-      );
+      const usedIngIdsFromStore = (state.usedIngredients || []).map((i) => i.id.toLowerCase());
+      const actionIngredientIds: string[] = [];
+
+      rawActions.forEach((act) => {
+        const payload = act.payload as Record<string, unknown>;
+        if (payload) {
+          if (payload.ingredientId) {
+            actionIngredientIds.push(String(payload.ingredientId).toLowerCase());
+          }
+          if (payload.entityId && typeof payload.entityId === 'string') {
+            const entity = state.entities[payload.entityId];
+            if (entity && entity.type === 'ingredient') {
+              const ingId = entity.ingredientId || entity.id;
+              if (ingId) actionIngredientIds.push(String(ingId).toLowerCase());
+            } else {
+              const knownIngs = ['potato', 'egg', 'onion', 'oil', 'salt', 'garlic', 'chorizo', 'cheese', 'tomato', 'pepper', 'flour', 'water', 'butter'];
+              for (const ing of knownIngs) {
+                if (payload.entityId.toLowerCase().includes(ing)) {
+                  actionIngredientIds.push(ing);
+                }
+              }
+            }
+          }
+        }
+      });
+
+      const uniqueIngredients = Array.from(
+        new Set([...usedIngIdsFromStore, ...actionIngredientIds])
+      ).filter(Boolean);
+
+      const detectedIngredients = uniqueIngredients.length > 0 ? uniqueIngredients : ['egg', 'potato'];
+
+      const formatsToSave: Record<string, unknown> = {};
+      if (saveMascotFormat) {
+        formatsToSave.mascotSequence = mascotSeq;
+      }
+      if (saveRecipeJsonFormat) {
+        formatsToSave.recipeJson = recipeJson;
+      }
+      if (saveSessionLogFormat) {
+        formatsToSave.fullSessionLog = fullSessionLogData;
+      }
 
       await saveRecipeToDb({
         title: saveTitle.trim(),
@@ -162,12 +204,8 @@ export const ActionRecorder: React.FC = () => {
         author: saveAuthor.trim() || 'Chef Tortilla',
         ingredients: detectedIngredients.length > 0 ? detectedIngredients : ['egg', 'potato'],
         tags: ['recorded', 'custom'],
-        hasMascotSupport: mascotSeq.length > 0,
-        formats: {
-          mascotSequence: mascotSeq as unknown as Array<Record<string, unknown>>,
-          recipeJson: recipeJson as unknown as Record<string, unknown>,
-          fullSessionLog: fullSessionLogData as unknown as Record<string, unknown>,
-        },
+        hasMascotSupport: Boolean(saveMascotFormat && mascotSeq.length > 0),
+        formats: formatsToSave as unknown as SavedRecipe['formats'],
       });
 
       setSaveStatus('✅ Recipe successfully saved to Cloud Firestore! You can play it anytime in the Recipe Catalog.');
@@ -225,21 +263,23 @@ export const ActionRecorder: React.FC = () => {
           </button>
         )}
 
-        {recordedActions.length > 0 && (
+        {hasActions && (
           <>
-            <button
-              type="button"
-              className="rec-btn save-db-btn"
-              onClick={() => setShowSaveForm(!showSaveForm)}
-              style={{
-                backgroundColor: showSaveForm ? '#0284c7' : '#0ea5e9',
-                color: '#ffffff',
-                fontWeight: 600,
-              }}
-              title="Save this recorded session directly to Cloud Firestore recipe database"
-            >
-              💾 {showSaveForm ? 'Cancel Save' : 'Save Recipe to DB'}
-            </button>
+            {isDev && (
+              <button
+                type="button"
+                className="rec-btn save-db-btn"
+                onClick={() => setShowSaveForm(!effectiveShowSaveForm)}
+                style={{
+                  backgroundColor: effectiveShowSaveForm ? '#0284c7' : '#0ea5e9',
+                  color: '#ffffff',
+                  fontWeight: 600,
+                }}
+                title="Save this recorded session directly to Cloud Firestore recipe database"
+              >
+                💾 {effectiveShowSaveForm ? 'Cancel Save' : 'Save Recipe to DB'}
+              </button>
+            )}
 
             <button
               type="button"
@@ -252,17 +292,15 @@ export const ActionRecorder: React.FC = () => {
           </>
         )}
 
-        {isDev && (
-          <button
-            type="button"
-            className="rec-btn translate-btn"
-            disabled={!hasActions}
-            onClick={() => setShowTranslator(!showTranslator)}
-            title="Translate human recorded actions into a mascot recipe with movement"
-          >
-            🪄 {showTranslator ? 'Hide Translator' : 'Translate / View Formats'}
-          </button>
-        )}
+        <button
+          type="button"
+          className="rec-btn translate-btn"
+          disabled={!hasActions}
+          onClick={() => setShowTranslator(!showTranslator)}
+          title="Translate human recorded actions into a mascot recipe with movement"
+        >
+          🪄 {showTranslator ? 'Hide Translator' : 'Translate / View Formats'}
+        </button>
 
         <button
           type="button"
@@ -293,7 +331,7 @@ export const ActionRecorder: React.FC = () => {
         )}
       </div>
 
-      {showSaveForm && (
+      {effectiveShowSaveForm && (
         <div
           className="save-db-card-panel"
           style={{
@@ -373,6 +411,40 @@ export const ActionRecorder: React.FC = () => {
             />
           </div>
 
+          <div style={{ marginBottom: '12px', padding: '10px 12px', borderRadius: '8px', backgroundColor: '#ffffff', border: '1px solid #e2e8f0' }}>
+            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+              Include Formats to Save in DB:
+            </label>
+            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', fontSize: '0.85rem', color: '#0f172a' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={saveMascotFormat}
+                  onChange={(e) => setSaveMascotFormat(e.target.checked)}
+                />
+                🤖 Mascot Action Sequence (.json)
+              </label>
+
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={saveRecipeJsonFormat}
+                  onChange={(e) => setSaveRecipeJsonFormat(e.target.checked)}
+                />
+                📜 Declarative Recipe JSON (.json)
+              </label>
+
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={saveSessionLogFormat}
+                  onChange={(e) => setSaveSessionLogFormat(e.target.checked)}
+                />
+                💾 Full Session Log (.json)
+              </label>
+            </div>
+          </div>
+
           {saveStatus && (
             <div
               style={{
@@ -425,7 +497,7 @@ export const ActionRecorder: React.FC = () => {
         </div>
       )}
 
-      {isDev && showTranslator && hasActions && (
+      {showTranslator && hasActions && (
         <div className="translation-preview-panel">
           <div className="translation-header">
             <h4>🪄 Action Export Formats & Translator Preview</h4>

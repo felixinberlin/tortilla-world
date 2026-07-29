@@ -40,10 +40,7 @@ const POPULAR_INGREDIENTS = [
   { id: 'tomato', name: 'Tomato 🍅' },
 ];
 
-import { useDevMode } from '../../utils/devMode';
-
 export const RecipeDatabaseModal: React.FC = () => {
-  const isDev = useDevMode();
   const [recipes, setRecipes] = useState<SavedRecipe[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -54,6 +51,7 @@ export const RecipeDatabaseModal: React.FC = () => {
   const [statusMessage, setStatusMessage] = useState<string>('');
 
   const [selectedFormatPreview, setSelectedFormatPreview] = useState<SavedRecipe | null>(null);
+  const [recipeToDelete, setRecipeToDelete] = useState<{ id: string; title: string } | null>(null);
 
   const dispatch = useStore(worldStore, (state) => state.dispatch);
 
@@ -112,6 +110,17 @@ export const RecipeDatabaseModal: React.FC = () => {
       setLoading(false);
     }
   }, [searchQuery, selectedIngredients, mascotFilter]);
+
+  const downloadJSON = (data: unknown, filename: string) => {
+    const jsonStr = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const toggleIngredientFilter = (ingId: string) => {
     setSelectedIngredients((prev) =>
@@ -177,13 +186,23 @@ export const RecipeDatabaseModal: React.FC = () => {
     }
   };
 
-  const handleDeleteRecipe = async (id: string, title: string) => {
-    if (window.confirm(`Are you sure you want to delete "${title}" from Firestore?`)) {
-      await deleteRecipeFromDb(id);
-      setStatusMessage(`Deleted "${title}".`);
+  const handleDeleteRecipe = (id: string, title: string) => {
+    setRecipeToDelete({ id, title });
+  };
+
+  const confirmDeleteRecipe = async () => {
+    if (!recipeToDelete) return;
+    const { id, title } = recipeToDelete;
+    setRecipeToDelete(null);
+    setStatusMessage(`Deleting "${title}" from Firestore...`);
+    const success = await deleteRecipeFromDb(id);
+    if (success) {
+      setStatusMessage(`✅ Deleted "${title}" from Firestore.`);
       await refreshRecipes();
-      setTimeout(() => setStatusMessage(''), 3000);
+    } else {
+      setStatusMessage(`❌ Failed to delete "${title}".`);
     }
+    setTimeout(() => setStatusMessage(''), 3500);
   };
 
   return (
@@ -195,18 +214,16 @@ export const RecipeDatabaseModal: React.FC = () => {
           <p>Search, filter, and play recipes in multiple formats directly from Cloud Firestore.</p>
         </div>
 
-        {isDev && (
-          <div className="db-header-actions">
-            <button
-              type="button"
-              className="db-btn btn-seed"
-              onClick={handleSeedDefaults}
-              disabled={loading}
-            >
-              🌱 Seed Catalog to DB
-            </button>
-          </div>
-        )}
+        <div className="db-header-actions">
+          <button
+            type="button"
+            className="db-btn btn-seed"
+            onClick={handleSeedDefaults}
+            disabled={loading}
+          >
+            🌱 Seed Catalog to DB
+          </button>
+        </div>
       </div>
 
       {statusMessage && <div className="db-status-banner">{statusMessage}</div>}
@@ -297,52 +314,44 @@ export const RecipeDatabaseModal: React.FC = () => {
           </div>
         ) : (
           recipes.map((recipe) => (
-            <div key={recipe.id} className="recipe-card">
-              <div className="card-header">
-                <h3 className="card-title">{recipe.title}</h3>
-                <span className={`mascot-badge ${recipe.hasMascotSupport ? 'mascot' : 'autonomous'}`}>
-                  {recipe.hasMascotSupport ? '🤖 Mascot Compatible' : '⚡ Autonomous Direct'}
-                </span>
-              </div>
-
-              <p className="card-desc">{recipe.description}</p>
-
-              <div className="card-meta">
-                <span className="author-tag">By {recipe.author}</span>
-                <span className="date-tag">
-                  {new Date(recipe.updatedAt || recipe.createdAt).toLocaleDateString()}
-                </span>
-              </div>
-
-              {/* Ingredient Index Badges */}
-              <div className="ingredient-badges">
-                {recipe.ingredients?.map((ing) => (
-                  <span key={ing} className="ing-badge">
-                    {ing}
-                  </span>
-                ))}
-              </div>
-
-              {/* Tags */}
-              <div className="card-tags">
-                {recipe.tags?.map((t) => (
-                  <span key={t} className="tag-pill">
-                    #{t}
-                  </span>
-                ))}
-              </div>
-
-              {/* Format Availability Indicators */}
-              {isDev && (
-                <div className="formats-available">
-                  <span>Formats:</span>
-                  {recipe.formats?.recipeJson && <span className="fmt-pill">📜 Recipe JSON</span>}
-                  {recipe.formats?.mascotSequence && <span className="fmt-pill">🤖 Mascot Steps</span>}
-                  {recipe.formats?.fullSessionLog && <span className="fmt-pill">💾 Session Log</span>}
+            <div key={recipe.id} className="recipe-card compact-card">
+              <div className="card-top-row">
+                <div className="card-title-group">
+                  <h3 className="card-title">{recipe.title}</h3>
+                  <span className="card-author-date">by {recipe.author} • {new Date(recipe.updatedAt || recipe.createdAt).toLocaleDateString()}</span>
                 </div>
-              )}
+                <div className="card-top-actions">
+                  <span className={`mascot-badge ${recipe.hasMascotSupport ? 'mascot' : 'autonomous'}`}>
+                    {recipe.hasMascotSupport ? '🤖 Mascot' : '⚡ Auto'}
+                  </span>
+                  <button
+                    type="button"
+                    className="delete-btn"
+                    onClick={() => handleDeleteRecipe(recipe.id, recipe.title)}
+                    title="Delete recipe from Firestore"
+                  >
+                    🗑️
+                  </button>
+                </div>
+              </div>
 
-              {/* Card Actions */}
+              {recipe.description && <p className="card-desc">{recipe.description}</p>}
+
+              <div className="card-mid-row">
+                <div className="ingredient-badges">
+                  {recipe.ingredients?.map((ing) => (
+                    <span key={ing} className="ing-badge">
+                      {ing}
+                    </span>
+                  ))}
+                </div>
+                <div className="formats-available">
+                  {recipe.formats?.recipeJson && <span className="fmt-pill">📜 JSON</span>}
+                  {recipe.formats?.mascotSequence && <span className="fmt-pill">🤖 Mascot</span>}
+                  {recipe.formats?.fullSessionLog && <span className="fmt-pill">💾 Log</span>}
+                </div>
+              </div>
+
               <div className="card-actions">
                 <button
                   type="button"
@@ -350,7 +359,7 @@ export const RecipeDatabaseModal: React.FC = () => {
                   onClick={() => handlePlayRecipe(recipe, true)}
                   disabled={isPlaying}
                 >
-                  {isPlaying && activePlaybackId === recipe.id ? '▶️ Playing...' : '▶️ Play with Mascot 🤖'}
+                  {isPlaying && activePlaybackId === recipe.id ? '▶️ Playing...' : '▶️ Play Mascot'}
                 </button>
 
                 <button
@@ -401,19 +410,98 @@ export const RecipeDatabaseModal: React.FC = () => {
 
             <div className="inspector-body">
               <div className="format-section">
-                <h4>🤖 Mascot Action Sequence Format</h4>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <h4 style={{ margin: 0 }}>🤖 Mascot Action Sequence Format</h4>
+                  {selectedFormatPreview.formats?.mascotSequence && (
+                    <button
+                      type="button"
+                      className="db-btn"
+                      style={{ padding: '4px 10px', fontSize: '0.8rem' }}
+                      onClick={() =>
+                        downloadJSON(
+                          selectedFormatPreview.formats.mascotSequence,
+                          `${selectedFormatPreview.id}_mascot_sequence.json`
+                        )
+                      }
+                    >
+                      📥 Download (.json)
+                    </button>
+                  )}
+                </div>
                 <pre>{JSON.stringify(selectedFormatPreview.formats?.mascotSequence || [], null, 2)}</pre>
               </div>
 
               <div className="format-section">
-                <h4>📜 Declarative Recipe JSON Format</h4>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <h4 style={{ margin: 0 }}>📜 Declarative Recipe JSON Format</h4>
+                  {selectedFormatPreview.formats?.recipeJson && (
+                    <button
+                      type="button"
+                      className="db-btn"
+                      style={{ padding: '4px 10px', fontSize: '0.8rem' }}
+                      onClick={() =>
+                        downloadJSON(
+                          selectedFormatPreview.formats.recipeJson,
+                          `${selectedFormatPreview.id}_recipe.json`
+                        )
+                      }
+                    >
+                      📥 Download (.json)
+                    </button>
+                  )}
+                </div>
                 <pre>{JSON.stringify(selectedFormatPreview.formats?.recipeJson || {}, null, 2)}</pre>
               </div>
 
               <div className="format-section">
-                <h4>💾 Full Session Log Format</h4>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <h4 style={{ margin: 0 }}>💾 Full Session Log Format</h4>
+                  {selectedFormatPreview.formats?.fullSessionLog && (
+                    <button
+                      type="button"
+                      className="db-btn"
+                      style={{ padding: '4px 10px', fontSize: '0.8rem' }}
+                      onClick={() =>
+                        downloadJSON(
+                          selectedFormatPreview.formats.fullSessionLog,
+                          `${selectedFormatPreview.id}_session_log.json`
+                        )
+                      }
+                    >
+                      📥 Download (.json)
+                    </button>
+                  )}
+                </div>
                 <pre>{JSON.stringify(selectedFormatPreview.formats?.fullSessionLog || {}, null, 2)}</pre>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Overlay Modal */}
+      {recipeToDelete && (
+        <div className="delete-confirm-overlay">
+          <div className="delete-confirm-modal">
+            <h3>🗑️ Confirm Firestore Deletion</h3>
+            <p>
+              Are you sure you want to delete <strong>"{recipeToDelete.title}"</strong> from Cloud Firestore? This action cannot be undone.
+            </p>
+            <div className="confirm-actions">
+              <button
+                type="button"
+                className="btn-cancel"
+                onClick={() => setRecipeToDelete(null)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn-danger"
+                onClick={confirmDeleteRecipe}
+              >
+                Yes, Delete Recipe
+              </button>
             </div>
           </div>
         </div>
