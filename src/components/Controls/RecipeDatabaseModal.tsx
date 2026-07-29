@@ -239,7 +239,7 @@ export const RecipeDatabaseModal: React.FC = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           {searchQuery && (
-            <button className="clear-btn" onClick={() => setSearchQuery('')}>
+            <button className="clear-btn" aria-label="Clear search" onClick={() => setSearchQuery('')}>
               ✕
             </button>
           )}
@@ -371,14 +371,26 @@ export const RecipeDatabaseModal: React.FC = () => {
                   ⚡ Play Alone
                 </button>
 
-                <button
-                  type="button"
-                  className="inspect-btn"
-                  onClick={() => setSelectedFormatPreview(recipe)}
-                  title="Inspect Formats & Download JSON"
-                >
-                  👁️ Formats
-                </button>
+                {isDev && (
+                  <>
+                    <button
+                      type="button"
+                      className="inspect-btn"
+                      onClick={() => setSelectedFormatPreview(recipe)}
+                    >
+                      👁️ Inspect Formats
+                    </button>
+
+                    <button
+                      type="button"
+                      className="delete-btn"
+                      aria-label={`Delete recipe ${recipe.title}`}
+                      onClick={() => handleDeleteRecipe(recipe.id, recipe.title)}
+                    >
+                      🗑️
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           ))
@@ -391,7 +403,7 @@ export const RecipeDatabaseModal: React.FC = () => {
           <div className="format-inspector-content" onClick={(e) => e.stopPropagation()}>
             <div className="inspector-header">
               <h3>📜 Multi-Format Export Preview: {selectedFormatPreview.title}</h3>
-              <button className="close-btn" onClick={() => setSelectedFormatPreview(null)}>
+              <button className="close-btn" aria-label="Close format preview" onClick={() => setSelectedFormatPreview(null)}>
                 ✕
               </button>
             </div>
