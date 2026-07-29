@@ -10,7 +10,7 @@ interface PlayerGuideModalProps {
 
 export const PlayerGuideModal: React.FC<PlayerGuideModalProps> = ({ onClose, isOpen }) => {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const { language, t } = useTranslation();
+  const { language, setLanguage, t } = useTranslation();
   const isSpanish = language === 'es';
 
   // Trap focus or handle escape key
@@ -36,15 +36,31 @@ export const PlayerGuideModal: React.FC<PlayerGuideModalProps> = ({ onClose, isO
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="player-guide-overlay" role="dialog" aria-modal="true" aria-labelledby="guide-title">
+        <div
+          className="player-guide-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="guide-title"
+          onClick={onClose}
+        >
           <motion.div
             className="player-guide-modal"
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -20 }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
+            onClick={(e) => e.stopPropagation()}
           >
             <div className="player-guide-header">
+              <button
+                type="button"
+                className="guide-language-btn"
+                onClick={() => setLanguage(language === 'en' ? 'es' : 'en')}
+                aria-label="Switch language / Cambiar idioma"
+                title="Switch language / Cambiar idioma"
+              >
+                🌐 {language === 'en' ? 'Español' : 'English'}
+              </button>
               <h1 id="guide-title">{t('guide.title')}</h1>
               <p className="subtitle">{t('guide.subtitle')}</p>
             </div>
