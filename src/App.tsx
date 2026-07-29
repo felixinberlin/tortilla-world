@@ -14,11 +14,15 @@
  * - Modify world state directly.
  */
 
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Scene } from './components/Scene/Scene';
 import { Mascot } from './components/Mascot/Mascot';
+import { PlayerGuideModal } from './components/Controls/PlayerGuideModal';
 
 function App() {
+  const [showGuide, setShowGuide] = useState(true);
+
   return (
     <motion.div
       className="app-container"
@@ -37,10 +41,12 @@ function App() {
 
       <main className="app-main">
         <Scene />
-              <div style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none', width: '100%', height: '100%' }}>
-        <Mascot />
-      </div>
+        <div style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none', width: '100%', height: '100%' }}>
+          <Mascot />
+        </div>
       </main>
+
+      <PlayerGuideModal isOpen={showGuide} onClose={() => setShowGuide(false)} />
     </motion.div>
   );
 }
