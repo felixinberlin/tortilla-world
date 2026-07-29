@@ -241,7 +241,7 @@ export const RecipeDatabaseModal: React.FC = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           {searchQuery && (
-            <button className="clear-btn" onClick={() => setSearchQuery('')}>
+            <button className="clear-btn" aria-label="Clear search" onClick={() => setSearchQuery('')}>
               ✕
             </button>
           )}
@@ -329,6 +329,7 @@ export const RecipeDatabaseModal: React.FC = () => {
                   <button
                     type="button"
                     className="delete-btn"
+                    aria-label={`Delete recipe ${recipe.title}`}
                     onClick={() => handleDeleteRecipe(recipe.id, recipe.title)}
                     title="Delete recipe from Firestore"
                   >
@@ -389,7 +390,7 @@ export const RecipeDatabaseModal: React.FC = () => {
                       aria-label={`Delete recipe ${recipe.title}`}
                       onClick={() => handleDeleteRecipe(recipe.id, recipe.title)}
                     >
-                      �️
+                      🗑️
                     </button>
                  </>
                 )}
