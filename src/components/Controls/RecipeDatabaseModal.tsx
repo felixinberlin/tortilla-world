@@ -241,7 +241,7 @@ export const RecipeDatabaseModal: React.FC = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           {searchQuery && (
-            <button className="clear-btn" onClick={() => setSearchQuery('')}>
+            <button className="clear-btn" aria-label="Clear search" onClick={() => setSearchQuery('')}>
               ✕
             </button>
           )}
