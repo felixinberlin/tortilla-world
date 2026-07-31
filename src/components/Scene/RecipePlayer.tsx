@@ -25,6 +25,7 @@ import type { RecordedAction } from '../../types/recording';
 import { getRecipeRequirementsArray } from '../../types/Recipe';
 import { RecipeRequirements } from '../Recipe/RecipeRequirements';
 import { ActionReplayer } from '../Controls/ActionReplayer';
+import { useTranslation } from '../../i18n/useTranslation';
 import './RecipePlayer.scss';
 
 // Speed options and corresponding delays in ms
@@ -350,6 +351,7 @@ interface RecipePlayerProps {
 }
 
 export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) => {
+  const { t } = useTranslation();
   const [selectedRecipeId, setSelectedRecipeId] = useState<string>(recipes[0]?.id || 'concebolla');
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
@@ -646,8 +648,8 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
   const requirementsNode = (
     <div className="recipe-requirements-section" data-container-id="despensa">
       <div className="requirements-header">
-        <span className="requirements-title">📋 Required Materials</span>
-        <span className="requirements-subtitle">(Drag items to workstation)</span>
+        <span className="requirements-title">📋 {t('ui.requiredMaterials')}</span>
+        <span className="requirements-subtitle">{t('ui.dragToWorkstation')}</span>
       </div>
       <RecipeRequirements requirements={getRecipeRequirementsArray(activeRecipe)} />
     </div>
@@ -659,7 +661,7 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
         {/* Header Row */}
         <div className="player-header">
           <div className="recipe-select-group">
-            <span className="recipe-label">Recipe:</span>
+            <span className="recipe-label">{t('ui.recipe')}:</span>
             <div className="recipe-buttons">
               {recipes.map((r) => {
                 const isActive = r.id === selectedRecipeId;
@@ -696,7 +698,7 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
 
           <div className="player-status-badge">
             <span className="step-count">
-              Step <strong>{currentStepIndex}</strong> / {totalSteps}
+              {t('replayer.stepProgress', { current: currentStepIndex, total: totalSteps })}
             </span>
             <span className={`speed-badge speed-${speed.toString().replace('.', '_')}`}>
               ⚡ {speed}x

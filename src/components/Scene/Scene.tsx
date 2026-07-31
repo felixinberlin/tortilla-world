@@ -25,11 +25,12 @@ import { IngredientsSidebar } from '../Controls/IngredientsSidebar';
 import { RecipeDatabaseModal } from '../Controls/RecipeDatabaseModal';
 import { useDevMode } from '../../utils/devMode';
 import { useTranslation } from '../../i18n/useTranslation';
+import { LanguageSwitcher } from '../Controls/LanguageSwitcher';
 import './RecipePlayer.scss';
 
 export const Scene: React.FC = () => {
   const isDev = useDevMode();
-  const { language, setLanguage } = useTranslation();
+  const { t } = useTranslation();
   const [forcePublishMode, setForcePublishMode] = useState<boolean>(false);
 
   // Active mode logic: in slim publish mode default to player, in dev mode default to database
@@ -76,7 +77,7 @@ export const Scene: React.FC = () => {
             onClick={() => setIsPanelExpanded(!isPanelExpanded)}
             className="panel-toggle-btn"
           >
-            {isPanelExpanded ? '🔼 Hide Controls' : '🔽 Show Controls & Modes'}
+            {isPanelExpanded ? t('scene.hideControls') : t('scene.showControls')}
           </button>
         </div>
 
@@ -89,7 +90,7 @@ export const Scene: React.FC = () => {
                 className={`mode-tab-btn ${activeMode === 'database' ? 'active' : ''}`}
                 onClick={() => setActiveMode('database')}
               >
-                🗄️ Firestore Recipe Database
+                {t('scene.tabs.database')}
               </button>
             )}
 
@@ -98,7 +99,7 @@ export const Scene: React.FC = () => {
               className={`mode-tab-btn ${activeMode === 'player' ? 'active' : ''}`}
               onClick={() => setActiveMode('player')}
             >
-              ▶️ Play Recipe
+              {t('scene.tabs.playRecipe')}
             </button>
 
             <button
@@ -106,7 +107,7 @@ export const Scene: React.FC = () => {
               className={`mode-tab-btn ${activeMode === 'cookbook' ? 'active' : ''}`}
               onClick={() => setActiveMode('cookbook')}
             >
-              📕 Cookbook
+              {t('scene.tabs.cookbook')}
             </button>
 
             <button
@@ -114,7 +115,7 @@ export const Scene: React.FC = () => {
               className={`mode-tab-btn ${activeMode === 'recorder' ? 'active' : ''}`}
               onClick={() => setActiveMode('recorder')}
             >
-              🎥 Action Recorder
+              {t('scene.tabs.actionRecorder')}
             </button>
 
             <button
@@ -123,25 +124,11 @@ export const Scene: React.FC = () => {
               onClick={() => dispatch({ type: 'RESET_WORLD' })}
               title="Clean the kitchen and reset all containers"
             >
-              🔄 Reset Kitchen
+              {t('scene.resetKitchen')}
             </button>
 
             {/* Language Switcher */}
-            <button
-              type="button"
-              className="mode-tab-btn"
-              onClick={() => setLanguage(language === 'en' ? 'es' : 'en')}
-              title="Switch language / Cambiar idioma"
-              style={{
-                fontWeight: 600,
-                backgroundColor: '#f8fafc',
-                border: '1px solid #cbd5e1',
-                padding: '4px 10px',
-                borderRadius: '6px',
-              }}
-            >
-              🌐 {language.toUpperCase()}
-            </button>
+            <LanguageSwitcher />
 
             {/* Dev Mode Indicator & Toggle */}
             {isDev && (
@@ -165,7 +152,7 @@ export const Scene: React.FC = () => {
                 }}
                 title="Toggle between Developer Admin Mode and Slim Published View"
               >
-                {effectiveDevMode ? '🛠️ Dev Mode (Active) ➔ Switch to Slim Publish' : '👁️ Slim Publish Preview ➔ Switch to Dev'}
+                {effectiveDevMode ? t('scene.devModeActive') : t('scene.slimPublishPreview')}
               </button>
             )}
           </div>

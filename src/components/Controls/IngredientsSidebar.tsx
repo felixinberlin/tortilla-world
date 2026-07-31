@@ -15,9 +15,11 @@ import { useStore } from 'zustand';
 import { worldStore } from '../../store/worldStore';
 import { ingredients } from '../../data/catalog/ingredients';
 import { EntityView } from '../World/EntityView';
+import { useTranslation } from '../../i18n/useTranslation';
 import './IngredientsSidebar.scss';
 
 export const IngredientsSidebar: React.FC = () => {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   const entities = useStore(worldStore, (state) => state.entities);
@@ -70,17 +72,17 @@ export const IngredientsSidebar: React.FC = () => {
     <div className="ingredients-sidebar-container" data-container-id="despensa">
       <div className="sidebar-header">
         <div className="sidebar-title">
-          <span>🧺 Ingredients Catalog</span>
+          <span>🧺 {t('ui.ingredientsCatalog')}</span>
         </div>
         <div className="sidebar-subtitle">
-          Drag items or tap ➕ to place into the kitchen workstation
+          {t('ui.sidebarSubtitle')}
         </div>
       </div>
 
       <div className="sidebar-search">
         <input
           type="text"
-          placeholder="🔍 Search ingredients..."
+          placeholder={t('ui.searchIngredientsPlaceholder')}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
@@ -96,16 +98,16 @@ export const IngredientsSidebar: React.FC = () => {
               type="button"
               className="quick-add-btn"
               onClick={() => handleQuickAdd(item.id)}
-              title={`Add ${item.name} to workstation`}
+              title={`${t('verbs.take')} ${item.name}`}
             >
-              ➕ Take
+              ➕ {t('verbs.take')}
             </button>
           </div>
         ))}
       </div>
 
       {filteredItems.length === 0 && (
-        <div className="no-results">No ingredients found matching "{searchQuery}"</div>
+        <div className="no-results">{t('ui.noIngredientsFound', { query: searchQuery })}</div>
       )}
     </div>
   );

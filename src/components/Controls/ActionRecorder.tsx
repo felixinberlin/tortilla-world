@@ -19,6 +19,7 @@ import {
 import { saveRecipeToDb, type SavedRecipe } from '../../services/dbService';
 import type { Recipe } from '../../types/Recipe';
 import type { WorldAction } from '../../types/actions';
+import { useTranslation } from '../../i18n/useTranslation';
 import './ActionRecorder.scss';
 
 interface ActionRecorderProps {
@@ -26,6 +27,7 @@ interface ActionRecorderProps {
 }
 
 export const ActionRecorder: React.FC<ActionRecorderProps> = ({ isDev = true }) => {
+  const { t } = useTranslation();
   const dispatch = useStore(worldStore, (state) => state.dispatch);
   const isRecording = useStore(worldStore, (state) => state.isRecording);
   const recordedActions = useStore(worldStore, (state) => state.recordedActions);
@@ -228,16 +230,16 @@ export const ActionRecorder: React.FC<ActionRecorderProps> = ({ isDev = true }) 
       <div className="recorder-header">
         <div>
           <div className="recorder-title">
-            <span>🎥 Action Recording & Translator</span>
+            <span>{t('recorder.title')}</span>
           </div>
           <div className="recorder-subtitle">
-            Record live human interactions, replay logs, or translate actions into a mascot recipe.
+            {t('recorder.subtitle')}
           </div>
         </div>
 
         <div className="recorder-status">
           <span className="badge">
-            Captured Actions: <strong>{recordedActions.length}</strong> | Events: <strong>{eventStore.getEvents().length}</strong>
+            {t('recorder.status', { actions: recordedActions.length, events: eventStore.getEvents().length })}
           </span>
         </div>
       </div>
@@ -250,7 +252,7 @@ export const ActionRecorder: React.FC<ActionRecorderProps> = ({ isDev = true }) 
             onClick={startRecording}
             title="Start recording live kitchen interactions"
           >
-            🔴 Start Recording
+            {t('recorder.startRecording')}
           </button>
         ) : (
           <button
@@ -259,7 +261,7 @@ export const ActionRecorder: React.FC<ActionRecorderProps> = ({ isDev = true }) 
             onClick={stopRecording}
             title="Stop recording"
           >
-            ⏹ Stop Recording ({recordedActions.length})
+            {t('recorder.stopRecordingCount', { count: recordedActions.length })}
           </button>
         )}
 
@@ -277,7 +279,7 @@ export const ActionRecorder: React.FC<ActionRecorderProps> = ({ isDev = true }) 
                 }}
                 title="Save this recorded session directly to Cloud Firestore recipe database"
               >
-                💾 {effectiveShowSaveForm ? 'Cancel Save' : 'Save Recipe to DB'}
+                💾 {effectiveShowSaveForm ? t('recorder.cancelSave') : t('recorder.saveToDb')}
               </button>
             )}
 
@@ -287,7 +289,7 @@ export const ActionRecorder: React.FC<ActionRecorderProps> = ({ isDev = true }) 
               onClick={clearRecording}
               title="Clear current recorded actions log"
             >
-              🗑 Clear Log
+              {t('recorder.clearLog')}
             </button>
           </>
         )}
@@ -299,7 +301,7 @@ export const ActionRecorder: React.FC<ActionRecorderProps> = ({ isDev = true }) 
           onClick={() => setShowTranslator(!showTranslator)}
           title="Translate human recorded actions into a mascot recipe with movement"
         >
-          🪄 {showTranslator ? 'Hide Translator' : 'Translate / View Formats'}
+          {showTranslator ? t('recorder.hideTranslator') : t('recorder.translateViewFormats')}
         </button>
 
         <button
@@ -308,17 +310,17 @@ export const ActionRecorder: React.FC<ActionRecorderProps> = ({ isDev = true }) 
           onClick={() => dispatch({ type: 'RESET_WORLD' })}
           title="Clean the kitchen and reset all containers"
         >
-          🔄 Reset Kitchen
+          {t('scene.resetKitchen')}
         </button>
 
         <ActionReplayer defaultDelayMs={300} />
       </div>
 
       <div className="used-ingredients-bar">
-        <span className="bar-label">🛒 Saved Ingredients ({usedIngredients.length}):</span>
+        <span className="bar-label">{t('recorder.savedIngredientsCount', { count: usedIngredients.length })}</span>
         {usedIngredients.length === 0 ? (
           <span className="no-ingredients-hint">
-            No ingredients used yet. Drag items from the right panel into the kitchen.
+            {t('recorder.noIngredientsUsed')}
           </span>
         ) : (
           <div className="chips-list">

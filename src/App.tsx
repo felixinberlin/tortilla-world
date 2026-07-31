@@ -36,10 +36,8 @@ function App() {
       <header className="app-header">
         <div className="app-header-content" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
           <div>
-            <h1>Tortilla World</h1>
-            <p>
-              An interactive simulation world. Drag entities from the immutable catalog pantry into workspace containers.
-            </p>
+            <h1>{t('app.title')}</h1>
+            <p>{t('app.subtitle')}</p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <a

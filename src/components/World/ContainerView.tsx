@@ -16,6 +16,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { worldStore } from '../../store/worldStore';
 import type { Container, Entity } from '../../types/world';
 import { EntityView } from './EntityView';
+import { useTranslation } from '../../i18n/useTranslation';
 import './World.scss';
 
 interface ContainerViewProps {
@@ -24,6 +25,7 @@ interface ContainerViewProps {
 }
 
 export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
+  const { t } = useTranslation();
   const entities = useStore(worldStore, (state) => state.entities);
   const [mixCustomName, setMixCustomName] = useState('');
   const [cookConditionInput, setCookConditionInput] = useState('');
@@ -44,15 +46,15 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
 
   const getWorkstationBadge = (id: string) => {
     switch (id) {
-      case 'sink': return 'Washing Area 💧';
-      case 'board': return 'Cutting Workspace 🔪';
-      case 'bowl': return 'Preparation 🥣';
-      case 'burner': return 'Cooking Heat 🍳';
-      case 'burner1': return 'Cooking Heat 1🍳';
-      case 'burner2': return 'Cooking Heat 2🍳';
-      case 'plate': return 'Serving Stage 🍽️';
-      case 'despensa': return 'Pantry 🧺';
-      default: return 'Workstation 📦';
+      case 'sink': return t('workstations.sink');
+      case 'board': return t('workstations.board');
+      case 'bowl': return t('workstations.bowl');
+      case 'burner': return t('workstations.burner');
+      case 'burner1': return t('workstations.burner1');
+      case 'burner2': return t('workstations.burner2');
+      case 'plate': return t('workstations.plate');
+      case 'despensa': return t('workstations.despensa');
+      default: return t('workstations.default');
     }
   };
 
@@ -113,7 +115,7 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
                 <input
                   type="text"
                   className="container-view__input"
-                  placeholder="Target (e.g. 10 min, until brown)"
+                  placeholder={t('ui.targetPlaceholder')}
                   value={cookConditionInput}
                   onChange={(e) => setCookConditionInput(e.target.value)}
                   onClick={(e) => e.stopPropagation()}
@@ -133,7 +135,7 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
                     });
                   }}
                 >
-                  🔥 {container.isOn ? 'Heat On' : 'Heat Off'}
+                  🔥 {container.isOn ? t('ui.heatOn') : t('ui.heatOff')}
                 </button>
               </div>
 
@@ -141,7 +143,7 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
                 <input
                   type="text"
                   className="container-view__input"
-                  placeholder="Final name (e.g. Oma tortilla)"
+                  placeholder={t('ui.finalNamePlaceholder')}
                   value={cookedCustomName}
                   onChange={(e) => setCookedCustomName(e.target.value)}
                   onClick={(e) => e.stopPropagation()}
@@ -161,7 +163,7 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
                     });
                   }}
                 >
-                  🍳 Cook
+                  🍳 {t('verbs.cook')}
                 </button>
               </div>
             </div>
@@ -179,7 +181,7 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
                 });
               }}
             >
-              🧼 Wash
+              🧼 {t('verbs.wash')}
             </button>
           )}
 
@@ -196,7 +198,7 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
                   });
                 }}
               >
-                🔪 Cut
+                🔪 {t('verbs.cut')}
               </button>
               <button
                 type="button"
@@ -209,7 +211,7 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
                   });
                 }}
               >
-                🥔 Peel
+                🥔 {t('verbs.peel')}
               </button>
             </>
           )}
@@ -220,7 +222,7 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
                 <input
                   type="text"
                   className="container-view__input"
-                  placeholder="Mixture name (optional)"
+                  placeholder={t('ui.mixtureNamePlaceholder')}
                   value={mixCustomName}
                   onChange={(e) => setMixCustomName(e.target.value)}
                   onClick={(e) => e.stopPropagation()}
@@ -239,7 +241,7 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
                     });
                   }}
                 >
-                  🥣 Mix
+                  🥣 {t('verbs.mix')}
                 </button>
               </div>
             </div>
@@ -285,7 +287,7 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
           })}
         </AnimatePresence>
         {containerEntities.length === 0 && (
-          <span className="container-view__empty-hint">Drop entities here</span>
+          <span className="container-view__empty-hint">{t('ui.emptyContainerHint')}</span>
         )}
       </div>
     </div>

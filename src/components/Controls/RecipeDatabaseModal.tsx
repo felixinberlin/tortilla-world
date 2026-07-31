@@ -27,7 +27,6 @@ import type { SavedRecipe } from '../../services/dbService';
 import { RecipeRunner } from '../../systems/recipeRunner';
 import type { Recipe } from '../../types/Recipe';
 import './RecipeDatabaseModal.scss';
-import { useDevMode } from '../../utils/devMode';
 
 const POPULAR_INGREDIENTS = [
   { id: 'garlic', name: 'Garlic 🧄' },
@@ -55,7 +54,6 @@ export const RecipeDatabaseModal: React.FC = () => {
   const [recipeToDelete, setRecipeToDelete] = useState<{ id: string; title: string } | null>(null);
 
   const dispatch = useStore(worldStore, (state) => state.dispatch);
-  const isDev = useDevMode();
 
   useEffect(() => {
     let ignore = false;
@@ -373,26 +371,14 @@ export const RecipeDatabaseModal: React.FC = () => {
                   ⚡ Play Alone
                 </button>
 
-                {isDev && (
-                  <>
-                    <button
-                      type="button"
-                      className="inspect-btn"
-                      onClick={() => setSelectedFormatPreview(recipe)}
-                    >
-                      👁️ Inspect Formats
-                    </button>
-
-                    <button
-                      type="button"
-                      className="delete-btn"
-                      aria-label={`Delete recipe ${recipe.title}`}
-                      onClick={() => handleDeleteRecipe(recipe.id, recipe.title)}
-                    >
-                      �️
-                    </button>
-                 </>
-                )}
+                <button
+                  type="button"
+                  className="inspect-btn"
+                  onClick={() => setSelectedFormatPreview(recipe)}
+                  title="Inspect Formats & Download JSON"
+                >
+                  👁️ Formats
+                </button>
               </div>
             </div>
           ))
@@ -405,7 +391,7 @@ export const RecipeDatabaseModal: React.FC = () => {
           <div className="format-inspector-content" onClick={(e) => e.stopPropagation()}>
             <div className="inspector-header">
               <h3>📜 Multi-Format Export Preview: {selectedFormatPreview.title}</h3>
-              <button className="close-btn" aria-label="Close format preview" onClick={() => setSelectedFormatPreview(null)}>
+              <button className="close-btn" onClick={() => setSelectedFormatPreview(null)}>
                 ✕
               </button>
             </div>

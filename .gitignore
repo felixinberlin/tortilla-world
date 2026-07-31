@@ -23,7 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 *.patch
-
 # Environment variables & secrets / platform configs
 .env
 .env.*

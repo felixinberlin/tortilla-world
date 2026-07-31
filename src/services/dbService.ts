@@ -130,6 +130,11 @@ export async function saveRecipeToDb(
     updatedAt: now,
   };
 
+  if (!db) {
+    console.warn('Firestore is not configured. Recipe saved locally only.');
+    return newRecipe;
+  }
+
   const sanitized = sanitizeForFirestore(newRecipe);
   const docRef = doc(db, RECIPES_COLLECTION, id);
   await setDoc(docRef, sanitized, { merge: true });
@@ -138,6 +143,7 @@ export async function saveRecipeToDb(
 }
 
 export async function fetchAllRecipesFromDb(): Promise<SavedRecipe[]> {
+  if (!db) return [];
   try {
     const colRef = collection(db, RECIPES_COLLECTION);
     const snapshot = await getDocs(colRef);
@@ -154,6 +160,7 @@ export async function fetchAllRecipesFromDb(): Promise<SavedRecipe[]> {
 }
 
 export async function fetchRecipeByIdFromDb(id: string): Promise<SavedRecipe | null> {
+  if (!db) return null;
   try {
     const docRef = doc(db, RECIPES_COLLECTION, id);
     const snapshot = await getDoc(docRef);
@@ -168,6 +175,7 @@ export async function fetchRecipeByIdFromDb(id: string): Promise<SavedRecipe | n
 }
 
 export async function deleteRecipeFromDb(id: string): Promise<boolean> {
+  if (!db) return false;
   try {
     const docRef = doc(db, RECIPES_COLLECTION, id);
     await deleteDoc(docRef);
@@ -229,6 +237,7 @@ export async function searchRecipesInDb(options: {
 // ==========================================
 
 export async function fetchKitchenToolsFromDb(): Promise<SavedTool[]> {
+  if (!db) return catalogTools;
   try {
     const colRef = collection(db, TOOLS_COLLECTION);
     const snapshot = await getDocs(colRef);
@@ -252,6 +261,8 @@ export async function seedDefaultToolsInDb(): Promise<SavedTool[]> {
     category: t.category,
   }));
 
+  if (!db) return seeded;
+
   for (const tool of seeded) {
     const docRef = doc(db, TOOLS_COLLECTION, tool.id);
     await setDoc(docRef, sanitizeForFirestore(tool), { merge: true });
@@ -265,6 +276,7 @@ export async function seedDefaultToolsInDb(): Promise<SavedTool[]> {
 // ==========================================
 
 export async function fetchIngredientsFromDb(): Promise<SavedIngredient[]> {
+  if (!db) return catalogIngredients;
   try {
     const colRef = collection(db, INGREDIENTS_COLLECTION);
     const snapshot = await getDocs(colRef);
@@ -288,6 +300,8 @@ export async function seedDefaultIngredientsInDb(): Promise<SavedIngredient[]> {
     category: 'pantry',
   }));
 
+  if (!db) return seeded;
+
   for (const ing of seeded) {
     const docRef = doc(db, INGREDIENTS_COLLECTION, ing.id);
     await setDoc(docRef, sanitizeForFirestore(ing), { merge: true });
@@ -301,6 +315,7 @@ export async function seedDefaultIngredientsInDb(): Promise<SavedIngredient[]> {
 // ==========================================
 
 export async function fetchKitchenConfigsFromDb(): Promise<SavedKitchenConfig[]> {
+  if (!db) return [];
   try {
     const colRef = collection(db, CONFIGS_COLLECTION);
     const snapshot = await getDocs(colRef);
@@ -324,6 +339,8 @@ export async function seedDefaultKitchenConfigInDb(): Promise<SavedKitchenConfig
     isDefault: true,
     createdAt: new Date().toISOString(),
   };
+
+  if (!db) return defaultConfig;
 
   const docRef = doc(db, CONFIGS_COLLECTION, defaultConfig.id);
   await setDoc(docRef, sanitizeForFirestore(defaultConfig), { merge: true });

@@ -15,17 +15,34 @@ import type { Entity } from '../../types/world';
 import { EntityIcon } from './EntityIcon';
 import { EntityStateBadge } from './EntityStateBadge';
 import { entityRendererRegistry, type EntityRendererProps } from './rendererRegistry';
+import { useTranslation } from '../../i18n/useTranslation';
 
 /**
  * Default Entity Renderer used when no custom renderer is registered for an entity type.
  */
 export const DefaultEntityRenderer: React.FC<EntityRendererProps> = ({ entity, containerId }) => {
+  const { t } = useTranslation();
+  const ingKey = entity.ingredientId || entity.id;
+  const toolKey = entity.id;
+
+  const translatedIng = t(`ingredients.${ingKey}`);
+  const translatedTool = t(`tools.${toolKey}`);
+
+  let displayName = entity.name;
+  if (translatedIng && !translatedIng.startsWith('ingredients.')) {
+    // If entity.name has icon prefix, e.g., "🥔 Potatoes"
+    const hasIconPrefix = entity.icon && entity.name.startsWith(entity.icon);
+    displayName = hasIconPrefix ? `${entity.icon} ${translatedIng}` : translatedIng;
+  } else if (translatedTool && !translatedTool.startsWith('tools.')) {
+    displayName = translatedTool;
+  }
+
   return (
     <>
       <span className="entity-view__icon">
         <EntityIcon entity={entity} />
       </span>
-      <span className="entity-view__name">{entity.name}</span>
+      <span className="entity-view__name">{displayName}</span>
       <EntityStateBadge entity={entity} containerId={containerId} />
     </>
   );

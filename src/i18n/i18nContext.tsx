@@ -9,6 +9,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import en from './locales/en.json';
 import es from './locales/es.json';
+import de from './locales/de.json';
 import { I18nContext, type SupportedLanguage } from './context';
 
 type Dictionary = typeof en;
@@ -16,12 +17,13 @@ type Dictionary = typeof en;
 const dictionaries: Record<SupportedLanguage, Dictionary> = {
   en,
   es: es as unknown as Dictionary,
+  de: de as unknown as Dictionary,
 };
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [language, setLanguageState] = useState<SupportedLanguage>(() => {
     const saved = localStorage.getItem('tortilla_lang');
-    return saved === 'es' || saved === 'en' ? saved : 'en';
+    return saved === 'es' || saved === 'de' || saved === 'en' ? saved : 'en';
   });
 
   const setLanguage = useCallback((lang: SupportedLanguage) => {
