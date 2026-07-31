@@ -543,7 +543,7 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
   }, [currentStepIndex, jumpToStep]);
 
   // Toggle Play / Pause
-  const handleTogglePlay = () => {
+  const handleTogglePlay = useCallback(() => {
     if (isPlaying) {
       setIsPlaying(false);
     } else {
@@ -553,7 +553,52 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
       }
       setIsPlaying(true);
     }
-  };
+  }, [isPlaying, currentStepIndex, totalSteps, handleReset]);
+
+  // Keyboard shortcut listener: Left Arrow (step back), Right Arrow (step forward), Space (play/pause)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if user is focused in an input, textarea, select, or editable element
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.tagName === 'SELECT' ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        handleStepDown();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        handleStepUp();
+      } else if (e.key === ' ' || e.code === 'Space') {
+        e.preventDefault();
+        handleTogglePlay();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleStepDown, handleStepUp, handleTogglePlay]);
+
+  // Listen for mascot flip (double click/tap on mascot) to step up in recipe player
+  useEffect(() => {
+    const handleMascotFlip = () => {
+      handleStepUp();
+    };
+
+    window.addEventListener('mascot-flip', handleMascotFlip);
+    return () => {
+      window.removeEventListener('mascot-flip', handleMascotFlip);
+    };
+  }, [handleStepUp]);
 
   // Decrease speed (Slow button)
   const handleSlow = () => {

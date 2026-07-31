@@ -70,7 +70,14 @@ export function TortillaSvg({
     right: { x: 0, y: 0 },
   });
 
-  const handleDoubleClick = (e: React.MouseEvent<SVGSVGElement>) => {
+  const lastFlipTimeRef = useRef<number>(0);
+  const lastTapTimeRef = useRef<number>(0);
+
+  const triggerFlip = (e: React.MouseEvent<SVGSVGElement>) => {
+    const now = Date.now();
+    if (now - lastFlipTimeRef.current < 400) return;
+    lastFlipTimeRef.current = now;
+
     if (!isFlipping) {
       setIsFlipping(true);
       setTimeout(() => {
@@ -78,6 +85,20 @@ export function TortillaSvg({
       }, 800);
     }
     onDoubleClick?.(e);
+  };
+
+  const handleDoubleClick = (e: React.MouseEvent<SVGSVGElement>) => {
+    triggerFlip(e);
+  };
+
+  const handleClick = (e: React.MouseEvent<SVGSVGElement>) => {
+    const now = Date.now();
+    if (now - lastTapTimeRef.current < 300) {
+      triggerFlip(e);
+      lastTapTimeRef.current = 0;
+    } else {
+      lastTapTimeRef.current = now;
+    }
   };
 
   useEffect(() => {
@@ -177,6 +198,7 @@ export function TortillaSvg({
       height={height}
       className={`tortilla-svg is-${effectiveState}`}
       onDoubleClick={handleDoubleClick}
+      onClick={handleClick}
       style={{ cursor: "pointer" }}
     >
       <defs>

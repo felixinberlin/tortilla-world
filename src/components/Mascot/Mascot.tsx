@@ -116,6 +116,7 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
 
   const handleDoubleClick = () => {
     dispatch({ type: 'MASCOT_FLIP', payload: { mascotId } });
+    window.dispatchEvent(new CustomEvent('mascot-flip', { detail: { mascotId } }));
   };
 
   const isFloating = offset.x !== 0 || offset.y !== 0;
