@@ -10,6 +10,7 @@ import type { EntitySlice } from './slices/entitySlice';
 import type { ContainerSlice } from './slices/containerSlice';
 import type { MascotSlice } from './slices/mascotSlice';
 import type { RecordSlice } from './slices/recordSlice';
+import type { FocusSlice } from './slices/focusSlice';
 
 export type WorldStateStore = {
   entities: Record<string, Entity>;
@@ -24,4 +25,5 @@ export type WorldStateStore = {
 } & EntitySlice &
   ContainerSlice &
   MascotSlice &
-  RecordSlice;
+  RecordSlice &
+  FocusSlice;

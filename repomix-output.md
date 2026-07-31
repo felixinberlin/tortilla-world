@@ -253,6 +253,47 @@ Components render the world.
 Systems modify the world.
 `````
 
+## File: docs/redux-devtools-actions.json
+`````json
+[
+  {
+    "type": "MASCOT_MOVE",
+    "payload": {
+      "mascotId": "chef",
+      "targetContainerId": "despensa"
+    }
+  },
+  {
+    "type": "MASCOT_GRAB",
+    "payload": {
+      "mascotId": "chef",
+      "entityId": "potato",
+      "sourceContainerId": "despensa"
+    }
+  },
+  {
+    "type": "MASCOT_MOVE",
+    "payload": {
+      "mascotId": "chef",
+      "targetContainerId": "board"
+    }
+  },
+  {
+    "type": "MASCOT_DROP",
+    "payload": {
+      "mascotId": "chef",
+      "targetContainerId": "board"
+    }
+  },
+  {
+    "type": "MASCOT_FLIP",
+    "payload": {
+      "mascotId": "chef"
+    }
+  }
+]
+`````
+
 ## File: public/favicon.svg
 `````xml
 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="46" fill="none" viewBox="0 0 48 46"><path fill="#863bff" d="M25.946 44.938c-.664.845-2.021.375-2.021-.698V33.937a2.26 2.26 0 0 0-2.262-2.262H10.287c-.92 0-1.456-1.04-.92-1.788l7.48-10.471c1.07-1.497 0-3.578-1.842-3.578H1.237c-.92 0-1.456-1.04-.92-1.788L10.013.474c.214-.297.556-.474.92-.474h28.894c.92 0 1.456 1.04.92 1.788l-7.48 10.471c-1.07 1.498 0 3.579 1.842 3.579h11.377c.943 0 1.473 1.088.89 1.83L25.947 44.94z" style="fill:#863bff;fill:color(display-p3 .5252 .23 1);fill-opacity:1"/><mask id="a" width="48" height="46" x="0" y="0" maskUnits="userSpaceOnUse" style="mask-type:alpha"><path fill="#000" d="M25.842 44.938c-.664.844-2.021.375-2.021-.698V33.937a2.26 2.26 0 0 0-2.262-2.262H10.183c-.92 0-1.456-1.04-.92-1.788l7.48-10.471c1.07-1.498 0-3.579-1.842-3.579H1.133c-.92 0-1.456-1.04-.92-1.787L9.91.473c.214-.297.556-.474.92-.474h28.894c.92 0 1.456 1.04.92 1.788l-7.48 10.471c-1.07 1.498 0 3.578 1.842 3.578h11.377c.943 0 1.473 1.088.89 1.832L25.843 44.94z" style="fill:#000;fill-opacity:1"/></mask><g mask="url(#a)"><g filter="url(#b)"><ellipse cx="5.508" cy="14.704" fill="#ede6ff" rx="5.508" ry="14.704" style="fill:#ede6ff;fill:color(display-p3 .9275 .9033 1);fill-opacity:1" transform="matrix(.00324 1 1 -.00324 -4.47 31.516)"/></g><g filter="url(#c)"><ellipse cx="10.399" cy="29.851" fill="#ede6ff" rx="10.399" ry="29.851" style="fill:#ede6ff;fill:color(display-p3 .9275 .9033 1);fill-opacity:1" transform="matrix(.00324 1 1 -.00324 -39.328 7.883)"/></g><g filter="url(#d)"><ellipse cx="5.508" cy="30.487" fill="#7e14ff" rx="5.508" ry="30.487" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(89.814 -25.913 -14.639)scale(1 -1)"/></g><g filter="url(#e)"><ellipse cx="5.508" cy="30.599" fill="#7e14ff" rx="5.508" ry="30.599" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(89.814 -32.644 -3.334)scale(1 -1)"/></g><g filter="url(#f)"><ellipse cx="5.508" cy="30.599" fill="#7e14ff" rx="5.508" ry="30.599" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="matrix(.00324 1 1 -.00324 -34.34 30.47)"/></g><g filter="url(#g)"><ellipse cx="14.072" cy="22.078" fill="#ede6ff" rx="14.072" ry="22.078" style="fill:#ede6ff;fill:color(display-p3 .9275 .9033 1);fill-opacity:1" transform="rotate(93.35 24.506 48.493)scale(-1 1)"/></g><g filter="url(#h)"><ellipse cx="3.47" cy="21.501" fill="#7e14ff" rx="3.47" ry="21.501" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(89.009 28.708 47.59)scale(-1 1)"/></g><g filter="url(#i)"><ellipse cx="3.47" cy="21.501" fill="#7e14ff" rx="3.47" ry="21.501" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(89.009 28.708 47.59)scale(-1 1)"/></g><g filter="url(#j)"><ellipse cx=".387" cy="8.972" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(39.51 .387 8.972)"/></g><g filter="url(#k)"><ellipse cx="47.523" cy="-6.092" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(37.892 47.523 -6.092)"/></g><g filter="url(#l)"><ellipse cx="41.412" cy="6.333" fill="#47bfff" rx="5.971" ry="9.665" style="fill:#47bfff;fill:color(display-p3 .2799 .748 1);fill-opacity:1" transform="rotate(37.892 41.412 6.333)"/></g><g filter="url(#m)"><ellipse cx="-1.879" cy="38.332" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(37.892 -1.88 38.332)"/></g><g filter="url(#n)"><ellipse cx="-1.879" cy="38.332" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(37.892 -1.88 38.332)"/></g><g filter="url(#o)"><ellipse cx="35.651" cy="29.907" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(37.892 35.651 29.907)"/></g><g filter="url(#p)"><ellipse cx="38.418" cy="32.4" fill="#47bfff" rx="5.971" ry="15.297" style="fill:#47bfff;fill:color(display-p3 .2799 .748 1);fill-opacity:1" transform="rotate(37.892 38.418 32.4)"/></g></g><defs><filter id="b" width="60.045" height="41.654" x="-19.77" y="16.149" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="7.659"/></filter><filter id="c" width="90.34" height="51.437" x="-54.613" y="-7.533" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="7.659"/></filter><filter id="d" width="79.355" height="29.4" x="-49.64" y="2.03" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="e" width="79.579" height="29.4" x="-45.045" y="20.029" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="f" width="79.579" height="29.4" x="-43.513" y="21.178" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="g" width="74.749" height="58.852" x="15.756" y="-17.901" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="7.659"/></filter><filter id="h" width="61.377" height="25.362" x="23.548" y="2.284" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="i" width="61.377" height="25.362" x="23.548" y="2.284" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="j" width="56.045" height="63.649" x="-27.636" y="-22.853" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="k" width="54.814" height="64.646" x="20.116" y="-38.415" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="l" width="33.541" height="35.313" x="24.641" y="-11.323" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="m" width="54.814" height="64.646" x="-29.286" y="6.009" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="n" width="54.814" height="64.646" x="-29.286" y="6.009" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="o" width="54.814" height="64.646" x="8.244" y="-2.416" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="p" width="39.409" height="43.623" x="18.713" y="10.588" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter></defs></svg>
@@ -4605,45 +4646,118 @@ export default defineConfig({
 **Action:** When adding ARIA labels to list item actions, use dynamic labels like ``aria-label={`Delete recipe ${recipe.title}`}`` to ensure context is not lost for screen reader users navigating by interactive elements. For standard utility icons, `aria-label="Clear search"` and `aria-label="Close format preview"` drastically improve usability. Always check for missing ARIA labels on buttons containing only text symbols or emoji.
 `````
 
-## File: docs/redux-devtools-actions.json
-`````json
-[
-  {
-    "type": "MASCOT_MOVE",
-    "payload": {
-      "mascotId": "chef",
-      "targetContainerId": "despensa"
-    }
-  },
-  {
-    "type": "MASCOT_GRAB",
-    "payload": {
-      "mascotId": "chef",
-      "entityId": "potato",
-      "sourceContainerId": "despensa"
-    }
-  },
-  {
-    "type": "MASCOT_MOVE",
-    "payload": {
-      "mascotId": "chef",
-      "targetContainerId": "board"
-    }
-  },
-  {
-    "type": "MASCOT_DROP",
-    "payload": {
-      "mascotId": "chef",
-      "targetContainerId": "board"
-    }
-  },
-  {
-    "type": "MASCOT_FLIP",
-    "payload": {
-      "mascotId": "chef"
-    }
+## File: docs/redux-devtools-commands.md
+`````markdown
+# Redux DevTools & Console Test Commands
+
+This document lists test actions and script sequences for Tortilla mascot automation that can be dispatched via **Redux DevTools** or directly in the **Browser Console**.
+
+---
+
+## 1. Redux DevTools Actions (JSON)
+
+Copy and paste these individual action objects into the **Dispatcher** tab of Redux DevTools:
+
+### Step 1: Look at Despensa (Pantry)
+```json
+{
+  "type": "MASCOT_MOVE",
+  "payload": {
+    "mascotId": "chef",
+    "targetContainerId": "despensa"
   }
-]
+}
+```
+
+### Step 2: Grab Potato from Despensa
+```json
+{
+  "type": "MASCOT_GRAB",
+  "payload": {
+    "mascotId": "chef",
+    "entityId": "potato",
+    "sourceContainerId": "despensa"
+  }
+}
+```
+
+### Step 3: Move gaze to Tabla (Workspace Table / Cutting Board)
+```json
+{
+  "type": "MASCOT_MOVE",
+  "payload": {
+    "mascotId": "chef",
+    "targetContainerId": "board"
+  }
+}
+```
+
+### Step 4: Drop Potato in Tabla
+```json
+{
+  "type": "MASCOT_DROP",
+  "payload": {
+    "mascotId": "chef",
+    "targetContainerId": "board"
+  }
+}
+```
+
+### Step 5: Flip Tortilla
+```json
+{
+  "type": "MASCOT_FLIP",
+  "payload": {
+    "mascotId": "chef"
+  }
+}
+```
+
+---
+
+## 2. Follow Recipe Automation Script Example (Con Cebolla)
+
+This sequence demonstrates how "Follow the recipe" brings all recipe ingredients (potato, egg, oil, onion, salt, pepper) from the catalog pantry to the table (`board`) one by one:
+
+```js
+// Browser Console: Follow Recipe Script Example
+(async () => {
+  const store = window.__ZUSTAND_STORE__ || (await import('/src/store/worldStore.ts')).worldStore;
+  const dispatch = store.getState().dispatch;
+  const wait = (ms) => new Promise(res => setTimeout(res, ms));
+
+  const recipeIngredients = ['potato', 'egg', 'oil', 'onion', 'salt', 'pepper'];
+
+  for (const ing of recipeIngredients) {
+    console.log(`Bringing ${ing} to table...`);
+    dispatch({ type: 'MASCOT_MOVE', payload: { mascotId: 'chef', targetContainerId: 'despensa' } });
+    await wait(400);
+
+    dispatch({ type: 'MASCOT_GRAB', payload: { mascotId: 'chef', entityId: ing, sourceContainerId: 'despensa' } });
+    await wait(400);
+
+    dispatch({ type: 'MASCOT_MOVE', payload: { mascotId: 'chef', targetContainerId: 'board' } });
+    await wait(400);
+
+    dispatch({ type: 'MASCOT_DROP', payload: { mascotId: 'chef', targetContainerId: 'board' } });
+    await wait(400);
+  }
+
+  console.log('Recipe complete! Flip Tortilla!');
+  dispatch({ type: 'MASCOT_FLIP', payload: { mascotId: 'chef' } });
+})();
+```
+
+---
+
+## 3. Helper Function Example
+
+Alternatively, call the system function directly in console:
+
+```js
+const { runFollowRecipeScript } = await import('/src/systems/mascotActions.ts');
+await runFollowRecipeScript('concebolla', 'chef', 'board', 500);
+```
 `````
 
 ## File: src/components/Controls/LanguageSwitcher.tsx
@@ -4721,6 +4835,77 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ compact = fa
     </div>
   );
 };
+`````
+
+## File: src/components/Ingredients/IngredientList.tsx
+`````typescript
+/**
+ * FILE: IngredientList.tsx
+ *
+ * PURPOSE:
+ * Displays a collection/container of ingredients.
+ *
+ * RESPONSIBILITY:
+ * - Renders container title and its inner entities.
+ * - Acts as a droppable target for drag-and-drop.
+ */
+
+import { useStore } from 'zustand';
+import { useDroppable } from '@dnd-kit/core';
+import { worldStore } from '../../store/worldStore';
+import type { Container, Entity } from '../../types/world';
+import { IngredientListItem } from './IngredientListItem';
+
+interface IngredientListProps {
+  key?: string | number;
+  container: Container;
+}
+
+export function IngredientList({ container }: IngredientListProps) {
+  const entities = useStore(worldStore, (state) => state.entities);
+
+  // Set up dnd-kit droppable binding for this container
+  const { setNodeRef, isOver } = useDroppable({
+    id: container.id,
+  });
+
+  const containerEntities = container.entityIds
+    .map((id: string) => entities[id])
+    .filter((e: Entity | undefined): e is Entity => Boolean(e));
+
+  const getWorkstationBadge = (id: string) => {
+    switch (id) {
+      case 'sink': return 'Washing Area 💧';
+      case 'board': return 'Cutting Workspace 🔪';
+      case 'bowl': return 'Preparation 🥣';
+      case 'pan': return 'Cooking Heat 🍳';
+      case 'plate': return 'Serving Stage 🍽️';
+      case 'despensa': return 'Pantry 🧺';
+      default: return 'Workstation 🍳';
+    }
+  };
+
+  return (
+    <div 
+      ref={setNodeRef} 
+      data-container-id={container.id}
+      className={`ingredient-list workstation-${container.id} ${isOver ? 'drag-over' : ''}`}
+    >
+      <div className="workstation-header">
+        <h3>{container.name}</h3>
+        <span className="workstation-type-badge">{getWorkstationBadge(container.id)}</span>
+      </div>
+      <div className="items-container">
+        {containerEntities.map((entity: Entity) => (
+          <IngredientListItem key={entity.id} entity={entity} containerId={container.id} />
+        ))}
+        {containerEntities.length === 0 && (
+          <span className="empty-hint">Drop ingredients here</span>
+        )}
+      </div>
+    </div>
+  );
+}
 `````
 
 ## File: src/components/Ingredients/IngredientListItem.tsx
@@ -9189,120 +9374,6 @@ Let's put it all together and make a classic *Tortilla de Patatas*.
 🎉 **Congratulations!** You've mastered the basics of Tortilla World. You are now ready to experiment with other ingredients and recipes!
 `````
 
-## File: docs/redux-devtools-commands.md
-`````markdown
-# Redux DevTools & Console Test Commands
-
-This document lists test actions and script sequences for Tortilla mascot automation that can be dispatched via **Redux DevTools** or directly in the **Browser Console**.
-
----
-
-## 1. Redux DevTools Actions (JSON)
-
-Copy and paste these individual action objects into the **Dispatcher** tab of Redux DevTools:
-
-### Step 1: Look at Despensa (Pantry)
-```json
-{
-  "type": "MASCOT_MOVE",
-  "payload": {
-    "mascotId": "chef",
-    "targetContainerId": "despensa"
-  }
-}
-```
-
-### Step 2: Grab Potato from Despensa
-```json
-{
-  "type": "MASCOT_GRAB",
-  "payload": {
-    "mascotId": "chef",
-    "entityId": "potato",
-    "sourceContainerId": "despensa"
-  }
-}
-```
-
-### Step 3: Move gaze to Tabla (Workspace Table / Cutting Board)
-```json
-{
-  "type": "MASCOT_MOVE",
-  "payload": {
-    "mascotId": "chef",
-    "targetContainerId": "board"
-  }
-}
-```
-
-### Step 4: Drop Potato in Tabla
-```json
-{
-  "type": "MASCOT_DROP",
-  "payload": {
-    "mascotId": "chef",
-    "targetContainerId": "board"
-  }
-}
-```
-
-### Step 5: Flip Tortilla
-```json
-{
-  "type": "MASCOT_FLIP",
-  "payload": {
-    "mascotId": "chef"
-  }
-}
-```
-
----
-
-## 2. Follow Recipe Automation Script Example (Con Cebolla)
-
-This sequence demonstrates how "Follow the recipe" brings all recipe ingredients (potato, egg, oil, onion, salt, pepper) from the catalog pantry to the table (`board`) one by one:
-
-```js
-// Browser Console: Follow Recipe Script Example
-(async () => {
-  const store = window.__ZUSTAND_STORE__ || (await import('/src/store/worldStore.ts')).worldStore;
-  const dispatch = store.getState().dispatch;
-  const wait = (ms) => new Promise(res => setTimeout(res, ms));
-
-  const recipeIngredients = ['potato', 'egg', 'oil', 'onion', 'salt', 'pepper'];
-
-  for (const ing of recipeIngredients) {
-    console.log(`Bringing ${ing} to table...`);
-    dispatch({ type: 'MASCOT_MOVE', payload: { mascotId: 'chef', targetContainerId: 'despensa' } });
-    await wait(400);
-
-    dispatch({ type: 'MASCOT_GRAB', payload: { mascotId: 'chef', entityId: ing, sourceContainerId: 'despensa' } });
-    await wait(400);
-
-    dispatch({ type: 'MASCOT_MOVE', payload: { mascotId: 'chef', targetContainerId: 'board' } });
-    await wait(400);
-
-    dispatch({ type: 'MASCOT_DROP', payload: { mascotId: 'chef', targetContainerId: 'board' } });
-    await wait(400);
-  }
-
-  console.log('Recipe complete! Flip Tortilla!');
-  dispatch({ type: 'MASCOT_FLIP', payload: { mascotId: 'chef' } });
-})();
-```
-
----
-
-## 3. Helper Function Example
-
-Alternatively, call the system function directly in console:
-
-```js
-const { runFollowRecipeScript } = await import('/src/systems/mascotActions.ts');
-await runFollowRecipeScript('concebolla', 'chef', 'board', 500);
-```
-`````
-
 ## File: docs/roadmap.md
 `````markdown
 # Tortilla World Roadmap
@@ -9831,77 +9902,6 @@ The immediate goal is:
       }
     }
   }
-}
-`````
-
-## File: src/components/Ingredients/IngredientList.tsx
-`````typescript
-/**
- * FILE: IngredientList.tsx
- *
- * PURPOSE:
- * Displays a collection/container of ingredients.
- *
- * RESPONSIBILITY:
- * - Renders container title and its inner entities.
- * - Acts as a droppable target for drag-and-drop.
- */
-
-import { useStore } from 'zustand';
-import { useDroppable } from '@dnd-kit/core';
-import { worldStore } from '../../store/worldStore';
-import type { Container, Entity } from '../../types/world';
-import { IngredientListItem } from './IngredientListItem';
-
-interface IngredientListProps {
-  key?: string | number;
-  container: Container;
-}
-
-export function IngredientList({ container }: IngredientListProps) {
-  const entities = useStore(worldStore, (state) => state.entities);
-
-  // Set up dnd-kit droppable binding for this container
-  const { setNodeRef, isOver } = useDroppable({
-    id: container.id,
-  });
-
-  const containerEntities = container.entityIds
-    .map((id: string) => entities[id])
-    .filter((e: Entity | undefined): e is Entity => Boolean(e));
-
-  const getWorkstationBadge = (id: string) => {
-    switch (id) {
-      case 'sink': return 'Washing Area 💧';
-      case 'board': return 'Cutting Workspace 🔪';
-      case 'bowl': return 'Preparation 🥣';
-      case 'pan': return 'Cooking Heat 🍳';
-      case 'plate': return 'Serving Stage 🍽️';
-      case 'despensa': return 'Pantry 🧺';
-      default: return 'Workstation 🍳';
-    }
-  };
-
-  return (
-    <div 
-      ref={setNodeRef} 
-      data-container-id={container.id}
-      className={`ingredient-list workstation-${container.id} ${isOver ? 'drag-over' : ''}`}
-    >
-      <div className="workstation-header">
-        <h3>{container.name}</h3>
-        <span className="workstation-type-badge">{getWorkstationBadge(container.id)}</span>
-      </div>
-      <div className="items-container">
-        {containerEntities.map((entity: Entity) => (
-          <IngredientListItem key={entity.id} entity={entity} containerId={container.id} />
-        ))}
-        {containerEntities.length === 0 && (
-          <span className="empty-hint">Drop ingredients here</span>
-        )}
-      </div>
-    </div>
-  );
 }
 `````
 
@@ -12296,537 +12296,6 @@ describe('ActionReplayer component logic', () => {
     color: #94a3b8;
     font-style: italic;
   }
-}
-`````
-
-## File: src/components/Mascot/TortillaSvg.tsx
-`````typescript
-import React, { useEffect, useState, useRef } from "react";
-import { motion } from "framer-motion";
-import type { GazePoint, GazeTarget } from "../../systems/gaze";
-import type { MascotState } from "../../systems/mascot";
-import "./TortillaSvg.scss";
-
-export interface Potato {
-  x: number;
-  y: number;
-  rx: number;
-  ry: number;
-  rotate: number;
-}
-
-export interface ToastMark {
-  x: number;
-  y: number;
-  rx: number;
-  ry: number;
-  rotate: number;
-}
-
-export interface TortillaSvgProps {
-  state?: MascotState | "flipping"; // Added 'flipping' if not in your MascotState yet
-  radius?: number;
-  pupilOffset?: { left: GazePoint; right: GazePoint };
-  mouth?: string;
-  leftEyeRef?: React.RefObject<SVGEllipseElement | null>;
-  rightEyeRef?: React.RefObject<SVGEllipseElement | null>;
-  width?: number | string;
-  height?: number | string;
-  potatoes?: Potato[];
-  toastMarks?: ToastMark[];
-  gazingAt?: GazeTarget;
-  onDoubleClick?: (e: React.MouseEvent<SVGSVGElement>) => void;
-}
-
-const DEFAULT_POTATOES: Potato[] = [
-  { x: -12, y: -10, rx: 4, ry: 3, rotate: 15 },
-  { x: 14, y: 8, rx: 5, ry: 3.5, rotate: -25 },
-  { x: -6, y: 12, rx: 4.5, ry: 3, rotate: 40 },
-  { x: 8, y: -14, rx: 3.5, ry: 2.5, rotate: -10 },
-];
-
-const DEFAULT_TOAST_MARKS: ToastMark[] = [
-  { x: -18, y: -12, rx: 3, ry: 2, rotate: 20 },
-  { x: 12, y: -16, rx: 4, ry: 2.5, rotate: -15 },
-  { x: -14, y: 14, rx: 3.5, ry: 2, rotate: 30 },
-  { x: 16, y: 10, rx: 2.5, ry: 1.8, rotate: -45 },
-];
-
-export function TortillaSvg({
-  state = "idle",
-  radius = 28,
-  pupilOffset: externalPupilOffset,
-  mouth = "M -10 6 Q 0 16 10 6",
-  leftEyeRef,
-  rightEyeRef,
-  width = 100,
-  height = 100,
-  potatoes = DEFAULT_POTATOES,
-  toastMarks = DEFAULT_TOAST_MARKS,
-  gazingAt,
-  onDoubleClick,
-}: TortillaSvgProps) {
-  const svgRef = useRef<SVGSVGElement>(null);
-  const [isFlipping, setIsFlipping] = useState(false);
-  const [targetOffset, setTargetOffset] = useState<{ left: GazePoint; right: GazePoint }>({
-    left: { x: 0, y: 0 },
-    right: { x: 0, y: 0 },
-  });
-
-  const handleDoubleClick = (e: React.MouseEvent<SVGSVGElement>) => {
-    if (!isFlipping) {
-      setIsFlipping(true);
-      setTimeout(() => {
-        setIsFlipping(false);
-      }, 800);
-    }
-    onDoubleClick?.(e);
-  };
-
-  useEffect(() => {
-    if (externalPupilOffset) return;
-
-    const computeOffsetFromPoint = (targetX: number, targetY: number) => {
-      if (!svgRef.current) return { x: 0, y: 0 };
-      const rect = svgRef.current.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-
-      const dx = targetX - centerX;
-      const dy = targetY - centerY;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      if (distance < 1) return { x: 0, y: 0 };
-
-      const angle = Math.atan2(dy, dx);
-      const maxOffset = 3.5;
-      const offsetDist = Math.min(distance / 60, 1) * maxOffset;
-
-      const ox = Math.cos(angle) * offsetDist;
-      const oy = Math.sin(angle) * offsetDist;
-
-      return { x: ox, y: oy };
-    };
-
-    if (gazingAt?.type === "mouse") {
-      const handleMouseMove = (e: MouseEvent) => {
-        const offset = computeOffsetFromPoint(e.clientX, e.clientY);
-        setTargetOffset({ left: offset, right: offset });
-      };
-      window.addEventListener("mousemove", handleMouseMove);
-      return () => window.removeEventListener("mousemove", handleMouseMove);
-    }
-
-    let animFrameId: number;
-
-    const updateGaze = () => {
-      if (!gazingAt) {
-        setTargetOffset({ left: { x: 0, y: 0 }, right: { x: 0, y: 0 } });
-        return;
-      }
-
-      if (gazingAt.type === "entity") {
-        const entityId = gazingAt.entityId;
-        if (!entityId) {
-          setTargetOffset({ left: { x: 0, y: 0 }, right: { x: 0, y: 0 } });
-          return;
-        }
-
-        // Search for element or container in DOM
-        const el =
-          document.querySelector(`[data-entity-id="${entityId}"]`) ||
-          document.querySelector(`[data-ingredient-id="${entityId}"]`) ||
-          document.querySelector(`[data-container-id="${entityId}"]`) ||
-          document.getElementById(entityId);
-
-        if (el) {
-          const rect = el.getBoundingClientRect();
-          const offset = computeOffsetFromPoint(
-            rect.left + rect.width / 2,
-            rect.top + rect.height / 2
-          );
-          setTargetOffset({ left: offset, right: offset });
-        } else {
-          setTargetOffset({ left: { x: 0, y: 0 }, right: { x: 0, y: 0 } });
-        }
-      } else if (gazingAt.type === "point") {
-        const offset = computeOffsetFromPoint(gazingAt.point.x, gazingAt.point.y);
-        setTargetOffset({ left: offset, right: offset });
-      } else {
-        setTargetOffset({ left: { x: 0, y: 0 }, right: { x: 0, y: 0 } });
-      }
-    };
-
-    const loop = () => {
-      updateGaze();
-      animFrameId = requestAnimationFrame(loop);
-    };
-
-    loop();
-
-    return () => {
-      if (animFrameId) cancelAnimationFrame(animFrameId);
-    };
-  }, [externalPupilOffset, gazingAt]);
-
-  const pupilOffset = externalPupilOffset || targetOffset;
-  const r = radius ?? 28;
-  const effectiveState = isFlipping ? "flipping" : state;
-
-  return (
-    <motion.svg
-      ref={svgRef}
-      viewBox="-40 -40 80 80"
-      width={width}
-      height={height}
-      className={`tortilla-svg is-${effectiveState}`}
-      onDoubleClick={handleDoubleClick}
-      style={{ cursor: "pointer" }}
-    >
-      <defs>
-        {/* Hauptkörper: Ei + Kartoffeln */}
-        <radialGradient id="tortillaBody" cx="40%" cy="35%">
-          <stop offset="0%" stopColor="#fff8e1" />
-          <stop offset="30%" stopColor="#f5d98e" />
-          <stop offset="70%" stopColor="#e8b84a" />
-          <stop offset="100%" stopColor="#c98a2a" />
-        </radialGradient>
-
-        {/* Gebräunter Rand */}
-        <linearGradient id="crustEdge" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#d4953a" />
-          <stop offset="50%" stopColor="#b8731f" />
-          <stop offset="100%" stopColor="#8b5a1a" />
-        </linearGradient>
-
-        {/* Schatten unter der Tortilla */}
-        <radialGradient id="dropShadow" cx="50%" cy="50%">
-          <stop offset="0%" stopColor="#5a3a0a" stopOpacity="0.4" />
-          <stop offset="100%" stopColor="#5a3a0a" stopOpacity="0" />
-        </radialGradient>
-
-        {/* Öl-Glanz */}
-        <linearGradient id="oilShine" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.6" />
-          <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
-        </linearGradient>
-
-        {/* Kartoffel-Textur */}
-        <radialGradient id="potatoChunk" cx="30%" cy="30%">
-          <stop offset="0%" stopColor="#fff5d6" />
-          <stop offset="100%" stopColor="#e8c97a" />
-        </radialGradient>
-
-        {/* Zwiebel-Textur */}
-        <radialGradient id="onionChunk" cx="50%" cy="50%">
-          <stop offset="0%" stopColor="#ffffff" />
-          <stop offset="100%" stopColor="#f0e6d2" />
-        </radialGradient>
-
-        {/* Dampf für Cooking-State */}
-        <linearGradient id="steam" x1="0%" y1="100%" x2="0%" y2="0%">
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.6" />
-          <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
-        </linearGradient>
-
-        <filter id="softShadow">
-          <feDropShadow dx="0" dy="3" stdDeviation="3" opacity="0.3" />
-        </filter>
-
-        <filter id="innerGlow">
-          <feGaussianBlur stdDeviation="1" result="blur" />
-          <feComposite in="SourceGraphic" in2="blur" operator="over" />
-        </filter>
-      </defs>
-
-      {/* === SCHATTEN === */}
-      <ellipse
-        cx="2"
-        cy="22"
-        rx={r * 0.9}
-        ry={r * 0.7}
-        fill="url(#dropShadow)"
-      />
-
-      {/* === TORTILLA-DICKE (Seitenansicht) === */}
-      <ellipse
-        cx="0"
-        cy="8"
-        rx={r * 0.95}
-        ry={r * 0.85}
-        fill="#7a4a15"
-      />
-
-      {/* === HAUPTKÖRPER === */}
-      <ellipse
-        cx="0"
-        cy="0"
-        rx={r}
-        ry={r * 0.88}
-        fill="url(#tortillaBody)"
-        stroke="url(#crustEdge)"
-        strokeWidth="2.5"
-        filter="url(#softShadow)"
-      />
-
-      {/* === GEKRÄUSELTER RAND === */}
-      <path
-        d="M -28 -8 
-           Q -32 -2 -30 5 
-           Q -28 15 -20 22 
-           Q -10 28 0 27 
-           Q 12 28 22 22 
-           Q 30 15 31 5 
-           Q 32 -5 25 -15 
-           Q 15 -25 0 -26 
-           Q -15 -25 -28 -8 Z"
-        fill="none"
-        stroke="#b8731f"
-        strokeWidth="1.5"
-        strokeDasharray="4 3"
-        opacity="0.6"
-      />
-
-      {/* === KARTOFFEL-STÜCKE (aus Props) === */}
-      {potatoes.map((potato, i) => (
-        <g key={`potato-${i}`} transform={`rotate(${potato.rotate} ${potato.x} ${potato.y})`}>
-          {/* Schatten */}
-          <ellipse
-            cx={potato.x + 0.5}
-            cy={potato.y + 0.5}
-            rx={potato.rx}
-            ry={potato.ry}
-            fill="#b8892a"
-            opacity="0.4"
-          />
-          {/* Kartoffel */}
-          <ellipse
-            cx={potato.x}
-            cy={potato.y}
-            rx={potato.rx}
-            ry={potato.ry}
-            fill="url(#potatoChunk)"
-            stroke="#d4a84a"
-            strokeWidth="0.8"
-          />
-          {/* Highlight */}
-          <ellipse
-            cx={potato.x - 1}
-            cy={potato.y - 1}
-            rx={potato.rx * 0.4}
-            ry={potato.ry * 0.3}
-            fill="#ffffff"
-            opacity="0.5"
-          />
-        </g>
-      ))}
-
-      {/* === ZWIEBEL-RINGE === */}
-      {[
-        { x: -22, y: -2, r: 3.5 },
-        { x: 20, y: -8, r: 2.5 },
-        { x: 8, y: -22, r: 2 },
-        { x: -5, y: 20, r: 3 },
-      ].map((onion, i) => (
-        <g key={`onion-${i}`}>
-          <circle
-            cx={onion.x}
-            cy={onion.y}
-            r={onion.r}
-            fill="none"
-            stroke="#f5e6c8"
-            strokeWidth="1.8"
-            opacity="0.7"
-          />
-          <circle
-            cx={onion.x}
-            cy={onion.y}
-            r={onion.r * 0.5}
-            fill="none"
-            stroke="#e8d5a8"
-            strokeWidth="1"
-            opacity="0.5"
-          />
-        </g>
-      ))}
-
-      {/* === GEBRÄUNTE STELLEN (aus Props) === */}
-      {toastMarks.map((mark, i) => (
-        <ellipse
-          key={`toast-${i}`}
-          cx={mark.x}
-          cy={mark.y}
-          rx={mark.rx}
-          ry={mark.ry}
-          fill="#8b5a1a"
-          opacity="0.35"
-          transform={`rotate(${mark.rotate} ${mark.x} ${mark.y})`}
-        />
-      ))}
-
-      {/* === ÖL-GLANZ (mehrere Highlights) === */}
-      <path
-        d="M -15 -18 Q -5 -25 8 -20"
-        fill="none"
-        stroke="url(#oilShine)"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-      />
-      <path
-        d="M 10 15 Q 18 18 24 12"
-        fill="none"
-        stroke="url(#oilShine)"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        opacity="0.6"
-      />
-      <ellipse cx="-8" cy="-16" rx="3" ry="1.5" fill="#ffffff" opacity="0.3" transform="rotate(-20 -8 -16)" />
-
-      {/* === BASILIKUM-BLATT (als "Haarschmuck") === */}
-      <g transform="translate(18, -22) rotate(25)">
-        <path
-          d="M 0 0 Q -4 -8 0 -14 Q 4 -8 0 0 Z"
-          fill="#5a8f3a"
-          stroke="#4a7a2e"
-          strokeWidth="0.8"
-        />
-        <path
-          d="M 0 0 L 0 -12"
-          fill="none"
-          stroke="#4a7a2e"
-          strokeWidth="0.5"
-        />
-        <ellipse cx="-1.5" cy="-5" rx="1" ry="0.8" fill="#6ba84a" opacity="0.7" />
-        <ellipse cx="1.5" cy="-9" rx="0.8" ry="0.6" fill="#6ba84a" opacity="0.7" />
-      </g>
-
-      {/* === DAMPF (nur im Cooking-State) === */}
-      {state === "cooking" && (
-        <>
-          <motion.path
-            d="M -10 -28 Q -15 -38 -8 -45"
-            fill="none"
-            stroke="url(#steam)"
-            strokeWidth="3"
-            strokeLinecap="round"
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: [0, 0.7, 0], y: [-2, -8, -15], x: [0, 3, -2] }}
-            transition={{ duration: 2, repeat: Infinity, delay: 0 }}
-          />
-          <motion.path
-            d="M 5 -30 Q 10 -40 3 -48"
-            fill="none"
-            stroke="url(#steam)"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: [0, 0.6, 0], y: [-2, -10, -18], x: [0, -3, 2] }}
-            transition={{ duration: 2.2, repeat: Infinity, delay: 0.7 }}
-          />
-          <motion.path
-            d="M 0 -32 Q -5 -42 2 -50"
-            fill="none"
-            stroke="url(#steam)"
-            strokeWidth="2"
-            strokeLinecap="round"
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: [0, 0.5, 0], y: [-2, -12, -20], x: [0, 4, -3] }}
-            transition={{ duration: 1.8, repeat: Infinity, delay: 1.4 }}
-          />
-        </>
-      )}
-
-      {/* === GESICHT === */}
-
-      {/* Wangen (Blush) */}
-      <ellipse cx="-22" cy="6" rx="5" ry="3" fill="#e85a5a" opacity="0.25" filter="url(#innerGlow)" />
-      <ellipse cx="22" cy="6" rx="5" ry="3" fill="#e85a5a" opacity="0.25" filter="url(#innerGlow)" />
-
-      {/* Augen (Weiß) */}
-      <ellipse ref={leftEyeRef} cx="-11" cy="-6" rx="8" ry="9" fill="#fff" />
-      <ellipse ref={rightEyeRef} cx="11" cy="-6" rx="8" ry="9" fill="#fff" />
-
-      {/* Augenlider (Blinzeln via CSS) */}
-      <ellipse
-        cx="-11"
-        cy="-6"
-        rx="8"
-        ry="9"
-        fill="#e8b84a"
-        className="tortilla-blink"
-        style={{ transformOrigin: "-11px -6px" }}
-      />
-      <ellipse
-        cx="11"
-        cy="-6"
-        rx="8"
-        ry="9"
-        fill="#e8b84a"
-        className="tortilla-blink"
-        style={{ transformOrigin: "11px -6px" }}
-      />
-
-      {/* Pupillen */}
-      <motion.circle
-        cx="-11"
-        cy="-6"
-        r="3.5"
-        fill="#3b2418"
-        animate={{ x: pupilOffset.left.x, y: pupilOffset.left.y }}
-        transition={{ type: "spring", stiffness: 300, damping: 20 }}
-      />
-      <motion.circle
-        cx="11"
-        cy="-6"
-        r="3.5"
-        fill="#3b2418"
-        animate={{ x: pupilOffset.right.x, y: pupilOffset.right.y }}
-        transition={{ type: "spring", stiffness: 300, damping: 20 }}
-      />
-
-      {/* Pupillen-Highlights */}
-      <circle cx="-12.5" cy="-8" r="1.2" fill="white" />
-      <circle cx="9.5" cy="-8" r="1.2" fill="white" />
-
-      {/* Mund */}
-      <motion.path
-        d={mouth}
-        fill="none"
-        stroke="#3b2418"
-        strokeWidth="3"
-        strokeLinecap="round"
-        animate={
-          state === "celebrating"
-            ? { scale: [1, 1.1, 1] }
-            : state === "cooking"
-            ? { d: ["M -14 4 Q 0 18 14 4", "M -14 5 Q 0 16 14 5", "M -14 4 Q 0 18 14 4"] }
-            : {}
-        }
-        transition={
-          state === "celebrating"
-            ? { duration: 0.5, repeat: Infinity }
-            : state === "cooking"
-            ? { duration: 1.5, repeat: Infinity }
-            : { duration: 0.2 }
-        }
-      />
-
-      {/* Zunge (nur bei celebrating) */}
-      {state === "celebrating" && (
-        <motion.path
-          d="M -6 12 Q 0 18 6 12"
-          fill="#e85a5a"
-          opacity="0.8"
-          animate={{ scaleY: [1, 1.2, 1] }}
-          transition={{ duration: 0.5, repeat: Infinity }}
-        />
-      )}
-
-      {/* === EXTRA: Kleine Krümel (Details) === */}
-      <circle cx="-30" cy="5" r="1" fill="#c98a2a" opacity="0.5" />
-      <circle cx="32" cy="-5" r="0.8" fill="#c98a2a" opacity="0.4" />
-      <circle cx="28" cy="18" r="1.2" fill="#c98a2a" opacity="0.3" />
-    </motion.svg>
-  );
 }
 `````
 
@@ -15611,6 +15080,559 @@ export const IngredientsSidebar: React.FC = () => {
 };
 `````
 
+## File: src/components/Mascot/TortillaSvg.tsx
+`````typescript
+import React, { useEffect, useState, useRef } from "react";
+import { motion } from "framer-motion";
+import type { GazePoint, GazeTarget } from "../../systems/gaze";
+import type { MascotState } from "../../systems/mascot";
+import "./TortillaSvg.scss";
+
+export interface Potato {
+  x: number;
+  y: number;
+  rx: number;
+  ry: number;
+  rotate: number;
+}
+
+export interface ToastMark {
+  x: number;
+  y: number;
+  rx: number;
+  ry: number;
+  rotate: number;
+}
+
+export interface TortillaSvgProps {
+  state?: MascotState | "flipping"; // Added 'flipping' if not in your MascotState yet
+  radius?: number;
+  pupilOffset?: { left: GazePoint; right: GazePoint };
+  mouth?: string;
+  leftEyeRef?: React.RefObject<SVGEllipseElement | null>;
+  rightEyeRef?: React.RefObject<SVGEllipseElement | null>;
+  width?: number | string;
+  height?: number | string;
+  potatoes?: Potato[];
+  toastMarks?: ToastMark[];
+  gazingAt?: GazeTarget;
+  onDoubleClick?: (e: React.MouseEvent<SVGSVGElement>) => void;
+}
+
+const DEFAULT_POTATOES: Potato[] = [
+  { x: -12, y: -10, rx: 4, ry: 3, rotate: 15 },
+  { x: 14, y: 8, rx: 5, ry: 3.5, rotate: -25 },
+  { x: -6, y: 12, rx: 4.5, ry: 3, rotate: 40 },
+  { x: 8, y: -14, rx: 3.5, ry: 2.5, rotate: -10 },
+];
+
+const DEFAULT_TOAST_MARKS: ToastMark[] = [
+  { x: -18, y: -12, rx: 3, ry: 2, rotate: 20 },
+  { x: 12, y: -16, rx: 4, ry: 2.5, rotate: -15 },
+  { x: -14, y: 14, rx: 3.5, ry: 2, rotate: 30 },
+  { x: 16, y: 10, rx: 2.5, ry: 1.8, rotate: -45 },
+];
+
+export function TortillaSvg({
+  state = "idle",
+  radius = 28,
+  pupilOffset: externalPupilOffset,
+  mouth = "M -10 6 Q 0 16 10 6",
+  leftEyeRef,
+  rightEyeRef,
+  width = 100,
+  height = 100,
+  potatoes = DEFAULT_POTATOES,
+  toastMarks = DEFAULT_TOAST_MARKS,
+  gazingAt,
+  onDoubleClick,
+}: TortillaSvgProps) {
+  const svgRef = useRef<SVGSVGElement>(null);
+  const [isFlipping, setIsFlipping] = useState(false);
+  const [targetOffset, setTargetOffset] = useState<{ left: GazePoint; right: GazePoint }>({
+    left: { x: 0, y: 0 },
+    right: { x: 0, y: 0 },
+  });
+
+  const lastFlipTimeRef = useRef<number>(0);
+  const lastTapTimeRef = useRef<number>(0);
+
+  const triggerFlip = (e: React.MouseEvent<SVGSVGElement>) => {
+    const now = Date.now();
+    if (now - lastFlipTimeRef.current < 400) return;
+    lastFlipTimeRef.current = now;
+
+    if (!isFlipping) {
+      setIsFlipping(true);
+      setTimeout(() => {
+        setIsFlipping(false);
+      }, 800);
+    }
+    onDoubleClick?.(e);
+  };
+
+  const handleDoubleClick = (e: React.MouseEvent<SVGSVGElement>) => {
+    triggerFlip(e);
+  };
+
+  const handleClick = (e: React.MouseEvent<SVGSVGElement>) => {
+    const now = Date.now();
+    if (now - lastTapTimeRef.current < 300) {
+      triggerFlip(e);
+      lastTapTimeRef.current = 0;
+    } else {
+      lastTapTimeRef.current = now;
+    }
+  };
+
+  useEffect(() => {
+    if (externalPupilOffset) return;
+
+    const computeOffsetFromPoint = (targetX: number, targetY: number) => {
+      if (!svgRef.current) return { x: 0, y: 0 };
+      const rect = svgRef.current.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      const dx = targetX - centerX;
+      const dy = targetY - centerY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      if (distance < 1) return { x: 0, y: 0 };
+
+      const angle = Math.atan2(dy, dx);
+      const maxOffset = 3.5;
+      const offsetDist = Math.min(distance / 60, 1) * maxOffset;
+
+      const ox = Math.cos(angle) * offsetDist;
+      const oy = Math.sin(angle) * offsetDist;
+
+      return { x: ox, y: oy };
+    };
+
+    if (gazingAt?.type === "mouse") {
+      const handleMouseMove = (e: MouseEvent) => {
+        const offset = computeOffsetFromPoint(e.clientX, e.clientY);
+        setTargetOffset({ left: offset, right: offset });
+      };
+      window.addEventListener("mousemove", handleMouseMove);
+      return () => window.removeEventListener("mousemove", handleMouseMove);
+    }
+
+    let animFrameId: number;
+
+    const updateGaze = () => {
+      if (!gazingAt) {
+        setTargetOffset({ left: { x: 0, y: 0 }, right: { x: 0, y: 0 } });
+        return;
+      }
+
+      if (gazingAt.type === "entity") {
+        const entityId = gazingAt.entityId;
+        if (!entityId) {
+          setTargetOffset({ left: { x: 0, y: 0 }, right: { x: 0, y: 0 } });
+          return;
+        }
+
+        // Search for element or container in DOM
+        const el =
+          document.querySelector(`[data-entity-id="${entityId}"]`) ||
+          document.querySelector(`[data-ingredient-id="${entityId}"]`) ||
+          document.querySelector(`[data-container-id="${entityId}"]`) ||
+          document.getElementById(entityId);
+
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          const offset = computeOffsetFromPoint(
+            rect.left + rect.width / 2,
+            rect.top + rect.height / 2
+          );
+          setTargetOffset({ left: offset, right: offset });
+        } else {
+          setTargetOffset({ left: { x: 0, y: 0 }, right: { x: 0, y: 0 } });
+        }
+      } else if (gazingAt.type === "point") {
+        const offset = computeOffsetFromPoint(gazingAt.point.x, gazingAt.point.y);
+        setTargetOffset({ left: offset, right: offset });
+      } else {
+        setTargetOffset({ left: { x: 0, y: 0 }, right: { x: 0, y: 0 } });
+      }
+    };
+
+    const loop = () => {
+      updateGaze();
+      animFrameId = requestAnimationFrame(loop);
+    };
+
+    loop();
+
+    return () => {
+      if (animFrameId) cancelAnimationFrame(animFrameId);
+    };
+  }, [externalPupilOffset, gazingAt]);
+
+  const pupilOffset = externalPupilOffset || targetOffset;
+  const r = radius ?? 28;
+  const effectiveState = isFlipping ? "flipping" : state;
+
+  return (
+    <motion.svg
+      ref={svgRef}
+      viewBox="-40 -40 80 80"
+      width={width}
+      height={height}
+      className={`tortilla-svg is-${effectiveState}`}
+      onDoubleClick={handleDoubleClick}
+      onClick={handleClick}
+      style={{ cursor: "pointer" }}
+    >
+      <defs>
+        {/* Hauptkörper: Ei + Kartoffeln */}
+        <radialGradient id="tortillaBody" cx="40%" cy="35%">
+          <stop offset="0%" stopColor="#fff8e1" />
+          <stop offset="30%" stopColor="#f5d98e" />
+          <stop offset="70%" stopColor="#e8b84a" />
+          <stop offset="100%" stopColor="#c98a2a" />
+        </radialGradient>
+
+        {/* Gebräunter Rand */}
+        <linearGradient id="crustEdge" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#d4953a" />
+          <stop offset="50%" stopColor="#b8731f" />
+          <stop offset="100%" stopColor="#8b5a1a" />
+        </linearGradient>
+
+        {/* Schatten unter der Tortilla */}
+        <radialGradient id="dropShadow" cx="50%" cy="50%">
+          <stop offset="0%" stopColor="#5a3a0a" stopOpacity="0.4" />
+          <stop offset="100%" stopColor="#5a3a0a" stopOpacity="0" />
+        </radialGradient>
+
+        {/* Öl-Glanz */}
+        <linearGradient id="oilShine" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.6" />
+          <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+        </linearGradient>
+
+        {/* Kartoffel-Textur */}
+        <radialGradient id="potatoChunk" cx="30%" cy="30%">
+          <stop offset="0%" stopColor="#fff5d6" />
+          <stop offset="100%" stopColor="#e8c97a" />
+        </radialGradient>
+
+        {/* Zwiebel-Textur */}
+        <radialGradient id="onionChunk" cx="50%" cy="50%">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="100%" stopColor="#f0e6d2" />
+        </radialGradient>
+
+        {/* Dampf für Cooking-State */}
+        <linearGradient id="steam" x1="0%" y1="100%" x2="0%" y2="0%">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.6" />
+          <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+        </linearGradient>
+
+        <filter id="softShadow">
+          <feDropShadow dx="0" dy="3" stdDeviation="3" opacity="0.3" />
+        </filter>
+
+        <filter id="innerGlow">
+          <feGaussianBlur stdDeviation="1" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+      </defs>
+
+      {/* === SCHATTEN === */}
+      <ellipse
+        cx="2"
+        cy="22"
+        rx={r * 0.9}
+        ry={r * 0.7}
+        fill="url(#dropShadow)"
+      />
+
+      {/* === TORTILLA-DICKE (Seitenansicht) === */}
+      <ellipse
+        cx="0"
+        cy="8"
+        rx={r * 0.95}
+        ry={r * 0.85}
+        fill="#7a4a15"
+      />
+
+      {/* === HAUPTKÖRPER === */}
+      <ellipse
+        cx="0"
+        cy="0"
+        rx={r}
+        ry={r * 0.88}
+        fill="url(#tortillaBody)"
+        stroke="url(#crustEdge)"
+        strokeWidth="2.5"
+        filter="url(#softShadow)"
+      />
+
+      {/* === GEKRÄUSELTER RAND === */}
+      <path
+        d="M -28 -8 
+           Q -32 -2 -30 5 
+           Q -28 15 -20 22 
+           Q -10 28 0 27 
+           Q 12 28 22 22 
+           Q 30 15 31 5 
+           Q 32 -5 25 -15 
+           Q 15 -25 0 -26 
+           Q -15 -25 -28 -8 Z"
+        fill="none"
+        stroke="#b8731f"
+        strokeWidth="1.5"
+        strokeDasharray="4 3"
+        opacity="0.6"
+      />
+
+      {/* === KARTOFFEL-STÜCKE (aus Props) === */}
+      {potatoes.map((potato, i) => (
+        <g key={`potato-${i}`} transform={`rotate(${potato.rotate} ${potato.x} ${potato.y})`}>
+          {/* Schatten */}
+          <ellipse
+            cx={potato.x + 0.5}
+            cy={potato.y + 0.5}
+            rx={potato.rx}
+            ry={potato.ry}
+            fill="#b8892a"
+            opacity="0.4"
+          />
+          {/* Kartoffel */}
+          <ellipse
+            cx={potato.x}
+            cy={potato.y}
+            rx={potato.rx}
+            ry={potato.ry}
+            fill="url(#potatoChunk)"
+            stroke="#d4a84a"
+            strokeWidth="0.8"
+          />
+          {/* Highlight */}
+          <ellipse
+            cx={potato.x - 1}
+            cy={potato.y - 1}
+            rx={potato.rx * 0.4}
+            ry={potato.ry * 0.3}
+            fill="#ffffff"
+            opacity="0.5"
+          />
+        </g>
+      ))}
+
+      {/* === ZWIEBEL-RINGE === */}
+      {[
+        { x: -22, y: -2, r: 3.5 },
+        { x: 20, y: -8, r: 2.5 },
+        { x: 8, y: -22, r: 2 },
+        { x: -5, y: 20, r: 3 },
+      ].map((onion, i) => (
+        <g key={`onion-${i}`}>
+          <circle
+            cx={onion.x}
+            cy={onion.y}
+            r={onion.r}
+            fill="none"
+            stroke="#f5e6c8"
+            strokeWidth="1.8"
+            opacity="0.7"
+          />
+          <circle
+            cx={onion.x}
+            cy={onion.y}
+            r={onion.r * 0.5}
+            fill="none"
+            stroke="#e8d5a8"
+            strokeWidth="1"
+            opacity="0.5"
+          />
+        </g>
+      ))}
+
+      {/* === GEBRÄUNTE STELLEN (aus Props) === */}
+      {toastMarks.map((mark, i) => (
+        <ellipse
+          key={`toast-${i}`}
+          cx={mark.x}
+          cy={mark.y}
+          rx={mark.rx}
+          ry={mark.ry}
+          fill="#8b5a1a"
+          opacity="0.35"
+          transform={`rotate(${mark.rotate} ${mark.x} ${mark.y})`}
+        />
+      ))}
+
+      {/* === ÖL-GLANZ (mehrere Highlights) === */}
+      <path
+        d="M -15 -18 Q -5 -25 8 -20"
+        fill="none"
+        stroke="url(#oilShine)"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M 10 15 Q 18 18 24 12"
+        fill="none"
+        stroke="url(#oilShine)"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        opacity="0.6"
+      />
+      <ellipse cx="-8" cy="-16" rx="3" ry="1.5" fill="#ffffff" opacity="0.3" transform="rotate(-20 -8 -16)" />
+
+      {/* === BASILIKUM-BLATT (als "Haarschmuck") === */}
+      <g transform="translate(18, -22) rotate(25)">
+        <path
+          d="M 0 0 Q -4 -8 0 -14 Q 4 -8 0 0 Z"
+          fill="#5a8f3a"
+          stroke="#4a7a2e"
+          strokeWidth="0.8"
+        />
+        <path
+          d="M 0 0 L 0 -12"
+          fill="none"
+          stroke="#4a7a2e"
+          strokeWidth="0.5"
+        />
+        <ellipse cx="-1.5" cy="-5" rx="1" ry="0.8" fill="#6ba84a" opacity="0.7" />
+        <ellipse cx="1.5" cy="-9" rx="0.8" ry="0.6" fill="#6ba84a" opacity="0.7" />
+      </g>
+
+      {/* === DAMPF (nur im Cooking-State) === */}
+      {state === "cooking" && (
+        <>
+          <motion.path
+            d="M -10 -28 Q -15 -38 -8 -45"
+            fill="none"
+            stroke="url(#steam)"
+            strokeWidth="3"
+            strokeLinecap="round"
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: [0, 0.7, 0], y: [-2, -8, -15], x: [0, 3, -2] }}
+            transition={{ duration: 2, repeat: Infinity, delay: 0 }}
+          />
+          <motion.path
+            d="M 5 -30 Q 10 -40 3 -48"
+            fill="none"
+            stroke="url(#steam)"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: [0, 0.6, 0], y: [-2, -10, -18], x: [0, -3, 2] }}
+            transition={{ duration: 2.2, repeat: Infinity, delay: 0.7 }}
+          />
+          <motion.path
+            d="M 0 -32 Q -5 -42 2 -50"
+            fill="none"
+            stroke="url(#steam)"
+            strokeWidth="2"
+            strokeLinecap="round"
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: [0, 0.5, 0], y: [-2, -12, -20], x: [0, 4, -3] }}
+            transition={{ duration: 1.8, repeat: Infinity, delay: 1.4 }}
+          />
+        </>
+      )}
+
+      {/* === GESICHT === */}
+
+      {/* Wangen (Blush) */}
+      <ellipse cx="-22" cy="6" rx="5" ry="3" fill="#e85a5a" opacity="0.25" filter="url(#innerGlow)" />
+      <ellipse cx="22" cy="6" rx="5" ry="3" fill="#e85a5a" opacity="0.25" filter="url(#innerGlow)" />
+
+      {/* Augen (Weiß) */}
+      <ellipse ref={leftEyeRef} cx="-11" cy="-6" rx="8" ry="9" fill="#fff" />
+      <ellipse ref={rightEyeRef} cx="11" cy="-6" rx="8" ry="9" fill="#fff" />
+
+      {/* Augenlider (Blinzeln via CSS) */}
+      <ellipse
+        cx="-11"
+        cy="-6"
+        rx="8"
+        ry="9"
+        fill="#e8b84a"
+        className="tortilla-blink"
+        style={{ transformOrigin: "-11px -6px" }}
+      />
+      <ellipse
+        cx="11"
+        cy="-6"
+        rx="8"
+        ry="9"
+        fill="#e8b84a"
+        className="tortilla-blink"
+        style={{ transformOrigin: "11px -6px" }}
+      />
+
+      {/* Pupillen */}
+      <motion.circle
+        cx="-11"
+        cy="-6"
+        r="3.5"
+        fill="#3b2418"
+        animate={{ x: pupilOffset.left.x, y: pupilOffset.left.y }}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      />
+      <motion.circle
+        cx="11"
+        cy="-6"
+        r="3.5"
+        fill="#3b2418"
+        animate={{ x: pupilOffset.right.x, y: pupilOffset.right.y }}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      />
+
+      {/* Pupillen-Highlights */}
+      <circle cx="-12.5" cy="-8" r="1.2" fill="white" />
+      <circle cx="9.5" cy="-8" r="1.2" fill="white" />
+
+      {/* Mund */}
+      <motion.path
+        d={mouth}
+        fill="none"
+        stroke="#3b2418"
+        strokeWidth="3"
+        strokeLinecap="round"
+        animate={
+          state === "celebrating"
+            ? { scale: [1, 1.1, 1] }
+            : state === "cooking"
+            ? { d: ["M -14 4 Q 0 18 14 4", "M -14 5 Q 0 16 14 5", "M -14 4 Q 0 18 14 4"] }
+            : {}
+        }
+        transition={
+          state === "celebrating"
+            ? { duration: 0.5, repeat: Infinity }
+            : state === "cooking"
+            ? { duration: 1.5, repeat: Infinity }
+            : { duration: 0.2 }
+        }
+      />
+
+      {/* Zunge (nur bei celebrating) */}
+      {state === "celebrating" && (
+        <motion.path
+          d="M -6 12 Q 0 18 6 12"
+          fill="#e85a5a"
+          opacity="0.8"
+          animate={{ scaleY: [1, 1.2, 1] }}
+          transition={{ duration: 0.5, repeat: Infinity }}
+        />
+      )}
+
+      {/* === EXTRA: Kleine Krümel (Details) === */}
+      <circle cx="-30" cy="5" r="1" fill="#c98a2a" opacity="0.5" />
+      <circle cx="32" cy="-5" r="0.8" fill="#c98a2a" opacity="0.4" />
+      <circle cx="28" cy="18" r="1.2" fill="#c98a2a" opacity="0.3" />
+    </motion.svg>
+  );
+}
+`````
+
 ## File: src/components/Recipe/RecipePanel.scss
 `````scss
 /**
@@ -16974,6 +16996,142 @@ export async function handlePrepStep(
   });
 
   await ctx.wait();
+}
+`````
+
+## File: src/systems/mascotActions.ts
+`````typescript
+/**
+ * FILE: mascotActions.ts
+ *
+ * PURPOSE:
+ * Action dispatcher helpers for mascot (Tortilla) commands.
+ *
+ * RESPONSIBILITY:
+ * - Provides reusable, generic action dispatchers for AI agents or UI triggers.
+ * - Handles tortilla movement, grabbing ingredients from containers, dropping ingredients into containers, and flipping.
+ */
+
+import { worldStore } from '../store/worldStore';
+import { recipes } from '../data/catalog/recipes';
+import { RecipeRunner } from './recipeRunner';
+
+/**
+ * Triggers Tortilla flip animation and records action in store.
+ */
+export function flipTortilla(mascotId: string = 'chef'): void {
+  worldStore.getState().dispatch({
+    type: 'MASCOT_FLIP',
+    payload: { mascotId },
+  });
+}
+
+/**
+ * Moves Tortilla gaze/focus to a specific container in the world.
+ */
+export function moveTortillaTo(targetContainerId: string, mascotId: string = 'chef'): void {
+  worldStore.getState().dispatch({
+    type: 'MASCOT_MOVE',
+    payload: { mascotId, targetContainerId },
+  });
+}
+
+/**
+ * Clears Tortilla's gaze — mascot returns to idle eye position (gazingAt: null).
+ * Use instead of moveTortillaTo('') when there is no meaningful target.
+ */
+export function clearTortillaGaze(mascotId: string = 'chef'): void {
+  worldStore.getState().dispatch({
+    type: 'MASCOT_CLEAR_GAZE',
+    payload: { mascotId },
+  });
+}
+
+/**
+ * Commands Tortilla to grab/pick up an ingredient from a container.
+ */
+export function grabIngredient(
+  entityId: string,
+  sourceContainerId?: string,
+  mascotId: string = 'chef'
+): void {
+  worldStore.getState().dispatch({
+    type: 'MASCOT_GRAB',
+    payload: { mascotId, entityId, sourceContainerId },
+  });
+}
+
+/**
+ * Commands Tortilla to drop the currently held ingredient into a target container.
+ */
+export function dropIngredient(
+  targetContainerId: string,
+  positionIndex?: number,
+  mascotId: string = 'chef'
+): void {
+  worldStore.getState().dispatch({
+    type: 'MASCOT_DROP',
+    payload: { mascotId, targetContainerId, positionIndex },
+  });
+}
+
+/**
+ * Commands Tortilla to execute a sequence:
+ * 1. Move focus to despensa
+ * 2. Grab potato from despensa
+ * 3. Move focus to board (tabla)
+ * 4. Drop potato into board
+ * 5. Flip Tortilla mascot
+ */
+export async function runTortillaPotatoScript(
+  mascotId: string = 'chef',
+  delayMs: number = 600
+): Promise<void> {
+  const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  // 1. Look at despensa
+  moveTortillaTo('despensa', mascotId);
+  await wait(delayMs);
+
+  // 2. Grab potato from despensa
+  grabIngredient('potato', 'despensa', mascotId);
+  await wait(delayMs);
+
+  // 3. Look at board (tabla)
+  moveTortillaTo('board', mascotId);
+  await wait(delayMs);
+
+  // 4. Drop potato in board
+  dropIngredient('board', undefined, mascotId);
+  await wait(delayMs);
+
+  // 5. Flip Tortilla
+  flipTortilla(mascotId);
+  await wait(900);
+
+  // 6. Return home gracefully — clear gaze instead of setting an empty string target
+  clearTortillaGaze(mascotId);
+}
+
+/**
+ * Commands Tortilla to follow a recipe by running its step-based state machine.
+ */
+export async function runFollowRecipeScript(
+  recipeId: string,
+  mascotId: string = 'chef',
+  targetContainerId: string = 'board',
+  delayMs: number = 600
+): Promise<void> {
+  const activeRecipe = recipes.find((r) => r.id === recipeId);
+  if (!activeRecipe) return;
+
+  const runner = new RecipeRunner({
+    mascotId,
+    defaultTargetId: targetContainerId,
+    delayMs,
+  });
+
+  await runner.runRecipe(activeRecipe);
 }
 `````
 
@@ -19812,140 +19970,833 @@ describe('Clásica Recipe Completion State', () => {
 });
 `````
 
-## File: src/systems/mascotActions.ts
-`````typescript
-/**
- * FILE: mascotActions.ts
- *
- * PURPOSE:
- * Action dispatcher helpers for mascot (Tortilla) commands.
- *
- * RESPONSIBILITY:
- * - Provides reusable, generic action dispatchers for AI agents or UI triggers.
- * - Handles tortilla movement, grabbing ingredients from containers, dropping ingredients into containers, and flipping.
- */
+## File: docs/systems.md
+`````markdown
+# Systems
 
-import { worldStore } from '../store/worldStore';
-import { recipes } from '../data/catalog/recipes';
-import { RecipeRunner } from './recipeRunner';
+## Overview
 
-/**
- * Triggers Tortilla flip animation and records action in store.
- */
-export function flipTortilla(mascotId: string = 'chef'): void {
-  worldStore.getState().dispatch({
-    type: 'MASCOT_FLIP',
-    payload: { mascotId },
-  });
+Systems contain the behaviour of Tortilla World.
+
+Components display the world.
+Systems modify the world.
+
+A system receives actions, validates them, and updates the world state.
+
+The general flow is:
+
+```text
+Input
+  |
+  v
+Action
+  |
+  v
+System
+  |
+  v
+Validation
+  |
+  v
+World State Update
+  |
+  v
+UI Update
+```
+
+---
+
+# System Architecture
+
+Tortilla World is based on independent systems.
+
+Current and planned systems:
+
+```text
+Systems
+
+├── Interaction System
+├── Movement System
+├── Container System
+├── Mascot System
+├── Animation System
+├── Cooking System
+└── AI System
+```
+
+Each system has a clear responsibility.
+
+---
+
+# Interaction System
+
+## Responsibility
+
+The Interaction System converts external events into world actions.
+
+External events:
+
+* mouse clicks
+* drag and drop
+* AI requests
+* future keyboard/gamepad input
+
+The Interaction System does not modify the world directly.
+
+---
+
+## Example
+
+User drags potato into pan.
+
+The Interaction System creates:
+
+```ts
+{
+  type:"MOVE_ENTITY",
+  entityId:"potato",
+  targetContainer:"pan"
 }
+```
 
-/**
- * Moves Tortilla gaze/focus to a specific container in the world.
- */
-export function moveTortillaTo(targetContainerId: string, mascotId: string = 'chef'): void {
-  worldStore.getState().dispatch({
-    type: 'MASCOT_MOVE',
-    payload: { mascotId, targetContainerId },
-  });
+The action is passed to the Movement System.
+
+---
+
+# Movement System
+
+## Responsibility
+
+The Movement System controls ownership changes.
+
+It handles:
+
+* moving entities
+* validating source ownership
+* validating destination rules
+* applying transfer behaviour
+
+---
+
+## Move Flow
+
+```text
+Move Request
+
+      |
+      v
+
+Find Entity
+
+      |
+      v
+
+Find Current Container
+
+      |
+      v
+
+Find Target Container
+
+      |
+      v
+
+Validate Move
+
+      |
+      v
+
+Apply Transfer Rule
+
+      |
+      v
+
+Update Ownership
+
+```
+
+---
+
+# Move Validation
+
+Before moving an entity, the system checks:
+
+## Entity existence
+
+Does the entity exist?
+
+Example:
+
+```text
+potato
+```
+
+must exist in the world.
+
+---
+
+## Source ownership
+
+Does the source container own the entity?
+
+Example:
+
+Valid:
+
+```text
+Kitchen owns potato
+```
+
+Invalid:
+
+```text
+Pan owns potato
+```
+
+when moving from Kitchen.
+
+---
+
+## Destination capability
+
+Can the target container accept this entity?
+
+Example:
+
+A pan may accept:
+
+```text
+ingredient
+```
+
+but reject:
+
+```text
+container
+```
+
+---
+
+## Duplicate rules
+
+The container checks uniqueness.
+
+Example:
+
+Valid:
+
+```text
+Recipe
+
+potato
+egg
+```
+
+Invalid:
+
+```text
+Recipe
+
+potato
+potato
+```
+
+---
+
+# Transfer Rules
+
+A move is not always the same operation.
+
+Containers define transfer behaviour.
+
+---
+
+# Static Container To Dynamic Container
+
+Example:
+
+```text
+Kitchen
+ |
+ potato
+
+
+Recipe
+```
+
+Move potato:
+
+Result:
+
+```text
+Kitchen
+ |
+ potato
+
+
+Recipe
+ |
+ potato
+```
+
+The destination receives the ingredient.
+
+The source remains unchanged.
+
+This represents a world resource.
+
+---
+
+# Dynamic Container To Dynamic Container
+
+Example:
+
+```text
+Recipe
+ |
+ potato
+
+
+Pan
+```
+
+Move potato:
+
+Result:
+
+```text
+Recipe
+
+
+Pan
+ |
+ potato
+```
+
+Ownership transfers.
+
+---
+
+# Dynamic Container To Static Container
+
+Example:
+
+```text
+Recipe
+ |
+ potato
+
+
+Kitchen
+```
+
+Move potato back.
+
+Result:
+
+```text
+Recipe
+
+
+Kitchen
+ |
+ potato
+```
+
+The dynamic container loses ownership.
+
+The static container provides the original world resource.
+
+---
+
+# Container System
+
+## Responsibility
+
+The Container System manages container rules.
+
+It answers questions:
+
+* Can this entity be added?
+* Can this entity be removed?
+* Are duplicates allowed?
+* Is the container full?
+* Does ordering matter?
+
+---
+
+## Example API
+
+```ts
+canAccept(
+  container,
+  entity
+)
+```
+
+returns:
+
+```ts
+true
+```
+
+or:
+
+```ts
+false
+```
+
+---
+
+# Action Queue
+
+## Responsibility
+
+All world changes should pass through an action queue.
+
+Example:
+
+```text
+AI
+ |
+User
+ |
+System
+ |
+Action Queue
+ |
+World Update
+```
+
+---
+
+## Example Action
+
+```ts
+{
+ type:"MOVE_ENTITY",
+
+ entityId:"egg",
+
+ source:"kitchen",
+
+ target:"recipe"
 }
+```
 
-/**
- * Clears Tortilla's gaze — mascot returns to idle eye position (gazingAt: null).
- * Use instead of moveTortillaTo('') when there is no meaningful target.
- */
-export function clearTortillaGaze(mascotId: string = 'chef'): void {
-  worldStore.getState().dispatch({
-    type: 'MASCOT_CLEAR_GAZE',
-    payload: { mascotId },
-  });
+---
+
+## Benefits
+
+Action queues provide:
+
+* debugging
+* replay
+* logging
+* AI control
+* animations
+* delayed actions
+
+---
+
+# Action Replay System (`ActionPlayer` & `ActionReplayer`)
+
+## Responsibility
+
+The Action Replay System enables recording, storing, and sequentially replaying discrete `WorldAction` JSON logs in Tortilla World.
+
+It consists of:
+1. **Headless Replay Utility (`src/systems/actionPlayer.ts`)**:
+   - `ActionPlayer` class / `actionPlayer` singleton.
+   - `playLog(actions: WorldAction[], options?: PlaybackOptions)`: Resets world state via `RESET_WORLD` action, then dispatches each action step sequentially to `worldStore.getState().dispatch(action)` with configurable delays.
+   - Provides step progress callbacks (`onStep(current, total, action)`), completion callbacks (`onComplete()`), and early cancellation (`stop()`).
+
+2. **React Controls UI (`src/components/Controls/ActionReplayer.tsx`)**:
+   - Accepts uploaded `.json` files via `FileReader`.
+   - Validates JSON format to ensure an array of valid `WorldAction` objects.
+   - Displays live step progress (`Step X / Y`), progress bar, step delay selector, and a Stop button.
+
+---
+
+# Animation System
+
+## Responsibility
+
+The Animation System reacts to world changes.
+
+It does not decide what happens.
+
+Example:
+
+Movement System:
+
+```text
+Potato moved to Pan
+```
+
+Animation System:
+
+```text
+Play potato movement animation
+```
+
+---
+
+## Separation
+
+Bad:
+
+```text
+Drag component:
+move object
+animate object
+change state
+```
+
+Good:
+
+```text
+Drag component:
+create action
+
+
+Movement System:
+change state
+
+
+Animation System:
+animate change
+```
+
+---
+
+# Cooking System
+
+## Responsibility
+
+Future system for transforming entities.
+
+Examples:
+
+```text
+Potato
++
+Oil
++
+Heat
+
+    |
+    v
+
+Fried Potato
+```
+
+---
+
+The cooking system changes entity state.
+
+Example:
+
+Before:
+
+```ts
+{
+ type:"ingredient",
+ state:"raw"
 }
+```
 
-/**
- * Commands Tortilla to grab/pick up an ingredient from a container.
- */
-export function grabIngredient(
-  entityId: string,
-  sourceContainerId?: string,
-  mascotId: string = 'chef'
-): void {
-  worldStore.getState().dispatch({
-    type: 'MASCOT_GRAB',
-    payload: { mascotId, entityId, sourceContainerId },
-  });
+After:
+
+```ts
+{
+ type:"ingredient",
+ state:"cooked"
 }
+```
 
-/**
- * Commands Tortilla to drop the currently held ingredient into a target container.
- */
-export function dropIngredient(
-  targetContainerId: string,
-  positionIndex?: number,
-  mascotId: string = 'chef'
-): void {
-  worldStore.getState().dispatch({
-    type: 'MASCOT_DROP',
-    payload: { mascotId, targetContainerId, positionIndex },
-  });
-}
+---
 
-/**
- * Commands Tortilla to execute a sequence:
- * 1. Move focus to despensa
- * 2. Grab potato from despensa
- * 3. Move focus to board (tabla)
- * 4. Drop potato into board
- * 5. Flip Tortilla mascot
- */
-export async function runTortillaPotatoScript(
-  mascotId: string = 'chef',
-  delayMs: number = 600
-): Promise<void> {
-  const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+# AI System
 
-  // 1. Look at despensa
-  moveTortillaTo('despensa', mascotId);
-  await wait(delayMs);
+## Responsibility
 
-  // 2. Grab potato from despensa
-  grabIngredient('potato', 'despensa', mascotId);
-  await wait(delayMs);
+The AI System creates actions.
 
-  // 3. Look at board (tabla)
-  moveTortillaTo('board', mascotId);
-  await wait(delayMs);
+The AI does not directly manipulate Zustand state.
 
-  // 4. Drop potato in board
-  dropIngredient('board', undefined, mascotId);
-  await wait(delayMs);
+---
 
-  // 5. Flip Tortilla
-  flipTortilla(mascotId);
-  await wait(900);
+Example:
 
-  // 6. Return home gracefully — clear gaze instead of setting an empty string target
-  clearTortillaGaze(mascotId);
-}
+AI decides:
 
-/**
- * Commands Tortilla to follow a recipe by running its step-based state machine.
- */
-export async function runFollowRecipeScript(
-  recipeId: string,
-  mascotId: string = 'chef',
-  targetContainerId: string = 'board',
-  delayMs: number = 600
-): Promise<void> {
-  const activeRecipe = recipes.find((r) => r.id === recipeId);
-  if (!activeRecipe) return;
+```text
+Prepare tortilla
+```
 
-  const runner = new RecipeRunner({
-    mascotId,
-    defaultTargetId: targetContainerId,
-    delayMs,
-  });
+Creates:
 
-  await runner.runRecipe(activeRecipe);
-}
+```ts
+[
+ {
+  type:"MOVE_ENTITY",
+  entityId:"potato",
+  target:"pan"
+ },
+
+ {
+  type:"ADD_HEAT",
+  target:"pan"
+ }
+]
+```
+
+The normal systems execute them.
+
+---
+
+# System Communication
+
+Systems communicate through actions and world state.
+
+Example:
+
+```text
+Interaction System
+
+        |
+        v
+
+Move Action
+
+        |
+        v
+
+Movement System
+
+        |
+        v
+
+World Store
+
+        |
+        v
+
+Animation System
+
+```
+
+---
+
+# Zustand Responsibility
+
+Zustand is the storage layer.
+
+It stores:
+
+* entities
+* containers
+* relationships
+* world state
+
+It should not contain UI logic.
+
+---
+
+Example:
+
+Good:
+
+```ts
+moveEntity(
+ entityId,
+ from,
+ to
+)
+```
+
+Bad:
+
+```ts
+onDropIngredient(
+ mouseEvent
+)
+```
+
+---
+
+# Testing Strategy
+
+Systems should be testable without React.
+
+Example:
+
+```ts
+moveEntity(
+ "potato",
+ "kitchen",
+ "pan"
+)
+```
+
+Expected:
+
+```text
+Kitchen:
+empty
+
+Pan:
+potato
+```
+
+---
+
+# Future Systems
+
+Possible additions:
+
+## Time System
+
+Controls:
+
+* cooking duration
+* day/night
+* events
+
+---
+
+## Physics System
+
+Controls:
+
+* collisions
+* falling objects
+* movement
+
+---
+
+## Economy System
+
+Controls:
+
+* ingredients cost
+* customers
+* money
+
+---
+
+## Character System
+
+Controls:
+
+* NPCs
+* player actions
+* behaviours
+
+---
+
+## Mascot System & Recipe System
+
+### Mascot System
+Controls:
+
+* `MASCOT_FLIP`: Flips Tortilla mascot in place.
+* `MASCOT_MOVE`: Moves gaze/focus of Tortilla to target container.
+* `MASCOT_GRAB`: Commands Tortilla to grab ingredient entity from a container.
+* `MASCOT_DROP`: Commands Tortilla to drop held ingredient into target container obeying rules.
+
+Dispatch helpers and automated action sequences (e.g. `runFollowRecipeScript`) are located in `src/systems/mascotActions.ts` for AI agent, console, or UI integration.
+
+React components (`Mascot.tsx`) translate pure target container state into physical Framer Motion spring translations across the DOM viewport without touching store logic.
+
+---
+
+### Recipe System & RecipeRunner
+
+The Recipe System executes declarative, step-based recipe state machines via `RecipeRunner` (`src/systems/recipeRunner.ts` / `src/systems/recipeRunner/`).
+
+#### Architecture:
+* **Declarative Data**: Recipes (`RecipeStep[]`) define *what* needs to happen (e.g. `move`, `grab`, `drop`, `cut`, `cook`, `mix`, `wait`, `flip`, `speak`, `celebrate`) without referencing specific kitchen containers or locations.
+* **Modular Handler Architecture**: `RecipeRunner` delegates step execution to focused step handlers (`src/systems/recipeRunner/handlers/`):
+  - `moveHandlers.ts`: Relocation steps (`move`, `grab`, `drop`).
+  - `prepHandlers.ts`: Preparation steps (`cut`, `prepare`, `peel`, `wash`, `rinse`, `drain`).
+  - `cookHandlers.ts`: Thermal & flip steps (`cook`, `flip`).
+  - `mixHandlers.ts`: Combination steps (`mix`, `beat`, `combine`).
+  - `utilityHandlers.ts`: Narrative & completion steps (`serve`, `wait`, `instruction`, `speak`, `celebrate`).
+* **Workstation & Tool Resolution**: `RecipeRunner` dynamically queries the Workstation engine (`src/engine/workstations.ts`) to determine the required workstation (`pantry`, `washing_station`, `cutting_station`, `preparation_station`, `cooking_station`, `serving_station`) and tools (`knife`, `peeler`, `whisk`, `fork`, `spatula`, etc.) for each step.
+* **Generic Execution**: `RecipeRunner` iterates over recipe steps and dispatches appropriate world/mascot actions.
+* **Entity Identity Preservation**: Ingredient state mutations (such as preparation: `whole` ➔ `diced` or cooking: `raw` ➔ `fried`) modify the target entity's `state` via `PREPARE_INGREDIENT` or `COOK_INGREDIENT` without creating or destroying entities.
+
+---
+
+### Action Recording & Replay System
+
+* **Action Log Integration**: World actions are captured in `recordSlice` when recording mode is active.
+* **Store Synchronization**: Loaded action sequences are loaded directly into `worldStore` state via `setRecordedActions`.
+* **Controls Reference Recorded Actions**: When recording mode or a loaded recorded session is active, player controls (`Play`, `Pause`, `Step Up`, `Step Down`, stepper dots) reference the sequence of actual `WorldAction` items instead of static recipe steps, stepping through or jumping across logged world state mutations directly.
+
+---
+
+### Recipe Translator System (`src/systems/recipeTranslator.ts`)
+
+* **Purpose**: Converts human-recorded kitchen interactions into executable mascot-guided recipes where Tortilla moves focus, grabs, and places ingredients across containers.
+* **Mascot Action Expansion** (`translateHumanActionsToMascotActions`):
+  - Injects `MASCOT_MOVE` focus, `MASCOT_GRAB`, and `MASCOT_DROP` steps around raw human `MOVE_ENTITY` actions.
+  - Injects `MASCOT_MOVE` focus steps prior to `TOGGLE_BURNER`, `PREPARE_INGREDIENT`, `COOK_INGREDIENT`, and `ADD_ENTITY` actions.
+* **Declarative Recipe File Generation** (`translateHumanActionsToRecipe`):
+  - Extracts clean entity names and requirements.
+  - Generates a valid `Recipe` definition (with `id`, `name`, `requirements`, and `steps`) suitable for export as `.json` or execution via `RecipeRunner`.
+* **UI Mode Separation**:
+  - `📖 Play Catalog Recipe Mode`: Dedicated to catalog recipe execution (`RecipePlayer.tsx`).
+  - `🎥 Action Recorder & Translator Mode`: Dedicated to live action recording, log replaying, human-to-mascot recipe translation (`ActionRecorder.tsx`), tracking used ingredients (`usedIngredients`), and an interactive right-side ingredients catalog panel (`IngredientsSidebar.tsx`).
+
+---
+
+### Recipe Loader & Validation System (`src/systems/recipeLoader.ts`, `src/systems/recipeValidator.ts`)
+
+* **Purpose**: Decouples recipe definitions from TypeScript code files into structured, validated JSON assets (`clasica.json`, `concebolla.json`).
+* **Recipe Validator (`recipeValidator.ts`)**:
+  - Validates raw JSON structures against `RecipeJSON` schema.
+  - Ensures required fields (`id`, `name`, `steps`, `requirements`/`ingredients`) exist and meet data type constraints.
+  - Verifies step action types and cross-references inputs and targets against declared recipe requirements.
+* **Recipe Loader (`recipeLoader.ts`)**:
+  - Ingests JSON recipe assets safely and hydrates them into runtime `Recipe` objects.
+  - Provides registry methods (`loadRecipe`, `loadAllRecipes`, `getAvailableRecipeIds`, `getRecipeCooklang`).
+* **RecipeRunner Integration**:
+  - `RecipeRunner` natively accepts recipe ID strings (e.g. `'clasica'`, `'concebolla'`) or hydrated `Recipe` objects.
+
+---
+
+### Event Store & Replay Engine System (`src/systems/EventStore.ts`, `src/systems/replayEngine.ts`, `src/systems/analytics.ts`)
+
+* **Purpose**: Headless, append-only audit trail and deterministic replay engine for Tortilla World.
+* **Event Store Singleton (`EventStore.ts`)**:
+  - Central interceptor integrated into `worldStore.ts`'s `dispatch` function.
+  - Automatically wraps every `WorldAction` in a immutable `BaseWorldEvent` metadata payload (`id`, `timestamp`, `sequenceNumber`, `version`, `actor`, `action`).
+  - Provides headless export/import (`exportJSON`, `importJSON`) and query methods (`getEvents`, `clear`).
+* **Deterministic Replay Engine (`replayEngine.ts`)**:
+  - Resets the world state and sequentially re-dispatches exported event streams onto `worldStore`.
+* **Analytics Utilities (`analytics.ts`)**:
+  - Pure headless functions for calculating recipe metrics (`getRecipeMetrics`), filtering audit trails (`getAuditTrail`), and exporting history to CSV (`exportToCSV`).
+
+---
+
+# Final Principle
+
+The rule of Tortilla World:
+
+```text
+Components show the world.
+
+Systems change the world.
+
+Containers define the rules.
+
+Actions describe intentions.
+
+The Store remembers the result.
+```
 `````
 
 ## File: src/components/Controls/ActionReplayer.tsx
@@ -21397,833 +22248,201 @@ export class RecipeRunner implements RecipeRunnerContext {
 }
 `````
 
-## File: docs/systems.md
-`````markdown
-# Systems
+## File: src/systems/mascotActions.test.ts
+`````typescript
+import { describe, it, expect, beforeEach } from 'vitest';
+import { worldStore } from '../store/worldStore';
+import { clearActionLog, getActionLog } from '../store/middleware/actionLog';
+import {
+  flipTortilla,
+  moveTortillaTo,
+  grabIngredient,
+  dropIngredient,
+  runTortillaPotatoScript,
+  runFollowRecipeScript,
+} from './mascotActions';
 
-## Overview
-
-Systems contain the behaviour of Tortilla World.
-
-Components display the world.
-Systems modify the world.
-
-A system receives actions, validates them, and updates the world state.
-
-The general flow is:
-
-```text
-Input
-  |
-  v
-Action
-  |
-  v
-System
-  |
-  v
-Validation
-  |
-  v
-World State Update
-  |
-  v
-UI Update
-```
-
----
-
-# System Architecture
-
-Tortilla World is based on independent systems.
-
-Current and planned systems:
-
-```text
-Systems
-
-├── Interaction System
-├── Movement System
-├── Container System
-├── Mascot System
-├── Animation System
-├── Cooking System
-└── AI System
-```
-
-Each system has a clear responsibility.
-
----
-
-# Interaction System
-
-## Responsibility
-
-The Interaction System converts external events into world actions.
-
-External events:
-
-* mouse clicks
-* drag and drop
-* AI requests
-* future keyboard/gamepad input
-
-The Interaction System does not modify the world directly.
-
----
-
-## Example
-
-User drags potato into pan.
-
-The Interaction System creates:
-
-```ts
-{
-  type:"MOVE_ENTITY",
-  entityId:"potato",
-  targetContainer:"pan"
+function seedWorld() {
+  worldStore.setState({
+    entities: {
+      potato: { id: 'potato', ingredientId: 'potato', name: 'Potato', type: 'ingredient' },
+      chef: { id: 'chef', name: 'Chef Tortilla 🍳', type: 'mascot', state: {} },
+    },
+    containers: {
+      despensa: {
+        id: 'despensa',
+        name: 'Despensa',
+        type: 'storage',
+        entityIds: ['potato'],
+        rules: { isImmutable: true },
+      },
+      burner1: {
+        id: 'burner1',
+        name: 'burner1',
+        type: 'burner',
+        entityIds: [],
+        rules: { maxCapacity: 5 },
+      },
+      board: {
+        id: 'board',
+        name: 'Board',
+        type: 'board',
+        entityIds: [],
+        rules: { maxCapacity: 3 },
+      },
+    },
+  });
 }
-```
 
-The action is passed to the Movement System.
-
----
-
-# Movement System
-
-## Responsibility
-
-The Movement System controls ownership changes.
-
-It handles:
-
-* moving entities
-* validating source ownership
-* validating destination rules
-* applying transfer behaviour
-
----
-
-## Move Flow
-
-```text
-Move Request
-
-      |
-      v
-
-Find Entity
-
-      |
-      v
-
-Find Current Container
-
-      |
-      v
-
-Find Target Container
-
-      |
-      v
-
-Validate Move
-
-      |
-      v
-
-Apply Transfer Rule
-
-      |
-      v
-
-Update Ownership
-
-```
-
----
-
-# Move Validation
-
-Before moving an entity, the system checks:
-
-## Entity existence
-
-Does the entity exist?
-
-Example:
-
-```text
-potato
-```
-
-must exist in the world.
-
----
-
-## Source ownership
-
-Does the source container own the entity?
-
-Example:
-
-Valid:
-
-```text
-Kitchen owns potato
-```
-
-Invalid:
-
-```text
-Pan owns potato
-```
-
-when moving from Kitchen.
-
----
-
-## Destination capability
-
-Can the target container accept this entity?
-
-Example:
-
-A pan may accept:
-
-```text
-ingredient
-```
-
-but reject:
-
-```text
-container
-```
-
----
-
-## Duplicate rules
-
-The container checks uniqueness.
-
-Example:
-
-Valid:
-
-```text
-Recipe
-
-potato
-egg
-```
-
-Invalid:
-
-```text
-Recipe
-
-potato
-potato
-```
-
----
-
-# Transfer Rules
-
-A move is not always the same operation.
-
-Containers define transfer behaviour.
-
----
-
-# Static Container To Dynamic Container
-
-Example:
-
-```text
-Kitchen
- |
- potato
-
-
-Recipe
-```
-
-Move potato:
-
-Result:
-
-```text
-Kitchen
- |
- potato
-
-
-Recipe
- |
- potato
-```
-
-The destination receives the ingredient.
-
-The source remains unchanged.
-
-This represents a world resource.
-
----
-
-# Dynamic Container To Dynamic Container
-
-Example:
-
-```text
-Recipe
- |
- potato
-
-
-Pan
-```
-
-Move potato:
-
-Result:
-
-```text
-Recipe
-
-
-Pan
- |
- potato
-```
-
-Ownership transfers.
-
----
-
-# Dynamic Container To Static Container
-
-Example:
-
-```text
-Recipe
- |
- potato
-
-
-Kitchen
-```
-
-Move potato back.
-
-Result:
-
-```text
-Recipe
-
-
-Kitchen
- |
- potato
-```
-
-The dynamic container loses ownership.
-
-The static container provides the original world resource.
-
----
-
-# Container System
-
-## Responsibility
-
-The Container System manages container rules.
-
-It answers questions:
-
-* Can this entity be added?
-* Can this entity be removed?
-* Are duplicates allowed?
-* Is the container full?
-* Does ordering matter?
-
----
-
-## Example API
-
-```ts
-canAccept(
-  container,
-  entity
-)
-```
-
-returns:
-
-```ts
-true
-```
-
-or:
-
-```ts
-false
-```
-
----
-
-# Action Queue
-
-## Responsibility
-
-All world changes should pass through an action queue.
-
-Example:
-
-```text
-AI
- |
-User
- |
-System
- |
-Action Queue
- |
-World Update
-```
-
----
-
-## Example Action
-
-```ts
-{
- type:"MOVE_ENTITY",
-
- entityId:"egg",
-
- source:"kitchen",
-
- target:"recipe"
-}
-```
-
----
-
-## Benefits
-
-Action queues provide:
-
-* debugging
-* replay
-* logging
-* AI control
-* animations
-* delayed actions
-
----
-
-# Action Replay System (`ActionPlayer` & `ActionReplayer`)
-
-## Responsibility
-
-The Action Replay System enables recording, storing, and sequentially replaying discrete `WorldAction` JSON logs in Tortilla World.
-
-It consists of:
-1. **Headless Replay Utility (`src/systems/actionPlayer.ts`)**:
-   - `ActionPlayer` class / `actionPlayer` singleton.
-   - `playLog(actions: WorldAction[], options?: PlaybackOptions)`: Resets world state via `RESET_WORLD` action, then dispatches each action step sequentially to `worldStore.getState().dispatch(action)` with configurable delays.
-   - Provides step progress callbacks (`onStep(current, total, action)`), completion callbacks (`onComplete()`), and early cancellation (`stop()`).
-
-2. **React Controls UI (`src/components/Controls/ActionReplayer.tsx`)**:
-   - Accepts uploaded `.json` files via `FileReader`.
-   - Validates JSON format to ensure an array of valid `WorldAction` objects.
-   - Displays live step progress (`Step X / Y`), progress bar, step delay selector, and a Stop button.
-
----
-
-# Animation System
-
-## Responsibility
-
-The Animation System reacts to world changes.
-
-It does not decide what happens.
-
-Example:
-
-Movement System:
-
-```text
-Potato moved to Pan
-```
-
-Animation System:
-
-```text
-Play potato movement animation
-```
-
----
-
-## Separation
-
-Bad:
-
-```text
-Drag component:
-move object
-animate object
-change state
-```
-
-Good:
-
-```text
-Drag component:
-create action
-
-
-Movement System:
-change state
-
-
-Animation System:
-animate change
-```
-
----
-
-# Cooking System
-
-## Responsibility
-
-Future system for transforming entities.
-
-Examples:
-
-```text
-Potato
-+
-Oil
-+
-Heat
-
-    |
-    v
-
-Fried Potato
-```
-
----
-
-The cooking system changes entity state.
-
-Example:
-
-Before:
-
-```ts
-{
- type:"ingredient",
- state:"raw"
-}
-```
-
-After:
-
-```ts
-{
- type:"ingredient",
- state:"cooked"
-}
-```
-
----
-
-# AI System
-
-## Responsibility
-
-The AI System creates actions.
-
-The AI does not directly manipulate Zustand state.
-
----
-
-Example:
-
-AI decides:
-
-```text
-Prepare tortilla
-```
-
-Creates:
-
-```ts
-[
- {
-  type:"MOVE_ENTITY",
-  entityId:"potato",
-  target:"pan"
- },
-
- {
-  type:"ADD_HEAT",
-  target:"pan"
- }
-]
-```
-
-The normal systems execute them.
-
----
-
-# System Communication
-
-Systems communicate through actions and world state.
-
-Example:
-
-```text
-Interaction System
-
-        |
-        v
-
-Move Action
-
-        |
-        v
-
-Movement System
-
-        |
-        v
-
-World Store
-
-        |
-        v
-
-Animation System
-
-```
-
----
-
-# Zustand Responsibility
-
-Zustand is the storage layer.
-
-It stores:
-
-* entities
-* containers
-* relationships
-* world state
-
-It should not contain UI logic.
-
----
-
-Example:
-
-Good:
-
-```ts
-moveEntity(
- entityId,
- from,
- to
-)
-```
-
-Bad:
-
-```ts
-onDropIngredient(
- mouseEvent
-)
-```
-
----
-
-# Testing Strategy
-
-Systems should be testable without React.
-
-Example:
-
-```ts
-moveEntity(
- "potato",
- "kitchen",
- "pan"
-)
-```
-
-Expected:
-
-```text
-Kitchen:
-empty
-
-Pan:
-potato
-```
-
----
-
-# Future Systems
-
-Possible additions:
-
-## Time System
-
-Controls:
-
-* cooking duration
-* day/night
-* events
-
----
-
-## Physics System
-
-Controls:
-
-* collisions
-* falling objects
-* movement
-
----
-
-## Economy System
-
-Controls:
-
-* ingredients cost
-* customers
-* money
-
----
-
-## Character System
-
-Controls:
-
-* NPCs
-* player actions
-* behaviours
-
----
-
-## Mascot System & Recipe System
-
-### Mascot System
-Controls:
-
-* `MASCOT_FLIP`: Flips Tortilla mascot in place.
-* `MASCOT_MOVE`: Moves gaze/focus of Tortilla to target container.
-* `MASCOT_GRAB`: Commands Tortilla to grab ingredient entity from a container.
-* `MASCOT_DROP`: Commands Tortilla to drop held ingredient into target container obeying rules.
-
-Dispatch helpers and automated action sequences (e.g. `runFollowRecipeScript`) are located in `src/systems/mascotActions.ts` for AI agent, console, or UI integration.
-
-React components (`Mascot.tsx`) translate pure target container state into physical Framer Motion spring translations across the DOM viewport without touching store logic.
-
----
-
-### Recipe System & RecipeRunner
-
-The Recipe System executes declarative, step-based recipe state machines via `RecipeRunner` (`src/systems/recipeRunner.ts` / `src/systems/recipeRunner/`).
-
-#### Architecture:
-* **Declarative Data**: Recipes (`RecipeStep[]`) define *what* needs to happen (e.g. `move`, `grab`, `drop`, `cut`, `cook`, `mix`, `wait`, `flip`, `speak`, `celebrate`) without referencing specific kitchen containers or locations.
-* **Modular Handler Architecture**: `RecipeRunner` delegates step execution to focused step handlers (`src/systems/recipeRunner/handlers/`):
-  - `moveHandlers.ts`: Relocation steps (`move`, `grab`, `drop`).
-  - `prepHandlers.ts`: Preparation steps (`cut`, `prepare`, `peel`, `wash`, `rinse`, `drain`).
-  - `cookHandlers.ts`: Thermal & flip steps (`cook`, `flip`).
-  - `mixHandlers.ts`: Combination steps (`mix`, `beat`, `combine`).
-  - `utilityHandlers.ts`: Narrative & completion steps (`serve`, `wait`, `instruction`, `speak`, `celebrate`).
-* **Workstation & Tool Resolution**: `RecipeRunner` dynamically queries the Workstation engine (`src/engine/workstations.ts`) to determine the required workstation (`pantry`, `washing_station`, `cutting_station`, `preparation_station`, `cooking_station`, `serving_station`) and tools (`knife`, `peeler`, `whisk`, `fork`, `spatula`, etc.) for each step.
-* **Generic Execution**: `RecipeRunner` iterates over recipe steps and dispatches appropriate world/mascot actions.
-* **Entity Identity Preservation**: Ingredient state mutations (such as preparation: `whole` ➔ `diced` or cooking: `raw` ➔ `fried`) modify the target entity's `state` via `PREPARE_INGREDIENT` or `COOK_INGREDIENT` without creating or destroying entities.
-
----
-
-### Action Recording & Replay System
-
-* **Action Log Integration**: World actions are captured in `recordSlice` when recording mode is active.
-* **Store Synchronization**: Loaded action sequences are loaded directly into `worldStore` state via `setRecordedActions`.
-* **Controls Reference Recorded Actions**: When recording mode or a loaded recorded session is active, player controls (`Play`, `Pause`, `Step Up`, `Step Down`, stepper dots) reference the sequence of actual `WorldAction` items instead of static recipe steps, stepping through or jumping across logged world state mutations directly.
-
----
-
-### Recipe Translator System (`src/systems/recipeTranslator.ts`)
-
-* **Purpose**: Converts human-recorded kitchen interactions into executable mascot-guided recipes where Tortilla moves focus, grabs, and places ingredients across containers.
-* **Mascot Action Expansion** (`translateHumanActionsToMascotActions`):
-  - Injects `MASCOT_MOVE` focus, `MASCOT_GRAB`, and `MASCOT_DROP` steps around raw human `MOVE_ENTITY` actions.
-  - Injects `MASCOT_MOVE` focus steps prior to `TOGGLE_BURNER`, `PREPARE_INGREDIENT`, `COOK_INGREDIENT`, and `ADD_ENTITY` actions.
-* **Declarative Recipe File Generation** (`translateHumanActionsToRecipe`):
-  - Extracts clean entity names and requirements.
-  - Generates a valid `Recipe` definition (with `id`, `name`, `requirements`, and `steps`) suitable for export as `.json` or execution via `RecipeRunner`.
-* **UI Mode Separation**:
-  - `📖 Play Catalog Recipe Mode`: Dedicated to catalog recipe execution (`RecipePlayer.tsx`).
-  - `🎥 Action Recorder & Translator Mode`: Dedicated to live action recording, log replaying, human-to-mascot recipe translation (`ActionRecorder.tsx`), tracking used ingredients (`usedIngredients`), and an interactive right-side ingredients catalog panel (`IngredientsSidebar.tsx`).
-
----
-
-### Recipe Loader & Validation System (`src/systems/recipeLoader.ts`, `src/systems/recipeValidator.ts`)
-
-* **Purpose**: Decouples recipe definitions from TypeScript code files into structured, validated JSON assets (`clasica.json`, `concebolla.json`).
-* **Recipe Validator (`recipeValidator.ts`)**:
-  - Validates raw JSON structures against `RecipeJSON` schema.
-  - Ensures required fields (`id`, `name`, `steps`, `requirements`/`ingredients`) exist and meet data type constraints.
-  - Verifies step action types and cross-references inputs and targets against declared recipe requirements.
-* **Recipe Loader (`recipeLoader.ts`)**:
-  - Ingests JSON recipe assets safely and hydrates them into runtime `Recipe` objects.
-  - Provides registry methods (`loadRecipe`, `loadAllRecipes`, `getAvailableRecipeIds`, `getRecipeCooklang`).
-* **RecipeRunner Integration**:
-  - `RecipeRunner` natively accepts recipe ID strings (e.g. `'clasica'`, `'concebolla'`) or hydrated `Recipe` objects.
-
----
-
-### Event Store & Replay Engine System (`src/systems/EventStore.ts`, `src/systems/replayEngine.ts`, `src/systems/analytics.ts`)
-
-* **Purpose**: Headless, append-only audit trail and deterministic replay engine for Tortilla World.
-* **Event Store Singleton (`EventStore.ts`)**:
-  - Central interceptor integrated into `worldStore.ts`'s `dispatch` function.
-  - Automatically wraps every `WorldAction` in a immutable `BaseWorldEvent` metadata payload (`id`, `timestamp`, `sequenceNumber`, `version`, `actor`, `action`).
-  - Provides headless export/import (`exportJSON`, `importJSON`) and query methods (`getEvents`, `clear`).
-* **Deterministic Replay Engine (`replayEngine.ts`)**:
-  - Resets the world state and sequentially re-dispatches exported event streams onto `worldStore`.
-* **Analytics Utilities (`analytics.ts`)**:
-  - Pure headless functions for calculating recipe metrics (`getRecipeMetrics`), filtering audit trails (`getAuditTrail`), and exporting history to CSV (`exportToCSV`).
-
----
-
-# Final Principle
-
-The rule of Tortilla World:
-
-```text
-Components show the world.
-
-Systems change the world.
-
-Containers define the rules.
-
-Actions describe intentions.
-
-The Store remembers the result.
-```
+describe('mascotActions system', () => {
+  beforeEach(() => {
+    seedWorld();
+    clearActionLog();
+  });
+
+  it('triggers flip action and logs in store action log', () => {
+    flipTortilla('chef');
+
+    const state = worldStore.getState();
+    expect(state.entities.chef.state?.state).toBe('flipping');
+    expect(state.entities.chef.state?.isFlipping).toBe(true);
+
+    const log = getActionLog();
+    expect(log.map((l) => l.action)).toContain('MASCOT_FLIP');
+  });
+
+  it('moves Tortilla gaze to a specified container', () => {
+    moveTortillaTo('burner1', 'chef');
+
+    const state = worldStore.getState();
+    expect(state.entities.chef.state?.gazingAt).toEqual({ type: 'entity', entityId: 'burner1' });
+
+    const log = getActionLog();
+    expect(log.map((l) => l.action)).toContain('MASCOT_MOVE');
+  });
+
+  it('allows Tortilla to grab an ingredient from a container', () => {
+    grabIngredient('potato', 'despensa', 'chef');
+
+    const state = worldStore.getState();
+    expect(state.entities.chef.state?.holdingEntityId).toBe('potato');
+    expect(state.entities.chef.state?.sourceContainerId).toBe('despensa');
+
+    const log = getActionLog();
+    expect(log.map((l) => l.action)).toContain('MASCOT_GRAB');
+  });
+
+  it('allows Tortilla to drop held ingredient into a target container obeying container rules', () => {
+    // First grab potato from immutable despensa
+    grabIngredient('potato', 'despensa', 'chef');
+
+    // Then drop intoburner1
+    dropIngredient('burner1', undefined, 'chef');
+
+    const state = worldStore.getState();
+    // Held item cleared
+    expect(state.entities.chef.state?.holdingEntityId).toBeUndefined();
+    //burner1 now has a potato copy (because source was immutable despensa)
+    expect(state.containers.burner1.entityIds.length).toBe(1);
+
+    const log = getActionLog();
+    const actions = log.map((l) => l.action);
+    expect(actions).toContain('MASCOT_GRAB');
+    expect(actions).toContain('MASCOT_DROP');
+  });
+
+  it('clears holdingEntityId when drop is possible and retains it when drop is blocked', () => {
+    // 1. Fill board to capacity (maxCapacity = 3)
+    worldStore.setState({
+      ...worldStore.getState(),
+      entities: {
+        ...worldStore.getState().entities,
+        i1: { id: 'i1', ingredientId: 'i1', name: 'I1', type: 'ingredient' },
+        i2: { id: 'i2', ingredientId: 'i2', name: 'I2', type: 'ingredient' },
+        i3: { id: 'i3', ingredientId: 'i3', name: 'I3', type: 'ingredient' },
+      },
+      containers: {
+        ...worldStore.getState().containers,
+        board: {
+          id: 'board',
+          name: 'Board',
+          type: 'board',
+          entityIds: ['i1', 'i2', 'i3'],
+          rules: { maxCapacity: 3 },
+        },
+      },
+    });
+
+    // 2. Grab potato from despensa
+    grabIngredient('potato', 'despensa', 'chef');
+    expect(worldStore.getState().entities.chef.state?.holdingEntityId).toBe('potato');
+
+    // 3. Attempt to drop into full board -> should be blocked and Tortilla continues grabbing/holding it
+    dropIngredient('board', undefined, 'chef');
+    expect(worldStore.getState().entities.chef.state?.holdingEntityId).toBe('potato');
+    expect(worldStore.getState().containers.board.entityIds).toEqual(['i1', 'i2', 'i3']);
+
+    // 4. Drop into non-fullburner1 -> allowed, Tortilla stops grabbing it (holdingEntityId cleared)
+    dropIngredient('burner1', undefined, 'chef');
+    expect(worldStore.getState().entities.chef.state?.holdingEntityId).toBeUndefined();
+    expect(worldStore.getState().containers.burner1.entityIds.length).toBe(1);
+  });
+
+  it('runs full async script sequence: move ➔ grab ➔ move ➔ drop ➔ flip ➔ return home', async () => {
+    await runTortillaPotatoScript('chef', 10);
+
+    const state = worldStore.getState();
+    expect(state.containers.board.entityIds.length).toBe(1);
+
+    const log = getActionLog().map((l) => l.action).filter((a) => a !== 'RESET_MASCOT_FLIP');
+    expect(log).toEqual([
+      'MASCOT_MOVE',
+      'MASCOT_GRAB',
+      'MASCOT_MOVE',
+      'MASCOT_DROP',
+      'MASCOT_FLIP',
+      'MASCOT_CLEAR_GAZE', // "return home" now dispatches MASCOT_CLEAR_GAZE, not MASCOT_MOVE('')
+    ]);
+  });
+
+  it('runs follow recipe script: processes all recipe ingredients through workstations', async () => {
+    // Seed default entities for all recipe ingredients
+    worldStore.setState({
+      ...worldStore.getState(),
+      entities: {
+        ...worldStore.getState().entities,
+        potato: { id: 'potato', ingredientId: 'potato', name: 'Potato', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+        egg: { id: 'egg', ingredientId: 'egg', name: 'Egg', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+        oil: { id: 'oil', ingredientId: 'oil', name: 'Oil', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+        onion: { id: 'onion', ingredientId: 'onion', name: 'Onion', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+        salt: { id: 'salt', ingredientId: 'salt', name: 'Salt', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+        pepper: { id: 'pepper', ingredientId: 'pepper', name: 'Pepper', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
+      },
+      containers: {
+        ...worldStore.getState().containers,
+        board: { id: 'board', name: 'Board', type: 'board', entityIds: [], rules: { maxCapacity: 10 } },
+        sink: { id: 'sink', name: 'Sink', type: 'sink', entityIds: [], rules: { maxCapacity: 10 } },
+        bowl: { id: 'bowl', name: 'Bowl', type: 'bowl', entityIds: [], rules: { maxCapacity: 10 } },
+        burner1: { id: 'burner1', name: 'burner1', type: 'burner', entityIds: [], rules: { maxCapacity: 10 } },
+        plate: { id: 'plate', name: 'Plate', type: 'plate', entityIds: [], rules: { maxCapacity: 10 } },
+      },
+    });
+
+    await runFollowRecipeScript('concebolla', 'chef', 'board', 5);
+
+    const state = worldStore.getState();
+    // New concebolla routes ingredients through workstations and serves them on the plate
+    expect(state.containers.plate.entityIds.length).toBeGreaterThanOrEqual(1);
+
+    // All 6 ingredient catalog IDs should be accounted for in the world state (either directly or consumed into a mixture)
+    const ingredientIds = ['potato', 'onion', 'egg', 'oil', 'salt', 'pepper'];
+    const allWorldEntities = Object.values(state.entities);
+    const allIngredientCatalogIds = allWorldEntities.map((e) => e?.ingredientId || e?.id);
+    ingredientIds.forEach((id) => {
+      expect(allIngredientCatalogIds.some((cid) => cid === id)).toBe(true);
+    });
+  });
+});
 `````
 
 ## File: src/components/Controls/ActionRecorder.tsx
@@ -22948,203 +23167,6 @@ export async function handleCelebrateStep(
   await ctx.wait(900);
   clearTortillaGaze(step.mascotId || ctx.mascotId);
 }
-`````
-
-## File: src/systems/mascotActions.test.ts
-`````typescript
-import { describe, it, expect, beforeEach } from 'vitest';
-import { worldStore } from '../store/worldStore';
-import { clearActionLog, getActionLog } from '../store/middleware/actionLog';
-import {
-  flipTortilla,
-  moveTortillaTo,
-  grabIngredient,
-  dropIngredient,
-  runTortillaPotatoScript,
-  runFollowRecipeScript,
-} from './mascotActions';
-
-function seedWorld() {
-  worldStore.setState({
-    entities: {
-      potato: { id: 'potato', ingredientId: 'potato', name: 'Potato', type: 'ingredient' },
-      chef: { id: 'chef', name: 'Chef Tortilla 🍳', type: 'mascot', state: {} },
-    },
-    containers: {
-      despensa: {
-        id: 'despensa',
-        name: 'Despensa',
-        type: 'storage',
-        entityIds: ['potato'],
-        rules: { isImmutable: true },
-      },
-      burner1: {
-        id: 'burner1',
-        name: 'burner1',
-        type: 'burner',
-        entityIds: [],
-        rules: { maxCapacity: 5 },
-      },
-      board: {
-        id: 'board',
-        name: 'Board',
-        type: 'board',
-        entityIds: [],
-        rules: { maxCapacity: 3 },
-      },
-    },
-  });
-}
-
-describe('mascotActions system', () => {
-  beforeEach(() => {
-    seedWorld();
-    clearActionLog();
-  });
-
-  it('triggers flip action and logs in store action log', () => {
-    flipTortilla('chef');
-
-    const state = worldStore.getState();
-    expect(state.entities.chef.state?.state).toBe('flipping');
-    expect(state.entities.chef.state?.isFlipping).toBe(true);
-
-    const log = getActionLog();
-    expect(log.map((l) => l.action)).toContain('MASCOT_FLIP');
-  });
-
-  it('moves Tortilla gaze to a specified container', () => {
-    moveTortillaTo('burner1', 'chef');
-
-    const state = worldStore.getState();
-    expect(state.entities.chef.state?.gazingAt).toEqual({ type: 'entity', entityId: 'burner1' });
-
-    const log = getActionLog();
-    expect(log.map((l) => l.action)).toContain('MASCOT_MOVE');
-  });
-
-  it('allows Tortilla to grab an ingredient from a container', () => {
-    grabIngredient('potato', 'despensa', 'chef');
-
-    const state = worldStore.getState();
-    expect(state.entities.chef.state?.holdingEntityId).toBe('potato');
-    expect(state.entities.chef.state?.sourceContainerId).toBe('despensa');
-
-    const log = getActionLog();
-    expect(log.map((l) => l.action)).toContain('MASCOT_GRAB');
-  });
-
-  it('allows Tortilla to drop held ingredient into a target container obeying container rules', () => {
-    // First grab potato from immutable despensa
-    grabIngredient('potato', 'despensa', 'chef');
-
-    // Then drop intoburner1
-    dropIngredient('burner1', undefined, 'chef');
-
-    const state = worldStore.getState();
-    // Held item cleared
-    expect(state.entities.chef.state?.holdingEntityId).toBeUndefined();
-    //burner1 now has a potato copy (because source was immutable despensa)
-    expect(state.containers.burner1.entityIds.length).toBe(1);
-
-    const log = getActionLog();
-    const actions = log.map((l) => l.action);
-    expect(actions).toContain('MASCOT_GRAB');
-    expect(actions).toContain('MASCOT_DROP');
-  });
-
-  it('clears holdingEntityId when drop is possible and retains it when drop is blocked', () => {
-    // 1. Fill board to capacity (maxCapacity = 3)
-    worldStore.setState({
-      ...worldStore.getState(),
-      entities: {
-        ...worldStore.getState().entities,
-        i1: { id: 'i1', ingredientId: 'i1', name: 'I1', type: 'ingredient' },
-        i2: { id: 'i2', ingredientId: 'i2', name: 'I2', type: 'ingredient' },
-        i3: { id: 'i3', ingredientId: 'i3', name: 'I3', type: 'ingredient' },
-      },
-      containers: {
-        ...worldStore.getState().containers,
-        board: {
-          id: 'board',
-          name: 'Board',
-          type: 'board',
-          entityIds: ['i1', 'i2', 'i3'],
-          rules: { maxCapacity: 3 },
-        },
-      },
-    });
-
-    // 2. Grab potato from despensa
-    grabIngredient('potato', 'despensa', 'chef');
-    expect(worldStore.getState().entities.chef.state?.holdingEntityId).toBe('potato');
-
-    // 3. Attempt to drop into full board -> should be blocked and Tortilla continues grabbing/holding it
-    dropIngredient('board', undefined, 'chef');
-    expect(worldStore.getState().entities.chef.state?.holdingEntityId).toBe('potato');
-    expect(worldStore.getState().containers.board.entityIds).toEqual(['i1', 'i2', 'i3']);
-
-    // 4. Drop into non-fullburner1 -> allowed, Tortilla stops grabbing it (holdingEntityId cleared)
-    dropIngredient('burner1', undefined, 'chef');
-    expect(worldStore.getState().entities.chef.state?.holdingEntityId).toBeUndefined();
-    expect(worldStore.getState().containers.burner1.entityIds.length).toBe(1);
-  });
-
-  it('runs full async script sequence: move ➔ grab ➔ move ➔ drop ➔ flip ➔ return home', async () => {
-    await runTortillaPotatoScript('chef', 10);
-
-    const state = worldStore.getState();
-    expect(state.containers.board.entityIds.length).toBe(1);
-
-    const log = getActionLog().map((l) => l.action).filter((a) => a !== 'RESET_MASCOT_FLIP');
-    expect(log).toEqual([
-      'MASCOT_MOVE',
-      'MASCOT_GRAB',
-      'MASCOT_MOVE',
-      'MASCOT_DROP',
-      'MASCOT_FLIP',
-      'MASCOT_CLEAR_GAZE', // "return home" now dispatches MASCOT_CLEAR_GAZE, not MASCOT_MOVE('')
-    ]);
-  });
-
-  it('runs follow recipe script: processes all recipe ingredients through workstations', async () => {
-    // Seed default entities for all recipe ingredients
-    worldStore.setState({
-      ...worldStore.getState(),
-      entities: {
-        ...worldStore.getState().entities,
-        potato: { id: 'potato', ingredientId: 'potato', name: 'Potato', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-        egg: { id: 'egg', ingredientId: 'egg', name: 'Egg', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-        oil: { id: 'oil', ingredientId: 'oil', name: 'Oil', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-        onion: { id: 'onion', ingredientId: 'onion', name: 'Onion', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-        salt: { id: 'salt', ingredientId: 'salt', name: 'Salt', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-        pepper: { id: 'pepper', ingredientId: 'pepper', name: 'Pepper', type: 'ingredient', state: { preparation: 'whole', cooking: 'raw' } },
-      },
-      containers: {
-        ...worldStore.getState().containers,
-        board: { id: 'board', name: 'Board', type: 'board', entityIds: [], rules: { maxCapacity: 10 } },
-        sink: { id: 'sink', name: 'Sink', type: 'sink', entityIds: [], rules: { maxCapacity: 10 } },
-        bowl: { id: 'bowl', name: 'Bowl', type: 'bowl', entityIds: [], rules: { maxCapacity: 10 } },
-        burner1: { id: 'burner1', name: 'burner1', type: 'burner', entityIds: [], rules: { maxCapacity: 10 } },
-        plate: { id: 'plate', name: 'Plate', type: 'plate', entityIds: [], rules: { maxCapacity: 10 } },
-      },
-    });
-
-    await runFollowRecipeScript('concebolla', 'chef', 'board', 5);
-
-    const state = worldStore.getState();
-    // New concebolla routes ingredients through workstations and serves them on the plate
-    expect(state.containers.plate.entityIds.length).toBeGreaterThanOrEqual(1);
-
-    // All 6 ingredient catalog IDs should be accounted for in the world state (either directly or consumed into a mixture)
-    const ingredientIds = ['potato', 'onion', 'egg', 'oil', 'salt', 'pepper'];
-    const allWorldEntities = Object.values(state.entities);
-    const allIngredientCatalogIds = allWorldEntities.map((e) => e?.ingredientId || e?.id);
-    ingredientIds.forEach((id) => {
-      expect(allIngredientCatalogIds.some((cid) => cid === id)).toBe(true);
-    });
-  });
-});
 `````
 
 ## File: src/components/Scene/RecipePlayer.scss
@@ -24968,7 +24990,7 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
   }, [currentStepIndex, jumpToStep]);
 
   // Toggle Play / Pause
-  const handleTogglePlay = () => {
+  const handleTogglePlay = useCallback(() => {
     if (isPlaying) {
       setIsPlaying(false);
     } else {
@@ -24978,7 +25000,52 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
       }
       setIsPlaying(true);
     }
-  };
+  }, [isPlaying, currentStepIndex, totalSteps, handleReset]);
+
+  // Keyboard shortcut listener: Left Arrow (step back), Right Arrow (step forward), Space (play/pause)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if user is focused in an input, textarea, select, or editable element
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.tagName === 'SELECT' ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        handleStepDown();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        handleStepUp();
+      } else if (e.key === ' ' || e.code === 'Space') {
+        e.preventDefault();
+        handleTogglePlay();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleStepDown, handleStepUp, handleTogglePlay]);
+
+  // Listen for mascot flip (double click/tap on mascot) to step up in recipe player
+  useEffect(() => {
+    const handleMascotFlip = () => {
+      handleStepUp();
+    };
+
+    window.addEventListener('mascot-flip', handleMascotFlip);
+    return () => {
+      window.removeEventListener('mascot-flip', handleMascotFlip);
+    };
+  }, [handleStepUp]);
 
   // Decrease speed (Slow button)
   const handleSlow = () => {
@@ -25697,6 +25764,7 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
 
   const handleDoubleClick = () => {
     dispatch({ type: 'MASCOT_FLIP', payload: { mascotId } });
+    window.dispatchEvent(new CustomEvent('mascot-flip', { detail: { mascotId } }));
   };
 
   const isFloating = offset.x !== 0 || offset.y !== 0;
