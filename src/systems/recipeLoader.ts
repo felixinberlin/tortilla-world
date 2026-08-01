@@ -16,11 +16,13 @@ import { validateRecipeJSON } from './recipeValidator';
 
 import clasicaJSON from '../data/catalog/recipes/clasica.json';
 import concebollaJSON from '../data/catalog/recipes/concebolla.json';
+import francesJson  from '../data/catalog/recipes/francesa.json';
 
 const recipeRegistry: Record<string, unknown> = {
   clasica: clasicaJSON,
   sincebolla: clasicaJSON,
   concebolla: concebollaJSON,
+  francesa: francesJson
 };
 
 const cooklangRegistry: Record<string, string> = {
@@ -70,7 +72,7 @@ export function loadRecipe(idOrData: string | unknown): Recipe {
  * Returns a list of all available recipe IDs in the registry.
  */
 export function getAvailableRecipeIds(): string[] {
-  return ['concebolla', 'clasica'];
+  return ['concebolla', 'clasica', 'francesa'];
 }
 
 /**
@@ -80,6 +82,7 @@ export function loadAllRecipes(): Recipe[] {
   return [
     loadRecipe('concebolla'),
     loadRecipe('clasica'),
+    loadRecipe('francesa'),
   ];
 }
 

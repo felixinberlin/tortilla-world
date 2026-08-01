@@ -1,0 +1,80 @@
+{
+  "id": "francesa",
+  "name": "francesa",
+  "description": "Traditional francesa Tortilla.",
+  "difficulty": "easy",
+  "tags": ["traditional", "spanish", "vegetarian", "no-onion"],
+  "hints": [
+    "Que no se queme.",
+    "Con una espátula blanda, asegúrate de que la tortilla no se pega a la sartén."
+  ],
+  "requirements": {
+    "eggs": {
+      "entityId": "egg",
+      "amount": 6,
+      "unit": "pcs"
+    },
+    "oil": {
+      "entityId": "oil",
+      "amount": 100,
+      "unit": "ml"
+    },
+    "salt": {
+      "entityId": "salt",
+      "amount": 1,
+      "unit": "tsp"
+    }
+  },
+  "cooklang": "Peel the @potatoes{4%pcs}.\nSlice the @potatoes.\nHeat the @oil{100%ml}.\nFry the @potatoes until tender.\nBeat the @eggs{6%pcs}.\nAdd @salt{1%tsp}.\nAdd @black_pepper{1%pinch}.\nMix the potatoes with the beaten eggs, salt and black_pepper.\nPour the mixture into the pan.\nCook for 5 minutes.\nWith a soft spatula, make sure the tortilla does not stick to the pan.\nFlip the tortilla.\nCook for another 5 minutes.\nServe the tortilla.\nCelebrate.",
+  "steps": [
+    {
+      "action": "cook",
+      "target": "oil",
+      "method": "heat"
+    },
+    {
+      "action": "prepare",
+      "target": "eggs",
+      "preparation": "beaten"
+    },
+    {
+      "action": "mix",
+      "inputs": [
+        "eggs",
+        "salt"
+      ],
+      "output": "mixture"
+    },
+    {
+      "action": "cook",
+      "target": "mixture",
+      "method": "fry",
+      "duration": 5,
+      "unit": "min"
+    },
+    {
+      "action": "instruction",
+      "text": "Con una espátula blanda, asegúrate de que la tortilla no se pega a la sartén."
+    },
+    {
+      "action": "flip",
+      "target": "mixture",
+      "instruction": "Dale la vuelta a la tortilla."
+    },
+    {
+      "action": "cook",
+      "target": "mixture",
+      "method": "fry",
+      "duration": 5,
+      "unit": "min",
+      "instruction": "Deja cocinar por otros 5 min."
+    },
+    {
+      "action": "serve",
+      "target": "mixture"
+    },
+    {
+      "action": "celebrate"
+    }
+  ]
+}
