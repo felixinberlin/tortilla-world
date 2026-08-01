@@ -586,5 +586,42 @@ describe('worldStore container rule enforcement', () => {
       });
       expect(worldStore.getState().containers.trash.entityIds).toEqual(['lemon_raw', 'lemon_peeled']);
     });
+
+    it('moves an ingredient sequentially between workstations using MOVE_ENTITY', () => {
+      worldStore.setState({
+        entities: {
+          potato_1: { id: 'potato_1', ingredientId: 'potato', name: '🥔 Potato', type: 'ingredient', state: {} },
+        },
+        containers: {
+          board: { id: 'board', name: 'Board', type: 'board', entityIds: ['potato_1'] },
+          bowl: { id: 'bowl', name: 'Bowl', type: 'bowl', entityIds: [] },
+          burner1: { id: 'burner1', name: 'Burner 1', type: 'burner', entityIds: [] },
+        },
+      });
+
+      // Move forward from board to bowl
+      worldStore.getState().dispatch({
+        type: 'MOVE_ENTITY',
+        payload: { entityId: 'potato_1', targetContainerId: 'bowl', sourceContainerId: 'board' },
+      });
+      expect(worldStore.getState().containers.board.entityIds).toEqual([]);
+      expect(worldStore.getState().containers.bowl.entityIds).toEqual(['potato_1']);
+
+      // Move forward from bowl to burner1
+      worldStore.getState().dispatch({
+        type: 'MOVE_ENTITY',
+        payload: { entityId: 'potato_1', targetContainerId: 'burner1', sourceContainerId: 'bowl' },
+      });
+      expect(worldStore.getState().containers.bowl.entityIds).toEqual([]);
+      expect(worldStore.getState().containers.burner1.entityIds).toEqual(['potato_1']);
+
+      // Move backward from burner1 to bowl
+      worldStore.getState().dispatch({
+        type: 'MOVE_ENTITY',
+        payload: { entityId: 'potato_1', targetContainerId: 'bowl', sourceContainerId: 'burner1' },
+      });
+      expect(worldStore.getState().containers.burner1.entityIds).toEqual([]);
+      expect(worldStore.getState().containers.bowl.entityIds).toEqual(['potato_1']);
+    });
   });
 });

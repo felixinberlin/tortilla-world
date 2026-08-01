@@ -49,8 +49,15 @@ Containers enforce ingredient uniqueness to prevent duplicate identical raw item
 - Clicking **Empty Trash** summons the Mascot to ask *"Are you sure you want to empty the trash?"*.
 - Confirming clears the trash bin and permanently removes the discarded items from the world.
 
-### Tools (Workstation Mechanics)
-Workstations represent tools in action! In the current version, workstations process ingredients automatically upon placement (for example, the cutting board automatically chops vegetables and the bowl automatically mixes ingredients). Manual tool manipulation (like grabbing a separate knife or whisk) is coming in a future update.
+### Workstation Navigation Buttons (◀ ▶)
+Each ingredient inside a workstation has `◀` (previous) and `▶` (next) navigation buttons:
+- Tapping `◀` instantly moves the ingredient to the preceding workstation (e.g. from `Bowl` back to `Cutting Board`).
+- Tapping `▶` moves the ingredient to the next workstation (e.g. from `Cutting Board` forward to `Bowl`).
+- This makes kitchen workflow fast and accessible on both desktop and touch/mobile screens without requiring precision dragging!
+
+### Mobile Drag & Drop & Controls 📱
+- Ingredients support full touch drag-and-drop on mobile devices with activation distance and touch delay constraints.
+- You can collapse or expand the top controls panel at any time using the **Show/Hide Controls** button to maximize your workspace on small screens.
 
 ### The Action Player & Recorder
 On the left side of your screen, you might notice controls for **Play Catalog Recipe** or the **Action Recorder**.

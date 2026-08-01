@@ -20,11 +20,34 @@ import { useTranslation } from '../../i18n/useTranslation';
 import { worldStore } from '../../store/worldStore';
 import { getEntityFocusClass } from '../../systems/focus';
 
+const STANDARD_WORKSTATION_ORDER = ['sink', 'board', 'bowl', 'burner', 'burner1', 'burner2', 'plate', 'trash'];
+
 /**
  * Default Entity Renderer used when no custom renderer is registered for an entity type.
  */
-export const DefaultEntityRenderer: React.FC<EntityRendererProps> = ({ entity, containerId }) => {
+export const DefaultEntityRenderer: React.FC<EntityRendererProps> = ({ entity, containerId, readOnly }) => {
   const { t } = useTranslation();
+  const containers = useStore(worldStore, (state) => state.containers);
+
+  const workstationList = React.useMemo(() => {
+    const keys = Object.keys(containers).filter((id) => id !== 'despensa');
+    return keys.sort((a, b) => {
+      const idxA = STANDARD_WORKSTATION_ORDER.indexOf(a);
+      const idxB = STANDARD_WORKSTATION_ORDER.indexOf(b);
+      if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+      if (idxA !== -1) return -1;
+      if (idxB !== -1) return 1;
+      return 0;
+    });
+  }, [containers]);
+
+  const currentIndex = containerId ? workstationList.indexOf(containerId) : -1;
+  const prevContainerId = currentIndex > 0 ? workstationList[currentIndex - 1] : null;
+  const nextContainerId =
+    currentIndex >= 0 && currentIndex < workstationList.length - 1
+      ? workstationList[currentIndex + 1]
+      : null;
+
   const ingKey = entity.ingredientId || entity.id;
   const toolKey = entity.id;
 
@@ -47,7 +70,61 @@ export const DefaultEntityRenderer: React.FC<EntityRendererProps> = ({ entity, c
       </span>
       <span className="entity-view__name">{displayName}</span>
       <EntityStateBadge entity={entity} containerId={containerId} />
-      {containerId && containerId !== 'despensa' && containerId !== 'trash' && (
+      {containerId && containerId !== 'despensa' && !readOnly && (
+        <div className="entity-nav-buttons">
+          <button
+            type="button"
+            className="entity-nav-btn nav-prev"
+            title={prevContainerId ? `Move to ${prevContainerId}` : undefined}
+            disabled={!prevContainerId}
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              if (prevContainerId) {
+                worldStore.getState().dispatch({
+                  type: 'MOVE_ENTITY',
+                  payload: {
+                    entityId: entity.id,
+                    targetContainerId: prevContainerId,
+                    sourceContainerId: containerId,
+                  },
+                });
+              }
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+          >
+            ◀
+          </button>
+          <button
+            type="button"
+            className="entity-nav-btn nav-next"
+            title={nextContainerId ? `Move to ${nextContainerId}` : undefined}
+            disabled={!nextContainerId}
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              if (nextContainerId) {
+                worldStore.getState().dispatch({
+                  type: 'MOVE_ENTITY',
+                  payload: {
+                    entityId: entity.id,
+                    targetContainerId: nextContainerId,
+                    sourceContainerId: containerId,
+                  },
+                });
+              }
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+          >
+            ▶
+          </button>
+        </div>
+      )}
+      {containerId && containerId !== 'despensa' && containerId !== 'trash' && !readOnly && (
         <button
           type="button"
           className="entity-delete-btn"

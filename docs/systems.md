@@ -62,8 +62,9 @@ The Interaction System converts external events into world actions.
 
 External events:
 
-* mouse clicks
-* drag and drop
+* mouse drag and drop
+* touch drag and drop (configured via `TouchSensor` with delay/tolerance & `touch-action: none`)
+* workstation navigation buttons (`◀` / `▶` step movement)
 * AI requests
 * future keyboard/gamepad input
 

@@ -305,6 +305,7 @@
   gap: 0.5rem;
   padding: 8px 12px;
   user-select: none;
+  touch-action: none;
   transition: all 0.2s ease;
 
   &:hover {
@@ -324,6 +325,39 @@
     &:hover {
       border-color: $warm-border;
     }
+  }
+}
+
+.entity-nav-buttons {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: auto;
+}
+
+.entity-nav-btn {
+  background: color.mix($warm-beige, #ffffff, 60%);
+  color: $dark-brown;
+  border: 1px solid $warm-border;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  line-height: 1;
+  transition: all 0.15s ease;
+  user-select: none;
+  touch-action: manipulation;
+
+  &:hover:not(:disabled) {
+    background: $tortilla-yellow;
+    color: #ffffff;
+    border-color: color.adjust($tortilla-yellow, $lightness: -10%);
+  }
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
   }
 }
 

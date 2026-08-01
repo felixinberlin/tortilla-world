@@ -822,6 +822,18 @@ All 3 formats are previewable in UI tabs and downloadable as formatted `.json` f
 
 ---
 
+# Decision: Workstation Navigation Controls (◀ ▶) & Mobile Touch Drag-and-Drop Fix
+
+## Context
+1. **Mobile Drag-and-Drop Issue**: On touch/mobile screens, dragging ingredients failed because default `PointerSensor` captured touch gestures without distance/delay constraints or `touch-action: none` rules, causing browser touch scrolling to cancel drag events (`pointercancel`).
+2. **Workstation Step Navigation Request**: Users requested quick `◀` (previous) and `▶` (next) navigation buttons on each ingredient inside a workstation to shift items sequentially along the kitchen workflow.
+
+## Decision
+1. **Multi-Sensor dnd-kit Configuration**: Configured `TouchSensor` (delay: 100ms, tolerance: 5px) alongside `PointerSensor` (distance: 5px) and `MouseSensor` (distance: 5px) in `useSceneDragAndDrop.ts`. Added `touch-action: none` to `.entity-view` elements to prevent mobile touch-scroll conflicts.
+2. **Workstation Navigation Controls (`entity-nav-buttons`)**: Added `◀` and `▶` buttons to `DefaultEntityRenderer` for any ingredient residing inside a workstation container. Clicking `◀` dispatches `MOVE_ENTITY` to the preceding workstation, while `▶` shifts it to the next workstation in sequence. Buttons are styled cleanly with `touch-action: manipulation` for instant mobile response.
+
+---
+
 # Final Principle
 
 The rule of Tortilla World:

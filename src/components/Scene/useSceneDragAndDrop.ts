@@ -12,15 +12,30 @@
  * - Decide game rules or directly mutate state.
  */
 
-import { useSensors, useSensor, PointerSensor, KeyboardSensor } from '@dnd-kit/core';
+import { useSensors, useSensor, PointerSensor, TouchSensor, MouseSensor, KeyboardSensor } from '@dnd-kit/core';
 import type { DragStartEvent, DragOverEvent, DragEndEvent } from '@dnd-kit/core';
 import { worldStore } from '../../store/worldStore';
 import { updateMascotGaze } from '../../systems/gaze';
 
 export function useSceneDragAndDrop() {
-  // 1. Initialize dnd-kit sensors for mouse/touch and keyboard inputs
+  // 1. Initialize dnd-kit sensors for mouse, touch, pointer, and keyboard inputs
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 100,
+        tolerance: 5,
+      },
+    }),
+    useSensor(MouseSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
     useSensor(KeyboardSensor)
   );
 
