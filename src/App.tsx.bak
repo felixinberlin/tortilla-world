@@ -20,7 +20,6 @@ import { ExternalLink } from 'lucide-react';
 import { Scene } from './components/Scene/Scene';
 import { Mascot } from './components/Mascot/Mascot';
 import { PlayerGuideModal } from './components/Controls/PlayerGuideModal';
-import { LanguageSwitcher } from './components/Controls/LanguageSwitcher';
 import { useTranslation } from './i18n/useTranslation';
 
 function App() {
@@ -35,13 +34,12 @@ function App() {
       transition={{ duration: 0.4, ease: 'easeOut' }}
     >
       <header className="app-header">
-        <div className="app-header-content" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', flexWrap: 'wrap', gap: '8px' }}>
+        <div className="app-header-content" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
           <div>
             <h1>{t('app.title')}</h1>
             <p>{t('app.subtitle')}</p>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-            <LanguageSwitcher compact />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <a
               href="https://tortilladepatatas.org"
               target="_blank"
@@ -52,33 +50,33 @@ function App() {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
-                padding: '5px 10px',
+                padding: '6px 12px',
                 borderRadius: '8px',
                 border: '1px solid #cbd5e1',
                 backgroundColor: '#ffffff',
                 color: '#0f172a',
                 fontWeight: 600,
-                fontSize: '0.8rem',
+                fontSize: '0.85rem',
                 textDecoration: 'none',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
                 whiteSpace: 'nowrap',
               }}
             >
               <span>{t('app.tortillaInfo')}</span>
-              <ExternalLink size={13} />
+              <ExternalLink size={14} />
             </a>
             <button
               type="button"
               className="guide-trigger-btn"
               onClick={() => setShowGuide(true)}
               style={{
-                padding: '5px 10px',
+                padding: '6px 12px',
                 borderRadius: '8px',
                 border: '1px solid #cbd5e1',
                 backgroundColor: '#ffffff',
                 color: '#0f172a',
                 fontWeight: 600,
-                fontSize: '0.8rem',
+                fontSize: '0.85rem',
                 cursor: 'pointer',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
                 whiteSpace: 'nowrap',

@@ -13,7 +13,7 @@ import type { RecipeRunnerContext } from '../types';
 
 type PrepStep = Extract<
   RecipeStep,
-  { action: 'cut' | 'prepare' | 'peel' | 'wash' | 'rinse' | 'drain' }
+  { action: 'cut' | 'prepare' | 'peel' | 'wash' | 'rinse' | 'drain' | 'clean' }
 >;
 
 export async function handlePrepStep(
@@ -30,16 +30,6 @@ export async function handlePrepStep(
 
   ctx.validateEntity(entityId, step.action);
 
-  const targetContainerId = resolveContainerId(
-    step.containerId || workstationDefaultContainerId || ctx.defaultTargetId
-  );
-
-  // Ensure bound entity is in workspace
-  entityId = await ctx.ensureEntityInWorkspace(entityId, targetContainerId);
-
-  moveTortillaTo(targetContainerId, ctx.mascotId);
-  await ctx.wait();
-
   const prepStyle = (() => {
     if ('preparation' in step && step.preparation) return step.preparation;
     if ('style' in step && step.style) return step.style;
@@ -47,6 +37,21 @@ export async function handlePrepStep(
     if (step.action === 'wash') return 'washed';
     return 'prepared';
   })();
+
+  const defaultContainerForPrep =
+    prepStyle === 'beaten' || prepStyle === 'mixed'
+      ? 'bowl'
+      : ctx.defaultTargetId;
+
+  const targetContainerId = resolveContainerId(
+    step.containerId || workstationDefaultContainerId || defaultContainerForPrep
+  );
+
+  // Ensure bound entity is in workspace
+  entityId = await ctx.ensureEntityInWorkspace(entityId, targetContainerId);
+
+  moveTortillaTo(targetContainerId, ctx.mascotId);
+  await ctx.wait();
 
   worldStore.getState().dispatch({
     type: 'PREPARE_INGREDIENT',

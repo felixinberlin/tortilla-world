@@ -5,6 +5,7 @@ import { catalogTools as toolsCatalog } from '../../data/catalog/tools';
 import { getRecipeRequirementsArray } from '../../types/Recipe';
 import type { Recipe } from '../../types/Recipe';
 import { useTranslation } from '../../i18n/useTranslation';
+import { worldStore } from '../../store/worldStore';
 import './CookbookView.scss';
 
 export const CookbookView: React.FC = () => {
@@ -138,7 +139,12 @@ export const CookbookView: React.FC = () => {
               key={r.id}
               type="button"
               className={`cookbook-tab ${r.id === selectedRecipeId ? 'active' : ''}`}
-              onClick={() => setSelectedRecipeId(r.id)}
+              onClick={() => {
+                setSelectedRecipeId(r.id);
+                worldStore.getState().setActiveRecipeId(r.id);
+                worldStore.getState().setActiveRecipeName(r.name);
+                worldStore.getState().resetWorld();
+              }}
             >
               {r.id === 'concebolla' ? '🧅' : '🥔'} {displayName}
             </button>

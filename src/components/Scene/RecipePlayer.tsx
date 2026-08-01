@@ -356,6 +356,7 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [speed, setSpeed] = useState<number>(1); // 0.5, 1, 2, 3
+  const [isIngredientsCollapsed, setIsIngredientsCollapsed] = useState<boolean>(false);
 
   // WorldStore recording state
   const isRecording = useStore(worldStore, (state) => state.isRecording);
@@ -364,6 +365,48 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
   const recordedFilename = useStore(worldStore, (state) => state.recordedFilename);
   const startRecording = useStore(worldStore, (state) => state.startRecording);
   const stopRecording = useStore(worldStore, (state) => state.stopRecording);
+  const chefMascot = useStore(worldStore, (state) => state.entities['chef']);
+
+  const prevHoldingRef = useRef<string | undefined>(undefined);
+
+  // Listen for open/close custom events from drag-and-drop or actions
+  useEffect(() => {
+    const handleOpen = () => setIsIngredientsCollapsed(false);
+    const handleClose = () => setIsIngredientsCollapsed(true);
+
+    window.addEventListener('open-ingredients-list', handleOpen);
+    window.addEventListener('close-ingredients-list', handleClose);
+
+    return () => {
+      window.removeEventListener('open-ingredients-list', handleOpen);
+      window.removeEventListener('close-ingredients-list', handleClose);
+    };
+  }, []);
+
+  // Mascot state listener: auto-open when ingredient is gonna be used, auto-close when placed
+  useEffect(() => {
+    const currentHolding = chefMascot?.state?.holdingEntityId as string | undefined;
+    const currentTarget = chefMascot?.state?.targetContainerId as string | undefined;
+    const currentSource = chefMascot?.state?.sourceContainerId as string | undefined;
+
+    const isFetchingIngredient =
+      currentTarget === 'despensa' ||
+      currentSource === 'despensa' ||
+      Boolean(currentHolding);
+
+    if (isFetchingIngredient) {
+      queueMicrotask(() => setIsIngredientsCollapsed(false));
+    } else if (prevHoldingRef.current && !currentHolding) {
+      // Ingredient was placed into workstation!
+      queueMicrotask(() => setIsIngredientsCollapsed(true));
+    }
+
+    prevHoldingRef.current = currentHolding;
+  }, [
+    chefMascot?.state?.holdingEntityId,
+    chefMascot?.state?.targetContainerId,
+    chefMascot?.state?.sourceContainerId,
+  ]);
 
   const isRecordingMode = selectedRecipeId === 'recording' || isRecording;
 
@@ -402,6 +445,9 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
   useEffect(() => {
     if (activeRecipe?.name) {
       worldStore.getState().setActiveRecipeName(activeRecipe.name);
+    }
+    if (activeRecipe?.id) {
+      worldStore.getState().setActiveRecipeId(activeRecipe.id);
     }
     if (isRecordingMode) return;
     const store = worldStore.getState();
@@ -472,7 +518,6 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
           // Fast-forward recipe runner
           const fastRunner = new RecipeRunner({
             mascotId: 'chef',
-            defaultTargetId: 'board',
             delayMs: 0,
           });
           fastRunner.bindRecipeContext(activeRecipe);
@@ -517,7 +562,6 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
           }
           runnerRef.current = new RecipeRunner({
             mascotId: 'chef',
-            defaultTargetId: 'board',
             delayMs: currentDelayMs,
           });
           runnerRef.current.bindRecipeContext(activeRecipe);
@@ -547,8 +591,8 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
     if (isPlaying) {
       setIsPlaying(false);
     } else {
-      // If at end of steps, restart from beginning
-      if (currentStepIndex >= totalSteps) {
+      // If at start (0) or end of steps, reset kitchen before playing
+      if (currentStepIndex === 0 || currentStepIndex >= totalSteps) {
         handleReset();
       }
       setIsPlaying(true);
@@ -651,7 +695,6 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
             }
             runnerRef.current = new RecipeRunner({
               mascotId: 'chef',
-              defaultTargetId: 'board',
               delayMs: currentDelayMs,
             });
             runnerRef.current.bindRecipeContext(activeRecipe);
@@ -691,12 +734,34 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
   const progressPercent = totalSteps > 0 ? Math.min(100, (currentStepIndex / totalSteps) * 100) : 0;
 
   const requirementsNode = (
-    <div className="recipe-requirements-section" data-container-id="despensa">
-      <div className="requirements-header">
-        <span className="requirements-title">📋 {t('ui.requiredMaterials')}</span>
-        <span className="requirements-subtitle">{t('ui.dragToWorkstation')}</span>
+    <div className={`recipe-requirements-section ${isIngredientsCollapsed ? 'collapsed' : ''}`} data-container-id="despensa">
+      <div className="requirements-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span className="requirements-title">📋 {t('ui.requiredMaterials')}</span>
+          <span className="requirements-subtitle" style={{ fontSize: '0.78rem', color: '#64748b' }}>
+            ({getRecipeRequirementsArray(activeRecipe).length} items)
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={() => setIsIngredientsCollapsed(!isIngredientsCollapsed)}
+          className="ingredients-toggle-btn"
+          style={{
+            padding: '3px 9px',
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            borderRadius: '6px',
+            border: '1px solid #cbd5e1',
+            backgroundColor: '#ffffff',
+            color: '#334155',
+            cursor: 'pointer',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+          }}
+        >
+          {isIngredientsCollapsed ? '👁️ Show' : '🙈 Hide'}
+        </button>
       </div>
-      <RecipeRequirements requirements={getRecipeRequirementsArray(activeRecipe)} />
+      {!isIngredientsCollapsed && <RecipeRequirements requirements={getRecipeRequirementsArray(activeRecipe)} />}
     </div>
   );
 

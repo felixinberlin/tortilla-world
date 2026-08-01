@@ -12,7 +12,7 @@
  * The bridge between game world and React UI.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useStore } from 'zustand';
 import { DndContext } from '@dnd-kit/core';
 import { worldStore } from '../../store/worldStore';
@@ -25,7 +25,8 @@ import { IngredientsSidebar } from '../Controls/IngredientsSidebar';
 import { RecipeDatabaseModal } from '../Controls/RecipeDatabaseModal';
 import { useDevMode } from '../../utils/devMode';
 import { useTranslation } from '../../i18n/useTranslation';
-import { LanguageSwitcher } from '../Controls/LanguageSwitcher';
+import { recipes } from '../../data/catalog/recipes';
+import { getRecipeWorkstationIds } from '../../systems/recipeWorkstations';
 import './RecipePlayer.scss';
 
 export const Scene: React.FC = () => {
@@ -38,14 +39,33 @@ export const Scene: React.FC = () => {
   const [activeMode, setActiveMode] = useState<'player' | 'cookbook' | 'recorder' | 'database'>(
     effectiveDevMode ? 'database' : 'player'
   );
-  const dispatch = useStore(worldStore, (state) => state.dispatch);
 
   // 1. Mount the drag-and-drop input listeners and dispatch handler
   const { sensors, handleDragStart, handleDragOver, handleDragEnd } = useSceneDragAndDrop();
 
-  // 2. Query the pure simulation state for rendering (hiding despensa container from UI view)
+  // 2. Query simulation state and active recipe to filter visible workstations
   const containersMap = useStore(worldStore, (state) => state.containers);
-  const containers = Object.values(containersMap).filter((c) => c.id !== 'despensa');
+  const activeRecipeId = useStore(worldStore, (state) => state.activeRecipeId);
+
+  const activeRecipe = useMemo(
+    () => recipes.find((r) => r.id === activeRecipeId) || recipes[0],
+    [activeRecipeId]
+  );
+
+  const recipeWorkstationIds = useMemo(
+    () => getRecipeWorkstationIds(activeRecipe, containersMap),
+    [activeRecipe, containersMap]
+  );
+
+  const containers = useMemo(() => {
+    return Object.values(containersMap).filter((container) => {
+      // Always hide despensa (pantry) from main workstation row
+      if (container.id === 'despensa') return false;
+
+      // Filter strictly by workstations generated for the active recipe
+      return recipeWorkstationIds.has(container.id);
+    });
+  }, [containersMap, recipeWorkstationIds]);
 
   const renderWorkspace = (leftNode?: React.ReactNode, rightNode?: React.ReactNode) => (
     <div className="scene-workspace">
@@ -82,7 +102,7 @@ export const Scene: React.FC = () => {
         </div>
 
         <div className={`scene-controls-wrapper ${isPanelExpanded ? 'expanded' : 'collapsed'}`}>
-          {/* Mode Selector Navigation Tabs & Reset Control */}
+          {/* Mode Selector Navigation Tabs */}
           <div className="mode-tabs">
             {effectiveDevMode && (
               <button
@@ -117,18 +137,6 @@ export const Scene: React.FC = () => {
             >
               {t('scene.tabs.actionRecorder')}
             </button>
-
-            <button
-              type="button"
-              className="reset-kitchen-header-btn"
-              onClick={() => dispatch({ type: 'RESET_WORLD' })}
-              title="Clean the kitchen and reset all containers"
-            >
-              {t('scene.resetKitchen')}
-            </button>
-
-            {/* Language Switcher */}
-            <LanguageSwitcher />
 
             {/* Dev Mode Indicator & Toggle */}
             {isDev && (

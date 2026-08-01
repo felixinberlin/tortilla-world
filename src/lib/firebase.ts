@@ -8,7 +8,24 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore, type Firestore } from 'firebase/firestore';
 import { getAuth, signInAnonymously, type Auth } from 'firebase/auth';
-import config from '../../firebase-applet-config.json';
+
+interface FirebaseConfig {
+  apiKey?: string;
+  authDomain?: string;
+  projectId?: string;
+  storageBucket?: string;
+  messagingSenderId?: string;
+  appId?: string;
+  firestoreDatabaseId?: string;
+  [key: string]: unknown;
+}
+
+const configModules = import.meta.glob('../../firebase-applet-config.json', {
+  eager: true,
+  import: 'default',
+});
+const configKeys = Object.keys(configModules);
+const config = configKeys.length > 0 ? (configModules[configKeys[0]] as FirebaseConfig) : null;
 
 const isConfigValid = Boolean(
   config && typeof config.apiKey === 'string' && config.apiKey.trim().length > 0
@@ -18,11 +35,12 @@ let app: ReturnType<typeof initializeApp> | null = null;
 let dbRef: Firestore | null = null;
 let authRef: Auth | null = null;
 
-if (isConfigValid) {
+if (isConfigValid && config) {
   try {
     app = getApps().length === 0 ? initializeApp(config) : getApp();
-    dbRef = config.firestoreDatabaseId && config.firestoreDatabaseId !== '(default)'
-      ? getFirestore(app, config.firestoreDatabaseId)
+    const databaseId = typeof config.firestoreDatabaseId === 'string' ? config.firestoreDatabaseId : undefined;
+    dbRef = databaseId && databaseId !== '(default)'
+      ? getFirestore(app, databaseId)
       : getFirestore(app);
     authRef = getAuth(app);
 

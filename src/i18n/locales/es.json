@@ -246,6 +246,27 @@
         "Sirve la tortilla.",
         "¡A celebrar!"
       ]
+    },
+    "francesa": {
+      "name": "Tortilla Francesa",
+      "description": "Tortilla francesa tradicional.",
+      "hints": [
+        "Mezcla los huevos en el bol con la sal para hacer el Huevo batido.",
+        "Enciende el fuego, añade aceite y caliéntalo.",
+        "Con una espátula blanda, asegúrate de que la tortilla no se pega a la sartén."
+      ],
+      "instructions": [
+        "Bate los huevos.",
+        "Mezcla los huevos con sal en el bol para hacer el Huevo batido.",
+        "Enciende el fuego de la sartén.",
+        "Calienta el aceite.",
+        "Cocina el Huevo batido.",
+        "Mueve un poco la tortilla.",
+        "Dale la vuelta a la tortilla.",
+        "Cocina por el otro lado.",
+        "Sirve en el plato como Tortilla francesa.",
+        "¡A celebrar!"
+      ]
     }
   }
 }

@@ -246,6 +246,27 @@
         "Serviere die Tortilla.",
         "Guten Appetit!"
       ]
+    },
+    "francesa": {
+      "name": "Französische Omelett (Tortilla Francesa)",
+      "description": "Traditionelles französisches Omelett.",
+      "hints": [
+        "Mische die Eier im Schüssel mit Salz.",
+        "Schalte den Herd ein, gib Öl hinzu und erhitze es.",
+        "Achte darauf, dass das Omelett nicht festklebt."
+      ],
+      "instructions": [
+        "Verquirle die Eier.",
+        "Mische die Eier mit Salz in der Schüssel.",
+        "Schalte den Herd ein.",
+        "Erhitze das Öl.",
+        "Koche das verquirlte Ei.",
+        "Rühre das Omelett leicht um.",
+        "Wende das Omelett.",
+        "Koche die andere Seite.",
+        "Serviere als Tortilla francesa auf dem Teller.",
+        "Guten Appetit!"
+      ]
     }
   }
 }

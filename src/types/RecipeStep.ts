@@ -31,9 +31,12 @@ export type RecipeStep =
       unit?: string;
       instruction?: string;
       mascotId?: string;
+      as?: string;
+      name?: string;
+      output?: string;
     }
   | {
-      action: 'wash' | 'rinse' | 'drain';
+      action: 'wash' | 'rinse' | 'drain' | 'clean';
       target?: string;
       ingredient?: string;
       containerId?: string;
@@ -61,6 +64,9 @@ export type RecipeStep =
       action: 'serve';
       target?: string;
       containerId?: string;
+      as?: string;
+      name?: string;
+      output?: string;
     }
   | {
       action: 'move';

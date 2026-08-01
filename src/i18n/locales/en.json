@@ -246,6 +246,27 @@
         "Serve the tortilla.",
         "Celebrate!"
       ]
+    },
+    "francesa": {
+      "name": "French Omelette (Tortilla Francesa)",
+      "description": "Traditional French Omelette.",
+      "hints": [
+        "Mix eggs with salt in the bowl to make beaten eggs.",
+        "Turn on the heat, add oil and heat it up.",
+        "With a soft spatula, make sure the tortilla does not stick to the pan."
+      ],
+      "instructions": [
+        "Beat the eggs.",
+        "Mix eggs with salt in the bowl to make beaten eggs.",
+        "Turn on the heat on the pan.",
+        "Heat the oil.",
+        "Cook the beaten eggs.",
+        "Stir the omelette slightly.",
+        "Flip the omelette.",
+        "Cook the other side.",
+        "Serve onto the plate as Tortilla francesa.",
+        "Celebrate!"
+      ]
     }
   }
 }

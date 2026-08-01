@@ -65,6 +65,17 @@ export async function handleCookStep(
     },
   });
 
+  const cookName = step.as || step.name || step.output;
+  if (cookName) {
+    worldStore.getState().dispatch({
+      type: 'UPDATE_ENTITY_STATE',
+      payload: {
+        entityId,
+        changes: { name: cookName },
+      },
+    });
+  }
+
   // Consume cooking medium helper ingredients currently in the cooking container (e.g. oil)
     /**
    * IMPORTANT: Distinguish between oil as the primary cooking target vs oil as a cooking medium.
@@ -134,9 +145,26 @@ export async function handleFlipStep(
   ctx: RecipeRunnerContext,
   step: FlipStep
 ): Promise<void> {
+  const state = worldStore.getState();
   const rawKey = step.target;
-  const rawContainer = rawKey === 'mixture' ? 'burner1' : rawKey || 'burner1';
-  const targetContainer = resolveContainerId(rawContainer);
+  let targetContainer = 'burner1';
+
+  if (rawKey) {
+    const resolved = resolveContainerId(rawKey);
+    if (state.containers[resolved]) {
+      targetContainer = resolved;
+    } else {
+      // Find container currently holding this entity (e.g. 'Huevo batido' or 'mixture')
+      const boundEntityId = ctx.getBoundEntityId(rawKey) || rawKey;
+      for (const container of Object.values(state.containers)) {
+        if (container.entityIds.includes(boundEntityId)) {
+          targetContainer = container.id;
+          break;
+        }
+      }
+    }
+  }
+
   const instructionText = step.instruction;
 
   if (instructionText) {

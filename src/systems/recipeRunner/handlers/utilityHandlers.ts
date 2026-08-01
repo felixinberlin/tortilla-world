@@ -29,6 +29,7 @@ export async function handleServeStep(
   await ctx.wait();
 
   const state = worldStore.getState();
+  const serveName = step.as || step.name || step.output;
 
   if (step.target) {
     const targetEntityId = ctx.getBoundEntityId(step.target);
@@ -42,6 +43,15 @@ export async function handleServeStep(
           payload: {
             entityId: targetEntityId,
             targetContainerId,
+          },
+        });
+      }
+      if (serveName) {
+        worldStore.getState().dispatch({
+          type: 'UPDATE_ENTITY_STATE',
+          payload: {
+            entityId: targetEntityId,
+            changes: { name: serveName },
           },
         });
       }
@@ -62,6 +72,15 @@ export async function handleServeStep(
             payload: {
               entityId,
               targetContainerId,
+            },
+          });
+        }
+        if (serveName) {
+          worldStore.getState().dispatch({
+            type: 'UPDATE_ENTITY_STATE',
+            payload: {
+              entityId,
+              changes: { name: serveName },
             },
           });
         }

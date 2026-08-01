@@ -16,6 +16,7 @@ import { worldStore } from '../../store/worldStore';
 import { getIngredientCatalogId } from '../../engine/containerRules';
 import { findWorkstationForStep } from '../../engine/workstations';
 import { loadRecipe } from '../recipeLoader';
+import { getRecipeWorkstationIds } from '../recipeWorkstations';
 import type { Recipe, RecipeRequirementDictItem } from '../../types/Recipe';
 import type { RecipeStep } from '../../types/RecipeStep';
 import type { Entity } from '../../types/world';
@@ -44,7 +45,7 @@ export class RecipeRunner implements RecipeRunnerContext {
   constructor(options: RecipeRunnerOptions = {}) {
     this.mascotId = options.mascotId || 'chef';
     this.defaultSourceId = options.defaultSourceId || 'despensa';
-    this.defaultTargetId = options.defaultTargetId || 'board';
+    this.defaultTargetId = options.defaultTargetId || '';
     this.delayMs = options.delayMs ?? 600;
     this.useMascot = options.useMascot ?? true;
     this.recipeContext = {
@@ -66,6 +67,21 @@ export class RecipeRunner implements RecipeRunnerContext {
       recipeId: recipe.id,
       bindings: {},
     };
+
+    // Dynamically set defaultTargetId based on recipe's workstations if not explicitly provided
+    const wsIds = getRecipeWorkstationIds(recipe);
+    if (!this.defaultTargetId || this.defaultTargetId === 'board') {
+      if (wsIds.has('board')) {
+        this.defaultTargetId = 'board';
+      } else if (wsIds.has('bowl')) {
+        this.defaultTargetId = 'bowl';
+      } else if (wsIds.has('burner1')) {
+        this.defaultTargetId = 'burner1';
+      } else {
+        const first = Array.from(wsIds).find((id) => id !== 'despensa' && id !== 'plate');
+        this.defaultTargetId = first || 'bowl';
+      }
+    }
 
     const boundIds = new Set<string>();
 
@@ -386,6 +402,20 @@ export class RecipeRunner implements RecipeRunnerContext {
   public async executeStep(step: RecipeStep): Promise<void> {
     const workstation = findWorkstationForStep(step);
 
+    if (!worldStore.getState().userOverride) {
+      const containerId =
+        (step as { containerId?: string; targetContainerId?: string }).containerId ||
+        (step as { containerId?: string; targetContainerId?: string }).targetContainerId ||
+        workstation.defaultContainerId;
+
+      if (containerId) {
+        worldStore.getState().setFocus({
+          containerId,
+          mode: 'focused',
+        });
+      }
+    }
+
     switch (step.action) {
       case 'move':
         return handleMoveStep(this, step, workstation.defaultContainerId);
@@ -400,6 +430,7 @@ export class RecipeRunner implements RecipeRunnerContext {
       case 'wash':
       case 'rinse':
       case 'drain':
+      case 'clean':
         return handlePrepStep(this, step, workstation.defaultContainerId);
 
       case 'cook':

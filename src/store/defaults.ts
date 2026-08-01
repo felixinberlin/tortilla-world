@@ -89,7 +89,7 @@ export const defaultContainers: Record<string, Container> = {
     name: 'Fuego 2',
     type: 'burner',
     entityIds: [],
-    isOn: true,
+    isOn: false,
     rules: { maxCapacity: 5, allowedTypes: ['ingredient', 'tool'] },
   },
   plate: {

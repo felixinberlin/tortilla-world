@@ -107,7 +107,8 @@
       "method": "fry",
       "duration": 5,
       "unit": "min",
-      "instruction": "Deja cocinar por otros 5 min."
+      "instruction": "Deja cocinar por otros 5 min.",
+      "as": "Tortilla clásica"
     },
     {
       "action": "serve",

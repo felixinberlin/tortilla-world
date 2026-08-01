@@ -18,6 +18,8 @@ export type WorldStateStore = {
   events: WorldEvent[];
   activeRecipeName?: string;
   setActiveRecipeName: (name: string) => void;
+  activeRecipeId?: string;
+  setActiveRecipeId: (recipeId: string) => void;
   dispatch: (action: WorldAction) => void;
   emitEvent: (event: WorldEvent) => void;
   onEvent: (listener: (event: WorldEvent) => void) => () => void;

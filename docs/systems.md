@@ -756,6 +756,14 @@ The Recipe System executes declarative, step-based recipe state machines via `Re
 
 ---
 
+### Focus System & Workstation Visibility (`src/systems/focus.ts`)
+
+* **Purpose**: Calculates visual priority classes (`focus-primary`, `focus-secondary`, `focus-background`) during mascot-centered focus transitions.
+* **Workstation Container Rule**: Active and related workstations stay in primary or secondary focus. Inactive workstations receive `focus-background` styling (subtle desaturation and border opacity) on their frame containers.
+* **Ingredient Entity Rule**: Ingredients and entities sitting inside any workstation or container retain `opacity: 1` and `focus-secondary` priority so they never hide, blur, or lose visibility during focus mode.
+
+---
+
 ### Action Recording & Replay System
 
 * **Action Log Integration**: World actions are captured in `recordSlice` when recording mode is active.

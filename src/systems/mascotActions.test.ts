@@ -153,6 +153,34 @@ describe('mascotActions system', () => {
     ]);
   });
 
+  it('maintains holding state while moving across containers during grab -> move -> drop', () => {
+    // 1. Grab potato at despensa
+    grabIngredient('potato', 'despensa', 'chef');
+    let state = worldStore.getState();
+    expect(state.entities.chef.state?.holdingEntityId).toBe('potato');
+    expect(state.entities.chef.state?.targetContainerId).toBe('despensa');
+
+    // 2. Move mascot to board while carrying potato
+    moveTortillaTo('board', 'chef');
+    state = worldStore.getState();
+    expect(state.entities.chef.state?.holdingEntityId).toBe('potato');
+    expect(state.entities.chef.state?.targetContainerId).toBe('board');
+
+    // 3. Drop potato into board
+    dropIngredient('board', undefined, 'chef');
+    state = worldStore.getState();
+    expect(state.entities.chef.state?.holdingEntityId).toBeUndefined();
+    expect(state.entities.chef.state?.targetContainerId).toBe('board');
+    expect(state.containers.board.entityIds.length).toBe(1);
+  });
+
+  it('syncs mascot target container and gaze when MOVE_ENTITY action is dispatched', () => {
+    worldStore.getState().moveEntity('potato', 'board');
+    const state = worldStore.getState();
+    expect(state.entities.chef.state?.targetContainerId).toBe('board');
+    expect(state.entities.chef.state?.gazingAt).toEqual({ type: 'entity', entityId: 'board' });
+  });
+
   it('runs follow recipe script: processes all recipe ingredients through workstations', async () => {
     // Seed default entities for all recipe ingredients
     worldStore.setState({

@@ -16,19 +16,20 @@ import { validateRecipeJSON } from './recipeValidator';
 
 import clasicaJSON from '../data/catalog/recipes/clasica.json';
 import concebollaJSON from '../data/catalog/recipes/concebolla.json';
-import francesJson  from '../data/catalog/recipes/francesa.json';
+import francesaJSON from '../data/catalog/recipes/francesa.json';
 
 const recipeRegistry: Record<string, unknown> = {
   clasica: clasicaJSON,
   sincebolla: clasicaJSON,
   concebolla: concebollaJSON,
-  francesa: francesJson
+  francesa: francesaJSON,
 };
 
 const cooklangRegistry: Record<string, string> = {
   clasica: clasicaJSON.cooklang || '',
   sincebolla: clasicaJSON.cooklang || '',
   concebolla: concebollaJSON.cooklang || '',
+  francesa: francesaJSON.cooklang || '',
 };
 
 /**

@@ -21,6 +21,8 @@ import { createEntitySlice } from './slices/entitySlice';
 import { createContainerSlice } from './slices/containerSlice';
 import { createMascotSlice } from './slices/mascotSlice';
 import { createRecordSlice } from './slices/recordSlice';
+import { createFocusSlice } from './slices/focusSlice';
+import { inferFocusFromAction } from '../systems/focus';
 import type { WorldStateStore } from './types';
 
 const eventListeners = new Set<(event: WorldEvent) => void>();
@@ -33,15 +35,21 @@ export const worldStore = createStore<WorldStateStore>()(
         ...createContainerSlice(set, get, api),
         ...createMascotSlice(set, get, api),
         ...createRecordSlice(set, get, api),
+        ...createFocusSlice(set, get, api),
 
         // Deep clone initial state to avoid reference mutations
         entities: JSON.parse(JSON.stringify(defaultEntities)),
         containers: JSON.parse(JSON.stringify(defaultContainers)),
         events: [],
         activeRecipeName: 'Tortilla Española Clásica',
+        activeRecipeId: 'concebolla',
 
         setActiveRecipeName: (name: string) => {
           set({ activeRecipeName: name }, false, 'SET_ACTIVE_RECIPE_NAME');
+        },
+
+        setActiveRecipeId: (recipeId: string) => {
+          set({ activeRecipeId: recipeId }, false, 'SET_ACTIVE_RECIPE_ID');
         },
 
         emitEvent: (event: WorldEvent) => {
@@ -68,6 +76,7 @@ export const worldStore = createStore<WorldStateStore>()(
             draft.containers = JSON.parse(JSON.stringify(defaultContainers));
             draft.events = [];
           }, false, 'RESET_WORLD');
+          get().clearFocus();
         },
 
         dispatch: (action: WorldAction) => {
@@ -77,6 +86,16 @@ export const worldStore = createStore<WorldStateStore>()(
           // Record action if recording is currently active
           if (store.isRecording) {
             store.recordAction(action);
+          }
+
+          // Automatically infer focus target from world actions unless userOverride is active
+          const focusInferred = inferFocusFromAction(action);
+          if (focusInferred && !store.userOverride) {
+            store.setFocus({
+              containerId: focusInferred.containerId,
+              entityIds: focusInferred.entityIds,
+              mode: 'focused',
+            });
           }
 
           switch (action.type) {
@@ -389,6 +408,43 @@ export const worldStore = createStore<WorldStateStore>()(
               }
               break;
             }
+
+            case 'SET_FOCUS':
+              store.setFocus(
+                {
+                  containerId: action.payload.containerId,
+                  entityIds: action.payload.entityIds,
+                  mode: action.payload.mode ?? 'focused',
+                },
+                action.payload.isUserOverride
+              );
+              break;
+
+            case 'CLEAR_FOCUS':
+              store.clearFocus(action.payload?.isUserOverride);
+              break;
+
+            case 'FOCUS_CONTAINER':
+              store.setFocus(
+                {
+                  containerId: action.payload.containerId,
+                  entityIds: action.payload.entityIds,
+                  mode: 'focused',
+                },
+                action.payload.isUserOverride
+              );
+              break;
+
+            case 'FOCUS_ENTITY':
+              store.setFocus(
+                {
+                  containerId: action.payload.containerId,
+                  entityIds: [action.payload.entityId],
+                  mode: 'focused',
+                },
+                action.payload.isUserOverride
+              );
+              break;
 
             case 'RESET_WORLD':
               store.resetWorld();

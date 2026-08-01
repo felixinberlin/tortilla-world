@@ -10,12 +10,15 @@
  */
 
 import React from 'react';
+import { useStore } from 'zustand';
 import { useDraggable } from '@dnd-kit/core';
 import type { Entity } from '../../types/world';
 import { EntityIcon } from './EntityIcon';
 import { EntityStateBadge } from './EntityStateBadge';
 import { entityRendererRegistry, type EntityRendererProps } from './rendererRegistry';
 import { useTranslation } from '../../i18n/useTranslation';
+import { worldStore } from '../../store/worldStore';
+import { getEntityFocusClass } from '../../systems/focus';
 
 /**
  * Default Entity Renderer used when no custom renderer is registered for an entity type.
@@ -58,6 +61,9 @@ interface EntityViewProps {
  * Inner component for interactive draggable entities (must be used inside a DndContext).
  */
 const DraggableEntityView: React.FC<EntityViewProps> = ({ entity, containerId }) => {
+  const focusTarget = useStore(worldStore, (state) => state.focusTarget);
+  const focusClass = getEntityFocusClass(entity.id, containerId, focusTarget);
+
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: entity.id,
   });
@@ -78,6 +84,7 @@ const DraggableEntityView: React.FC<EntityViewProps> = ({ entity, containerId })
 
   const className = [
     'entity-view',
+    focusClass,
     `entity-view--type-${entity.type}`,
     isDragging ? 'entity-view--dragging' : '',
   ]
@@ -100,12 +107,16 @@ const DraggableEntityView: React.FC<EntityViewProps> = ({ entity, containerId })
 };
 
 export const EntityView: React.FC<EntityViewProps> = ({ entity, containerId, readOnly = false }) => {
+  const focusTarget = useStore(worldStore, (state) => state.focusTarget);
+  const focusClass = getEntityFocusClass(entity.id, containerId, focusTarget);
+
   if (readOnly) {
     const CustomRenderer = entityRendererRegistry[entity.type];
     const RendererComponent = CustomRenderer || DefaultEntityRenderer;
 
     const className = [
       'entity-view',
+      focusClass,
       `entity-view--type-${entity.type}`,
       'entity-view--readonly',
     ]

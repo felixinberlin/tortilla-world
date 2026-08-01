@@ -1,11 +1,12 @@
 {
   "id": "francesa",
-  "name": "francesa",
-  "description": "Traditional francesa Tortilla.",
+  "name": "Tortilla Francesa",
+  "description": "Tortilla francesa tradicional.",
   "difficulty": "easy",
-  "tags": ["traditional", "spanish", "vegetarian", "no-onion"],
+  "tags": ["traditional", "spanish", "french", "vegetarian", "no-onion"],
   "hints": [
-    "Que no se queme.",
+    "Mezcla los huevos en el bol con la sal para hacer el Huevo batido.",
+    "Enciende el fuego, añade aceite y caliéntalo.",
     "Con una espátula blanda, asegúrate de que la tortilla no se pega a la sartén."
   ],
   "requirements": {
@@ -25,13 +26,8 @@
       "unit": "tsp"
     }
   },
-  "cooklang": "Peel the @potatoes{4%pcs}.\nSlice the @potatoes.\nHeat the @oil{100%ml}.\nFry the @potatoes until tender.\nBeat the @eggs{6%pcs}.\nAdd @salt{1%tsp}.\nAdd @black_pepper{1%pinch}.\nMix the potatoes with the beaten eggs, salt and black_pepper.\nPour the mixture into the pan.\nCook for 5 minutes.\nWith a soft spatula, make sure the tortilla does not stick to the pan.\nFlip the tortilla.\nCook for another 5 minutes.\nServe the tortilla.\nCelebrate.",
+  "cooklang": "Beat the @eggs{6%pcs} in the bowl with @salt{1%tsp} to make Huevo batido.\nHeat the @oil{100%ml} in the pan.\nPour the Huevo batido into the pan.\nStir slightly and cook for 5 minutes.\nFlip the tortilla.\nCook for another 5 minutes.\nServe onto the plate as Tortilla francesa.",
   "steps": [
-    {
-      "action": "cook",
-      "target": "oil",
-      "method": "heat"
-    },
     {
       "action": "prepare",
       "target": "eggs",
@@ -43,35 +39,45 @@
         "eggs",
         "salt"
       ],
-      "output": "mixture"
+      "output": "Huevo batido"
+    },
+    {
+      "action": "instruction",
+      "text": "Se enciende el fuego de la sartén."
     },
     {
       "action": "cook",
-      "target": "mixture",
+      "target": "oil",
+      "method": "heat"
+    },
+    {
+      "action": "cook",
+      "target": "Huevo batido",
       "method": "fry",
       "duration": 5,
       "unit": "min"
     },
     {
       "action": "instruction",
-      "text": "Con una espátula blanda, asegúrate de que la tortilla no se pega a la sartén."
+      "text": "Se mueve un poco con la espátula."
     },
     {
       "action": "flip",
-      "target": "mixture",
-      "instruction": "Dale la vuelta a la tortilla."
+      "target": "Huevo batido",
+      "instruction": "Se le da la vuelta a la tortilla."
     },
     {
       "action": "cook",
-      "target": "mixture",
+      "target": "Huevo batido",
       "method": "fry",
       "duration": 5,
       "unit": "min",
-      "instruction": "Deja cocinar por otros 5 min."
+      "instruction": "Deja cocinar por otros 5 min.",
+      "as": "Tortilla francesa"
     },
     {
       "action": "serve",
-      "target": "mixture"
+      "target": "Huevo batido"
     },
     {
       "action": "celebrate"

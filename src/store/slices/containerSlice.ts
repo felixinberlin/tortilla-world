@@ -63,6 +63,15 @@ export const createContainerSlice: StateCreator<
           } else {
             draft.containers[targetContainerId].entityIds.push(copyId);
           }
+          const mascot = draft.entities['chef'];
+          if (mascot) {
+            mascot.state = {
+              ...mascot.state,
+              gazingAt: { type: 'entity', entityId: targetContainerId },
+              targetContainerId,
+              holdingEntityId: mascot.state?.holdingEntityId === entityId ? undefined : mascot.state?.holdingEntityId,
+            };
+          }
         },
         false,
         'MOVE_ENTITY'
@@ -91,6 +100,15 @@ export const createContainerSlice: StateCreator<
           draft.containers[targetContainerId].entityIds.splice(positionIndex, 0, entityId);
         } else {
           draft.containers[targetContainerId].entityIds.push(entityId);
+        }
+        const mascot = draft.entities['chef'];
+        if (mascot) {
+          mascot.state = {
+            ...mascot.state,
+            gazingAt: { type: 'entity', entityId: targetContainerId },
+            targetContainerId,
+            holdingEntityId: mascot.state?.holdingEntityId === entityId ? undefined : mascot.state?.holdingEntityId,
+          };
         }
       },
       false,

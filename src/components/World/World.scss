@@ -354,3 +354,99 @@
     color: #15803d;
   }
 }
+
+/* ==========================================================================
+   Mascot-Centered Focus Mode Attention Transitions
+   ========================================================================== */
+
+.container-view,
+.entity-view,
+.mascot-container,
+.mascot-stage,
+.mascot-wrapper {
+  transition:
+    opacity 200ms cubic-bezier(0.4, 0, 0.2, 1),
+    transform 200ms cubic-bezier(0.4, 0, 0.2, 1),
+    filter 200ms cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.container-view.focus-primary,
+.entity-view.focus-primary,
+.mascot-container.focus-primary,
+.mascot-stage.focus-primary {
+  opacity: 1 !important;
+  transform: scale(1.03) !important;
+  z-index: 10 !important;
+  border-color: $tortilla-yellow !important;
+  box-shadow: 0 0 20px rgba(245, 180, 50, 0.4) !important;
+  pointer-events: auto !important;
+}
+
+.mascot-wrapper.focus-primary {
+  opacity: 1 !important;
+  transform: translate3d(var(--offset-x, 0px), var(--offset-y, 0px), 0) scale(1.03) !important;
+  z-index: 1001 !important;
+  pointer-events: auto !important;
+}
+
+.container-view.focus-secondary,
+.entity-view.focus-secondary,
+.mascot-container.focus-secondary,
+.mascot-stage.focus-secondary {
+  opacity: 0.9 !important;
+  transform: scale(1) !important;
+  filter: none !important;
+  z-index: 5 !important;
+  pointer-events: auto !important;
+}
+
+.mascot-wrapper.focus-secondary {
+  opacity: 0.35 !important;
+  transform: translate3d(var(--offset-x, 0px), var(--offset-y, 0px), 0) scale(0.95) !important;
+  z-index: 5 !important;
+  pointer-events: auto !important;
+}
+
+.container-view.focus-background {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: scale(0.97) !important;
+  z-index: 1 !important;
+  border-color: rgba(200, 200, 200, 0.35) !important;
+  box-shadow: none !important;
+
+  /* Workstation frame, header, badges, and controls get the unused / inactive effect */
+  & > *:not(.container-view__contents) {
+    opacity: 0.45 !important;
+    filter: grayscale(0.2) !important;
+  }
+}
+
+.entity-view.focus-background,
+.mascot-container.focus-background,
+.mascot-stage.focus-background {
+  opacity: 1 !important;
+  visibility: visible !important;
+  filter: none !important;
+  transform: scale(1) !important;
+}
+
+/* Ingredients in workstations/boards must never hide out or change transparency */
+.entity-view,
+.container-view__contents,
+.container-view__contents .entity-view {
+  opacity: 1 !important;
+  filter: none !important;
+  visibility: visible !important;
+}
+
+.mascot-wrapper.focus-background {
+  opacity: 0.35 !important;
+  visibility: visible !important;
+  filter: blur(1px) !important;
+  transform: translate3d(var(--offset-x, 0px), var(--offset-y, 0px), 0) scale(0.95) !important;
+  z-index: 1 !important;
+  pointer-events: none !important;
+}

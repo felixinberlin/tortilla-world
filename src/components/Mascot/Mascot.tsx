@@ -21,6 +21,7 @@ import { TortillaSvg } from './TortillaSvg';
 import { ingredients } from '../../data/catalog/ingredients';
 import type { GazeTarget } from '../../systems/gaze';
 import { gazeEntityId } from '../../systems/gaze';
+import { getMascotFocusClass } from '../../systems/focus';
 
 interface MascotProps {
   mascotId?: string;
@@ -29,7 +30,10 @@ interface MascotProps {
 export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
   const mascotEntity = useStore(worldStore, (state) => state.entities[mascotId]);
   const entities = useStore(worldStore, (state) => state.entities);
+  const focusTarget = useStore(worldStore, (state) => state.focusTarget);
   const dispatch = useStore(worldStore, (state) => state.dispatch);
+  
+  const focusClass = getMascotFocusClass(focusTarget);
   
   const [offset, setOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const mascotAnchorRef = useRef<HTMLDivElement>(null);
@@ -49,7 +53,7 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
     ? ingredients.find(
         (i) => i.id === heldEntity.ingredientId || i.id === heldEntity.id || heldEntity.id.startsWith(i.id)
       )
-    : undefined;
+    : ingredients.find((i) => holdingEntityId && (i.id === holdingEntityId || holdingEntityId.startsWith(i.id) || i.id.includes(holdingEntityId)));
 
   // Calculate physical DOM position offset to target container
   useEffect(() => {
@@ -103,13 +107,15 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
     };
 
     updatePosition();
+    const rafId = requestAnimationFrame(updatePosition);
     window.addEventListener('resize', updatePosition);
     window.addEventListener('scroll', updatePosition);
     return () => {
+      cancelAnimationFrame(rafId);
       window.removeEventListener('resize', updatePosition);
       window.removeEventListener('scroll', updatePosition);
     };
-  }, [targetContainerId]);
+  }, [targetContainerId, gazingAtEntityId, holdingEntityId, state]);
 
   // Guarded until after all hooks so hook call order never changes between renders.
   if (!mascotEntity) return null;
@@ -149,7 +155,7 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
         }}
       >
         <div
-          className={`mascot-wrapper ${isFloating ? 'is-floating' : ''} ${holdingEntityId ? 'is-holding' : ''}`}
+          className={`mascot-wrapper ${focusClass} ${isFloating ? 'is-floating' : ''} ${holdingEntityId ? 'is-holding' : ''}`}
           style={
             {
               position: 'absolute',

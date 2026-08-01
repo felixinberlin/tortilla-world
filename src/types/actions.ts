@@ -156,6 +156,37 @@ export type WorldAction =
       };
     }
   | {
+      type: 'SET_FOCUS';
+      payload: {
+        containerId?: string;
+        entityIds?: string[];
+        mode?: 'normal' | 'focused';
+        isUserOverride?: boolean;
+      };
+    }
+  | {
+      type: 'CLEAR_FOCUS';
+      payload?: {
+        isUserOverride?: boolean;
+      };
+    }
+  | {
+      type: 'FOCUS_CONTAINER';
+      payload: {
+        containerId: string;
+        entityIds?: string[];
+        isUserOverride?: boolean;
+      };
+    }
+  | {
+      type: 'FOCUS_ENTITY';
+      payload: {
+        entityId: string;
+        containerId?: string;
+        isUserOverride?: boolean;
+      };
+    }
+  | {
       type: 'RESET_WORLD';
       payload?: Record<string, never>;
     };

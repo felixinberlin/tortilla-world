@@ -81,23 +81,32 @@ export const createMascotSlice: StateCreator<
     const state = get();
     const mascot = state.entities[mascotId];
     if (!mascot) return;
-    const grabbedEntity = state.entities[entityId];
-    if (!grabbedEntity) return;
+
+    // Resolve target entity from state.entities
+    let grabbedEntity: Entity | undefined = state.entities[entityId];
+    if (!grabbedEntity) {
+      grabbedEntity = Object.values(state.entities).find(
+        (e): e is Entity => Boolean(e) && Boolean(e.ingredientId === entityId || e.id.startsWith(entityId))
+      );
+    }
+
+    const actualEntityId = grabbedEntity ? grabbedEntity.id : entityId;
 
     const foundSource = sourceContainerId
       ? state.containers[sourceContainerId]
-      : Object.values(state.containers).find((c) => c.entityIds.includes(entityId));
+      : Object.values(state.containers).find((c) => c.entityIds.includes(actualEntityId));
 
     set(
       (draft) => {
         const m = draft.entities[mascotId];
         if (!m) return;
-        const grabGaze: GazeTarget = { type: 'entity', entityId };
+        const grabGaze: GazeTarget = { type: 'entity', entityId: actualEntityId };
         m.state = {
           ...m.state,
-          holdingEntityId: entityId,
+          holdingEntityId: actualEntityId,
           sourceContainerId: foundSource?.id,
           gazingAt: grabGaze,
+          targetContainerId: foundSource?.id || m.state?.targetContainerId,
         };
       },
       false,
@@ -129,7 +138,11 @@ export const createMascotSlice: StateCreator<
         (draft) => {
           const m = draft.entities[mascotId];
           if (m) {
-            m.state = { ...m.state, gazingAt: { type: 'entity', entityId: targetContainerId } };
+            m.state = {
+              ...m.state,
+              gazingAt: { type: 'entity', entityId: targetContainerId },
+              targetContainerId,
+            };
           }
         },
         false,
@@ -138,19 +151,35 @@ export const createMascotSlice: StateCreator<
       return;
     }
 
-    const entityToMove = state.entities[holdingEntityId];
     const targetContainer = state.containers[targetContainerId];
-    if (!entityToMove || !targetContainer) return;
+    if (!targetContainer) return;
+
+    let entityToMove: Entity | undefined = state.entities[holdingEntityId];
+    if (!entityToMove) {
+      entityToMove = Object.values(state.entities).find(
+        (e): e is Entity => Boolean(e) && Boolean(e.ingredientId === holdingEntityId || e.id.startsWith(holdingEntityId))
+      );
+    }
+
+    if (!entityToMove) {
+      entityToMove = {
+        id: holdingEntityId,
+        ingredientId: holdingEntityId.split('_')[0],
+        name: holdingEntityId.charAt(0).toUpperCase() + holdingEntityId.slice(1),
+        type: 'ingredient',
+        state: {},
+      };
+    }
 
     const sourceContainerId = mascot.state?.sourceContainerId as string | undefined;
     const sourceContainer = sourceContainerId
       ? state.containers[sourceContainerId]
-      : Object.values(state.containers).find((c) => c.entityIds.includes(holdingEntityId));
+      : Object.values(state.containers).find((c) => c.entityIds.includes(entityToMove.id));
 
     const isSourceImmutable =
       sourceContainer?.rules?.isImmutable || sourceContainer?.rules?.consumesOnDrag === false;
 
-    let finalEntityId = holdingEntityId;
+    let finalEntityId = entityToMove.id;
     let copyEntity: Entity | undefined;
 
     if (sourceContainer && sourceContainer.id !== targetContainerId && isSourceImmutable) {
@@ -165,27 +194,33 @@ export const createMascotSlice: StateCreator<
         .map((id) => state.entities[id])
         .filter((e): e is Entity => Boolean(e));
       const result = validateContainerRules(targetContainer, copyEntity, currentEntities);
-      if (!result.allowed) return;
+      if (!result.allowed) {
+        return;
+      }
 
       finalEntityId = copyId;
     } else {
       const currentEntities = targetContainer.entityIds
         .map((id) => state.entities[id])
-        .filter((e): e is Entity => Boolean(e) && e.id !== holdingEntityId);
+        .filter((e): e is Entity => Boolean(e) && e.id !== entityToMove.id);
       const result = validateContainerRules(targetContainer, entityToMove, currentEntities);
-      if (!result.allowed) return;
+      if (!result.allowed) {
+        return;
+      }
     }
 
     set(
       (draft) => {
         if (copyEntity) {
           draft.entities[copyEntity.id] = copyEntity;
+        } else if (!draft.entities[entityToMove.id]) {
+          draft.entities[entityToMove.id] = entityToMove;
         }
 
         if (sourceContainer && !isSourceImmutable) {
           draft.containers[sourceContainer.id].entityIds = draft.containers[
             sourceContainer.id
-          ].entityIds.filter((id) => id !== holdingEntityId);
+          ].entityIds.filter((id) => id !== entityToMove.id);
         }
 
         if (typeof positionIndex === 'number') {
@@ -201,6 +236,7 @@ export const createMascotSlice: StateCreator<
             holdingEntityId: undefined,
             sourceContainerId: undefined,
             gazingAt: { type: 'entity', entityId: targetContainerId } satisfies GazeTarget,
+            targetContainerId,
           };
         }
       },

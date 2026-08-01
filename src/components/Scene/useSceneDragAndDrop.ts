@@ -27,12 +27,21 @@ export function useSceneDragAndDrop() {
   const handleDragStart = (event: DragStartEvent) => {
     const entityId = String(event.active.id);
     updateMascotGaze('chef', { type: 'entity', entityId });
+    worldStore.getState().dispatch({
+      type: 'FOCUS_ENTITY',
+      payload: { entityId, isUserOverride: true },
+    });
+    window.dispatchEvent(new CustomEvent('open-ingredients-list'));
   };
 
   const handleDragOver = (event: DragOverEvent) => {
     if (event.over) {
       const containerId = String(event.over.id);
       updateMascotGaze('chef', { type: 'entity', entityId: containerId });
+      worldStore.getState().dispatch({
+        type: 'FOCUS_CONTAINER',
+        payload: { containerId, isUserOverride: true },
+      });
     }
   };
 
@@ -40,9 +49,18 @@ export function useSceneDragAndDrop() {
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
+    // Dispatch event to close ingredient list once dropped/placed
+    window.dispatchEvent(new CustomEvent('close-ingredients-list'));
+
     // If dropped outside any valid droppable area, clear gaze
     if (!over) {
       updateMascotGaze('chef', null);
+      // Clear user override after 1.5s
+      setTimeout(() => {
+        if (worldStore.getState().userOverride) {
+          worldStore.getState().clearFocus(false);
+        }
+      }, 1500);
       return;
     }
 
@@ -61,6 +79,13 @@ export function useSceneDragAndDrop() {
         targetContainerId,
       },
     });
+
+    // Reset user override after drop action completes
+    setTimeout(() => {
+      if (worldStore.getState().userOverride) {
+        worldStore.getState().clearFocus(false);
+      }
+    }, 1500);
   };
 
   return {

@@ -137,8 +137,8 @@ p {
   box-sizing: border-box;
 
   @media (max-width: 600px) {
-    // 2-column compact layout on very small screens (mobile)
-    grid-template-columns: repeat(2, 1fr);
+    // 1 workstation per row on mobile screens
+    grid-template-columns: repeat(1, 1fr);
     gap: 12px;
   }
 }

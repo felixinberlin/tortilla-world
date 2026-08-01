@@ -73,21 +73,12 @@ export const RequirementView: React.FC<RequirementViewProps> = ({ requirement })
           containerId: 'despensa',
         },
       });
-    } else {
-      // If entity exists, ensure it's in the pantry (source container)
-      const despensa = store.containers['despensa'];
-      if (despensa && !despensa.entityIds.includes(requirement.entityId)) {
-        store.dispatch({
-          type: 'MOVE_ENTITY',
-          payload: { entityId: requirement.entityId, targetContainerId: 'despensa' },
-        });
-      }
     }
   }, [requirement.entityId, catalogIng?.name, catalogIng?.icon, catalogTool?.name, catalogTool?.icon, catalogTool, requirement.name]);
 
   return (
     <li className="requirement-view">
-      <EntityView entity={entity} containerId="despensa" readOnly={false} />
+      <EntityView entity={entity} containerId="despensa" readOnly={true} />
       <span className="requirement-view__amount">
         {requirement.amount} {requirement.unit}
       </span>

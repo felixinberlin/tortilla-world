@@ -9,7 +9,7 @@
  * - Acts as a droppable target for drag-and-drop actions.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useStore } from 'zustand';
 import { useDroppable } from '@dnd-kit/core';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -17,6 +17,9 @@ import { worldStore } from '../../store/worldStore';
 import type { Container, Entity } from '../../types/world';
 import { EntityView } from './EntityView';
 import { useTranslation } from '../../i18n/useTranslation';
+import { getContainerFocusClass } from '../../systems/focus';
+import { recipes } from '../../data/catalog/recipes';
+import { getRecipeWorkstationIds } from '../../systems/recipeWorkstations';
 import './World.scss';
 
 interface ContainerViewProps {
@@ -27,9 +30,35 @@ interface ContainerViewProps {
 export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
   const { t } = useTranslation();
   const entities = useStore(worldStore, (state) => state.entities);
+  const focusTarget = useStore(worldStore, (state) => state.focusTarget);
+  const activeRecipeId = useStore(worldStore, (state) => state.activeRecipeId);
+  const mascot = useStore(worldStore, (state) => state.entities['chef']);
+
   const [mixCustomName, setMixCustomName] = useState('');
   const [cookConditionInput, setCookConditionInput] = useState('');
   const [cookedCustomName, setCookedCustomName] = useState('');
+
+  const activeRecipe = useMemo(
+    () => recipes.find((r) => r.id === activeRecipeId) || recipes[0],
+    [activeRecipeId]
+  );
+
+  const recipeWorkstationIds = useMemo(
+    () => getRecipeWorkstationIds(activeRecipe),
+    [activeRecipe]
+  );
+
+  const isBeingUsed =
+    Boolean(container.isOn) ||
+    focusTarget.containerId === container.id ||
+    mascot?.state?.targetContainerId === container.id ||
+    mascot?.state?.sourceContainerId === container.id;
+
+  const focusClass = getContainerFocusClass(container.id, focusTarget, {
+    container,
+    recipeWorkstationIds,
+    isBeingUsed,
+  });
 
   // Set up dnd-kit droppable binding for this container
   const { setNodeRef, isOver } = useDroppable({
@@ -77,7 +106,13 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
     <div
       ref={setNodeRef}
       data-container-id={container.id}
-      className={`${container.isOn ? 'container-view--on' : ''} ${containerOnFireClass} container-view container-view--${container.id} ${isOver ? 'container-view--drag-over' : ''} ${isMixturePresent ? 'container-view--mixture' : ''}`}
+      onClick={() => {
+        dispatch({
+          type: 'FOCUS_CONTAINER',
+          payload: { containerId: container.id, isUserOverride: true },
+        });
+      }}
+      className={`${focusClass} ${container.isOn ? 'container-view--on' : ''} ${containerOnFireClass} container-view container-view--${container.id} ${isOver ? 'container-view--drag-over' : ''} ${isMixturePresent ? 'container-view--mixture' : ''}`}
     >
       <div className="container-view__header">
         <h3 className="container-view__title">{container.name}</h3>

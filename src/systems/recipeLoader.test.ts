@@ -88,17 +88,29 @@ describe('RecipeLoader', () => {
     expect(reqs.some((r) => r.entityId === 'onion')).toBe(true);
   });
 
+  it('loads francesa recipe by ID correctly', () => {
+    const recipe = loadRecipe('francesa');
+    expect(recipe.id).toBe('francesa');
+    expect(recipe.name).toBe('Tortilla Francesa');
+
+    const reqs = getRecipeRequirementsArray(recipe);
+    expect(reqs.some((r) => r.entityId === 'egg')).toBe(true);
+    expect(reqs.some((r) => r.entityId === 'oil')).toBe(true);
+    expect(reqs.some((r) => r.entityId === 'salt')).toBe(true);
+  });
+
   it('loads all recipes using loadAllRecipes', () => {
     const all = loadAllRecipes();
     expect(Array.isArray(all)).toBe(true);
-    expect(all.length).toBe(2);
-    expect(all.map((r) => r.id)).toEqual(['concebolla', 'clasica']);
+    expect(all.length).toBe(3);
+    expect(all.map((r) => r.id)).toEqual(['concebolla', 'clasica', 'francesa']);
   });
 
   it('returns available recipe IDs', () => {
     const ids = getAvailableRecipeIds();
     expect(ids).toContain('concebolla');
     expect(ids).toContain('clasica');
+    expect(ids).toContain('francesa');
   });
 
   it('retrieves cooklang string for valid recipe ID', () => {
@@ -107,6 +119,9 @@ describe('RecipeLoader', () => {
 
     const concebollaCooklang = getRecipeCooklang('concebolla');
     expect(concebollaCooklang).toContain('Dice the @onions');
+
+    const francesaCooklang = getRecipeCooklang('francesa');
+    expect(francesaCooklang).toContain('Huevo batido');
   });
 
   it('throws an error when attempting to load an unknown recipe ID', () => {

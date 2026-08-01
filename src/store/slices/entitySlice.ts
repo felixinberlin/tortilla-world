@@ -102,6 +102,10 @@ export const createEntitySlice: StateCreator<
         const targetEntity = state.entities[entityId];
         if (!targetEntity) return;
 
+        if (changes.name && typeof changes.name === 'string') {
+          targetEntity.name = changes.name;
+        }
+
         targetEntity.state = {
           ...targetEntity.state,
           ...changes,

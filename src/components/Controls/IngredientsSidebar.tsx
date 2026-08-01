@@ -16,6 +16,8 @@ import { worldStore } from '../../store/worldStore';
 import { ingredients } from '../../data/catalog/ingredients';
 import { EntityView } from '../World/EntityView';
 import { useTranslation } from '../../i18n/useTranslation';
+import { getRecipeWorkstationIds } from '../../systems/recipeWorkstations';
+import { recipes } from '../../data/catalog/recipes';
 import './IngredientsSidebar.scss';
 
 export const IngredientsSidebar: React.FC = () => {
@@ -50,14 +52,21 @@ export const IngredientsSidebar: React.FC = () => {
     );
   }, [catalogList, searchQuery]);
 
-  // Handle quick-adding an entity into the primary workstation (e.g., board or bowl)
+  // Handle quick-adding an entity into the primary workstation (e.g., board, bowl, or burner)
   const handleQuickAdd = (entityId: string) => {
-    // Find a target container (preferably board or bowl, or first available workstation)
+    const activeRecipeId = worldStore.getState().activeRecipeId;
+    const activeRecipe = recipes.find((r) => r.id === activeRecipeId) || recipes[0];
+    const wsIds = getRecipeWorkstationIds(activeRecipe, containers);
+
+    // Find a target container matching active recipe workstations
     const targetId =
-      containers['board']?.id ||
+      (wsIds.has('board') && containers['board']?.id) ||
+      (wsIds.has('bowl') && containers['bowl']?.id) ||
+      (wsIds.has('burner1') && containers['burner1']?.id) ||
       containers['bowl']?.id ||
+      containers['board']?.id ||
       Object.keys(containers).find((id) => id !== 'despensa') ||
-      'board';
+      'bowl';
 
     worldStore.getState().dispatch({
       type: 'MOVE_ENTITY',
