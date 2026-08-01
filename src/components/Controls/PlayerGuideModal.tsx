@@ -407,7 +407,18 @@ export const PlayerGuideModal: React.FC<PlayerGuideModalProps> = ({ onClose, isO
               <button
                 ref={closeButtonRef}
                 className="start-cooking-btn"
-                onClick={onClose}
+                onClick={() => {
+                  // Cast window to 'any' to bypass TypeScript checking here
+                  const win = window as any;
+                  win.dataLayer = win.dataLayer || [];
+
+                  win.dataLayer.push({
+                    event: "intro_completed",
+                    language: language,
+                  });
+
+                  onClose();
+                }}
                 aria-label="Close guide and start cooking"
               >
                 {t('guide.startBtn')}
