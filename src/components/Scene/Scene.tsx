@@ -44,7 +44,9 @@ export const Scene: React.FC = () => {
 
   useEffect(() => {
     console.log('Mode changed:', activeMode);
-    const win = window as any;
+    const win = window as unknown as {
+      dataLayer?: Array<Record<string, unknown>>;
+    };
     win.dataLayer = win.dataLayer || [];
 
     win.dataLayer.push({

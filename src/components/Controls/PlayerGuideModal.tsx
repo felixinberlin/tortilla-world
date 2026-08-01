@@ -408,8 +408,9 @@ export const PlayerGuideModal: React.FC<PlayerGuideModalProps> = ({ onClose, isO
                 ref={closeButtonRef}
                 className="start-cooking-btn"
                 onClick={() => {
-                  // Cast window to 'any' to bypass TypeScript checking here
-                  const win = window as any;
+                  const win = window as unknown as {
+                    dataLayer?: Array<Record<string, unknown>>;
+                  };
                   win.dataLayer = win.dataLayer || [];
 
                   win.dataLayer.push({
