@@ -1,0 +1,186 @@
+{
+  "verbs": {
+    "cut": { "infinitive": "schneiden", "imperative": "Schneide" },
+    "slice": { "infinitive": "schneiden", "imperative": "Schneide" },
+    "dice": { "infinitive": "würfeln", "imperative": "Würfele" },
+    "chop": { "infinitive": "hacken", "imperative": "Hacke" },
+    "cook": { "infinitive": "kochen", "imperative": "Koche" },
+    "wash": { "infinitive": "waschen", "imperative": "Wasche" },
+    "peel": { "infinitive": "schälen", "imperative": "Schäle" },
+    "mix": { "infinitive": "mischen", "imperative": "Mische" },
+    "whisk": { "infinitive": "verquirlen", "imperative": "Verquirle" },
+    "beat": { "infinitive": "verquirlen", "imperative": "Verquirle" },
+    "combine": { "infinitive": "mischen", "imperative": "Mische" },
+    "heat": { "infinitive": "erhitzen", "imperative": "Erhitze" },
+    "fry": { "infinitive": "braten", "imperative": "Brate" },
+    "flip": { "infinitive": "wenden", "imperative": "Wende" },
+    "serve": { "infinitive": "servieren", "imperative": "Serviere" },
+    "add": { "infinitive": "hinzufügen", "imperative": "Füge hinzu" },
+    "move": { "infinitive": "bewegen", "imperative": "Bewege" },
+    "grab": { "infinitive": "greifen", "imperative": "Greife" },
+    "drop": { "infinitive": "ablegen", "imperative": "Lege ab" },
+    "celebrate": { "infinitive": "feiern", "imperative": "Guten Appetit!" }
+  },
+  "nouns": {
+    "potato": {
+      "singular": "Kartoffel",
+      "plural": "Kartoffeln",
+      "defaultForm": "plural",
+      "article": { "singular": "die", "plural": "die" },
+      "accusative": { "singular": "die", "plural": "die" }
+    },
+    "potatoes": {
+      "singular": "Kartoffel",
+      "plural": "Kartoffeln",
+      "defaultForm": "plural",
+      "article": { "singular": "die", "plural": "die" },
+      "accusative": { "singular": "die", "plural": "die" }
+    },
+    "egg": {
+      "singular": "Ei",
+      "plural": "Eier",
+      "defaultForm": "plural",
+      "article": { "singular": "das", "plural": "die" },
+      "accusative": { "singular": "das", "plural": "die" }
+    },
+    "eggs": {
+      "singular": "Ei",
+      "plural": "Eier",
+      "defaultForm": "plural",
+      "article": { "singular": "das", "plural": "die" },
+      "accusative": { "singular": "das", "plural": "die" }
+    },
+    "onion": {
+      "singular": "Zwiebel",
+      "plural": "Zwiebeln",
+      "defaultForm": "plural",
+      "article": { "singular": "die", "plural": "die" },
+      "accusative": { "singular": "die", "plural": "die" }
+    },
+    "onions": {
+      "singular": "Zwiebel",
+      "plural": "Zwiebeln",
+      "defaultForm": "plural",
+      "article": { "singular": "die", "plural": "die" },
+      "accusative": { "singular": "die", "plural": "die" }
+    },
+    "oil": {
+      "singular": "Olivenöl",
+      "plural": "Olivenöl",
+      "defaultForm": "singular",
+      "article": { "singular": "das", "plural": "das" },
+      "accusative": { "singular": "das", "plural": "das" }
+    },
+    "salt": {
+      "singular": "Salz",
+      "plural": "Salz",
+      "defaultForm": "singular",
+      "article": { "singular": "das", "plural": "das" },
+      "accusative": { "singular": "das", "plural": "das" }
+    },
+    "garlic": {
+      "singular": "Knoblauch",
+      "plural": "Knoblauch",
+      "defaultForm": "singular",
+      "article": { "singular": "der", "plural": "der" },
+      "accusative": { "singular": "den", "plural": "die" }
+    },
+    "pepper": {
+      "singular": "Paprika",
+      "plural": "Paprika",
+      "defaultForm": "singular",
+      "article": { "singular": "die", "plural": "die" },
+      "accusative": { "singular": "die", "plural": "die" }
+    },
+    "black_pepper": {
+      "singular": "Schwarzer Pfeffer",
+      "plural": "Schwarzer Pfeffer",
+      "defaultForm": "singular",
+      "article": { "singular": "der", "plural": "der" },
+      "accusative": { "singular": "den", "plural": "die" }
+    },
+    "chorizo": {
+      "singular": "Chorizo",
+      "plural": "Chorizo",
+      "defaultForm": "singular",
+      "article": { "singular": "die", "plural": "die" },
+      "accusative": { "singular": "die", "plural": "die" }
+    },
+    "mixture": {
+      "singular": "Huevo batido",
+      "plural": "Huevo batido",
+      "defaultForm": "singular",
+      "article": { "singular": "das", "plural": "das" }
+    },
+    "huevo batido": {
+      "singular": "Huevo batido",
+      "plural": "Huevo batido",
+      "defaultForm": "singular",
+      "article": { "singular": "das", "plural": "das" }
+    },
+    "tortilla clásica": {
+      "singular": "Tortilla clásica",
+      "plural": "Tortilla clásica",
+      "defaultForm": "singular",
+      "article": { "singular": "die", "plural": "die" }
+    },
+    "tortilla con cebolla": {
+      "singular": "Tortilla con cebolla",
+      "plural": "Tortilla con cebolla",
+      "defaultForm": "singular",
+      "article": { "singular": "die", "plural": "die" }
+    },
+    "tortilla francesa": {
+      "singular": "Tortilla francesa",
+      "plural": "Tortilla francesa",
+      "defaultForm": "singular",
+      "article": { "singular": "die", "plural": "die" }
+    },
+    "burner": {
+      "singular": "Pfanne",
+      "plural": "Pfannen",
+      "defaultForm": "singular",
+      "article": { "singular": "die", "plural": "die" },
+      "inContainer": "In die Pfanne",
+      "ontoContainer": "In die Pfanne"
+    },
+    "burner1": {
+      "singular": "Pfanne",
+      "plural": "Pfannen",
+      "defaultForm": "singular",
+      "article": { "singular": "die", "plural": "die" },
+      "inContainer": "In die Pfanne",
+      "ontoContainer": "In die Pfanne"
+    },
+    "plate": {
+      "singular": "Servierteller 🍽️",
+      "plural": "Servierteller 🍽️",
+      "defaultForm": "singular",
+      "article": { "singular": "der", "plural": "die" },
+      "inContainer": "Auf dem Servierteller 🍽️",
+      "ontoContainer": "Auf dem Servierteller 🍽️"
+    },
+    "bowl": {
+      "singular": "Schüssel 🥣",
+      "plural": "Schüsseln 🥣",
+      "defaultForm": "singular",
+      "article": { "singular": "die", "plural": "die" },
+      "inContainer": "In die Schüssel 🥣",
+      "ontoContainer": "In die Schüssel 🥣"
+    },
+    "board": {
+      "singular": "Schneidebrett 🔪",
+      "plural": "Schneidebretter 🔪",
+      "defaultForm": "singular",
+      "article": { "singular": "das", "plural": "die" },
+      "inContainer": "Auf das Schneidebrett 🔪",
+      "ontoContainer": "Auf das Schneidebrett 🔪"
+    },
+    "despensa": {
+      "singular": "Vorratskammer 🧺",
+      "plural": "Vorratskammern 🧺",
+      "defaultForm": "singular",
+      "article": { "singular": "die", "plural": "die" }
+    }
+  }
+}

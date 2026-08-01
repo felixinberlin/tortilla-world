@@ -38,6 +38,7 @@ export interface ContainerRules {
   uniqueTypesOnly?: boolean;
   consumesOnDrag?: boolean;
   isImmutable?: boolean;
+  allowDuplicateIngredients?: boolean;
   customValidator?: ( 
     container: Container,
     entity: Entity,

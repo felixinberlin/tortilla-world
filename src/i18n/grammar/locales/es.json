@@ -1,0 +1,112 @@
+{
+  "verbs": {
+    "cut": { "infinitive": "cortar", "imperative": "Corta" },
+    "slice": { "infinitive": "cortar", "imperative": "Corta" },
+    "dice": { "infinitive": "cortar en dados", "imperative": "Corta en dados" },
+    "chop": { "infinitive": "picar", "imperative": "Pica" },
+    "cook": { "infinitive": "cocinar", "imperative": "Cocina" },
+    "wash": { "infinitive": "lavar", "imperative": "Lava" },
+    "peel": { "infinitive": "pelar", "imperative": "Pela" },
+    "mix": { "infinitive": "mezclar", "imperative": "Mezcla" },
+    "whisk": { "infinitive": "batir", "imperative": "Bate" },
+    "beat": { "infinitive": "batir", "imperative": "Bate" },
+    "combine": { "infinitive": "combinar", "imperative": "Combina" },
+    "heat": { "infinitive": "calentar", "imperative": "Calienta" },
+    "fry": { "infinitive": "freír", "imperative": "Fríe" },
+    "flip": { "infinitive": "voltear", "imperative": "Voltea" },
+    "serve": { "infinitive": "servir", "imperative": "Sirve" },
+    "add": { "infinitive": "añadir", "imperative": "Añade" },
+    "move": { "infinitive": "mover", "imperative": "Mueve" },
+    "grab": { "infinitive": "coger", "imperative": "Coge" },
+    "drop": { "infinitive": "colocar", "imperative": "Coloca" },
+    "celebrate": { "infinitive": "celebrar", "imperative": "¡A celebrar!" }
+  },
+  "nouns": {
+    "potato": {
+      "singular": "patata",
+      "plural": "patatas",
+      "defaultForm": "plural",
+      "article": { "singular": "la", "plural": "las" }
+    },
+    "potatoes": {
+      "singular": "patata",
+      "plural": "patatas",
+      "defaultForm": "plural",
+      "article": { "singular": "la", "plural": "las" }
+    },
+    "egg": {
+      "singular": "huevo",
+      "plural": "huevos",
+      "defaultForm": "plural",
+      "article": { "singular": "el", "plural": "los" }
+    },
+    "eggs": {
+      "singular": "huevo",
+      "plural": "huevos",
+      "defaultForm": "plural",
+      "article": { "singular": "el", "plural": "los" }
+    },
+    "onion": {
+      "singular": "cebolla",
+      "plural": "cebollas",
+      "defaultForm": "singular",
+      "article": { "singular": "la", "plural": "las" }
+    },
+    "onions": {
+      "singular": "cebolla",
+      "plural": "cebollas",
+      "defaultForm": "plural",
+      "article": { "singular": "la", "plural": "las" }
+    },
+    "salt": {
+      "singular": "sal",
+      "plural": "sal",
+      "defaultForm": "singular",
+      "article": { "singular": "la", "plural": "las" }
+    },
+    "oil": {
+      "singular": "aceite de oliva",
+      "plural": "aceite de oliva",
+      "defaultForm": "singular",
+      "article": { "singular": "el", "plural": "los" }
+    },
+    "garlic": {
+      "singular": "ajo",
+      "plural": "ajos",
+      "defaultForm": "singular",
+      "article": { "singular": "el", "plural": "los" }
+    },
+    "burner": {
+      "singular": "sartén",
+      "plural": "sartenes",
+      "defaultForm": "singular",
+      "article": { "singular": "la", "plural": "las" },
+      "inContainer": "en la sartén",
+      "ontoContainer": "en la sartén"
+    },
+    "burner1": {
+      "singular": "sartén",
+      "plural": "sartenes",
+      "defaultForm": "singular",
+      "article": { "singular": "la", "plural": "las" },
+      "inContainer": "en la sartén",
+      "ontoContainer": "en la sartén"
+    },
+    "plate": {
+      "singular": "plato",
+      "plural": "platos",
+      "defaultForm": "singular",
+      "article": { "singular": "el", "plural": "los" },
+      "inContainer": "en el plato",
+      "ontoContainer": "en el plato"
+    },
+    "bowl": {
+      "singular": "bol",
+      "plural": "boles",
+      "defaultForm": "singular",
+      "article": { "singular": "el", "plural": "los" },
+      "inContainer": "en el bol",
+      "ontoContainer": "en el bol"
+    }
+  }
+}

@@ -130,6 +130,7 @@ export const ActionReplayer: React.FC<ActionReplayerProps> = ({
     }
 
     if (actionsToLoad && actionsToLoad.length > 0) {
+      worldStore.getState().resetWorld();
       worldStore.getState().setRecordedActions(actionsToLoad as unknown as RecordedAction[]);
       setCurrentStep(0);
       setErrorMessage(null);
@@ -158,6 +159,7 @@ export const ActionReplayer: React.FC<ActionReplayerProps> = ({
           }
 
           setErrorMessage(null);
+          worldStore.getState().resetWorld();
           worldStore.getState().setRecordedActions(actions as unknown as RecordedAction[]);
           setCurrentStep(0);
         } catch (err) {

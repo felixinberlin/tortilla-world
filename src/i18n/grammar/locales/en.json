@@ -1,0 +1,104 @@
+{
+  "verbs": {
+    "cut": { "infinitive": "cut", "imperative": "Cut" },
+    "slice": { "infinitive": "slice", "imperative": "Slice" },
+    "dice": { "infinitive": "dice", "imperative": "Dice" },
+    "chop": { "infinitive": "chop", "imperative": "Chop" },
+    "cook": { "infinitive": "cook", "imperative": "Cook" },
+    "wash": { "infinitive": "wash", "imperative": "Wash" },
+    "peel": { "infinitive": "peel", "imperative": "Peel" },
+    "mix": { "infinitive": "mix", "imperative": "Mix" },
+    "whisk": { "infinitive": "whisk", "imperative": "Whisk" },
+    "beat": { "infinitive": "beat", "imperative": "Beat" },
+    "combine": { "infinitive": "combine", "imperative": "Combine" },
+    "heat": { "infinitive": "heat", "imperative": "Heat" },
+    "fry": { "infinitive": "fry", "imperative": "Fry" },
+    "flip": { "infinitive": "flip", "imperative": "Flip" },
+    "serve": { "infinitive": "serve", "imperative": "Serve" },
+    "add": { "infinitive": "add", "imperative": "Add" },
+    "move": { "infinitive": "move", "imperative": "Move" },
+    "grab": { "infinitive": "grab", "imperative": "Grab" },
+    "drop": { "infinitive": "drop", "imperative": "Drop" },
+    "celebrate": { "infinitive": "celebrate", "imperative": "Enjoy your meal!" }
+  },
+  "nouns": {
+    "potato": {
+      "singular": "potato",
+      "plural": "potatoes",
+      "defaultForm": "plural",
+      "article": { "singular": "the", "plural": "the" }
+    },
+    "potatoes": {
+      "singular": "potato",
+      "plural": "potatoes",
+      "defaultForm": "plural",
+      "article": { "singular": "the", "plural": "the" }
+    },
+    "egg": {
+      "singular": "egg",
+      "plural": "eggs",
+      "defaultForm": "plural",
+      "article": { "singular": "the", "plural": "the" }
+    },
+    "eggs": {
+      "singular": "egg",
+      "plural": "eggs",
+      "defaultForm": "plural",
+      "article": { "singular": "the", "plural": "the" }
+    },
+    "onion": {
+      "singular": "onion",
+      "plural": "onions",
+      "defaultForm": "singular",
+      "article": { "singular": "the", "plural": "the" }
+    },
+    "onions": {
+      "singular": "onion",
+      "plural": "onions",
+      "defaultForm": "plural",
+      "article": { "singular": "the", "plural": "the" }
+    },
+    "salt": {
+      "singular": "salt",
+      "plural": "salt",
+      "defaultForm": "singular",
+      "article": { "singular": "the", "plural": "the" }
+    },
+    "oil": {
+      "singular": "olive oil",
+      "plural": "olive oil",
+      "defaultForm": "singular",
+      "article": { "singular": "the", "plural": "the" }
+    },
+    "garlic": {
+      "singular": "garlic",
+      "plural": "garlic",
+      "defaultForm": "singular",
+      "article": { "singular": "the", "plural": "the" }
+    },
+    "burner": {
+      "singular": "pan",
+      "plural": "pans",
+      "defaultForm": "singular",
+      "article": { "singular": "the", "plural": "the" },
+      "inContainer": "in the pan",
+      "ontoContainer": "into the pan"
+    },
+    "burner1": {
+      "singular": "pan",
+      "plural": "pans",
+      "defaultForm": "singular",
+      "article": { "singular": "the", "plural": "the" },
+      "inContainer": "in the pan",
+      "ontoContainer": "into the pan"
+    },
+    "plate": {
+      "singular": "plate",
+      "plural": "plates",
+      "defaultForm": "singular",
+      "article": { "singular": "the", "plural": "the" },
+      "inContainer": "onto the plate",
+      "ontoContainer": "onto the plate"
+    }
+  }
+}

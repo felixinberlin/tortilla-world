@@ -21,8 +21,13 @@ export interface ValidationResult {
 }
 
 export function getIngredientCatalogId(entity: Entity): string {
-  if (entity.ingredientId) return entity.ingredientId;
-  return entity.id.split('_')[0];
+  const baseId = entity.ingredientId || entity.id.split('_')[0];
+  const preparation = entity.state?.preparation || '';
+  const cooking = entity.state?.cooking || (entity.status && entity.status !== 'raw' ? entity.status : '');
+  if (preparation || cooking) {
+    return `${baseId}:${preparation}:${cooking}`;
+  }
+  return baseId;
 }
 
 export function resolveContainerId(containerId: string): string {
@@ -61,6 +66,9 @@ export function resolveContainerId(containerId: string): string {
   if (lower === 'plato' || lower === 'plate') {
     return 'plate';
   }
+  if (lower === 'basura' || lower === 'trash' || lower === 'papelera') {
+    return 'trash';
+  }
 
   return containerId;
 }
@@ -73,7 +81,7 @@ export function validateContainerRules(
   const rules = container.rules;
 
   // 1. Ingredient Uniqueness Check (Rule 6: A container cannot contain two identical ingredients)
-  if (entity.type === 'ingredient') {
+  if (entity.type === 'ingredient' && !rules?.allowDuplicateIngredients) {
     const targetIngredientId = getIngredientCatalogId(entity);
     const hasDuplicateIngredient = currentEntitiesInContainer.some(
       (e) => e.type === 'ingredient' && getIngredientCatalogId(e) === targetIngredientId

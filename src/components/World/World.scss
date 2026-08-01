@@ -110,6 +110,19 @@
       border-radius: $radius-sm;
     }
   }
+
+  // Trash Bin Theme
+  &.container-view--trash, &.container-view--basura, &.container-view--papelera {
+    background: #fef2f2;
+    border-color: #fca5a5;
+    .container-view__badge {
+      background: #fee2e2;
+      color: #dc2626;
+      border: 1px solid #f87171;
+      padding: 2px 8px;
+      border-radius: $radius-sm;
+    }
+  }
 }
 
 .burner-toggle {
@@ -352,6 +365,36 @@
   &--finished {
     background: #dcfce7;
     color: #15803d;
+  }
+}
+
+.entity-delete-btn {
+  margin-left: auto;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid #cbd5e1;
+  background-color: #f8fafc;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: bold;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #ef4444;
+    color: #ffffff;
+    border-color: #dc2626;
+    transform: scale(1.1);
+  }
+
+  &:active {
+    transform: scale(0.95);
   }
 }
 

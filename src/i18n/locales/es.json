@@ -120,16 +120,23 @@
     "heatOn": "Encender Fuego",
     "heatOff": "Apagar Fuego",
     "emptyContainerHint": "Coloca elementos aquí",
-    "noRecipesAvailable": "No hay recetas disponibles."
+    "noRecipesAvailable": "No hay recetas disponibles.",
+    "showIngredients": "Mostrar Ingredientes",
+    "hideIngredients": "Ocultar Ingredientes",
+    "emptyTrash": "Vaciar Papelera",
+    "confirmEmptyTrash": "¿Estás seguro de que quieres vaciar la papelera?",
+    "yesEmpty": "Sí, vaciar",
+    "cancel": "Cancelar"
   },
   "workstations": {
     "sink": "Zona de Lavado 💧",
     "board": "Área de Corte 🔪",
     "bowl": "Preparación 🥣",
-    "burner": "Zona de Cocinado 🍳",
-    "burner1": "Zona de Cocinado 1 🍳",
-    "burner2": "Zona de Cocinado 2 🍳",
-    "plate": "Plato de Servir 🍽️",
+    "burner": "Sartén 🍳",
+    "burner1": "sartén",
+    "burner2": "Sartén 2 🍳",
+    "plate": "plato",
+    "trash": "Papelera 🗑️",
     "despensa": "Despensa 🧺",
     "default": "Área de Trabajo 📦"
   },
@@ -140,12 +147,30 @@
     "peel": "Pelar",
     "mix": "Mezclar",
     "whisk": "Batir",
+    "beat": "Batir",
+    "combine": "Combinar",
     "heat": "Calentar",
     "flip": "Voltear",
     "serve": "Servir",
     "add": "Añadir",
     "fry": "Freír",
-    "take": "Tomar"
+    "take": "Tomar",
+    "move": "Mover",
+    "grab": "Coger",
+    "drop": "Colocar",
+    "celebrate": "¡A celebrar!"
+  },
+  "stepFormat": {
+    "moveFromTo": "Mover {{ingredient}} de {{source}} a {{target}}",
+    "moveTo": "Mover {{ingredient}} a {{target}}",
+    "mixToMake": "{{verb}} {{inputs}} para hacer {{output}}",
+    "cookFor": "{{verb}} {{target}} durante {{duration}} {{unit}}",
+    "cookForToMake": "{{verb}} {{target}} durante {{duration}} {{unit}} para hacer {{as}}",
+    "flipInContainer": "Voltear {{target}} en la {{container}}",
+    "flip": "{{verb}} {{target}}",
+    "serveOntoAs": "Servir en el {{container}} como {{as}}",
+    "serveAs": "Servir como {{as}}",
+    "serveOnto": "Servir en el {{container}}"
   },
   "ingredients": {
     "potato": "Patatas",
@@ -201,27 +226,6 @@
       "description": "Tortilla española jugosa con cebollas caramelizadas.",
       "hints": [
         "Fríe las cebollas hasta que estén doradas antes de mezclar."
-      ],
-      "instructions": [
-        "Pela las patatas.",
-        "Lava las patatas.",
-        "Corta las patatas en rodajas.",
-        "Pela las cebollas.",
-        "Lava las cebollas.",
-        "Corta las cebollas en dados.",
-        "Calienta el aceite de oliva.",
-        "Fríe las patatas hasta que estén tiernas.",
-        "Fríe las cebollas hasta que estén doradas.",
-        "Bate los huevos.",
-        "Añade sal y pimienta.",
-        "Mezcla las patatas y cebollas fritas con los huevos batidos, sal y pimienta.",
-        "Vierte la mezcla en la sartén.",
-        "Cocina durante 5 minutos.",
-        "Con una espátula blanda, asegúrate de que la tortilla no se pega a la sartén.",
-        "Dale la vuelta a la tortilla.",
-        "Cocina durante otros 5 minutos.",
-        "Sirve la tortilla.",
-        "¡A celebrar!"
       ]
     },
     "clasica": {
@@ -230,21 +234,6 @@
       "hints": [
         "Que no se queme el ajo.",
         "Con una espátula blanda, asegúrate de que la tortilla no se pega a la sartén."
-      ],
-      "instructions": [
-        "Pela los ajos.",
-        "Calienta el aceite de oliva.",
-        "Fríe los ajos suavemente.",
-        "Retira los ajos al plato.",
-        "Fríe las patatas hasta que estén tiernas.",
-        "Bate los huevos.",
-        "Mezcla las patatas, huevos, sal, pimienta negra y ajos.",
-        "Vierte la mezcla en la sartén y cocina durante 5 minutos.",
-        "Con una espátula blanda, asegúrate de que la tortilla no se pega a la sartén.",
-        "Dale la vuelta a la tortilla.",
-        "Cocina durante otros 5 minutos.",
-        "Sirve la tortilla.",
-        "¡A celebrar!"
       ]
     },
     "francesa": {
@@ -254,18 +243,6 @@
         "Mezcla los huevos en el bol con la sal para hacer el Huevo batido.",
         "Enciende el fuego, añade aceite y caliéntalo.",
         "Con una espátula blanda, asegúrate de que la tortilla no se pega a la sartén."
-      ],
-      "instructions": [
-        "Bate los huevos.",
-        "Mezcla los huevos con sal en el bol para hacer el Huevo batido.",
-        "Enciende el fuego de la sartén.",
-        "Calienta el aceite.",
-        "Cocina el Huevo batido.",
-        "Mueve un poco la tortilla.",
-        "Dale la vuelta a la tortilla.",
-        "Cocina por el otro lado.",
-        "Sirve en el plato como Tortilla francesa.",
-        "¡A celebrar!"
       ]
     }
   }

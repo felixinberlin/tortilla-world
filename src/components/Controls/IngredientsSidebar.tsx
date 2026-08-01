@@ -23,6 +23,7 @@ import './IngredientsSidebar.scss';
 export const IngredientsSidebar: React.FC = () => {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
 
   const entities = useStore(worldStore, (state) => state.entities);
   const containers = useStore(worldStore, (state) => state.containers);
@@ -78,45 +79,72 @@ export const IngredientsSidebar: React.FC = () => {
   };
 
   return (
-    <div className="ingredients-sidebar-container" data-container-id="despensa">
-      <div className="sidebar-header">
-        <div className="sidebar-title">
-          <span>🧺 {t('ui.ingredientsCatalog')}</span>
-        </div>
-        <div className="sidebar-subtitle">
-          {t('ui.sidebarSubtitle')}
-        </div>
-      </div>
-
-      <div className="sidebar-search">
-        <input
-          type="text"
-          placeholder={t('ui.searchIngredientsPlaceholder')}
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-      </div>
-
-      <div className="items-grid">
-        {filteredItems.map((item) => (
-          <div key={item.id} className="sidebar-item-card">
-            <div className="item-entity-wrapper">
-              <EntityView entity={item} containerId="despensa" readOnly={false} />
-            </div>
-            <button
-              type="button"
-              className="quick-add-btn"
-              onClick={() => handleQuickAdd(item.id)}
-              title={`${t('verbs.take')} ${item.name}`}
-            >
-              ➕ {t('verbs.take')}
-            </button>
+    <div className={`ingredients-sidebar-container ${isCollapsed ? 'collapsed' : ''}`} data-container-id="despensa">
+      <div className="sidebar-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div>
+          <div className="sidebar-title">
+            <span>🧺 {t('ui.ingredientsCatalog')}</span>
           </div>
-        ))}
+          {!isCollapsed && (
+            <div className="sidebar-subtitle">
+              {t('ui.sidebarSubtitle')}
+            </div>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="toggle-sidebar-btn"
+          style={{
+            padding: '4px 10px',
+            fontSize: '0.8rem',
+            fontWeight: 600,
+            borderRadius: '6px',
+            border: '1px solid #cbd5e1',
+            backgroundColor: '#ffffff',
+            color: '#334155',
+            cursor: 'pointer',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {isCollapsed ? `👁️ ${t('ui.showIngredients')}` : `🙈 ${t('ui.hideIngredients')}`}
+        </button>
       </div>
 
-      {filteredItems.length === 0 && (
-        <div className="no-results">{t('ui.noIngredientsFound', { query: searchQuery })}</div>
+      {!isCollapsed && (
+        <>
+          <div className="sidebar-search">
+            <input
+              type="text"
+              placeholder={t('ui.searchIngredientsPlaceholder')}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+
+          <div className="items-grid">
+            {filteredItems.map((item) => (
+              <div key={item.id} className="sidebar-item-card">
+                <div className="item-entity-wrapper">
+                  <EntityView entity={item} containerId="despensa" readOnly={false} />
+                </div>
+                <button
+                  type="button"
+                  className="quick-add-btn"
+                  onClick={() => handleQuickAdd(item.id)}
+                  title={`${t('verbs.take')} ${item.name}`}
+                >
+                  ➕ {t('verbs.take')}
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {filteredItems.length === 0 && (
+            <div className="no-results">{t('ui.noIngredientsFound', { query: searchQuery })}</div>
+          )}
+        </>
       )}
     </div>
   );

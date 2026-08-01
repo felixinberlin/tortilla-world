@@ -808,6 +808,20 @@ All 3 formats are previewable in UI tabs and downloadable as formatted `.json` f
 
 ---
 
+# Decision: State-Aware Ingredient Uniqueness & Mascot Empty Trash Confirmation
+
+## Context
+1. **Container Duplicate Checking**: Previously, container uniqueness checked `ingredientId` or base entity ID. This caused containers (including `trash`) to reject valid non-identical items (e.g. a raw lemon and a peeled lemon) because they shared the same base ingredient ID (`lemon`).
+2. **Trash Disposal**: A way to clear discarded entities from the world was required (`EMPTY_TRASH` action).
+3. **Mascot Interaction**: Accidental trash clearing should be prevented by asking the Mascot "Are you sure you want to empty the trash?" before executing the deletion.
+
+## Decision
+1. **State-Aware Catalog ID Matching (`getIngredientCatalogId`)**: `getIngredientCatalogId` now appends preparation and cooking state metadata (`baseId:preparation:cooking`). Thus, `lemon` (raw) and `lemon:peeled` are recognized as distinct catalog items. Two raw lemons are rejected as duplicates, whereas a raw lemon AND a peeled lemon are allowed.
+2. **`EMPTY_TRASH` Action**: Dispatches an `EMPTY_TRASH` action that clears `containers.trash.entityIds` and purges the associated trashed entities from `worldStore.entities`.
+3. **Mascot Confirmation Dialog**: Clicking "Empty Trash" moves the Mascot focus (`MASCOT_MOVE`) to the trash container and displays a prompt bubble asking *"Are you sure you want to empty the trash?"*. Selecting **Yes, empty** triggers `EMPTY_TRASH`, while **Cancel** dismisses the prompt.
+
+---
+
 # Final Principle
 
 The rule of Tortilla World:

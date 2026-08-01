@@ -120,16 +120,23 @@
     "heatOn": "Hitze An",
     "heatOff": "Hitze Aus",
     "emptyContainerHint": "Elemente hier ablegen",
-    "noRecipesAvailable": "Keine Rezepte verfügbar."
+    "noRecipesAvailable": "Keine Rezepte verfügbar.",
+    "showIngredients": "Zutaten anzeigen",
+    "hideIngredients": "Zutaten ausblenden",
+    "emptyTrash": "Mülleimer leeren",
+    "confirmEmptyTrash": "Bist du sicher, dass du den Mülleimer leeren möchtest?",
+    "yesEmpty": "Ja, leeren",
+    "cancel": "Abbrechen"
   },
   "workstations": {
     "sink": "Waschplatz 💧",
     "board": "Schneidebereich 🔪",
     "bowl": "Zubereitung 🥣",
-    "burner": "Kochbereich 🍳",
-    "burner1": "Kochbereich 1 🍳",
-    "burner2": "Kochbereich 2 🍳",
+    "burner": "Pfanne 🍳",
+    "burner1": "Pfanne",
+    "burner2": "Pfanne 2 🍳",
     "plate": "Servierteller 🍽️",
+    "trash": "Mülleimer 🗑️",
     "despensa": "Vorratskammer 🧺",
     "default": "Arbeitsbereich 📦"
   },
@@ -140,12 +147,30 @@
     "peel": "Schälen",
     "mix": "Mischen",
     "whisk": "Verquirlen",
+    "beat": "Verquirlen",
+    "combine": "Kombinieren",
     "heat": "Erhitzen",
     "flip": "Wenden",
     "serve": "Servieren",
     "add": "Hinzufügen",
     "fry": "Braten",
-    "take": "Nehmen"
+    "take": "Nehmen",
+    "move": "Bewegen",
+    "grab": "Greifen",
+    "drop": "Ablegen",
+    "celebrate": "Guten Appetit!"
+  },
+  "stepFormat": {
+    "moveFromTo": "Bewege {{ingredient}} von {{source}} nach {{target}}",
+    "moveTo": "Bewege {{ingredient}} nach {{target}}",
+    "mixToMake": "{{verb}} {{inputs}}, um {{output}} herzustellen",
+    "cookFor": "{{verb}} {{target}} für {{duration}} {{unit}}",
+    "cookForToMake": "{{verb}} {{target}} für {{duration}} {{unit}} um {{as}} zu erzeugen",
+    "flipInContainer": "In die {{container}} {{target}} wenden",
+    "flip": "{{target}} wenden",
+    "serveOntoAs": "Auf dem {{container}} als {{as}} servieren",
+    "serveAs": "Als {{as}} servieren",
+    "serveOnto": "Auf dem {{container}} servieren"
   },
   "ingredients": {
     "potato": "Kartoffeln",
@@ -201,27 +226,6 @@
       "description": "Spanische Tortilla mit saftigen karamellisierten Zwiebeln.",
       "hints": [
         "Zwiebeln vor dem Mischen goldbraun anbraten."
-      ],
-      "instructions": [
-        "Schäle die Kartoffeln.",
-        "Wasche die Kartoffeln.",
-        "Schneide die Kartoffeln in Scheiben.",
-        "Schäle die Zwiebeln.",
-        "Wasche die Zwiebeln.",
-        "Würfele die Zwiebeln.",
-        "Erhitze das Olivenöl.",
-        "Brate die Kartoffeln an, bis sie weich sind.",
-        "Brate die Zwiebeln goldbraun an.",
-        "Verquirle die Eier.",
-        "Gib Salz und Pfeffer hinzu.",
-        "Mische die gebratenen Kartoffeln und Zwiebeln mit den verquirlten Eiern, Salz und Pfeffer.",
-        "Gieße die Mischung in die Pfanne.",
-        "Koche alles für 5 Minuten.",
-        "Achte mit einem weichen Pfannenwender darauf, dass die Tortilla nicht festklebt.",
-        "Wende die Tortilla.",
-        "Koche sie für weitere 5 Minuten.",
-        "Serviere die Tortilla.",
-        "Guten Appetit!"
       ]
     },
     "clasica": {
@@ -230,21 +234,6 @@
       "hints": [
         "Lass den Knoblauch nicht anbrennen.",
         "Achte mit einem weichen Pfannenwender darauf, dass die Tortilla nicht festklebt."
-      ],
-      "instructions": [
-        "Schäle den Knoblauch.",
-        "Erhitze das Olivenöl.",
-        "Brate den Knoblauch kurz an.",
-        "Nimm den Knoblauch auf den Teller.",
-        "Brate die Kartoffeln an, bis sie weich sind.",
-        "Verquirle die Eier.",
-        "Mische Kartoffeln, Eier, Salz, schwarzen Pfeffer und Knoblauch.",
-        "Gieße die Mischung in die Pfanne und koche sie 5 Minuten lang.",
-        "Achte mit einem weichen Pfannenwender darauf, dass die Tortilla nicht festklebt.",
-        "Wende die Tortilla.",
-        "Koche sie für weitere 5 Minuten.",
-        "Serviere die Tortilla.",
-        "Guten Appetit!"
       ]
     },
     "francesa": {
@@ -254,18 +243,6 @@
         "Mische die Eier im Schüssel mit Salz.",
         "Schalte den Herd ein, gib Öl hinzu und erhitze es.",
         "Achte darauf, dass das Omelett nicht festklebt."
-      ],
-      "instructions": [
-        "Verquirle die Eier.",
-        "Mische die Eier mit Salz in der Schüssel.",
-        "Schalte den Herd ein.",
-        "Erhitze das Öl.",
-        "Koche das verquirlte Ei.",
-        "Rühre das Omelett leicht um.",
-        "Wende das Omelett.",
-        "Koche die andere Seite.",
-        "Serviere als Tortilla francesa auf dem Teller.",
-        "Guten Appetit!"
       ]
     }
   }

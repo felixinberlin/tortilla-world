@@ -30,8 +30,9 @@ export function getRecipeWorkstationIds(
     return result;
   }
 
-  // Plato (plate) is always required to present/serve the finished recipe
+  // Plato (plate) and Trash are always available in kitchen workstations
   result.add('plate');
+  result.add('trash');
 
   const knownContainers = new Set(['sink', 'board', 'bowl', 'burner1', 'burner2', 'plate', 'trash']);
 

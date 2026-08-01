@@ -90,29 +90,18 @@
       "target": "mixture",
       "method": "fry",
       "duration": 5,
-      "unit": "min"
-    },
-    {
-      "action": "instruction",
-      "text": "Con una espátula blanda, asegúrate de que la tortilla no se pega a la sartén."
-    },
-    {
-      "action": "flip",
-      "target": "mixture",
-      "instruction": "Dale la vuelta a la tortilla."
-    },
-    {
-      "action": "cook",
-      "target": "mixture",
-      "method": "fry",
-      "duration": 5,
       "unit": "min",
-      "instruction": "Deja cocinar por otros 5 min.",
       "as": "Tortilla clásica"
     },
     {
-      "action": "serve",
+      "action": "flip",
       "target": "mixture"
+    },
+    {
+      "action": "serve",
+      "target": "mixture",
+      "as": "Tortilla clásica",
+      "containerId": "plate"
     },
     {
       "action": "celebrate"

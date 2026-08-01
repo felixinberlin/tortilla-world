@@ -15,6 +15,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from '../../i18n/useTranslation';
 import { useStore } from 'zustand';
 import { worldStore } from '../../store/worldStore';
 import { TortillaSvg } from './TortillaSvg';
@@ -28,6 +29,7 @@ interface MascotProps {
 }
 
 export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
+  const { t } = useTranslation();
   const mascotEntity = useStore(worldStore, (state) => state.entities[mascotId]);
   const entities = useStore(worldStore, (state) => state.entities);
   const focusTarget = useStore(worldStore, (state) => state.focusTarget);
@@ -187,7 +189,7 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
               className="mascot-speech-bubble"
               style={{
                 position: 'absolute',
-                top: '-40px',
+                top: '-50px',
                 left: '50%',
                 transform: 'translateX(-50%)',
                 padding: '8px 12px',
@@ -199,14 +201,70 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
                 borderRadius: '8px',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
                 gap: '6px',
                 whiteSpace: 'nowrap',
                 zIndex: 10,
               }}
             >
-              <span>💬</span>
-              <span>{speechMessage}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span>💬</span>
+                <span>{speechMessage}</span>
+              </div>
+              {(speechMessage.includes('empty') ||
+                speechMessage.includes('vaciar') ||
+                speechMessage.includes('leeren') ||
+                speechMessage.includes('trash') ||
+                speechMessage.includes('papelera') ||
+                speechMessage.includes('Mülleimer')) && (
+                <div style={{ display: 'flex', gap: '8px', marginTop: '2px' }}>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      dispatch({ type: 'EMPTY_TRASH' });
+                      dispatch({
+                        type: 'UPDATE_ENTITY_STATE',
+                        payload: { entityId: 'chef', changes: { speechMessage: undefined } },
+                      });
+                    }}
+                    style={{
+                      backgroundColor: '#ef4444',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: '4px',
+                      padding: '3px 8px',
+                      fontSize: '11px',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                    }}
+                  >
+                    ✅ {t('ui.yesEmpty')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      dispatch({
+                        type: 'UPDATE_ENTITY_STATE',
+                        payload: { entityId: 'chef', changes: { speechMessage: undefined } },
+                      });
+                    }}
+                    style={{
+                      backgroundColor: '#6b7280',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: '4px',
+                      padding: '3px 8px',
+                      fontSize: '11px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    ❌ {t('ui.cancel')}
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>

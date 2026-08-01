@@ -17,6 +17,7 @@ import { validateContainerRules } from '../../engine/containerRules';
 export interface ContainerSlice {
   containers: Record<string, Container>;
   moveEntity: (entityId: string, targetContainerId: string, positionIndex?: number) => void;
+  emptyTrash: () => void;
 }
 
 export const createContainerSlice: StateCreator<
@@ -26,6 +27,22 @@ export const createContainerSlice: StateCreator<
   ContainerSlice
 > = (set, get) => ({
   containers: {},
+
+  emptyTrash: () => {
+    set(
+      (draft) => {
+        const trashContainer = draft.containers['trash'];
+        if (trashContainer) {
+          trashContainer.entityIds.forEach((id) => {
+            delete draft.entities[id];
+          });
+          trashContainer.entityIds = [];
+        }
+      },
+      false,
+      'EMPTY_TRASH'
+    );
+  },
 
   moveEntity: (entityId, targetContainerId, positionIndex) => {
     const state = get();

@@ -42,10 +42,6 @@
       "output": "Huevo batido"
     },
     {
-      "action": "instruction",
-      "text": "Se enciende el fuego de la sartén."
-    },
-    {
       "action": "cook",
       "target": "oil",
       "method": "heat"
@@ -55,29 +51,18 @@
       "target": "Huevo batido",
       "method": "fry",
       "duration": 5,
-      "unit": "min"
-    },
-    {
-      "action": "instruction",
-      "text": "Se mueve un poco con la espátula."
-    },
-    {
-      "action": "flip",
-      "target": "Huevo batido",
-      "instruction": "Se le da la vuelta a la tortilla."
-    },
-    {
-      "action": "cook",
-      "target": "Huevo batido",
-      "method": "fry",
-      "duration": 5,
       "unit": "min",
-      "instruction": "Deja cocinar por otros 5 min.",
       "as": "Tortilla francesa"
     },
     {
-      "action": "serve",
+      "action": "flip",
       "target": "Huevo batido"
+    },
+    {
+      "action": "serve",
+      "target": "Huevo batido",
+      "as": "Tortilla francesa",
+      "containerId": "plate"
     },
     {
       "action": "celebrate"

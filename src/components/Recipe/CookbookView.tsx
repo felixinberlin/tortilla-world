@@ -5,11 +5,12 @@ import { catalogTools as toolsCatalog } from '../../data/catalog/tools';
 import { getRecipeRequirementsArray } from '../../types/Recipe';
 import type { Recipe } from '../../types/Recipe';
 import { useTranslation } from '../../i18n/useTranslation';
+import { formatRecipeSteps } from '../../systems/recipeStepFormatter';
 import { worldStore } from '../../store/worldStore';
 import './CookbookView.scss';
 
 export const CookbookView: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [selectedRecipeId, setSelectedRecipeId] = useState(recipes[0]?.id);
   const activeRecipe = useMemo(
     () => recipes.find((r) => r.id === selectedRecipeId) || recipes[0],
@@ -39,35 +40,20 @@ export const CookbookView: React.FC = () => {
     });
   }, [activeRecipe, t]);
 
-  // Instructions with fallback to cooklang/steps
+  // Dynamically format recipe steps into human-readable instructions
   const instructions = useMemo(() => {
     if (!activeRecipe) return [];
-
-    const translatedList: string[] = [];
-    let i = 0;
-    while (true) {
-      const key = `recipes.${activeRecipe.id}.instructions.${i}`;
-      const translated = t(key);
-      if (!translated || translated === key || translated.startsWith('recipes.')) {
-        break;
-      }
-      translatedList.push(translated);
-      i++;
+    if (activeRecipe.steps && activeRecipe.steps.length > 0) {
+      return formatRecipeSteps(activeRecipe.steps, t, language);
     }
 
-    if (translatedList.length > 0) {
-      return translatedList;
-    }
-
-    // Check if the recipe has a cooklang string, otherwise use steps
+    // Check if the recipe has a cooklang string fallback
     const cooklangStr = (activeRecipe as Recipe & { cooklang?: string }).cooklang;
     if (cooklangStr) {
-      // Split by newline and clean up the cooklang syntax
       return cooklangStr
         .split('\n')
         .filter((line: string) => line.trim().length > 0)
         .map((line: string) => {
-          // Replace @ingredient{amount%unit} with "ingredient (amount unit)"
           let cleaned = line.replace(/@([a-zA-Z0-9_-]+)\{([^}]+)\}/g, (_match: string, name: string, qty: string) => {
             const cleanName = name.replace(/_/g, ' ');
             const cleanQty = qty.replace('%', ' ');
@@ -76,21 +62,15 @@ export const CookbookView: React.FC = () => {
           cleaned = cleaned.replace(/@([a-zA-Z0-9_-]+)/g, (_match: string, name: string) => {
             return name.replace(/_/g, ' ');
           });
-          // Clean up ~timer{duration%unit}
           cleaned = cleaned.replace(/~([a-zA-Z0-9_-]*)\{([^}]+)\}/g, (_match: string, _name: string, duration: string) => {
             return duration.replace('%', ' ');
           });
           return cleaned;
         });
     }
-    // Fallback to step instructions if no cooklang
-    return activeRecipe.steps.map((step, idx) => {
-      const stepAny = step as Record<string, unknown>;
-      if (step.action === 'instruction') return (stepAny.text as string) || (stepAny.instruction as string) || `Step ${idx + 1}`;
-      const stepTarget = (stepAny.target as string) || (stepAny.ingredient as string) || '';
-      return `${step.action} ${stepTarget}`;
-    });
-  }, [activeRecipe, t]);
+
+    return [];
+  }, [activeRecipe, t, language]);
 
   // Hints with translation lookup
   const hints = useMemo(() => {

@@ -205,26 +205,24 @@ container
 
 ## Duplicate rules
 
-The container checks uniqueness.
+The container checks uniqueness using state-aware ingredient matching (`getIngredientCatalogId`).
 
-Example:
+Uniqueness incorporates ingredient preparation and cooking states (`baseId:preparation:cooking`):
 
-Valid:
+Valid (different ingredients OR different states):
 
 ```text
-Recipe
-
-potato
-egg
+Trash
+  - raw lemon (lemon)
+  - peeled lemon (lemon:peeled)
 ```
 
-Invalid:
+Invalid (two identical raw ingredients):
 
 ```text
-Recipe
-
-potato
-potato
+Trash
+  - raw lemon (lemon)
+  - raw lemon (lemon)
 ```
 
 ---
@@ -374,7 +372,22 @@ false
 
 ---
 
-# Action Queue
+## Trash Container & EMPTY_TRASH Action
+
+The `trash` container stores discarded entities.
+
+When the user empties the trash bin:
+1. `EMPTY_TRASH` action is dispatched to `worldStore`.
+2. The system empties `containers.trash.entityIds = []`.
+3. The trashed entities are deleted from `worldStore.entities`.
+
+### Mascot Empty Trash Confirmation Flow
+When the user clicks the "Empty Trash" button on the trash container:
+1. The Mascot moves gaze/focus to `trash` (`MASCOT_MOVE`) and shows a speech message asking *"Are you sure you want to empty the trash?"*.
+2. The user is presented with **Yes, empty** (`EMPTY_TRASH`) or **Cancel** options.
+3. Confirming executes `EMPTY_TRASH` and dismisses the Mascot speech bubble; canceling dismisses the message.
+
+---
 
 ## Responsibility
 

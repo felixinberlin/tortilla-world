@@ -27,6 +27,7 @@ Your kitchen is divided into distinct workstations, each with a specific purpose
 4. **Preparation Station (`bowl`)**: Used for combining ingredients. This is where you crack eggs, beat them, and mix in your chopped vegetables.
 5. **Cooking Station (`burner`)**: Where heat is applied. You place a `Pan` here, add oil, and fry, boil, or cook your mixtures.
 6. **Serving Station (`plate`)**: The final destination for your completed dish.
+7. **Trash Station (`trash`)**: Where unwanted ingredients or scrap items can be placed. You can empty the trash when needed, with the Mascot asking for confirmation before clearing out discarded items.
 
 ---
 
@@ -37,6 +38,16 @@ Ingredients don't just move; they change state based on the container they inhab
 - A whole potato moved to the cutting board becomes *cut potatoes*.
 - A whole egg moved to a bowl becomes *beaten eggs*.
 - A raw mixture moved to a hot pan becomes *cooked*.
+
+### Ingredient Uniqueness & State Distinction
+Containers enforce ingredient uniqueness to prevent duplicate identical raw items. However, state changes are recognized:
+- You **cannot** put two identical raw lemons in a single container or trash bin.
+- You **can** put a *raw lemon* AND a *peeled lemon* together because their preparation states differ.
+
+### Managing the Trash Bin 🗑️
+- Dropping unwanted items into the **Trash** station holds them temporarily.
+- Clicking **Empty Trash** summons the Mascot to ask *"Are you sure you want to empty the trash?"*.
+- Confirming clears the trash bin and permanently removes the discarded items from the world.
 
 ### Tools (Workstation Mechanics)
 Workstations represent tools in action! In the current version, workstations process ingredients automatically upon placement (for example, the cutting board automatically chops vegetables and the bowl automatically mixes ingredients). Manual tool manipulation (like grabbing a separate knife or whisk) is coming in a future update.

@@ -17,6 +17,7 @@ export type WorldAction =
     payload: {
       entityId: string;
       targetContainerId: string;
+      sourceContainerId?: string;
       positionIndex?: number;
     };
   }
@@ -187,6 +188,10 @@ export type WorldAction =
       };
     }
   | {
+      type: 'EMPTY_TRASH';
+      payload?: Record<string, never>;
+    }
+  | {
       type: 'RESET_WORLD';
       payload?: Record<string, never>;
     };
@@ -198,6 +203,12 @@ export type WorldEvent =
       payload: {
         entityId: string;
         consumedBy?: string;
+      };
+    }
+  | {
+      type: 'TRASH_EMPTIED';
+      payload: {
+        entityIds: string[];
       };
     }
   | {

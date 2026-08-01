@@ -62,10 +62,13 @@ export const Scene: React.FC = () => {
       // Always hide despensa (pantry) from main workstation row
       if (container.id === 'despensa') return false;
 
+      // Show all workstations in recorder or database modes
+      if (activeMode === 'recorder' || activeMode === 'database') return true;
+
       // Filter strictly by workstations generated for the active recipe
       return recipeWorkstationIds.has(container.id);
     });
-  }, [containersMap, recipeWorkstationIds]);
+  }, [containersMap, recipeWorkstationIds, activeMode]);
 
   const renderWorkspace = (leftNode?: React.ReactNode, rightNode?: React.ReactNode) => (
     <div className="scene-workspace">

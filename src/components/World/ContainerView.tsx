@@ -82,10 +82,13 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
       case 'burner1': return t('workstations.burner1');
       case 'burner2': return t('workstations.burner2');
       case 'plate': return t('workstations.plate');
+      case 'trash': return t('workstations.trash');
       case 'despensa': return t('workstations.despensa');
       default: return t('workstations.default');
     }
   };
+
+  const [showConfirmTrash, setShowConfirmTrash] = useState(false);
 
   const containerOnFireClass = container.isOn ? 'container-onFire' : '';
   const dispatch = useStore(worldStore, (state) => state.dispatch);
@@ -101,6 +104,7 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
     container.id.includes('board') ||
     container.id.includes('cutting');
   const isBowl = container.type === 'bowl' || container.id.includes('bowl');
+  const isTrash = container.id === 'trash' || container.type === 'trash' || container.id === 'papelera' || container.id === 'basura';
 
   return (
     <div
@@ -117,6 +121,123 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
       <div className="container-view__header">
         <h3 className="container-view__title">{container.name}</h3>
         <span className="container-view__badge">{getWorkstationBadge(container.id)}</span>
+        {isTrash && container.entityIds.length > 0 && (
+          showConfirmTrash ? (
+            <div
+              style={{
+                marginLeft: 'auto',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                backgroundColor: 'var(--card-bg, #ffffff)',
+                border: '1px solid #ef4444',
+                borderRadius: '6px',
+                padding: '3px 8px',
+                fontSize: '0.8rem',
+              }}
+              onClick={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+            >
+              <span style={{ fontWeight: 600, color: '#b91c1c' }}>{t('ui.confirmEmptyTrash')}</span>
+              <button
+                type="button"
+                className="confirm-empty-trash-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  dispatch({ type: 'EMPTY_TRASH' });
+                  dispatch({
+                    type: 'UPDATE_ENTITY_STATE',
+                    payload: { entityId: 'chef', changes: { speechMessage: undefined } },
+                  });
+                  setShowConfirmTrash(false);
+                }}
+                style={{
+                  backgroundColor: '#ef4444',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '4px',
+                  padding: '3px 8px',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                ✅ {t('ui.yesEmpty')}
+              </button>
+              <button
+                type="button"
+                className="cancel-empty-trash-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  dispatch({
+                    type: 'UPDATE_ENTITY_STATE',
+                    payload: { entityId: 'chef', changes: { speechMessage: undefined } },
+                  });
+                  setShowConfirmTrash(false);
+                }}
+                style={{
+                  backgroundColor: '#6b7280',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '4px',
+                  padding: '3px 8px',
+                  fontSize: '0.75rem',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                }}
+              >
+                ❌ {t('ui.cancel')}
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="empty-trash-btn"
+              title={t('ui.emptyTrash')}
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                setShowConfirmTrash(true);
+                dispatch({
+                  type: 'MASCOT_MOVE',
+                  payload: { mascotId: 'chef', targetContainerId: 'trash' },
+                });
+                dispatch({
+                  type: 'UPDATE_ENTITY_STATE',
+                  payload: {
+                    entityId: 'chef',
+                    changes: {
+                      speechMessage: t('ui.confirmEmptyTrash'),
+                      targetContainerId: 'trash',
+                      gazingAt: { type: 'entity', entityId: 'trash' },
+                    },
+                  },
+                });
+              }}
+              onPointerDown={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+              style={{
+                marginLeft: 'auto',
+                backgroundColor: '#ef4444',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '4px 10px',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
+              }}
+            >
+              🗑️ {t('ui.emptyTrash')}
+            </button>
+          )
+        )}
         {(container.cookCondition || container.timer) && (
           <span className="container-view__badge container-view__badge--timer" title="Active Cooking Target">
             ⏱️ {container.cookCondition || container.timer}

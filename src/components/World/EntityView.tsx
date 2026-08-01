@@ -47,6 +47,30 @@ export const DefaultEntityRenderer: React.FC<EntityRendererProps> = ({ entity, c
       </span>
       <span className="entity-view__name">{displayName}</span>
       <EntityStateBadge entity={entity} containerId={containerId} />
+      {containerId && containerId !== 'despensa' && containerId !== 'trash' && (
+        <button
+          type="button"
+          className="entity-delete-btn"
+          title="Move to trash"
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            worldStore.getState().dispatch({
+              type: 'MOVE_ENTITY',
+              payload: {
+                entityId: entity.id,
+                targetContainerId: 'trash',
+                sourceContainerId: containerId,
+              },
+            });
+          }}
+          onPointerDown={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+        >
+          ×
+        </button>
+      )}
     </>
   );
 };

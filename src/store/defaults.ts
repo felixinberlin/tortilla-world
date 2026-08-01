@@ -99,4 +99,11 @@ export const defaultContainers: Record<string, Container> = {
     entityIds: [],
     rules: { maxCapacity: 5, allowedTypes: ['ingredient', 'tool'] },
   },
+  trash: {
+    id: 'trash',
+    name: 'Papelera (Trash)',
+    type: 'storage',
+    entityIds: [],
+    rules: { maxCapacity: 100, allowedTypes: ['ingredient', 'tool'] },
+  },
 };

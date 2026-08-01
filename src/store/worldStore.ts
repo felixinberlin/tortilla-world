@@ -181,6 +181,16 @@ export const worldStore = createStore<WorldStateStore>()(
               store.removeEntity(action.payload.entityId);
               break;
 
+            case 'EMPTY_TRASH': {
+              const trashedIds = [...(get().containers.trash?.entityIds || [])];
+              store.emptyTrash();
+              get().emitEvent({
+                type: 'TRASH_EMPTIED',
+                payload: { entityIds: trashedIds },
+              });
+              break;
+            }
+
             case 'UPDATE_ENTITY_STATE':
               store.updateEntityState(action.payload.entityId, action.payload.changes);
               break;

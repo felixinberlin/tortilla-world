@@ -120,16 +120,23 @@
     "heatOn": "Heat On",
     "heatOff": "Heat Off",
     "emptyContainerHint": "Drop entities here",
-    "noRecipesAvailable": "No recipes available."
+    "noRecipesAvailable": "No recipes available.",
+    "showIngredients": "Show Ingredients",
+    "hideIngredients": "Hide Ingredients",
+    "emptyTrash": "Empty Trash",
+    "confirmEmptyTrash": "Are you sure you want to empty the trash?",
+    "yesEmpty": "Yes, empty",
+    "cancel": "Cancel"
   },
   "workstations": {
     "sink": "Washing Area 💧",
     "board": "Cutting Workspace 🔪",
     "bowl": "Preparation 🥣",
-    "burner": "Cooking Heat 🍳",
-    "burner1": "Cooking Heat 1 🍳",
-    "burner2": "Cooking Heat 2 🍳",
-    "plate": "Serving Stage 🍽️",
+    "burner": "Pan 🍳",
+    "burner1": "pan",
+    "burner2": "Pan 2 🍳",
+    "plate": "plate",
+    "trash": "Trash Can 🗑️",
     "despensa": "Pantry 🧺",
     "default": "Workstation 📦"
   },
@@ -140,12 +147,30 @@
     "peel": "Peel",
     "mix": "Mix",
     "whisk": "Whisk",
+    "beat": "Beat",
+    "combine": "Combine",
     "heat": "Heat",
     "flip": "Flip",
     "serve": "Serve",
     "add": "Add",
     "fry": "Fry",
-    "take": "Take"
+    "take": "Take",
+    "move": "Move",
+    "grab": "Grab",
+    "drop": "Drop",
+    "celebrate": "Celebrate!"
+  },
+  "stepFormat": {
+    "moveFromTo": "Move {{ingredient}} from {{source}} to {{target}}",
+    "moveTo": "Move {{ingredient}} to {{target}}",
+    "mixToMake": "{{verb}} {{inputs}} to make {{output}}",
+    "cookFor": "{{verb}} {{target}} for {{duration}} {{unit}}",
+    "cookForToMake": "{{verb}} {{target}} {{duration}} {{unit}} to make {{as}}",
+    "flipInContainer": "flip in the {{container}}",
+    "flip": "Flip {{target}}",
+    "serveOntoAs": "Serve onto the {{container}} as {{as}}",
+    "serveAs": "Serve as {{as}}",
+    "serveOnto": "Serve onto the {{container}}"
   },
   "ingredients": {
     "potato": "Potatoes",
@@ -201,27 +226,6 @@
       "description": "Spanish Tortilla with juicy caramelized onions.",
       "hints": [
         "Fry onions until golden before mixing."
-      ],
-      "instructions": [
-        "Peel the potatoes.",
-        "Wash the potatoes.",
-        "Slice the potatoes.",
-        "Peel the onions.",
-        "Wash the onions.",
-        "Dice the onions.",
-        "Heat the olive oil.",
-        "Fry the potatoes until tender.",
-        "Fry the onions until golden.",
-        "Beat the eggs.",
-        "Add salt and pepper.",
-        "Mix the fried potatoes and onions with the beaten eggs, salt and pepper.",
-        "Pour the mixture into the pan.",
-        "Cook for 5 minutes.",
-        "With a soft spatula, make sure the tortilla does not stick to the pan.",
-        "Flip the tortilla.",
-        "Cook for another 5 minutes.",
-        "Serve the tortilla.",
-        "Celebrate!"
       ]
     },
     "clasica": {
@@ -230,21 +234,6 @@
       "hints": [
         "Don't let the garlic burn.",
         "With a soft spatula, make sure the tortilla does not stick to the pan."
-      ],
-      "instructions": [
-        "Peel the garlic.",
-        "Heat the olive oil.",
-        "Fry the garlic briefly.",
-        "Remove garlic to plate.",
-        "Fry the potatoes until tender.",
-        "Beat the eggs.",
-        "Mix potatoes, eggs, salt, black pepper and garlic.",
-        "Pour mixture into the pan and cook for 5 minutes.",
-        "With a soft spatula, make sure the tortilla does not stick to the pan.",
-        "Flip the tortilla.",
-        "Cook for another 5 minutes.",
-        "Serve the tortilla.",
-        "Celebrate!"
       ]
     },
     "francesa": {
@@ -254,18 +243,6 @@
         "Mix eggs with salt in the bowl to make beaten eggs.",
         "Turn on the heat, add oil and heat it up.",
         "With a soft spatula, make sure the tortilla does not stick to the pan."
-      ],
-      "instructions": [
-        "Beat the eggs.",
-        "Mix eggs with salt in the bowl to make beaten eggs.",
-        "Turn on the heat on the pan.",
-        "Heat the oil.",
-        "Cook the beaten eggs.",
-        "Stir the omelette slightly.",
-        "Flip the omelette.",
-        "Cook the other side.",
-        "Serve onto the plate as Tortilla francesa.",
-        "Celebrate!"
       ]
     }
   }
