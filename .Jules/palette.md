@@ -1,3 +1,7 @@
 ## 2025-02-18 - Icon-Only Button Accessibility Pattern in Modals
 **Learning:** Modals with dynamic content like `RecipeDatabaseModal` often have icon-only buttons for actions like clearing search (`✕`), deleting items (`🗑️`), or closing sub-modals (`✕`). While visually clear to sighted users, these were entirely silent to screen readers. Furthermore, for repeated list items, a generic "Delete" label is insufficient.
 **Action:** When adding ARIA labels to list item actions, use dynamic labels like ``aria-label={`Delete recipe ${recipe.title}`}`` to ensure context is not lost for screen reader users navigating by interactive elements. For standard utility icons, `aria-label="Clear search"` and `aria-label="Close format preview"` drastically improve usability. Always check for missing ARIA labels on buttons containing only text symbols or emoji.
+
+## 2023-10-27 - Icon Buttons ARIA Labels
+**Learning:** Found several icon-only buttons (like burner toggles, nav buttons, delete buttons) in the World simulation components that relied entirely on visual cues or `title` attributes without proper screen reader accessible labels.
+**Action:** Ensure all interactive elements, especially those lacking internal text content (like the burner toggle), have descriptive `aria-label`s. Also, for stateful toggle buttons, ensure `aria-pressed` is used to communicate the current state to assistive technologies.
