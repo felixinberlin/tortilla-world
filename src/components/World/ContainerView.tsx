@@ -248,6 +248,8 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
             type="button"
             className={`burner-toggle ${container.isOn ? 'burner-toggle--on' : ''}`}
             title="Toggle Heat"
+            aria-label="Toggle Heat"
+            aria-pressed={Boolean(container.isOn)}
             onClick={(e) => {
               e.stopPropagation();
               dispatch({
