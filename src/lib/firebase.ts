@@ -8,6 +8,7 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore, type Firestore } from 'firebase/firestore';
 import { getAuth, signInAnonymously, type Auth } from 'firebase/auth';
+import { isDevMode } from '../utils/devMode';
 
 interface FirebaseConfig {
   apiKey?: string;
@@ -35,7 +36,8 @@ let app: ReturnType<typeof initializeApp> | null = null;
 let dbRef: Firestore | null = null;
 let authRef: Auth | null = null;
 
-if (isConfigValid && config) {
+// Only initialize Firebase/Firestore when in developer mode. In release mode, database access is completely disabled.
+if (isDevMode() && isConfigValid && config) {
   try {
     app = getApps().length === 0 ? initializeApp(config) : getApp();
     const databaseId = typeof config.firestoreDatabaseId === 'string' ? config.firestoreDatabaseId : undefined;
@@ -55,5 +57,5 @@ if (isConfigValid && config) {
 export { app };
 export const db = dbRef as Firestore;
 export const auth = authRef as Auth;
-export const isFirebaseConfigured = isConfigValid && !!dbRef;
+export const isFirebaseConfigured = isDevMode() && isConfigValid && !!dbRef;
 

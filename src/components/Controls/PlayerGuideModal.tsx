@@ -401,24 +401,60 @@ export const PlayerGuideModal: React.FC<PlayerGuideModalProps> = ({ onClose, isO
                   </section>
                 </>
               )}
+
+              {/* Render keyboard shortcuts section for power users */}
+              {(() => {
+                const isDe = language === 'de';
+                const isEs = language === 'es';
+
+                const title = isDe ? '⌨️ Tastaturkürzel' : isEs ? '⌨️ Atajos de Teclado' : '⌨️ Keyboard Shortcuts';
+                const subtitle = isDe
+                  ? 'Steuere die Simulation blitzschnell mit deiner Tastatur!'
+                  : isEs
+                  ? '¡Controla la simulación a toda velocidad con tu teclado!'
+                  : 'Control the simulation at lightning speed with your keyboard!';
+
+                const items = [
+                  { label: isDe ? 'Nächster Schritt' : isEs ? 'Siguiente paso' : 'Next Step', keys: ['➡️', 'N'] },
+                  { label: isDe ? 'Vorheriger Schritt' : isEs ? 'Paso anterior' : 'Previous Step', keys: ['⬅️', 'P'] },
+                  { label: isDe ? 'Wiedergabe / Pause' : isEs ? 'Reproducir / Pausa' : 'Play / Pause', keys: ['Space', 'K'] },
+                  { label: isDe ? 'Küche zurücksetzen' : isEs ? 'Reiniciar cocina' : 'Reset Kitchen', keys: ['R'] },
+                  { label: isDe ? 'Geschwindigkeit +/-' : isEs ? 'Velocidad +/-' : 'Speed +/-', keys: ['+', '-'] },
+                  { label: isDe ? 'Maskottchen Salto' : isEs ? 'Salto Mascota' : 'Mascot Flip', keys: ['F'] },
+                  { label: isDe ? 'Maskottchen Feiern' : isEs ? 'Celebración Mascota' : 'Mascot Celebrate', keys: ['C'] },
+                  { label: isDe ? 'Zur Vorratskammer' : isEs ? 'Ir a Despensa' : 'Move to Pantry', keys: ['1'] },
+                  { label: isDe ? 'Zum Schneidebrett' : isEs ? 'Ir a Tabla' : 'Move to Board', keys: ['2'] },
+                  { label: isDe ? 'Zur Pfanne' : isEs ? 'Ir a Sartén' : 'Move to Pan', keys: ['3'] },
+                  { label: isDe ? 'Hilfe / Anleitung' : isEs ? 'Guía / Ayuda' : 'Toggle Guide', keys: ['?', 'H'] },
+                  { label: isDe ? 'Schließen' : isEs ? 'Cerrar' : 'Close Modal', keys: ['Esc'] },
+                ];
+
+                return (
+                  <section className="guide-section shortcuts-section" style={{ marginTop: '2rem' }}>
+                    <h2>{title}</h2>
+                    <p style={{ margin: '0.25rem 0 1rem', color: '#64748b' }}>{subtitle}</p>
+                    <div className="shortcuts-grid">
+                      {items.map((item, idx) => (
+                        <div key={idx} className="shortcut-card">
+                          <span className="shortcut-label">{item.label}</span>
+                          <div className="kbd-group">
+                            {item.keys.map((k, kIdx) => (
+                              <kbd key={kIdx}>{k}</kbd>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                );
+              })()}
             </div>
 
             <div className="player-guide-footer">
               <button
                 ref={closeButtonRef}
                 className="start-cooking-btn"
-                onClick={() => {
-                  // Cast window to 'any' to bypass TypeScript checking here
-                  const win = window as any;
-                  win.dataLayer = win.dataLayer || [];
-
-                  win.dataLayer.push({
-                    event: "intro_completed",
-                    language: language,
-                  });
-
-                  onClose();
-                }}
+                onClick={onClose}
                 aria-label="Close guide and start cooking"
               >
                 {t('guide.startBtn')}

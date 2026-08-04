@@ -55,7 +55,12 @@
     "saving": "⏳ Speichert in Firestore...",
     "saveSuccess": "✅ Rezept erfolgreich in Cloud Firestore gespeichert! Du kannst es jederzeit im Rezeptkatalog abspielen.",
     "saveError": "❌ Fehler beim Speichern: {{error}}",
-    "usedIngredients": "🛒 Gespeicherte Zutaten ({{count}}):"
+    "usedIngredients": "🛒 Gespeicherte Zutaten ({{count}}):",
+    "dishNameModalTitle": "🍽️ Benenne dein Rezept!",
+    "dishNameModalSubtitle": "Es befindet sich ein Gericht auf deinem Teller! Wie möchtest du diese Kreation nennen?",
+    "dishNamePlaceholder": "z.B. Omas Kartoffel-Tortilla",
+    "saveDishNameAndStop": "💾 Name speichern & Beenden",
+    "skipDishName": "Überspringen"
   },
   "replayer": {
     "loadJson": "📂 Protokoll laden (.json)",
@@ -114,11 +119,14 @@
     "sidebarSubtitle": "Ziehe Elemente oder tippe auf ➕, um sie in den Arbeitsbereich zu legen",
     "searchIngredientsPlaceholder": "🔍 Zutaten suchen...",
     "noIngredientsFound": "Keine Zutaten für \"{{query}}\" gefunden",
-    "targetPlaceholder": "Ziel (z. B. 10 Min., bis braun)",
+    "targetLabel": "Kochziel / Zeit:",
+    "targetPlaceholder": "z. B. 10 Min., mittlere Hitze, braun anbraten",
+    "finalNameLabel": "Name des Gerichts:",
     "finalNamePlaceholder": "Name des Gerichts (z. B. Omas Tortilla)",
     "mixtureNamePlaceholder": "Mischungsname (optional)",
     "heatOn": "Hitze An",
     "heatOff": "Hitze Aus",
+    "serveToPlate": "Auf Teller servieren 🍽️",
     "emptyContainerHint": "Elemente hier ablegen",
     "noRecipesAvailable": "Keine Rezepte verfügbar.",
     "showIngredients": "Zutaten anzeigen",
@@ -126,7 +134,8 @@
     "emptyTrash": "Mülleimer leeren",
     "confirmEmptyTrash": "Bist du sicher, dass du den Mülleimer leeren möchtest?",
     "yesEmpty": "Ja, leeren",
-    "cancel": "Abbrechen"
+    "cancel": "Abbrechen",
+    "save": "Speichern"
   },
   "workstations": {
     "sink": "Waschplatz 💧",

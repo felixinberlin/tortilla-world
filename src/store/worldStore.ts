@@ -150,7 +150,29 @@ export const worldStore = createStore<WorldStateStore>()(
               }
               break;
             }
-            case 'COOK_INGREDIENT':
+            case 'COOK_INGREDIENT': {
+              const entityId = action.payload.entityId;
+              const containers = get().containers;
+              const parentContainerId = Object.keys(containers).find((cId) =>
+                containers[cId].entityIds.includes(entityId)
+              );
+              if (parentContainerId && containers[parentContainerId]) {
+                const parentContainer = containers[parentContainerId];
+                if (
+                  (parentContainer.type === 'burner' || parentContainer.id.includes('burner')) &&
+                  !parentContainer.isOn
+                ) {
+                  set(
+                    (draft) => {
+                      if (draft.containers[parentContainerId]) {
+                        draft.containers[parentContainerId].isOn = true;
+                      }
+                    },
+                    false,
+                    'TOGGLE_HEAT'
+                  );
+                }
+              }
               store.cookIngredient(action.payload.entityId, action.payload.cooking);
               if (action.payload.customName || action.payload.cookCondition) {
                 set(
@@ -173,6 +195,7 @@ export const worldStore = createStore<WorldStateStore>()(
                 );
               }
               break;
+            }
             case 'ADD_ENTITY':
               store.addEntity(action.payload.entity, action.payload.containerId);
               break;
@@ -346,12 +369,22 @@ export const worldStore = createStore<WorldStateStore>()(
               const containerId = action.payload.containerId;
               const targetContainer = get().containers[containerId];
               if (targetContainer) {
+                if (!targetContainer.isOn) {
+                  set(
+                    (draft) => {
+                      if (draft.containers[containerId]) {
+                        draft.containers[containerId].isOn = true;
+                      }
+                    },
+                    false,
+                    'TOGGLE_HEAT'
+                  );
+                }
                 const entityIds = [...targetContainer.entityIds];
                 const cookCondition =
                   action.payload.cookCondition ||
                   targetContainer.cookCondition ||
                   targetContainer.timer;
-                const activeRecipeName = get().activeRecipeName || 'Tortilla Española Clásica';
                 const customName = action.payload.customName?.trim();
                 const cookingMethod = action.payload.cooking || 'cooked';
 
@@ -366,12 +399,13 @@ export const worldStore = createStore<WorldStateStore>()(
                       entity.name.toLowerCase().includes('mixture');
 
                     if (isMixture) {
-                      const finalName = customName || activeRecipeName;
                       set(
                         (draft) => {
                           const ent = draft.entities[id];
                           if (ent) {
-                            ent.name = finalName;
+                            if (customName) {
+                              ent.name = customName;
+                            }
                             ent.status = 'cooked';
                             ent.state = {
                               ...ent.state,

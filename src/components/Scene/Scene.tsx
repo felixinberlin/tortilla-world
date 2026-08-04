@@ -28,8 +28,6 @@ import { useTranslation } from '../../i18n/useTranslation';
 import { recipes } from '../../data/catalog/recipes';
 import { getRecipeWorkstationIds } from '../../systems/recipeWorkstations';
 import './RecipePlayer.scss';
-import { useEffect } from 'react';
-
 
 export const Scene: React.FC = () => {
   const isDev = useDevMode();
@@ -41,17 +39,6 @@ export const Scene: React.FC = () => {
   const [activeMode, setActiveMode] = useState<'player' | 'cookbook' | 'recorder' | 'database'>(
     effectiveDevMode ? 'database' : 'player'
   );
-
-  useEffect(() => {
-    console.log('Mode changed:', activeMode);
-    const win = window as any;
-    win.dataLayer = win.dataLayer || [];
-
-    win.dataLayer.push({
-      event: "mode_changed",
-      mode: activeMode,
-    });
-  }, [activeMode]);
 
   // 1. Mount the drag-and-drop input listeners and dispatch handler
   const { sensors, handleDragStart, handleDragOver, handleDragEnd } = useSceneDragAndDrop();

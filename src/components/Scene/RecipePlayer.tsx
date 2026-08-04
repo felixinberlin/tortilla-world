@@ -25,6 +25,7 @@ import type { RecordedAction } from '../../types/recording';
 import { getRecipeRequirementsArray } from '../../types/Recipe';
 import { RecipeRequirements } from '../Recipe/RecipeRequirements';
 import { ActionReplayer } from '../Controls/ActionReplayer';
+import { PlateDishNameModal } from '../Controls/PlateDishNameModal';
 import { useTranslation } from '../../i18n/useTranslation';
 import './RecipePlayer.scss';
 
@@ -367,6 +368,34 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
   const stopRecording = useStore(worldStore, (state) => state.stopRecording);
   const chefMascot = useStore(worldStore, (state) => state.entities['chef']);
 
+  const [isPlateNameModalOpen, setIsPlateNameModalOpen] = useState<boolean>(false);
+  const [plateInitialDishName, setPlateInitialDishName] = useState<string>('');
+
+  const handleStopRecordingRequest = () => {
+    const state = worldStore.getState();
+    const plateContainer = state.containers.plate || state.containers.plato;
+    const plateEntityIds = plateContainer?.entityIds || [];
+
+    if (plateEntityIds.length > 0) {
+      const firstEntity = state.entities[plateEntityIds[0]];
+      const initialDishName = firstEntity?.name || 'Tortilla Española Clásica';
+      setPlateInitialDishName(initialDishName);
+      setIsPlateNameModalOpen(true);
+    } else {
+      stopRecording();
+    }
+  };
+
+  const handleConfirmDishName = (dishName: string) => {
+    setIsPlateNameModalOpen(false);
+    stopRecording(dishName);
+  };
+
+  const handleSkipDishName = () => {
+    setIsPlateNameModalOpen(false);
+    stopRecording();
+  };
+
   const prevHoldingRef = useRef<string | undefined>(undefined);
 
   // Listen for open/close custom events from drag-and-drop or actions
@@ -599,7 +628,25 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
     }
   }, [isPlaying, currentStepIndex, totalSteps, handleReset]);
 
-  // Keyboard shortcut listener: Left Arrow (step back), Right Arrow (step forward), Space (play/pause)
+  // Decrease speed (Slow button)
+  const handleSlow = useCallback(() => {
+    setSpeed((prevSpeed) => {
+      if (prevSpeed === 3) return 2;
+      if (prevSpeed === 2) return 1;
+      return 0.5;
+    });
+  }, []);
+
+  // Increase speed (Fast button)
+  const handleFast = useCallback(() => {
+    setSpeed((prevSpeed) => {
+      if (prevSpeed === 0.5) return 1;
+      if (prevSpeed === 1) return 2;
+      return 3;
+    });
+  }, []);
+
+  // Keyboard shortcut listener for power user commands
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Ignore if user is focused in an input, textarea, select, or editable element
@@ -614,15 +661,42 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
         return;
       }
 
-      if (e.key === 'ArrowLeft') {
+      const key = e.key;
+
+      if (key === 'ArrowLeft' || key === 'p' || key === 'P' || key === 'j' || key === 'J') {
         e.preventDefault();
         handleStepDown();
-      } else if (e.key === 'ArrowRight') {
+      } else if (key === 'ArrowRight' || key === 'n' || key === 'N' || key === 'l' || key === 'L') {
         e.preventDefault();
         handleStepUp();
-      } else if (e.key === ' ' || e.code === 'Space') {
+      } else if (key === ' ' || e.code === 'Space' || key === 'k' || key === 'K') {
         e.preventDefault();
         handleTogglePlay();
+      } else if (key === 'r' || key === 'R') {
+        e.preventDefault();
+        handleReset();
+      } else if (key === '+' || key === '=') {
+        e.preventDefault();
+        handleFast();
+      } else if (key === '-' || key === '_') {
+        e.preventDefault();
+        handleSlow();
+      } else if (key === 'f' || key === 'F' || key === 'c' || key === 'C') {
+        e.preventDefault();
+        worldStore.getState().dispatch({ type: 'MASCOT_FLIP', payload: { mascotId: 'chef' } });
+        window.dispatchEvent(new CustomEvent('mascot-flip', { detail: { mascotId: 'chef' } }));
+      } else if (key === '1') {
+        e.preventDefault();
+        worldStore.getState().dispatch({ type: 'MASCOT_MOVE', payload: { targetContainerId: 'despensa' } });
+      } else if (key === '2') {
+        e.preventDefault();
+        worldStore.getState().dispatch({ type: 'MASCOT_MOVE', payload: { targetContainerId: 'board' } });
+      } else if (key === '3') {
+        e.preventDefault();
+        worldStore.getState().dispatch({ type: 'MASCOT_MOVE', payload: { targetContainerId: 'sarten' } });
+      } else if (key === '?' || key === 'h' || key === 'H') {
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent('toggle-player-guide'));
       }
     };
 
@@ -630,7 +704,7 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [handleStepDown, handleStepUp, handleTogglePlay]);
+  }, [handleStepDown, handleStepUp, handleTogglePlay, handleReset, handleFast, handleSlow]);
 
   // Listen for mascot flip (double click/tap on mascot) to step up in recipe player
   useEffect(() => {
@@ -643,22 +717,6 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
       window.removeEventListener('mascot-flip', handleMascotFlip);
     };
   }, [handleStepUp]);
-
-  // Decrease speed (Slow button)
-  const handleSlow = () => {
-    if (speed === 3) setSpeed(2);
-    else if (speed === 2) setSpeed(1);
-    else if (speed === 1) setSpeed(0.5);
-    else setSpeed(0.5);
-  };
-
-  // Increase speed (Fast button)
-  const handleFast = () => {
-    if (speed === 0.5) setSpeed(1);
-    else if (speed === 1) setSpeed(2);
-    else if (speed === 2) setSpeed(3);
-    else setSpeed(3);
-  };
 
   // Auto-play step loop effect
   useEffect(() => {
@@ -893,7 +951,7 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
             className={`ctrl-btn record-btn ${isRecording ? 'is-recording' : ''}`}
             onClick={
               isRecording
-                ? stopRecording
+                ? handleStopRecordingRequest
                 : () => {
                     startRecording();
                     setSelectedRecipeId('recording');
@@ -976,6 +1034,13 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
         {!renderWorkspace && requirementsNode}
       </div>
       {renderWorkspace && renderWorkspace(requirementsNode)}
+
+      <PlateDishNameModal
+        isOpen={isPlateNameModalOpen}
+        initialName={plateInitialDishName}
+        onConfirm={handleConfirmDishName}
+        onSkip={handleSkipDishName}
+      />
     </>
   );
 };

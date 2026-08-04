@@ -19,7 +19,10 @@ import {
 import { saveRecipeToDb, type SavedRecipe } from '../../services/dbService';
 import type { Recipe } from '../../types/Recipe';
 import type { WorldAction } from '../../types/actions';
+import type { RecordedAction } from '../../types/recording';
 import { useTranslation } from '../../i18n/useTranslation';
+import { PlateDishNameModal } from './PlateDishNameModal';
+import { filterUnusedIngredientsFromState } from '../../utils/sessionLogUtils';
 import './ActionRecorder.scss';
 
 interface ActionRecorderProps {
@@ -53,6 +56,34 @@ export const ActionRecorder: React.FC<ActionRecorderProps> = ({ isDev = true }) 
   const [saveRecipeJsonFormat, setSaveRecipeJsonFormat] = useState<boolean>(true);
   const [saveSessionLogFormat, setSaveSessionLogFormat] = useState<boolean>(true);
 
+  const [isPlateNameModalOpen, setIsPlateNameModalOpen] = useState<boolean>(false);
+  const [plateInitialDishName, setPlateInitialDishName] = useState<string>('');
+
+  const handleStopRecordingRequest = () => {
+    const state = worldStore.getState();
+    const plateContainer = state.containers.plate || state.containers.plato;
+    const plateEntityIds = plateContainer?.entityIds || [];
+
+    if (plateEntityIds.length > 0) {
+      const firstEntity = state.entities[plateEntityIds[0]];
+      const initialDishName = firstEntity?.name || 'Tortilla Española Clásica';
+      setPlateInitialDishName(initialDishName);
+      setIsPlateNameModalOpen(true);
+    } else {
+      stopRecording();
+    }
+  };
+
+  const handleConfirmDishName = (dishName: string) => {
+    setIsPlateNameModalOpen(false);
+    stopRecording(dishName);
+  };
+
+  const handleSkipDishName = () => {
+    setIsPlateNameModalOpen(false);
+    stopRecording();
+  };
+
   // Sourced actions (either explicit recording or emitted eventStore events)
   const sourceActions = useMemo(() => {
     if (recordedActions.length > 0) return recordedActions;
@@ -76,22 +107,36 @@ export const ActionRecorder: React.FC<ActionRecorderProps> = ({ isDev = true }) 
   // Full Session Log (zustand init -> actions/events -> zustand end)
   const fullSessionLogData = useMemo(() => {
     const currentState = worldStore.getState();
+    const rawInitState = initialRecordingState || {
+      entities: currentState.entities,
+      containers: currentState.containers,
+    };
+    const rawEndState = {
+      entities: currentState.entities,
+      containers: currentState.containers,
+    };
+    const activeRecordedActions: RecordedAction[] =
+      recordedActions.length > 0
+        ? recordedActions
+        : eventStore.getEvents().map((e) => ({
+            type: e.action.type,
+            payload: (e.action.payload || {}) as Record<string, unknown>,
+            timestampMs: e.timestamp,
+          }));
+
+    const zustandInit = filterUnusedIngredientsFromState(rawInitState, activeRecordedActions);
+    const zustandEnd = filterUnusedIngredientsFromState(rawEndState, activeRecordedActions);
+
     return {
       version: '1.0.0',
       title: 'Tortilla World Action Session Log',
       recordedAt: new Date().toISOString(),
-      zustandInit: initialRecordingState || {
-        entities: currentState.entities,
-        containers: currentState.containers,
-      },
-      actions: recordedActions.length > 0 ? recordedActions : eventStore.getEvents().map((e) => e.action),
+      zustandInit,
+      actions: activeRecordedActions,
       events: eventStore.getEvents(),
-      zustandEnd: {
-        entities: currentState.entities,
-        containers: currentState.containers,
-      },
+      zustandEnd,
       metadata: {
-        actionCount: recordedActions.length,
+        actionCount: activeRecordedActions.length,
         eventCount: eventStore.getEvents().length,
       },
     };
@@ -258,7 +303,7 @@ export const ActionRecorder: React.FC<ActionRecorderProps> = ({ isDev = true }) 
           <button
             type="button"
             className="rec-btn stop-rec"
-            onClick={stopRecording}
+            onClick={handleStopRecordingRequest}
             title="Stop recording"
           >
             {t('recorder.stopRecordingCount', { count: recordedActions.length })}
@@ -565,6 +610,13 @@ export const ActionRecorder: React.FC<ActionRecorderProps> = ({ isDev = true }) 
           </div>
         </div>
       )}
+
+      <PlateDishNameModal
+        isOpen={isPlateNameModalOpen}
+        initialName={plateInitialDishName}
+        onConfirm={handleConfirmDishName}
+        onSkip={handleSkipDishName}
+      />
     </div>
   );
 };

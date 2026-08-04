@@ -17,6 +17,7 @@ import type { RecordedAction, SerializedRecipeExport, SerializedWorldState } fro
 import type { WorldStateStore } from '../types';
 import { ingredients } from '../../data/catalog/ingredients';
 import { catalogTools } from '../../data/catalog/tools';
+import { filterUnusedIngredientsFromState } from '../../utils/sessionLogUtils';
 
 export interface UsedIngredientInfo {
   id: string;
@@ -34,7 +35,7 @@ export interface RecordSlice {
   recordedFilename: string | null;
 
   startRecording: () => void;
-  stopRecording: () => void;
+  stopRecording: (customDishName?: string) => void;
   recordAction: (action: WorldAction) => void;
   clearRecording: () => void;
   setRecordedActions: (actions: RecordedAction[]) => void;
@@ -132,21 +133,49 @@ export const createRecordSlice: StateCreator<
     });
   },
 
-  stopRecording: () => {
-    const { isRecording, recordingStartTime, recordedActions, usedIngredients, initialRecordingState, recordedDownloadUrl } = get();
+  stopRecording: (customDishName?: string) => {
+    const { isRecording, recordingStartTime, initialRecordingState, recordedDownloadUrl } = get();
     if (!isRecording) return;
+
+    // Apply custom dish name to entities on plate if provided
+    const { entities, containers, dispatch } = get();
+    const plateContainer = containers.plate || containers.plato;
+    const plateEntityIds = plateContainer?.entityIds || [];
+
+    if (customDishName && customDishName.trim() && plateEntityIds.length > 0) {
+      const trimmedName = customDishName.trim();
+      plateEntityIds.forEach((id) => {
+        if (entities[id]) {
+          dispatch({
+            type: 'UPDATE_ENTITY_STATE',
+            payload: {
+              entityId: id,
+              changes: { name: trimmedName },
+            },
+          });
+        }
+      });
+    }
 
     if (recordedDownloadUrl) {
       URL.revokeObjectURL(recordedDownloadUrl);
     }
 
-    const { entities, containers } = get();
-    const finalState = JSON.parse(
-      JSON.stringify({
-        entities,
-        containers,
-      })
-    );
+    // Read current state after potential dish name update dispatch
+    const updatedState = get();
+    const activeActions = updatedState.recordedActions;
+
+    const rawInitState = initialRecordingState || {
+      entities: updatedState.entities,
+      containers: updatedState.containers,
+    };
+    const rawFinalState = {
+      entities: updatedState.entities,
+      containers: updatedState.containers,
+    };
+
+    const filteredInitState = filterUnusedIngredientsFromState(rawInitState, activeActions);
+    const filteredFinalState = filterUnusedIngredientsFromState(rawFinalState, activeActions);
 
     const durationMs = Date.now() - (recordingStartTime || Date.now());
     const exportData: SerializedRecipeExport = {
@@ -154,11 +183,11 @@ export const createRecordSlice: StateCreator<
       title: 'Recorded Tortilla Recipe',
       recordedAt: new Date().toISOString(),
       durationMs,
-      actionCount: recordedActions.length,
-      usedIngredients,
-      initialState: initialRecordingState || { entities: {}, containers: {} },
-      finalState,
-      actions: recordedActions,
+      actionCount: activeActions.length,
+      usedIngredients: updatedState.usedIngredients,
+      initialState: filteredInitState,
+      finalState: filteredFinalState,
+      actions: activeActions,
     };
 
     const jsonString = JSON.stringify(exportData, null, 2);

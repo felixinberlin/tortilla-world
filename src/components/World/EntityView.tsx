@@ -55,7 +55,9 @@ export const DefaultEntityRenderer: React.FC<EntityRendererProps> = ({ entity, c
   const translatedTool = t(`tools.${toolKey}`);
 
   let displayName = entity.name;
-  if (translatedIng && !translatedIng.startsWith('ingredients.')) {
+  const isMixtureEntity = ingKey === 'mixture' || entity.ingredientId === 'mixture';
+
+  if (!isMixtureEntity && translatedIng && !translatedIng.startsWith('ingredients.')) {
     // If entity.name has icon prefix, e.g., "🥔 Potatoes"
     const hasIconPrefix = entity.icon && entity.name.startsWith(entity.icon);
     displayName = hasIconPrefix ? `${entity.icon} ${translatedIng}` : translatedIng;

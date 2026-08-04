@@ -18,6 +18,7 @@ import { useStore } from 'zustand';
 import { fetchAllRecipesFromDb, type SavedRecipe } from '../../services/dbService';
 import type { WorldAction } from '../../types/actions';
 import type { RecordedAction } from '../../types/recording';
+import { detectRecipeFormat, getPlayableActionsFromFormat } from '../../utils/recipeFormatDetector';
 import './ActionReplayer.scss';
 
 export interface ActionReplayerProps {
@@ -83,31 +84,6 @@ export const ActionReplayer: React.FC<ActionReplayerProps> = ({
     }
   };
 
-  const validateActions = (parsed: unknown): WorldAction[] | null => {
-    let actionArray: unknown[] | null = null;
-
-    if (Array.isArray(parsed)) {
-      actionArray = parsed;
-    } else if (parsed && typeof parsed === 'object') {
-      const obj = parsed as Record<string, unknown>;
-      if (Array.isArray(obj.actions)) {
-        actionArray = obj.actions;
-      } else if (Array.isArray(obj.actionLog)) {
-        actionArray = obj.actionLog;
-      }
-    }
-
-    if (!actionArray || !Array.isArray(actionArray) || actionArray.length === 0) {
-      return null;
-    }
-
-    const isValid = actionArray.every(
-      (item) => item && typeof item === 'object' && typeof (item as Record<string, unknown>).type === 'string'
-    );
-
-    return isValid ? (actionArray as WorldAction[]) : null;
-  };
-
   const handleSelectDbRecipe = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const recipeId = e.target.value;
     setSelectedRecipeId(recipeId);
@@ -116,29 +92,29 @@ export const ActionReplayer: React.FC<ActionReplayerProps> = ({
     const found = dbRecipes.find((r) => r.id === recipeId);
     if (!found) return;
 
-    let actionsToLoad: WorldAction[] | null = null;
-
-    if (found.formats?.mascotSequence && Array.isArray(found.formats.mascotSequence) && found.formats.mascotSequence.length > 0) {
-      actionsToLoad = validateActions(found.formats.mascotSequence);
-    }
-
-    if (!actionsToLoad && found.formats?.fullSessionLog) {
-      const logObj = found.formats.fullSessionLog as Record<string, unknown>;
-      if (Array.isArray(logObj.actions)) {
-        actionsToLoad = validateActions(logObj.actions);
-      }
-    }
-
-    if (actionsToLoad && actionsToLoad.length > 0) {
-      worldStore.getState().resetWorld();
-      worldStore.getState().setRecordedActions(actionsToLoad as unknown as RecordedAction[]);
-      setCurrentStep(0);
-      setErrorMessage(null);
-      setInfoMessage(`Loaded "${found.title}" (${actionsToLoad.length} actions)`);
-    } else {
-      setErrorMessage(`Selected recipe "${found.title}" does not contain valid playable action sequences.`);
+    const detected = detectRecipeFormat(found);
+    if (detected.type === 'unknown') {
+      setErrorMessage(`Selected recipe "${found.title}" does not contain a recognized recipe format.`);
       setInfoMessage(null);
+      return;
     }
+
+    const playable = getPlayableActionsFromFormat(detected);
+    if (playable.actions.length === 0) {
+      setErrorMessage(`Selected recipe "${found.title}" does not contain valid playable actions.`);
+      setInfoMessage(null);
+      return;
+    }
+
+    worldStore.getState().resetWorld();
+    worldStore.getState().setRecordedActions(playable.actions as unknown as RecordedAction[]);
+    setCurrentStep(0);
+    setErrorMessage(null);
+    setInfoMessage(
+      `Loaded "${found.title}" [Type: ${detected.typeLabel}] (${playable.actions.length} ${
+        detected.type === 'declarative' ? 'converted steps' : 'actions'
+      })`
+    );
   };
 
   const handleFileChange = useCallback(
@@ -151,20 +127,34 @@ export const ActionReplayer: React.FC<ActionReplayerProps> = ({
         try {
           const content = e.target?.result as string;
           const parsed = JSON.parse(content);
-          const actions = validateActions(parsed);
+          const detected = detectRecipeFormat(parsed);
 
-          if (!actions) {
-            setErrorMessage('Invalid JSON format: Expected array of WorldActions.');
+          if (detected.type === 'unknown') {
+            setErrorMessage('Invalid or unrecognized JSON recipe format.');
+            setInfoMessage(null);
+            return;
+          }
+
+          const playable = getPlayableActionsFromFormat(detected);
+          if (playable.actions.length === 0) {
+            setErrorMessage(`Uploaded file "${file.name}" contains no playable actions.`);
+            setInfoMessage(null);
             return;
           }
 
           setErrorMessage(null);
           worldStore.getState().resetWorld();
-          worldStore.getState().setRecordedActions(actions as unknown as RecordedAction[]);
+          worldStore.getState().setRecordedActions(playable.actions as unknown as RecordedAction[]);
           setCurrentStep(0);
+          setInfoMessage(
+            `Loaded "${file.name}" [Type: ${detected.typeLabel}] (${playable.actions.length} ${
+              detected.type === 'declarative' ? 'converted steps' : 'actions'
+            })`
+          );
         } catch (err) {
           console.error('Failed to parse action log JSON:', err);
           setErrorMessage('Failed to read or parse JSON file.');
+          setInfoMessage(null);
         }
       };
 
@@ -248,31 +238,33 @@ export const ActionReplayer: React.FC<ActionReplayerProps> = ({
         📂 Load Log (.json)
       </button>
 
-      <select
-        className="db-recipe-select"
-        value={selectedRecipeId}
-        onChange={handleSelectDbRecipe}
-        onFocus={loadDbRecipes}
-        title="Select and load a saved recipe from Cloud Firestore"
-        style={{
-          padding: '6px 10px',
-          borderRadius: '6px',
-          border: '1px solid #cbd5e1',
-          fontSize: '0.85rem',
-          backgroundColor: '#ffffff',
-          color: '#0f172a',
-          fontWeight: 500,
-          cursor: 'pointer',
-          maxWidth: '220px',
-        }}
-      >
-        <option value="">🗄️ Select DB Recipe...</option>
-        {dbRecipes.map((r) => (
-          <option key={r.id} value={r.id}>
-            {r.title} ({r.ingredients?.join(', ') || 'recipe'})
-          </option>
-        ))}
-      </select>
+      {dbRecipes.length > 0 && (
+        <select
+          className="db-recipe-select"
+          value={selectedRecipeId}
+          onChange={handleSelectDbRecipe}
+          onFocus={loadDbRecipes}
+          title="Select and load a saved recipe from Cloud Firestore"
+          style={{
+            padding: '6px 10px',
+            borderRadius: '6px',
+            border: '1px solid #cbd5e1',
+            fontSize: '0.85rem',
+            backgroundColor: '#ffffff',
+            color: '#0f172a',
+            fontWeight: 500,
+            cursor: 'pointer',
+            maxWidth: '220px',
+          }}
+        >
+          <option value="">🗄️ Select DB Recipe...</option>
+          {dbRecipes.map((r) => (
+            <option key={r.id} value={r.id}>
+              {r.title} ({r.ingredients?.join(', ') || 'recipe'})
+            </option>
+          ))}
+        </select>
+      )}
 
       {totalSteps > 0 && !isPlaying && (
         <div className="step-controls-group">

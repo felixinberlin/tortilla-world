@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { worldStore } from '../store/worldStore';
 import { clearActionLog, getActionLog } from '../store/middleware/actionLog';
+import { loadRecipe } from './recipeLoader';
+import { getRecipeRequirementsArray } from '../types/Recipe';
 import {
   flipTortilla,
   moveTortillaTo,
@@ -204,17 +206,20 @@ describe('mascotActions system', () => {
       },
     });
 
+    const recipe = loadRecipe('concebolla');
     await runFollowRecipeScript('concebolla', 'chef', 'board', 5);
 
     const state = worldStore.getState();
-    // New concebolla routes ingredients through workstations and serves them on the plate
-    expect(state.containers.plate.entityIds.length).toBeGreaterThanOrEqual(1);
+    const serveStep = recipe.steps.find((s) => s.action === 'serve');
+    const targetContainerId = serveStep?.containerId || 'plate';
+    expect(state.containers[targetContainerId].entityIds.length).toBeGreaterThanOrEqual(1);
 
-    // All 6 ingredient catalog IDs should be accounted for in the world state (either directly or consumed into a mixture)
-    const ingredientIds = ['potato', 'onion', 'egg', 'oil', 'salt', 'pepper'];
+    // Dynamically derive ingredient catalog IDs from active recipe requirements
+    const requirements = getRecipeRequirementsArray(recipe);
+    const requiredIngredientIds = Array.from(new Set(requirements.map((req) => req.entityId)));
     const allWorldEntities = Object.values(state.entities);
     const allIngredientCatalogIds = allWorldEntities.map((e) => e?.ingredientId || e?.id);
-    ingredientIds.forEach((id) => {
+    requiredIngredientIds.forEach((id) => {
       expect(allIngredientCatalogIds.some((cid) => cid === id)).toBe(true);
     });
   });

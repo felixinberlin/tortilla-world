@@ -34,6 +34,8 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
   const activeRecipeId = useStore(worldStore, (state) => state.activeRecipeId);
   const mascot = useStore(worldStore, (state) => state.entities['chef']);
 
+  const activeRecipeName = useStore(worldStore, (state) => state.activeRecipeName);
+
   const [mixCustomName, setMixCustomName] = useState('');
   const [cookConditionInput, setCookConditionInput] = useState('');
   const [cookedCustomName, setCookedCustomName] = useState('');
@@ -42,6 +44,16 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
     () => recipes.find((r) => r.id === activeRecipeId) || recipes[0],
     [activeRecipeId]
   );
+
+  const defaultDishName = activeRecipeName || activeRecipe?.name || 'Tortilla Española Clásica';
+  const [plateCustomName, setPlateCustomName] = useState('');
+
+  const containerEntities = container.entityIds
+    .map((id: string) => entities[id])
+    .filter((e: Entity | undefined): e is Entity => Boolean(e));
+
+  const isPlate = container.id === 'plate' || container.id === 'plato' || container.type === 'plate';
+  const displayPlateName = plateCustomName !== '' ? plateCustomName : (containerEntities[0]?.name || defaultDishName);
 
   const recipeWorkstationIds = useMemo(
     () => getRecipeWorkstationIds(activeRecipe),
@@ -64,10 +76,6 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
   const { setNodeRef, isOver } = useDroppable({
     id: container.id,
   });
-
-  const containerEntities = container.entityIds
-    .map((id: string) => entities[id])
-    .filter((e: Entity | undefined): e is Entity => Boolean(e));
 
   const isMixturePresent = containerEntities.some(
     (e) => e.id.includes('mixture') || e.name.toLowerCase().includes('mixture')
@@ -263,64 +271,80 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
         )}
       </div>
 
-      {(isCookingArea || isSink || isCuttingBoard || isBowl) && (
+      {(isCookingArea || isSink || isCuttingBoard || isBowl || isPlate || (!isPlate && containerEntities.length > 0)) && (
         <div className="container-view__actions">
           {isCookingArea && (
             <div className="container-view__action-group">
-              <div className="container-view__input-row">
-                <input
-                  type="text"
-                  className="container-view__input"
-                  placeholder={t('ui.targetPlaceholder')}
-                  value={cookConditionInput}
-                  onChange={(e) => setCookConditionInput(e.target.value)}
-                  onClick={(e) => e.stopPropagation()}
-                />
-                <button
-                  type="button"
-                  className={`container-action-btn toggle-heat-btn ${container.isOn ? 'container-action-btn--active' : ''}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    dispatch({
-                      type: 'TOGGLE_HEAT',
-                      payload: {
-                        containerId: container.id,
-                        cookCondition: cookConditionInput.trim() || undefined,
-                        isOn: !container.isOn,
-                      },
-                    });
-                  }}
-                >
-                  🔥 {container.isOn ? t('ui.heatOn') : t('ui.heatOff')}
-                </button>
+              <div className="container-view__field-group">
+                <label className="container-view__input-label">
+                  🎯 {t('ui.targetLabel')}
+                </label>
+                <div className="container-view__input-row">
+                  <input
+                    type="text"
+                    className="container-view__input container-view__input--lg"
+                    placeholder={t('ui.targetPlaceholder')}
+                    value={cookConditionInput}
+                    onChange={(e) => setCookConditionInput(e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                  <button
+                    type="button"
+                    className={`container-action-btn toggle-heat-btn ${container.isOn ? 'container-action-btn--active' : ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      dispatch({
+                        type: 'TOGGLE_HEAT',
+                        payload: {
+                          containerId: container.id,
+                          cookCondition: cookConditionInput.trim() || undefined,
+                          isOn: !container.isOn,
+                        },
+                      });
+                    }}
+                  >
+                    🔥 {container.isOn ? t('ui.heatOff') : t('ui.heatOn')}
+                  </button>
+                </div>
               </div>
 
-              <div className="container-view__input-row">
-                <input
-                  type="text"
-                  className="container-view__input"
-                  placeholder={t('ui.finalNamePlaceholder')}
-                  value={cookedCustomName}
-                  onChange={(e) => setCookedCustomName(e.target.value)}
-                  onClick={(e) => e.stopPropagation()}
-                />
-                <button
-                  type="button"
-                  className="container-action-btn cook-btn"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    dispatch({
-                      type: 'COOK_CONTAINER_CONTENTS',
-                      payload: {
-                        containerId: container.id,
-                        customName: cookedCustomName.trim() || undefined,
-                        cookCondition: cookConditionInput.trim() || container.cookCondition || container.timer,
-                      },
-                    });
-                  }}
-                >
-                  🍳 {t('verbs.cook')}
-                </button>
+              <div className="container-view__field-group">
+                <label className="container-view__input-label">
+                  🍳 {t('ui.mixtureNamePlaceholder')}
+                </label>
+                <div className="container-view__input-row">
+                  <input
+                    type="text"
+                    className="container-view__input container-view__input--lg"
+                    placeholder={t('ui.mixtureNamePlaceholder')}
+                    value={cookedCustomName}
+                    onChange={(e) => setCookedCustomName(e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                  <button
+                    type="button"
+                    className="container-action-btn cook-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (!container.isOn) {
+                        dispatch({
+                          type: 'TOGGLE_HEAT',
+                          payload: { containerId: container.id, isOn: true },
+                        });
+                      }
+                      dispatch({
+                        type: 'COOK_CONTAINER_CONTENTS',
+                        payload: {
+                          containerId: container.id,
+                          customName: cookedCustomName.trim() || undefined,
+                          cookCondition: cookConditionInput.trim() || container.cookCondition || container.timer,
+                        },
+                      });
+                    }}
+                  >
+                    🍳 {t('verbs.cook')}
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -381,6 +405,31 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
                   placeholder={t('ui.mixtureNamePlaceholder')}
                   value={mixCustomName}
                   onChange={(e) => setMixCustomName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.stopPropagation();
+                      const trimmedName = mixCustomName.trim();
+                      if (containerEntities.length === 1 && (containerEntities[0].ingredientId === 'mixture' || containerEntities[0].id.includes('mixture'))) {
+                        if (trimmedName) {
+                          dispatch({
+                            type: 'UPDATE_ENTITY_STATE',
+                            payload: {
+                              entityId: containerEntities[0].id,
+                              changes: { name: trimmedName },
+                            },
+                          });
+                        }
+                      } else {
+                        dispatch({
+                          type: 'MIX_CONTAINER_CONTENTS',
+                          payload: {
+                            containerId: container.id,
+                            customName: trimmedName || undefined,
+                          },
+                        });
+                      }
+                    }
+                  }}
                   onClick={(e) => e.stopPropagation()}
                 />
                 <button
@@ -388,19 +437,111 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
                   className="container-action-btn mix-btn"
                   onClick={(e) => {
                     e.stopPropagation();
-                    dispatch({
-                      type: 'MIX_CONTAINER_CONTENTS',
-                      payload: {
-                        containerId: container.id,
-                        customName: mixCustomName.trim() || undefined,
-                      },
-                    });
+                    const trimmedName = mixCustomName.trim();
+                    if (containerEntities.length === 1 && (containerEntities[0].ingredientId === 'mixture' || containerEntities[0].id.includes('mixture'))) {
+                      if (trimmedName) {
+                        dispatch({
+                          type: 'UPDATE_ENTITY_STATE',
+                          payload: {
+                            entityId: containerEntities[0].id,
+                            changes: { name: trimmedName },
+                          },
+                        });
+                      }
+                    } else {
+                      dispatch({
+                        type: 'MIX_CONTAINER_CONTENTS',
+                        payload: {
+                          containerId: container.id,
+                          customName: trimmedName || undefined,
+                        },
+                      });
+                    }
                   }}
                 >
                   🥣 {t('verbs.mix')}
                 </button>
               </div>
             </div>
+          )}
+
+          {isPlate && containerEntities.length > 0 && (
+            <div className="container-view__action-group">
+              <div className="container-view__field-group">
+                <label className="container-view__input-label">
+                  🍽️ {t('ui.finalNameLabel')}
+                </label>
+                <div className="container-view__input-row">
+                  <input
+                    type="text"
+                    className="container-view__input container-view__input--lg"
+                    placeholder={t('ui.finalNamePlaceholder')}
+                    value={displayPlateName}
+                    onChange={(e) => setPlateCustomName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.stopPropagation();
+                        const newName = (plateCustomName || displayPlateName).trim();
+                        if (newName) {
+                          containerEntities.forEach((ent) => {
+                            dispatch({
+                              type: 'UPDATE_ENTITY_STATE',
+                              payload: {
+                                entityId: ent.id,
+                                changes: { name: newName },
+                              },
+                            });
+                          });
+                        }
+                      }
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                  <button
+                    type="button"
+                    className="container-action-btn save-dish-name-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const newName = (plateCustomName || displayPlateName).trim();
+                      if (newName) {
+                        containerEntities.forEach((ent) => {
+                          dispatch({
+                            type: 'UPDATE_ENTITY_STATE',
+                            payload: {
+                              entityId: ent.id,
+                              changes: { name: newName },
+                            },
+                          });
+                        });
+                      }
+                    }}
+                  >
+                    ✏️ {t('ui.save')}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {!isPlate && containerEntities.length > 0 && (
+            <button
+              type="button"
+              className="container-action-btn serve-plate-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                containerEntities.forEach((ent) => {
+                  dispatch({
+                    type: 'MOVE_ENTITY',
+                    payload: {
+                      entityId: ent.id,
+                      targetContainerId: 'plate',
+                    },
+                  });
+                });
+              }}
+            >
+              🍽️ {t('ui.serveToPlate')}
+            </button>
           )}
         </div>
       )}

@@ -46,7 +46,7 @@ function seed() {
         name: 'Recipe',
         type: 'plate',
         entityIds: [],
-        rules: { allowedTypes: ['ingredient'], uniqueTypesOnly: true },
+        rules: { allowedTypes: ['ingredient'] },
       },
       sink: {
         id: 'sink',
@@ -108,30 +108,12 @@ describe('worldStore container rule enforcement', () => {
     expect(state.containers.kitchen.entityIds).toContain('knife');
   });
 
-  it('blocks a move that would duplicate a type in a uniqueTypesOnly container', () => {
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: { entityId: 'potato', targetContainerId: 'recipe' },
-    });
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: { entityId: 'onion', targetContainerId: 'recipe' },
-    });
-
-    // both are 'ingredient' type; uniqueTypesOnly blocks the second
-    const state = worldStore.getState();
-    expect(state.containers.recipe.entityIds).toEqual(['potato']);
-    expect(state.containers.kitchen.entityIds).toContain('onion');
-  });
-
   it('never re-validates a same-container reorder', () => {
     worldStore.getState().dispatch({
       type: 'MOVE_ENTITY',
       payload: { entityId: 'potato', targetContainerId: 'kitchen', positionIndex: 0 },
     });
 
-    // would fail uniqueTypesOnly-style self-comparison if the entity
-    // weren't excluded from its own container's current entities
     const state = worldStore.getState();
     expect(state.containers.kitchen.entityIds[0]).toBe('potato');
   });
