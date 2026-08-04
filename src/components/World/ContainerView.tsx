@@ -144,6 +144,7 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
               <button
                 type="button"
                 className="confirm-empty-trash-btn"
+                aria-label="Confirm empty trash"
                 onClick={(e) => {
                   e.stopPropagation();
                   e.preventDefault();
@@ -170,6 +171,7 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
               <button
                 type="button"
                 className="cancel-empty-trash-btn"
+                aria-label="Cancel empty trash"
                 onClick={(e) => {
                   e.stopPropagation();
                   e.preventDefault();
@@ -198,6 +200,7 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
               type="button"
               className="empty-trash-btn"
               title={t('ui.emptyTrash')}
+              aria-label="Empty trash"
               onClick={(e) => {
                 e.stopPropagation();
                 e.preventDefault();
