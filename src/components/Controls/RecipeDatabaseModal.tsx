@@ -231,15 +231,20 @@ export const RecipeDatabaseModal: React.FC = () => {
       {/* Search and Filters Bar */}
       <div className="db-filters-bar">
         <div className="search-input-wrapper">
-          <span className="search-icon">🔍</span>
+          <span className="search-icon" aria-hidden="true">🔍</span>
           <input
             type="text"
+            aria-label="Search recipes"
             placeholder="Search recipes by title, description, or tags..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           {searchQuery && (
-            <button className="clear-btn" onClick={() => setSearchQuery('')}>
+            <button
+              className="clear-btn"
+              onClick={() => setSearchQuery('')}
+              aria-label="Clear search"
+            >
               ✕
             </button>
           )}
@@ -391,7 +396,11 @@ export const RecipeDatabaseModal: React.FC = () => {
           <div className="format-inspector-content" onClick={(e) => e.stopPropagation()}>
             <div className="inspector-header">
               <h3>📜 Multi-Format Export Preview: {selectedFormatPreview.title}</h3>
-              <button className="close-btn" onClick={() => setSelectedFormatPreview(null)}>
+              <button
+                className="close-btn"
+                onClick={() => setSelectedFormatPreview(null)}
+                aria-label="Close preview"
+              >
                 ✕
               </button>
             </div>
