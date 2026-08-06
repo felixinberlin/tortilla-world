@@ -79,7 +79,6 @@
 .mascot-held-badge {
   position: absolute;
   bottom: -8px;
-  right: -12px;
   background: #ffffff;
   border: 2px solid $tortilla-yellow;
   border-radius: 20px;
@@ -95,6 +94,16 @@
   pointer-events: none;
   z-index: 1001;
   animation: heldBadgeEnter 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, heldBadgeFloat 2.5s ease-in-out infinite 0.35s;
+
+  &.badge-left {
+    left: -12px;
+    right: auto;
+  }
+
+  &.badge-right {
+    right: -12px;
+    left: auto;
+  }
 }
 
 @keyframes heldBadgeEnter {

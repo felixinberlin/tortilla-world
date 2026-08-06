@@ -33,6 +33,8 @@ export interface TortillaSvgProps {
   toastMarks?: ToastMark[];
   gazingAt?: GazeTarget;
   onDoubleClick?: (e: React.MouseEvent<SVGSVGElement>) => void;
+  isHoldingLeft?: boolean;
+  isHoldingRight?: boolean;
 }
 
 const DEFAULT_POTATOES: Potato[] = [
@@ -62,6 +64,8 @@ export function TortillaSvg({
   toastMarks = DEFAULT_TOAST_MARKS,
   gazingAt,
   onDoubleClick,
+  isHoldingLeft = false,
+  isHoldingRight = false,
 }: TortillaSvgProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [isFlipping, setIsFlipping] = useState(false);
@@ -190,6 +194,38 @@ export function TortillaSvg({
   const r = radius ?? 28;
   const effectiveState = isFlipping ? "flipping" : state;
 
+  const armTransition = {
+    type: "spring" as const,
+    stiffness: 260,
+    damping: 18,
+  };
+
+  const getLeftArmPath = () => {
+    if (effectiveState === "celebrating") {
+      return "M -26 4 Q -38 -14 -28 -24";
+    }
+    if (effectiveState === "flipping") {
+      return "M -26 4 Q -34 0 -22 -10";
+    }
+    if (isHoldingLeft) {
+      return "M -26 4 Q -38 -4 -32 -16";
+    }
+    return "M -26 4 Q -36 12 -30 22";
+  };
+
+  const getRightArmPath = () => {
+    if (effectiveState === "celebrating") {
+      return "M 26 4 Q 38 -14 28 -24";
+    }
+    if (effectiveState === "flipping") {
+      return "M 26 4 Q 34 0 22 -10";
+    }
+    if (isHoldingRight) {
+      return "M 26 4 Q 38 -4 32 -16";
+    }
+    return "M 26 4 Q 36 12 30 22";
+  };
+
   return (
     <motion.svg
       ref={svgRef}
@@ -273,6 +309,26 @@ export function TortillaSvg({
         rx={r * 0.95}
         ry={r * 0.85}
         fill="#7a4a15"
+      />
+
+      {/* === ARMS (Left & Right) === */}
+      <motion.path
+        d={getLeftArmPath()}
+        fill="none"
+        stroke="#b8731f"
+        strokeWidth="3.5"
+        strokeLinecap="round"
+        animate={{ d: getLeftArmPath() }}
+        transition={armTransition}
+      />
+      <motion.path
+        d={getRightArmPath()}
+        fill="none"
+        stroke="#b8731f"
+        strokeWidth="3.5"
+        strokeLinecap="round"
+        animate={{ d: getRightArmPath() }}
+        transition={armTransition}
       />
 
       {/* === HAUPTKÖRPER === */}
