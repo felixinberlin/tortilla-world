@@ -33,6 +33,17 @@ Your kitchen is divided into distinct workstations, each with a specific purpose
 
 ## 🍳 Part 2: Advanced Mechanics
 
+### Chef Tortilla Mascot & Carrying Ingredients 🍳
+- **Drag Ingredients to Tortilla**: You can drag any ingredient directly onto Chef Tortilla. If she has a free arm, she will catch and carry the ingredient for you!
+- **"Take me" (Llévame) Button**: Ingredients inside workstations feature a **"🤲 Llévame / Take me"** button. Clicking it instantly prompts Chef Tortilla to pick up and carry that ingredient in her free arm!
+- **Dual Arm Carrying**: Tortilla has two arms and can hold up to 2 items simultaneously (one in each arm).
+- **Full Hands Warning**: If you try to give Tortilla a 3rd item while her hands are full, she will display a friendly speech bubble: *"¡Mis manos están llenas! 🤲 / My hands are full!"*.
+- **Dropping Carried Items**: Dragging or dropping an ingredient carried by Tortilla into any workstation (like the Cutting Board or Bowl) places it directly into that container.
+- **Arm Controls & Tricks**:
+  - Click on Tortilla's **Left Arm** to step back in a recipe (`◀ Previous Step`).
+  - Click on Tortilla's **Right Arm** to step forward in a recipe (`▶ Next Step`).
+  - **Double Click** Tortilla to make her execute her signature flip trick in place!
+
 ### Changing States
 Ingredients don't just move; they change state based on the container they inhabit.
 - A whole potato moved to the cutting board becomes *cut potatoes*.
