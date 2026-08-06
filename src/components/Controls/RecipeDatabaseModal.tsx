@@ -27,6 +27,8 @@ import type { SavedRecipe } from '../../services/dbService';
 import { RecipeRunner } from '../../systems/recipeRunner';
 import { actionPlayer } from '../../systems/actionPlayer';
 import { detectRecipeFormat, getPlayableActionsFromFormat } from '../../utils/recipeFormatDetector';
+import { extractUsedIngredientsFromActions } from '../../utils/sessionLogUtils';
+import type { RecordedAction } from '../../types/recording';
 import './RecipeDatabaseModal.scss';
 
 const POPULAR_INGREDIENTS = [
@@ -162,6 +164,13 @@ export const RecipeDatabaseModal: React.FC = () => {
       await new Promise((res) => setTimeout(res, 400));
 
       const detected = detectRecipeFormat(savedRecipe);
+      const playable = getPlayableActionsFromFormat(detected);
+
+      if (playable.actions.length > 0) {
+        const extracted = extractUsedIngredientsFromActions(playable.actions);
+        worldStore.getState().setRecordedActions(playable.actions as unknown as RecordedAction[], extracted);
+        window.dispatchEvent(new CustomEvent('select-recorded-session'));
+      }
 
       if (detected.type === 'declarative' && detected.declarativeRecipe?.steps) {
         const runner = new RecipeRunner({

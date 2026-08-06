@@ -107,3 +107,59 @@ export function filterUnusedIngredientsFromState(
     containers: filteredContainers,
   };
 }
+
+import { ingredients as catalogIngredients } from '../data/catalog/ingredients';
+import { catalogTools } from '../data/catalog/tools';
+import type { UsedIngredientInfo } from '../store/slices/recordSlice';
+
+export function extractUsedIngredientsFromActions(
+  actions: Array<{ type: string; payload?: Record<string, unknown> }>
+): UsedIngredientInfo[] {
+  const result: UsedIngredientInfo[] = [];
+  const seenIds = new Set<string>();
+
+  for (const act of actions || []) {
+    if (!act || !act.payload) continue;
+    const p = act.payload;
+    let rawEntityId: string | undefined;
+
+    if (act.type === 'MOVE_ENTITY') {
+      const target = p.targetContainerId as string | undefined;
+      if (target && target !== 'despensa') {
+        rawEntityId = p.entityId as string | undefined;
+      }
+    } else if (act.type === 'ADD_ENTITY') {
+      const target = p.containerId as string | undefined;
+      if (target && target !== 'despensa') {
+        const ent = p.entity as { id?: string; ingredientId?: string } | undefined;
+        rawEntityId = ent?.ingredientId || ent?.id;
+      }
+    } else if (['PREPARE_INGREDIENT', 'COOK_INGREDIENT', 'USE_INGREDIENT'].includes(act.type)) {
+      rawEntityId = p.entityId as string | undefined;
+    }
+
+    if (rawEntityId) {
+      const baseId = rawEntityId.split('_')[0] || rawEntityId;
+      if (!seenIds.has(baseId)) {
+        seenIds.add(baseId);
+        const catalogIng = catalogIngredients.find((i) => i.id === baseId || i.id === rawEntityId);
+        const catalogTool = catalogTools.find((t) => t.id === baseId || t.id === rawEntityId);
+
+        const cleanName =
+          catalogIng?.name ||
+          catalogTool?.name ||
+          baseId.charAt(0).toUpperCase() + baseId.slice(1).replace(/_/g, ' ');
+        const icon = catalogIng?.icon || catalogTool?.icon || '📦';
+
+        result.push({
+          id: baseId,
+          name: cleanName,
+          icon,
+        });
+      }
+    }
+  }
+
+  return result;
+}
+

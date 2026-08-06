@@ -52,6 +52,17 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
     .map((id: string) => entities[id])
     .filter((e: Entity | undefined): e is Entity => Boolean(e));
 
+  const rawHolding = mascot?.state?.holdingEntityIds as string[] | undefined;
+  const singleHolding = mascot?.state?.holdingEntityId as string | undefined;
+
+  const holdingEntityIds: string[] = Array.isArray(rawHolding) && rawHolding.length > 0
+    ? rawHolding
+    : singleHolding
+    ? [singleHolding]
+    : [];
+
+  const isHoldingItems = holdingEntityIds.length > 0;
+
   const isPlate = container.id === 'plate' || container.id === 'plato' || container.type === 'plate';
   const displayPlateName = plateCustomName !== '' ? plateCustomName : (containerEntities[0]?.name || defaultDishName);
 
@@ -271,8 +282,55 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
         )}
       </div>
 
-      {(isCookingArea || isSink || isCuttingBoard || isBowl || isPlate || (!isPlate && containerEntities.length > 0)) && (
+      {(isCookingArea || isSink || isCuttingBoard || isBowl || isPlate || (!isPlate && containerEntities.length > 0) || container.id !== 'despensa') && (
         <div className="container-view__actions">
+          {container.id !== 'despensa' && (
+            <div className="container-view__leave-row">
+              <button
+                type="button"
+                className={`container-action-btn leave-here-btn ${isHoldingItems ? 'leave-here-btn--highlight' : ''}`}
+                title={t('ui.leaveHere') || 'Dejar aquí'}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!isHoldingItems) {
+                    dispatch({
+                      type: 'UPDATE_ENTITY_STATE',
+                      payload: {
+                        entityId: 'chef',
+                        changes: {
+                          speechMessage: t('ui.nothingInHands') || '¡No tengo nada en las manos!',
+                          targetContainerId: container.id,
+                          gazingAt: { type: 'entity', entityId: container.id },
+                        },
+                      },
+                    });
+                    setTimeout(() => {
+                      dispatch({
+                        type: 'UPDATE_ENTITY_STATE',
+                        payload: { entityId: 'chef', changes: { speechMessage: undefined } },
+                      });
+                    }, 2500);
+                    return;
+                  }
+                  dispatch({
+                    type: 'MASCOT_DROP',
+                    payload: {
+                      targetContainerId: container.id,
+                      mascotId: 'chef',
+                    },
+                  });
+                }}
+              >
+                👇 {t('ui.leaveHere') || 'Dejar aquí'}
+                {isHoldingItems && (
+                  <span className="holding-count-badge">
+                    ({holdingEntityIds.length})
+                  </span>
+                )}
+              </button>
+            </div>
+          )}
+
           {isCookingArea && (
             <div className="container-view__action-group">
               <div className="container-view__field-group">
@@ -366,7 +424,7 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
           )}
 
           {isCuttingBoard && (
-            <>
+            <div className="container-view__button-row">
               <button
                 type="button"
                 className="container-action-btn cut-btn"
@@ -393,7 +451,7 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
               >
                 🥔 {t('verbs.peel')}
               </button>
-            </>
+            </div>
           )}
 
           {isBowl && (

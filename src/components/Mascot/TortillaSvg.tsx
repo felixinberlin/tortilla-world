@@ -35,6 +35,10 @@ export interface TortillaSvgProps {
   onDoubleClick?: (e: React.MouseEvent<SVGSVGElement>) => void;
   isHoldingLeft?: boolean;
   isHoldingRight?: boolean;
+  onLeftArmClick?: (e: React.MouseEvent<SVGElement>) => void;
+  onRightArmClick?: (e: React.MouseEvent<SVGElement>) => void;
+  leftArmTitle?: string;
+  rightArmTitle?: string;
 }
 
 const DEFAULT_POTATOES: Potato[] = [
@@ -66,6 +70,10 @@ export function TortillaSvg({
   onDoubleClick,
   isHoldingLeft = false,
   isHoldingRight = false,
+  onLeftArmClick,
+  onRightArmClick,
+  leftArmTitle,
+  rightArmTitle,
 }: TortillaSvgProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [isFlipping, setIsFlipping] = useState(false);
@@ -200,6 +208,20 @@ export function TortillaSvg({
     damping: 18,
   };
 
+  const getLeftHandPos = () => {
+    if (effectiveState === "celebrating") return { x: -28, y: -24 };
+    if (effectiveState === "flipping") return { x: -22, y: -10 };
+    if (isHoldingLeft) return { x: -32, y: -16 };
+    return { x: -30, y: 22 };
+  };
+
+  const getRightHandPos = () => {
+    if (effectiveState === "celebrating") return { x: 28, y: -24 };
+    if (effectiveState === "flipping") return { x: 22, y: -10 };
+    if (isHoldingRight) return { x: 32, y: -16 };
+    return { x: 30, y: 22 };
+  };
+
   const getLeftArmPath = () => {
     if (effectiveState === "celebrating") {
       return "M -26 4 Q -38 -14 -28 -24";
@@ -312,24 +334,93 @@ export function TortillaSvg({
       />
 
       {/* === ARMS (Left & Right) === */}
-      <motion.path
-        d={getLeftArmPath()}
-        fill="none"
-        stroke="#b8731f"
-        strokeWidth="3.5"
-        strokeLinecap="round"
-        animate={{ d: getLeftArmPath() }}
-        transition={armTransition}
-      />
-      <motion.path
-        d={getRightArmPath()}
-        fill="none"
-        stroke="#b8731f"
-        strokeWidth="3.5"
-        strokeLinecap="round"
-        animate={{ d: getRightArmPath() }}
-        transition={armTransition}
-      />
+      <g
+        className="tortilla-arm tortilla-arm-left"
+        onClick={(e) => {
+          e.stopPropagation();
+          onLeftArmClick?.(e);
+        }}
+        style={{ cursor: onLeftArmClick ? 'pointer' : 'default' }}
+      >
+        <motion.path
+          d={getLeftArmPath()}
+          fill="none"
+          stroke="transparent"
+          strokeWidth="16"
+          strokeLinecap="round"
+          animate={{ d: getLeftArmPath() }}
+          transition={armTransition}
+        />
+        <motion.path
+          d={getLeftArmPath()}
+          fill="none"
+          stroke="#b8731f"
+          strokeWidth="3.5"
+          strokeLinecap="round"
+          animate={{ d: getLeftArmPath() }}
+          transition={armTransition}
+          whileHover={onLeftArmClick ? { strokeWidth: 5, stroke: "#d98a28" } : undefined}
+          whileTap={onLeftArmClick ? { scale: 0.92 } : undefined}
+        />
+        {onLeftArmClick && (
+          <motion.g
+            animate={{ x: getLeftHandPos().x, y: getLeftHandPos().y }}
+            transition={armTransition}
+            whileHover={{ scale: 1.25 }}
+            whileTap={{ scale: 0.9 }}
+          >
+            <circle cx="0" cy="0" r="5.5" fill="#ffffff" stroke="#b8731f" strokeWidth="1.3" />
+            <text x="0" y="2" textAnchor="middle" fontSize="6.5" fontWeight="bold" fill="#7a4a15" style={{ userSelect: 'none', pointerEvents: 'none' }}>
+              ◀
+            </text>
+          </motion.g>
+        )}
+        {leftArmTitle && <title>{leftArmTitle}</title>}
+      </g>
+
+      <g
+        className="tortilla-arm tortilla-arm-right"
+        onClick={(e) => {
+          e.stopPropagation();
+          onRightArmClick?.(e);
+        }}
+        style={{ cursor: onRightArmClick ? 'pointer' : 'default' }}
+      >
+        <motion.path
+          d={getRightArmPath()}
+          fill="none"
+          stroke="transparent"
+          strokeWidth="16"
+          strokeLinecap="round"
+          animate={{ d: getRightArmPath() }}
+          transition={armTransition}
+        />
+        <motion.path
+          d={getRightArmPath()}
+          fill="none"
+          stroke="#b8731f"
+          strokeWidth="3.5"
+          strokeLinecap="round"
+          animate={{ d: getRightArmPath() }}
+          transition={armTransition}
+          whileHover={onRightArmClick ? { strokeWidth: 5, stroke: "#d98a28" } : undefined}
+          whileTap={onRightArmClick ? { scale: 0.92 } : undefined}
+        />
+        {onRightArmClick && (
+          <motion.g
+            animate={{ x: getRightHandPos().x, y: getRightHandPos().y }}
+            transition={armTransition}
+            whileHover={{ scale: 1.25 }}
+            whileTap={{ scale: 0.9 }}
+          >
+            <circle cx="0" cy="0" r="5.5" fill="#ffffff" stroke="#b8731f" strokeWidth="1.3" />
+            <text x="0" y="2" textAnchor="middle" fontSize="6.5" fontWeight="bold" fill="#7a4a15" style={{ userSelect: 'none', pointerEvents: 'none' }}>
+              ▶
+            </text>
+          </motion.g>
+        )}
+        {rightArmTitle && <title>{rightArmTitle}</title>}
+      </g>
 
       {/* === HAUPTKÖRPER === */}
       <ellipse

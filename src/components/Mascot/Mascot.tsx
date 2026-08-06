@@ -15,6 +15,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useDroppable } from '@dnd-kit/core';
 import { useTranslation } from '../../i18n/useTranslation';
 import { useStore } from 'zustand';
 import { worldStore } from '../../store/worldStore';
@@ -27,10 +28,13 @@ import { getMascotFocusClass } from '../../systems/focus';
 
 interface MascotProps {
   mascotId?: string;
+  onLeftArmClick?: () => void;
+  onRightArmClick?: () => void;
 }
 
-export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
+export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef', onLeftArmClick: onLeftArmClickProp, onRightArmClick: onRightArmClickProp }) => {
   const { t } = useTranslation();
+  const { setNodeRef, isOver } = useDroppable({ id: mascotId });
   const mascotEntity = useStore(worldStore, (state) => state.entities[mascotId]);
   const entities = useStore(worldStore, (state) => state.entities);
   const focusTarget = useStore(worldStore, (state) => state.focusTarget);
@@ -150,6 +154,18 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
     window.dispatchEvent(new CustomEvent('mascot-flip', { detail: { mascotId } }));
   };
 
+  const handleLeftArmClick = (e: React.MouseEvent<SVGElement>) => {
+    e.stopPropagation();
+    window.dispatchEvent(new CustomEvent('recipe-step-prev'));
+    onLeftArmClickProp?.();
+  };
+
+  const handleRightArmClick = (e: React.MouseEvent<SVGElement>) => {
+    e.stopPropagation();
+    window.dispatchEvent(new CustomEvent('recipe-step-next'));
+    onRightArmClickProp?.();
+  };
+
   const isFloating = offset.x !== 0 || offset.y !== 0;
 
   return (
@@ -180,7 +196,8 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
         }}
       >
         <div
-          className={`mascot-wrapper ${focusClass} ${isFloating ? 'is-floating' : ''} ${holdingEntityIds.length > 0 ? 'is-holding' : ''}`}
+          ref={setNodeRef}
+          className={`mascot-wrapper ${focusClass} ${isFloating ? 'is-floating' : ''} ${holdingEntityIds.length > 0 ? 'is-holding' : ''} ${isOver ? 'is-droppable-over scale-105' : ''}`}
           style={
             {
               position: 'absolute',
@@ -199,6 +216,10 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
             onDoubleClick={handleDoubleClick}
             isHoldingLeft={isHoldingLeft}
             isHoldingRight={isHoldingRight}
+            onLeftArmClick={handleLeftArmClick}
+            onRightArmClick={handleRightArmClick}
+            leftArmTitle={t('replayer.stepBack') || '⏮️ Previous Step'}
+            rightArmTitle={t('replayer.stepForward') || '⏭️ Next Step'}
           />
 
           {/* Held Ingredient Badges (Up to 2 items) */}

@@ -116,6 +116,14 @@
     "instructions": "Anweisungen",
     "chefsHints": "Tipps des Küchenchefs",
     "ingredientsCatalog": "Zutatenkatalog",
+    "basicIngredients": "Basiszutaten",
+    "otherIngredients": "Weitere Zutaten",
+    "showOthers": "Weitere Zutaten anzeigen",
+    "hideOthers": "Weitere Zutaten ausblenden",
+    "moveToOthers": "Zu weiteren verschieben",
+    "moveToBasic": "Zu Basiszutaten verschieben",
+    "resetCategories": "Kategorien zurücksetzen",
+    "dropToCategorize": "Zutaten hier ablegen zum Umkategorisieren",
     "sidebarSubtitle": "Ziehe Elemente oder tippe auf ➕, um sie in den Arbeitsbereich zu legen",
     "searchIngredientsPlaceholder": "🔍 Zutaten suchen...",
     "noIngredientsFound": "Keine Zutaten für \"{{query}}\" gefunden",
@@ -135,7 +143,14 @@
     "confirmEmptyTrash": "Bist du sicher, dass du den Mülleimer leeren möchtest?",
     "yesEmpty": "Ja, leeren",
     "cancel": "Abbrechen",
-    "save": "Speichern"
+    "save": "Speichern",
+    "leaveHere": "Hier ablegen",
+    "takeMe": "Nimm mich",
+    "recordedSession": "Aufgezeichnet / Geladen",
+    "noIngredientsListed": "Keine Zutaten angegeben.",
+    "noInstructionsListed": "Noch keine Schritte aufgezeichnet.",
+    "handsFull": "Meine Hände sind voll! Lege zuerst eine Zutat ab.",
+    "nothingInHands": "Ich habe nichts in den Händen!"
   },
   "workstations": {
     "sink": "Waschplatz 💧",
@@ -253,6 +268,10 @@
         "Schalte den Herd ein, gib Öl hinzu und erhitze es.",
         "Achte darauf, dass das Omelett nicht festklebt."
       ]
+    },
+    "recorded": {
+      "name": "Aufgezeichnetes / Geladenes Rezept",
+      "description": "Dynamisch generiertes Rezept aus aufgezeichneten oder geladenen Kochaktionen."
     }
   }
 }

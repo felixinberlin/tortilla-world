@@ -19,6 +19,7 @@ import { fetchAllRecipesFromDb, type SavedRecipe } from '../../services/dbServic
 import type { WorldAction } from '../../types/actions';
 import type { RecordedAction } from '../../types/recording';
 import { detectRecipeFormat, getPlayableActionsFromFormat } from '../../utils/recipeFormatDetector';
+import { extractUsedIngredientsFromActions } from '../../utils/sessionLogUtils';
 import './ActionReplayer.scss';
 
 export interface ActionReplayerProps {
@@ -26,6 +27,8 @@ export interface ActionReplayerProps {
   defaultDelayMs?: number;
   /** Optional class name override */
   className?: string;
+  /** Whether to render secondary standalone playback buttons (step, play, speed). Default: false */
+  showControls?: boolean;
   /** Callback fired when playback starts */
   onPlaybackStart?: () => void;
   /** Callback fired when playback completes */
@@ -35,6 +38,7 @@ export interface ActionReplayerProps {
 export const ActionReplayer: React.FC<ActionReplayerProps> = ({
   defaultDelayMs = 300,
   className = '',
+  showControls = false,
   onPlaybackStart,
   onPlaybackComplete,
 }) => {
@@ -107,8 +111,10 @@ export const ActionReplayer: React.FC<ActionReplayerProps> = ({
     }
 
     worldStore.getState().resetWorld();
-    worldStore.getState().setRecordedActions(playable.actions as unknown as RecordedAction[]);
+    const extractedIngs = extractUsedIngredientsFromActions(playable.actions);
+    worldStore.getState().setRecordedActions(playable.actions as unknown as RecordedAction[], extractedIngs);
     setCurrentStep(0);
+    window.dispatchEvent(new CustomEvent('select-recorded-session'));
     setErrorMessage(null);
     setInfoMessage(
       `Loaded "${found.title}" [Type: ${detected.typeLabel}] (${playable.actions.length} ${
@@ -144,8 +150,10 @@ export const ActionReplayer: React.FC<ActionReplayerProps> = ({
 
           setErrorMessage(null);
           worldStore.getState().resetWorld();
-          worldStore.getState().setRecordedActions(playable.actions as unknown as RecordedAction[]);
+          const extractedIngs = extractUsedIngredientsFromActions(playable.actions);
+          worldStore.getState().setRecordedActions(playable.actions as unknown as RecordedAction[], extractedIngs);
           setCurrentStep(0);
+          window.dispatchEvent(new CustomEvent('select-recorded-session'));
           setInfoMessage(
             `Loaded "${file.name}" [Type: ${detected.typeLabel}] (${playable.actions.length} ${
               detected.type === 'declarative' ? 'converted steps' : 'actions'
@@ -266,81 +274,85 @@ export const ActionReplayer: React.FC<ActionReplayerProps> = ({
         </select>
       )}
 
-      {totalSteps > 0 && !isPlaying && (
-        <div className="step-controls-group">
-          <button
-            type="button"
-            className="replayer-btn step-btn"
-            onClick={handleStepBack}
-            disabled={effectiveCurrentStep === 0}
-            title="Step back to previous recorded action"
-          >
-            ⏮️ Step Back
-          </button>
+      {showControls && (
+        <>
+          {totalSteps > 0 && !isPlaying && (
+            <div className="step-controls-group">
+              <button
+                type="button"
+                className="replayer-btn step-btn"
+                onClick={handleStepBack}
+                disabled={effectiveCurrentStep === 0}
+                title="Step back to previous recorded action"
+              >
+                ⏮️ Step Back
+              </button>
 
-          <button
-            type="button"
-            className="replayer-btn step-btn step-forward-btn"
-            onClick={handleStepForward}
-            disabled={effectiveCurrentStep >= totalSteps}
-            title="Step forward to next recorded action"
-          >
-            ⏭️ Step Forward
-          </button>
+              <button
+                type="button"
+                className="replayer-btn step-btn step-forward-btn"
+                onClick={handleStepForward}
+                disabled={effectiveCurrentStep >= totalSteps}
+                title="Step forward to next recorded action"
+              >
+                ⏭️ Step Forward
+              </button>
 
-          <button
-            type="button"
-            className="replayer-btn play-btn"
-            onClick={handlePlayAll}
-            title="Play all remaining actions"
-          >
-            ▶️ Play
-          </button>
+              <button
+                type="button"
+                className="replayer-btn play-btn"
+                onClick={handlePlayAll}
+                title="Play all remaining actions"
+              >
+                ▶️ Play
+              </button>
 
-          <button
-            type="button"
-            className="replayer-btn reset-btn"
-            onClick={handleResetSteps}
-            title="Reset world state to step 0"
-          >
-            🔄 Reset
-          </button>
-        </div>
-      )}
+              <button
+                type="button"
+                className="replayer-btn reset-btn"
+                onClick={handleResetSteps}
+                title="Reset world state to step 0"
+              >
+                🔄 Reset
+              </button>
+            </div>
+          )}
 
-      {isPlaying && (
-        <button
-          type="button"
-          className="replayer-btn stop-btn"
-          onClick={handleStop}
-          title="Stop action playback"
-        >
-          ⏹ Stop Playback
-        </button>
-      )}
+          {isPlaying && (
+            <button
+              type="button"
+              className="replayer-btn stop-btn"
+              onClick={handleStop}
+              title="Stop action playback"
+            >
+              ⏹ Stop Playback
+            </button>
+          )}
 
-      {!isPlaying && (
-        <select
-          className="delay-select"
-          value={delayMs}
-          onChange={(e) => setDelayMs(Number(e.target.value))}
-          title="Playback speed step delay"
-        >
-          <option value={100}>Fast (100ms)</option>
-          <option value={300}>Normal (300ms)</option>
-          <option value={600}>Slow (600ms)</option>
-        </select>
-      )}
+          {!isPlaying && (
+            <select
+              className="delay-select"
+              value={delayMs}
+              onChange={(e) => setDelayMs(Number(e.target.value))}
+              title="Playback speed step delay"
+            >
+              <option value={100}>Fast (100ms)</option>
+              <option value={300}>Normal (300ms)</option>
+              <option value={600}>Slow (600ms)</option>
+            </select>
+          )}
 
-      {totalSteps > 0 && (
-        <div className="playback-status">
-          <span>
-            Step {effectiveCurrentStep} / {totalSteps}
-          </span>
-          <div className="progress-bar-container">
-            <div className="progress-bar-fill" style={{ width: `${percent}%` }} />
-          </div>
-        </div>
+          {totalSteps > 0 && (
+            <div className="playback-status">
+              <span>
+                Step {effectiveCurrentStep} / {totalSteps}
+              </span>
+              <div className="progress-bar-container">
+                <div className="progress-bar-fill" style={{ width: `${percent}%` }} />
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {infoMessage && <span className="info-message" style={{ color: '#0d9488', fontSize: '0.8rem', fontWeight: 600 }}>{infoMessage}</span>}

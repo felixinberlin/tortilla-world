@@ -17,7 +17,7 @@ import type { RecordedAction, SerializedRecipeExport, SerializedWorldState } fro
 import type { WorldStateStore } from '../types';
 import { ingredients } from '../../data/catalog/ingredients';
 import { catalogTools } from '../../data/catalog/tools';
-import { filterUnusedIngredientsFromState } from '../../utils/sessionLogUtils';
+import { filterUnusedIngredientsFromState, extractUsedIngredientsFromActions } from '../../utils/sessionLogUtils';
 
 export interface UsedIngredientInfo {
   id: string;
@@ -38,7 +38,7 @@ export interface RecordSlice {
   stopRecording: (customDishName?: string) => void;
   recordAction: (action: WorldAction) => void;
   clearRecording: () => void;
-  setRecordedActions: (actions: RecordedAction[]) => void;
+  setRecordedActions: (actions: RecordedAction[], customUsedIngredients?: UsedIngredientInfo[]) => void;
 }
 
 export const createRecordSlice: StateCreator<
@@ -219,14 +219,18 @@ export const createRecordSlice: StateCreator<
     });
   },
 
-  setRecordedActions: (actions: RecordedAction[]) => {
+  setRecordedActions: (actions: RecordedAction[], customUsedIngredients?: UsedIngredientInfo[]) => {
     const prevUrl = get().recordedDownloadUrl;
     if (prevUrl) {
       URL.revokeObjectURL(prevUrl);
     }
     set((state) => {
       state.recordedActions = actions;
-      state.usedIngredients = [];
+      if (customUsedIngredients && customUsedIngredients.length > 0) {
+        state.usedIngredients = customUsedIngredients;
+      } else {
+        state.usedIngredients = extractUsedIngredientsFromActions(actions);
+      }
       state.recordedDownloadUrl = null;
       state.recordedFilename = null;
     });

@@ -223,4 +223,76 @@ describe('mascotActions system', () => {
       expect(allIngredientCatalogIds.some((cid) => cid === id)).toBe(true);
     });
   });
+
+  it('allows dragging an ingredient directly to Tortilla so she carries it in her free arm', () => {
+    // Dispatch MOVE_ENTITY with targetContainerId = 'chef'
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'potato', targetContainerId: 'chef' },
+    });
+
+    const state = worldStore.getState();
+    const chefState = state.entities.chef.state;
+    expect(chefState?.holdingEntityId).toBe('potato');
+    expect(chefState?.holdingEntityIds).toEqual(['potato']);
+  });
+
+  it('supports carrying up to 2 items simultaneously (two free arms)', () => {
+    worldStore.setState({
+      ...worldStore.getState(),
+      entities: {
+        ...worldStore.getState().entities,
+        onion: { id: 'onion', ingredientId: 'onion', name: 'Onion', type: 'ingredient' },
+        egg: { id: 'egg', ingredientId: 'egg', name: 'Egg', type: 'ingredient' },
+      },
+    });
+
+    // First ingredient to chef
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'potato', targetContainerId: 'chef' },
+    });
+
+    // Second ingredient to chef
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'onion', targetContainerId: 'chef' },
+    });
+
+    const state = worldStore.getState();
+    const chefState = state.entities.chef.state;
+    expect(chefState?.holdingEntityIds).toEqual(['potato', 'onion']);
+
+    // Attempting a 3rd item when hands are full
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'egg', targetContainerId: 'chef' },
+    });
+
+    const updatedState = worldStore.getState();
+    // Hands remain capped at 2 items
+    expect(updatedState.entities.chef.state?.holdingEntityIds).toEqual(['potato', 'onion']);
+  });
+
+  it('allows clicking "take me" on an ingredient in a workstation to make Tortilla grab it', () => {
+    // Put potato in cutting board first
+    worldStore.getState().dispatch({
+      type: 'MOVE_ENTITY',
+      payload: { entityId: 'potato', targetContainerId: 'board' },
+    });
+
+    const boardEntityIds = worldStore.getState().containers.board.entityIds;
+    expect(boardEntityIds.length).toBeGreaterThan(0);
+    const actualEntityId = boardEntityIds[0];
+
+    // Click "take me" button -> dispatches MASCOT_GRAB
+    worldStore.getState().dispatch({
+      type: 'MASCOT_GRAB',
+      payload: { entityId: actualEntityId, sourceContainerId: 'board', mascotId: 'chef' },
+    });
+
+    const state = worldStore.getState();
+    expect(state.containers.board.entityIds).not.toContain(actualEntityId);
+    expect(state.entities.chef.state?.holdingEntityIds).toEqual([actualEntityId]);
+  });
 });

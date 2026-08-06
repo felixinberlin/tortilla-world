@@ -71,17 +71,20 @@ export const ActionRecorder: React.FC<ActionRecorderProps> = ({ isDev = true }) 
       setIsPlateNameModalOpen(true);
     } else {
       stopRecording();
+      window.dispatchEvent(new CustomEvent('select-recorded-session'));
     }
   };
 
   const handleConfirmDishName = (dishName: string) => {
     setIsPlateNameModalOpen(false);
     stopRecording(dishName);
+    window.dispatchEvent(new CustomEvent('select-recorded-session'));
   };
 
   const handleSkipDishName = () => {
     setIsPlateNameModalOpen(false);
     stopRecording();
+    window.dispatchEvent(new CustomEvent('select-recorded-session'));
   };
 
   // Sourced actions (either explicit recording or emitted eventStore events)

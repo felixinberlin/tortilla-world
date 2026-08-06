@@ -116,6 +116,14 @@
     "instructions": "Instrucciones",
     "chefsHints": "Consejos del Chef",
     "ingredientsCatalog": "Catálogo de Ingredientes",
+    "basicIngredients": "Ingredientes Básicos",
+    "otherIngredients": "Otros Ingredientes",
+    "showOthers": "Mostrar otros ingredientes",
+    "hideOthers": "Ocultar otros ingredientes",
+    "moveToOthers": "Mover a otros",
+    "moveToBasic": "Mover a básicos",
+    "resetCategories": "Restablecer categorías",
+    "dropToCategorize": "Arrastra ingredientes aquí para cambiar de categoría",
     "sidebarSubtitle": "Arrastra elementos o pulsa ➕ para colocarlos en el área de trabajo",
     "searchIngredientsPlaceholder": "🔍 Buscar ingredientes...",
     "noIngredientsFound": "No se encontraron ingredientes para \"{{query}}\"",
@@ -135,7 +143,14 @@
     "confirmEmptyTrash": "¿Estás seguro de que quieres vaciar la papelera?",
     "yesEmpty": "Sí, vaciar",
     "cancel": "Cancelar",
-    "save": "Guardar"
+    "save": "Guardar",
+    "leaveHere": "Dejar aquí",
+    "takeMe": "Llévame",
+    "recordedSession": "Grabada / Cargada",
+    "noIngredientsListed": "Sin ingredientes especificadas.",
+    "noInstructionsListed": "Sin pasos registrados todavía.",
+    "handsFull": "¡Mis manos están ocupadas! Deja un ingrediente primero.",
+    "nothingInHands": "¡No tengo nada en las manos!"
   },
   "workstations": {
     "sink": "Zona de Lavado 💧",
@@ -253,6 +268,10 @@
         "Enciende el fuego, añade aceite y caliéntalo.",
         "Con una espátula blanda, asegúrate de que la tortilla no se pega a la sartén."
       ]
+    },
+    "recorded": {
+      "name": "Receta Grabada / Cargada",
+      "description": "Receta generada dinámicamente a partir de acciones de cocina grabadas o cargadas."
     }
   }
 }

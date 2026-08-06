@@ -26,6 +26,7 @@ import { getRecipeRequirementsArray } from '../../types/Recipe';
 import { RecipeRequirements } from '../Recipe/RecipeRequirements';
 import { ActionReplayer } from '../Controls/ActionReplayer';
 import { PlateDishNameModal } from '../Controls/PlateDishNameModal';
+import { extractUsedIngredientsFromActions } from '../../utils/sessionLogUtils';
 import { useTranslation } from '../../i18n/useTranslation';
 import './RecipePlayer.scss';
 
@@ -359,9 +360,13 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
   const [speed, setSpeed] = useState<number>(1); // 0.5, 1, 2, 3
   const [isIngredientsCollapsed, setIsIngredientsCollapsed] = useState<boolean>(false);
 
+  const runnerRef = useRef<RecipeRunner | null>(null);
+  const isExecutingRef = useRef<boolean>(false);
+
   // WorldStore recording state
   const isRecording = useStore(worldStore, (state) => state.isRecording);
   const recordedActions = useStore(worldStore, (state) => state.recordedActions);
+  const usedIngredients = useStore(worldStore, (state) => state.usedIngredients);
   const recordedDownloadUrl = useStore(worldStore, (state) => state.recordedDownloadUrl);
   const recordedFilename = useStore(worldStore, (state) => state.recordedFilename);
   const startRecording = useStore(worldStore, (state) => state.startRecording);
@@ -383,18 +388,42 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
       setIsPlateNameModalOpen(true);
     } else {
       stopRecording();
+      setSelectedRecipeId('recording');
+      setCurrentStepIndex(0);
+      window.dispatchEvent(new CustomEvent('select-recorded-session'));
     }
   };
 
   const handleConfirmDishName = (dishName: string) => {
     setIsPlateNameModalOpen(false);
     stopRecording(dishName);
+    setSelectedRecipeId('recording');
+    setCurrentStepIndex(0);
+    window.dispatchEvent(new CustomEvent('select-recorded-session'));
   };
 
   const handleSkipDishName = () => {
     setIsPlateNameModalOpen(false);
     stopRecording();
+    setSelectedRecipeId('recording');
+    setCurrentStepIndex(0);
+    window.dispatchEvent(new CustomEvent('select-recorded-session'));
   };
+
+  // Listen for select-recorded-session event
+  useEffect(() => {
+    const handleSelectRecorded = () => {
+      setSelectedRecipeId('recording');
+      setCurrentStepIndex(0);
+      runnerRef.current = null;
+      worldStore.getState().dispatch({ type: 'RESET_WORLD' });
+    };
+
+    window.addEventListener('select-recorded-session', handleSelectRecorded);
+    return () => {
+      window.removeEventListener('select-recorded-session', handleSelectRecorded);
+    };
+  }, []);
 
   const prevHoldingRef = useRef<string | undefined>(undefined);
 
@@ -439,16 +468,35 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
 
   const isRecordingMode = selectedRecipeId === 'recording' || isRecording;
 
+  const recordedRecipe: Recipe = useMemo(() => {
+    let reqList = usedIngredients;
+    if (!reqList || reqList.length === 0) {
+      reqList = extractUsedIngredientsFromActions(recordedActions);
+    }
+
+    const requirementsArr = (reqList || []).map((ing) => ({
+      id: `rec-${ing.id}`,
+      entityId: ing.id,
+      amount: 1,
+      unit: 'unit',
+      name: ing.name,
+    }));
+
+    return {
+      id: 'recording',
+      name: 'Recorded Session',
+      requirements: requirementsArr,
+      steps: [],
+    };
+  }, [usedIngredients, recordedActions]);
+
   const activeRecipe: Recipe = useMemo(
-    () => recipes.find((r) => r.id === selectedRecipeId) || recipes[0],
-    [selectedRecipeId]
+    () => (selectedRecipeId === 'recording' ? recordedRecipe : recipes.find((r) => r.id === selectedRecipeId) || recipes[0]),
+    [selectedRecipeId, recordedRecipe]
   );
   const steps: RecipeStep[] = useMemo(() => activeRecipe?.steps || [], [activeRecipe]);
 
   const totalSteps = isRecordingMode ? recordedActions.length : steps.length;
-
-  const runnerRef = useRef<RecipeRunner | null>(null);
-  const isExecutingRef = useRef<boolean>(false);
 
   // Get delay in ms based on active speed multiplier
   const currentDelayMs = SPEED_DELAYS[speed] || 600;
@@ -478,7 +526,6 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
     if (activeRecipe?.id) {
       worldStore.getState().setActiveRecipeId(activeRecipe.id);
     }
-    if (isRecordingMode) return;
     const store = worldStore.getState();
     const reqs = getRecipeRequirementsArray(activeRecipe);
     reqs.forEach((req) => {
@@ -502,7 +549,7 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
         });
       }
     });
-  }, [activeRecipe, isRecordingMode]);
+  }, [activeRecipe]);
 
   // Re-sync runner context or reset when recipe changes
   const handleRecipeChange = (newRecipeId: string) => {
@@ -510,7 +557,42 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
     setSelectedRecipeId(newRecipeId);
     setCurrentStepIndex(0);
     runnerRef.current = null;
+
+    worldStore.getState().setActiveRecipeId(newRecipeId);
+    const targetRecipe =
+      newRecipeId === 'recording'
+        ? recordedRecipe
+        : recipes.find((r) => r.id === newRecipeId) || recipes[0];
+
+    worldStore.getState().setActiveRecipeName(targetRecipe.name);
+
+    // Clean reset of all kitchen workstation containers
     worldStore.getState().dispatch({ type: 'RESET_WORLD' });
+
+    // Seed required ingredients & tools for target recipe into despensa
+    const reqs = getRecipeRequirementsArray(targetRecipe);
+    const store = worldStore.getState();
+    reqs.forEach((req) => {
+      const existing = store.entities[req.entityId];
+      if (!existing) {
+        const catalogIng = ingredients.find((i) => i.id === req.entityId);
+        const catalogTool = tools.find((t: { id: string }) => t.id === req.entityId);
+        store.dispatch({
+          type: 'ADD_ENTITY',
+          payload: {
+            entity: {
+              id: req.entityId,
+              name: req.name || catalogIng?.name || catalogTool?.name || req.entityId,
+              type: (catalogTool ? 'tool' : 'ingredient') as 'tool' | 'ingredient',
+              icon: catalogIng?.icon || catalogTool?.icon,
+              ingredientId: req.entityId,
+              state: {},
+            },
+            containerId: 'despensa',
+          },
+        });
+      }
+    });
   };
 
   // Full reset of world and player step
@@ -518,8 +600,33 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
     setIsPlaying(false);
     setCurrentStepIndex(0);
     runnerRef.current = null;
+
     worldStore.getState().dispatch({ type: 'RESET_WORLD' });
-  }, []);
+
+    const reqs = getRecipeRequirementsArray(activeRecipe);
+    const store = worldStore.getState();
+    reqs.forEach((req) => {
+      const existing = store.entities[req.entityId];
+      if (!existing) {
+        const catalogIng = ingredients.find((i) => i.id === req.entityId);
+        const catalogTool = tools.find((t: { id: string }) => t.id === req.entityId);
+        store.dispatch({
+          type: 'ADD_ENTITY',
+          payload: {
+            entity: {
+              id: req.entityId,
+              name: req.name || catalogIng?.name || catalogTool?.name || req.entityId,
+              type: (catalogTool ? 'tool' : 'ingredient') as 'tool' | 'ingredient',
+              icon: catalogIng?.icon || catalogTool?.icon,
+              ingredientId: req.entityId,
+              state: {},
+            },
+            containerId: 'despensa',
+          },
+        });
+      }
+    });
+  }, [activeRecipe]);
 
   // Jump to a specific target step index
   const jumpToStep = useCallback(
@@ -705,6 +812,24 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [handleStepDown, handleStepUp, handleTogglePlay, handleReset, handleFast, handleSlow]);
+
+  // Listen for mascot arm clicks (left = prev step, right = next step)
+  useEffect(() => {
+    const handleStepPrev = () => {
+      handleStepDown();
+    };
+    const handleStepNext = () => {
+      handleStepUp();
+    };
+
+    window.addEventListener('recipe-step-prev', handleStepPrev);
+    window.addEventListener('recipe-step-next', handleStepNext);
+
+    return () => {
+      window.removeEventListener('recipe-step-prev', handleStepPrev);
+      window.removeEventListener('recipe-step-next', handleStepNext);
+    };
+  }, [handleStepDown, handleStepUp]);
 
   // Listen for mascot flip (double click/tap on mascot) to step up in recipe player
   useEffect(() => {
