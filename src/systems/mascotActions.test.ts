@@ -8,6 +8,9 @@ import {
   moveTortillaTo,
   grabIngredient,
   dropIngredient,
+  speakTortilla,
+  equipTool,
+  unequipTool,
   runTortillaPotatoScript,
   runFollowRecipeScript,
 } from './mascotActions';
@@ -48,6 +51,23 @@ describe('mascotActions system', () => {
   beforeEach(() => {
     seedWorld();
     clearActionLog();
+  });
+
+  it('triggers speech bubble on Tortilla mascot', () => {
+    speakTortilla('¡Hola, Tortilla!', 0, 'chef');
+
+    const state = worldStore.getState();
+    expect(state.entities.chef.state?.speechMessage).toBe('¡Hola, Tortilla!');
+  });
+
+  it('equips and unequips tools on Tortilla mascot', () => {
+    equipTool('knife', 'chef');
+    let state = worldStore.getState();
+    expect(state.entities.chef.state?.equippedToolId).toBe('knife');
+
+    unequipTool('chef');
+    state = worldStore.getState();
+    expect(state.entities.chef.state?.equippedToolId).toBeUndefined();
   });
 
   it('triggers flip action and logs in store action log', () => {

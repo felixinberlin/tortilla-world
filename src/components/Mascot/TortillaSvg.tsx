@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
 import type { GazePoint, GazeTarget } from "../../systems/gaze";
 import type { MascotState } from "../../systems/mascot";
+import { catalogTools } from "../../data/catalog/tools";
 import "./TortillaSvg.scss";
 
 export interface Potato {
@@ -39,6 +40,7 @@ export interface TortillaSvgProps {
   onRightArmClick?: (e: React.MouseEvent<SVGElement>) => void;
   leftArmTitle?: string;
   rightArmTitle?: string;
+  equippedToolId?: string;
 }
 
 const DEFAULT_POTATOES: Potato[] = [
@@ -74,6 +76,7 @@ export function TortillaSvg({
   onRightArmClick,
   leftArmTitle,
   rightArmTitle,
+  equippedToolId,
 }: TortillaSvgProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [isFlipping, setIsFlipping] = useState(false);
@@ -547,23 +550,38 @@ export function TortillaSvg({
       />
       <ellipse cx="-8" cy="-16" rx="3" ry="1.5" fill="#ffffff" opacity="0.3" transform="rotate(-20 -8 -16)" />
 
-      {/* === BASILIKUM-BLATT (als "Haarschmuck") === */}
-      <g transform="translate(18, -22) rotate(25)">
-        <path
-          d="M 0 0 Q -4 -8 0 -14 Q 4 -8 0 0 Z"
-          fill="#5a8f3a"
-          stroke="#4a7a2e"
-          strokeWidth="0.8"
-        />
-        <path
-          d="M 0 0 L 0 -12"
-          fill="none"
-          stroke="#4a7a2e"
-          strokeWidth="0.5"
-        />
-        <ellipse cx="-1.5" cy="-5" rx="1" ry="0.8" fill="#6ba84a" opacity="0.7" />
-        <ellipse cx="1.5" cy="-9" rx="0.8" ry="0.6" fill="#6ba84a" opacity="0.7" />
-      </g>
+      {/* === HAARSCHMUCK (Basil leaf default, or equipped workstation tool in hair) === */}
+      {equippedToolId ? (
+        <g transform="translate(18, -22) rotate(15)">
+          <circle cx="0" cy="0" r="11" fill="#f59e0b" stroke="#ffffff" strokeWidth="1.5" />
+          <text
+            x="0"
+            y="5"
+            textAnchor="middle"
+            fontSize="12"
+            style={{ userSelect: 'none', pointerEvents: 'none' }}
+          >
+            {catalogTools.find((t) => t.id === equippedToolId || equippedToolId.startsWith(t.id))?.icon || '🔪'}
+          </text>
+        </g>
+      ) : (
+        <g transform="translate(18, -22) rotate(25)">
+          <path
+            d="M 0 0 Q -4 -8 0 -14 Q 4 -8 0 0 Z"
+            fill="#5a8f3a"
+            stroke="#4a7a2e"
+            strokeWidth="0.8"
+          />
+          <path
+            d="M 0 0 L 0 -12"
+            fill="none"
+            stroke="#4a7a2e"
+            strokeWidth="0.5"
+          />
+          <ellipse cx="-1.5" cy="-5" rx="1" ry="0.8" fill="#6ba84a" opacity="0.7" />
+          <ellipse cx="1.5" cy="-9" rx="0.8" ry="0.6" fill="#6ba84a" opacity="0.7" />
+        </g>
+      )}
 
       {/* === DAMPF (nur im Cooking-State) === */}
       {state === "cooking" && (

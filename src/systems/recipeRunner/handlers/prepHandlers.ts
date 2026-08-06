@@ -6,8 +6,9 @@
  */
 
 import { worldStore } from '../../../store/worldStore';
-import { moveTortillaTo } from '../../mascotActions';
+import { moveTortillaTo, equipTool, unequipTool, speakTortilla } from '../../mascotActions';
 import { resolveContainerId } from '../../../engine/containerRules';
+import { getActionRecommendation } from '../../actionRecommendations';
 import type { RecipeStep } from '../../../types/RecipeStep';
 import type { RecipeRunnerContext } from '../types';
 
@@ -38,6 +39,17 @@ export async function handlePrepStep(
     return 'prepared';
   })();
 
+  // Resolve tool for step (custom step tool or auto-deduced)
+  const stepTool = ('tool' in step && typeof step.tool === 'string' ? step.tool : undefined) ||
+    ('toolId' in step && typeof step.toolId === 'string' ? step.toolId : undefined) ||
+    (step.action === 'peel' || prepStyle === 'peeled'
+      ? 'peeler'
+      : prepStyle === 'beaten'
+      ? 'whisk'
+      : step.action === 'cut' || prepStyle === 'sliced' || prepStyle === 'diced'
+      ? 'knife'
+      : undefined);
+
   const defaultContainerForPrep =
     prepStyle === 'beaten' || prepStyle === 'mixed'
       ? 'bowl'
@@ -50,7 +62,24 @@ export async function handlePrepStep(
   // Ensure bound entity is in workspace
   entityId = await ctx.ensureEntityInWorkspace(entityId, targetContainerId);
 
+  // 1. Move mascot to workstation and equip tool if present
   moveTortillaTo(targetContainerId, ctx.mascotId);
+  if (stepTool) {
+    equipTool(stepTool, ctx.mascotId);
+  }
+
+  // 2. Speak recommendation advice for step
+  const recommendation =
+    ('instruction' in step && typeof step.instruction === 'string' && step.instruction) ||
+    ('recommendation' in step && typeof step.recommendation === 'string' && step.recommendation) ||
+    getActionRecommendation({
+      action: step.action,
+      style: prepStyle,
+      toolId: stepTool,
+      ingredientName: rawKey,
+    });
+  speakTortilla(recommendation, 2500, ctx.mascotId);
+
   await ctx.wait();
 
   worldStore.getState().dispatch({
@@ -62,4 +91,9 @@ export async function handlePrepStep(
   });
 
   await ctx.wait();
+
+  // Unequip tool when step completes
+  if (stepTool) {
+    unequipTool(ctx.mascotId);
+  }
 }

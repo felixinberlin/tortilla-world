@@ -1,0 +1,358 @@
+[
+  {
+    "id": "potato",
+    "states": [
+      "raw",
+      "washed",
+      "peeled",
+      "cut",
+      "sliced",
+      "diced",
+      "fried",
+      "boiled"
+    ],
+    "allowedActions": [
+      { "action": "wash", "from": "raw", "to": "washed" },
+      { "action": "peel", "from": "washed", "to": "peeled" },
+      { "action": "peel", "from": "raw", "to": "peeled" },
+      { "action": "cut", "from": "peeled", "to": "cut" },
+      { "action": "slice", "from": "peeled", "to": "sliced" },
+      { "action": "dice", "from": "peeled", "to": "diced" },
+      { "action": "fry", "from": "sliced", "to": "fried" },
+      { "action": "fry", "from": "diced", "to": "fried" },
+      { "action": "fry", "from": "cut", "to": "fried" },
+      { "action": "boil", "from": "peeled", "to": "boiled" },
+      { "action": "boil", "from": "washed", "to": "boiled" }
+    ]
+  },
+  {
+    "id": "egg",
+    "states": [
+      "raw",
+      "cracked",
+      "beaten",
+      "fried",
+      "boiled",
+      "peeled"
+    ],
+    "allowedActions": [
+      { "action": "crack", "from": "raw", "to": "cracked" },
+      { "action": "beat", "from": "cracked", "to": "beaten" },
+      { "action": "whisk", "from": "cracked", "to": "beaten" },
+      { "action": "fry", "from": "cracked", "to": "fried" },
+      { "action": "fry", "from": "beaten", "to": "fried" },
+      { "action": "boil", "from": "raw", "to": "boiled" },
+      { "action": "peel", "from": "boiled", "to": "peeled" }
+    ]
+  },
+  {
+    "id": "onion",
+    "states": [
+      "raw",
+      "peeled",
+      "sliced",
+      "diced",
+      "cut",
+      "fried"
+    ],
+    "allowedActions": [
+      { "action": "peel", "from": "raw", "to": "peeled" },
+      { "action": "slice", "from": "peeled", "to": "sliced" },
+      { "action": "dice", "from": "peeled", "to": "diced" },
+      { "action": "cut", "from": "peeled", "to": "cut" },
+      { "action": "fry", "from": "sliced", "to": "fried" },
+      { "action": "fry", "from": "diced", "to": "fried" },
+      { "action": "fry", "from": "cut", "to": "fried" }
+    ]
+  },
+  {
+    "id": "garlic",
+    "states": [
+      "raw",
+      "peeled",
+      "minced",
+      "sliced",
+      "fried"
+    ],
+    "allowedActions": [
+      { "action": "peel", "from": "raw", "to": "peeled" },
+      { "action": "mince", "from": "peeled", "to": "minced" },
+      { "action": "slice", "from": "peeled", "to": "sliced" },
+      { "action": "fry", "from": "minced", "to": "fried" },
+      { "action": "fry", "from": "sliced", "to": "fried" }
+    ]
+  },
+  {
+    "id": "chorizo",
+    "states": [
+      "raw",
+      "sliced",
+      "diced",
+      "fried"
+    ],
+    "allowedActions": [
+      { "action": "slice", "from": "raw", "to": "sliced" },
+      { "action": "dice", "from": "raw", "to": "diced" },
+      { "action": "fry", "from": "raw", "to": "fried" },
+      { "action": "fry", "from": "sliced", "to": "fried" },
+      { "action": "fry", "from": "diced", "to": "fried" }
+    ]
+  },
+  {
+    "id": "oil",
+    "states": [
+      "raw",
+      "poured",
+      "heated",
+      "mixed"
+    ],
+    "allowedActions": [
+      { "action": "pour", "from": "raw", "to": "poured" },
+      { "action": "heat", "from": "poured", "to": "heated" },
+      { "action": "mix", "from": "raw", "to": "mixed" }
+    ]
+  },
+  {
+    "id": "salt",
+    "states": [
+      "raw",
+      "seasoned",
+      "dissolved",
+      "mixed"
+    ],
+    "allowedActions": [
+      { "action": "season", "from": "raw", "to": "seasoned" },
+      { "action": "dissolve", "from": "raw", "to": "dissolved" },
+      { "action": "mix", "from": "raw", "to": "mixed" }
+    ]
+  },
+  {
+    "id": "pepper",
+    "states": [
+      "raw",
+      "washed",
+      "deseeded",
+      "sliced",
+      "diced",
+      "fried"
+    ],
+    "allowedActions": [
+      { "action": "wash", "from": "raw", "to": "washed" },
+      { "action": "deseed", "from": "washed", "to": "deseeded" },
+      { "action": "slice", "from": "deseeded", "to": "sliced" },
+      { "action": "dice", "from": "deseeded", "to": "diced" },
+      { "action": "fry", "from": "sliced", "to": "fried" },
+      { "action": "fry", "from": "diced", "to": "fried" }
+    ]
+  },
+  {
+    "id": "tomato",
+    "states": [
+      "raw",
+      "washed",
+      "sliced",
+      "diced",
+      "blended",
+      "cooked"
+    ],
+    "allowedActions": [
+      { "action": "wash", "from": "raw", "to": "washed" },
+      { "action": "slice", "from": "washed", "to": "sliced" },
+      { "action": "dice", "from": "washed", "to": "diced" },
+      { "action": "blend", "from": "diced", "to": "blended" },
+      { "action": "cook", "from": "blended", "to": "cooked" }
+    ]
+  },
+  {
+    "id": "cheese",
+    "states": [
+      "raw",
+      "sliced",
+      "grated",
+      "melted"
+    ],
+    "allowedActions": [
+      { "action": "slice", "from": "raw", "to": "sliced" },
+      { "action": "grate", "from": "raw", "to": "grated" },
+      { "action": "melt", "from": "sliced", "to": "melted" },
+      { "action": "melt", "from": "grated", "to": "melted" }
+    ]
+  },
+  {
+    "id": "bread",
+    "states": [
+      "raw",
+      "sliced",
+      "toasted"
+    ],
+    "allowedActions": [
+      { "action": "slice", "from": "raw", "to": "sliced" },
+      { "action": "toast", "from": "sliced", "to": "toasted" }
+    ]
+  },
+  {
+    "id": "milk",
+    "states": [
+      "raw",
+      "poured",
+      "heated",
+      "foamed"
+    ],
+    "allowedActions": [
+      { "action": "pour", "from": "raw", "to": "poured" },
+      { "action": "heat", "from": "poured", "to": "heated" },
+      { "action": "foam", "from": "heated", "to": "foamed" }
+    ]
+  },
+  {
+    "id": "butter",
+    "states": [
+      "raw",
+      "sliced",
+      "melted",
+      "browned"
+    ],
+    "allowedActions": [
+      { "action": "slice", "from": "raw", "to": "sliced" },
+      { "action": "melt", "from": "raw", "to": "melted" },
+      { "action": "melt", "from": "sliced", "to": "melted" },
+      { "action": "brown", "from": "melted", "to": "browned" }
+    ]
+  },
+  {
+    "id": "black_pepper",
+    "states": [
+      "whole",
+      "ground",
+      "seasoned"
+    ],
+    "allowedActions": [
+      { "action": "grind", "from": "whole", "to": "ground" },
+      { "action": "season", "from": "ground", "to": "seasoned" }
+    ]
+  },
+  {
+    "id": "flour",
+    "states": [
+      "raw",
+      "sifted",
+      "mixed"
+    ],
+    "allowedActions": [
+      { "action": "sift", "from": "raw", "to": "sifted" },
+      { "action": "mix", "from": "sifted", "to": "mixed" },
+      { "action": "mix", "from": "raw", "to": "mixed" }
+    ]
+  },
+  {
+    "id": "sugar",
+    "states": [
+      "raw",
+      "dissolved",
+      "caramelized"
+    ],
+    "allowedActions": [
+      { "action": "dissolve", "from": "raw", "to": "dissolved" },
+      { "action": "caramelize", "from": "raw", "to": "caramelized" }
+    ]
+  },
+  {
+    "id": "rice",
+    "states": [
+      "raw",
+      "washed",
+      "boiled",
+      "fried"
+    ],
+    "allowedActions": [
+      { "action": "wash", "from": "raw", "to": "washed" },
+      { "action": "boil", "from": "washed", "to": "boiled" },
+      { "action": "fry", "from": "boiled", "to": "fried" }
+    ]
+  },
+  {
+    "id": "chicken",
+    "states": [
+      "raw",
+      "cleaned",
+      "sliced",
+      "diced",
+      "marinated",
+      "fried",
+      "grilled"
+    ],
+    "allowedActions": [
+      { "action": "clean", "from": "raw", "to": "cleaned" },
+      { "action": "slice", "from": "cleaned", "to": "sliced" },
+      { "action": "dice", "from": "cleaned", "to": "diced" },
+      { "action": "marinate", "from": "sliced", "to": "marinated" },
+      { "action": "fry", "from": "marinated", "to": "fried" },
+      { "action": "fry", "from": "sliced", "to": "fried" },
+      { "action": "grill", "from": "marinated", "to": "grilled" }
+    ]
+  },
+  {
+    "id": "beef",
+    "states": [
+      "raw",
+      "sliced",
+      "minced",
+      "marinated",
+      "seared"
+    ],
+    "allowedActions": [
+      { "action": "slice", "from": "raw", "to": "sliced" },
+      { "action": "mince", "from": "raw", "to": "minced" },
+      { "action": "marinate", "from": "sliced", "to": "marinated" },
+      { "action": "sear", "from": "marinated", "to": "seared" },
+      { "action": "sear", "from": "sliced", "to": "seared" }
+    ]
+  },
+  {
+    "id": "mushroom",
+    "states": [
+      "raw",
+      "cleaned",
+      "sliced",
+      "diced",
+      "sauteed"
+    ],
+    "allowedActions": [
+      { "action": "clean", "from": "raw", "to": "cleaned" },
+      { "action": "slice", "from": "cleaned", "to": "sliced" },
+      { "action": "dice", "from": "cleaned", "to": "diced" },
+      { "action": "saute", "from": "sliced", "to": "sauteed" },
+      { "action": "saute", "from": "diced", "to": "sauteed" }
+    ]
+  },
+  {
+    "id": "spinach",
+    "states": [
+      "raw",
+      "washed",
+      "chopped",
+      "sauteed"
+    ],
+    "allowedActions": [
+      { "action": "wash", "from": "raw", "to": "washed" },
+      { "action": "chop", "from": "washed", "to": "chopped" },
+      { "action": "saute", "from": "chopped", "to": "sauteed" },
+      { "action": "saute", "from": "washed", "to": "sauteed" }
+    ]
+  },
+  {
+    "id": "lemon",
+    "states": [
+      "raw",
+      "washed",
+      "sliced",
+      "juiced"
+    ],
+    "allowedActions": [
+      { "action": "wash", "from": "raw", "to": "washed" },
+      { "action": "slice", "from": "washed", "to": "sliced" },
+      { "action": "juice", "from": "sliced", "to": "juiced" },
+      { "action": "squeeze", "from": "sliced", "to": "juiced" }
+    ]
+  }
+]

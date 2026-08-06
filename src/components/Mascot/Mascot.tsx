@@ -52,6 +52,7 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef', onLeftArmClic
   const targetContainerId = (mascotEntity?.state?.targetContainerId as string | undefined) ?? gazingAtEntityId ?? undefined;
   const state = (mascotEntity?.state?.state as string | undefined) || 'idle';
   const speechMessage = mascotEntity?.state?.speechMessage as string | undefined;
+  const equippedToolId = mascotEntity?.state?.equippedToolId as string | undefined;
 
   // Extract array of holdingEntityIds (supporting multi-item carrying or legacy single holdingEntityId)
   const rawHoldingIds = mascotEntity?.state?.holdingEntityIds as string[] | undefined;
@@ -220,6 +221,7 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef', onLeftArmClic
             onRightArmClick={handleRightArmClick}
             leftArmTitle={t('replayer.stepBack') || '⏮️ Previous Step'}
             rightArmTitle={t('replayer.stepForward') || '⏭️ Next Step'}
+            equippedToolId={equippedToolId}
           />
 
           {/* Held Ingredient Badges (Up to 2 items) */}

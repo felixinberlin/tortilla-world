@@ -45,34 +45,46 @@
     {
       "action": "prepare",
       "target": "garlic",
-      "preparation": "peeled"
+      "preparation": "peeled",
+      "tool": "knife",
+      "instruction": "At the cutting board, peel the garlic with your knife!"
     },
     {
       "action": "cook",
       "target": "oil",
-      "method": "heat"
+      "method": "heat",
+      "containerId": "burner1",
+      "tool": "big_pan",
+      "instruction": "Heat oil in the big pan on burner 1."
     },
     {
       "action": "cook",
       "target": "garlic",
       "method": "fry",
-      "instruction": "Que no se quemen."
+      "containerId": "burner1",
+      "tool": "spatula",
+      "instruction": "Sauté garlic in the pan - keep an eye so it doesn't burn!"
     },
     {
       "action": "move",
       "ingredient": "garlic",
       "target": "plate",
-      "source": "pan"
+      "source": "burner1"
     },
     {
       "action": "cook",
       "target": "potatoes",
-      "method": "fry"
+      "method": "fry",
+      "containerId": "burner1",
+      "tool": "big_pan",
+      "instruction": "In the big pan cook potatoes until tender and golden!"
     },
     {
       "action": "prepare",
       "target": "eggs",
-      "preparation": "beaten"
+      "preparation": "beaten",
+      "tool": "whisk",
+      "instruction": "At the mixing bowl, whisk eggs until smooth."
     },
     {
       "action": "mix",
@@ -83,19 +95,26 @@
         "black_pepper",
         "garlic"
       ],
-      "output": "mixture"
+      "output": "mixture",
+      "tool": "whisk",
+      "instruction": "Combine potatoes and eggs in the bowl with your whisk."
     },
     {
       "action": "cook",
       "target": "mixture",
       "method": "fry",
+      "containerId": "burner1",
+      "tool": "big_pan",
       "duration": 5,
       "unit": "min",
-      "as": "Tortilla clásica"
+      "as": "Tortilla clásica",
+      "instruction": "Pour mixture into the big pan and cook until golden!"
     },
     {
       "action": "flip",
-      "target": "mixture"
+      "target": "mixture",
+      "tool": "spatula",
+      "instruction": "Flip with confidence using your spatula!"
     },
     {
       "action": "serve",

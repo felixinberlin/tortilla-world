@@ -20,6 +20,10 @@ export type RecipeStep =
       preparation?: PreparationStyle;
       style?: PreparationStyle;
       containerId?: string;
+      tool?: string;
+      toolId?: string;
+      instruction?: string;
+      recommendation?: string;
     }
   | {
       action: 'cook';
@@ -29,7 +33,10 @@ export type RecipeStep =
       containerId?: string;
       duration?: number;
       unit?: string;
+      tool?: string;
+      toolId?: string;
       instruction?: string;
+      recommendation?: string;
       mascotId?: string;
       as?: string;
       name?: string;
@@ -40,6 +47,10 @@ export type RecipeStep =
       target?: string;
       ingredient?: string;
       containerId?: string;
+      tool?: string;
+      toolId?: string;
+      instruction?: string;
+      recommendation?: string;
     }
   | {
       action: 'mix' | 'beat' | 'combine';
@@ -47,17 +58,25 @@ export type RecipeStep =
       ingredients?: string[];
       output?: string;
       targetContainerId?: string;
+      tool?: string;
+      toolId?: string;
+      instruction?: string;
+      recommendation?: string;
     }
   | {
       action: 'instruction';
       text?: string;
       instruction?: string;
+      recommendation?: string;
       mascotId?: string;
     }
   | {
       action: 'flip';
       target?: string;
+      tool?: string;
+      toolId?: string;
       instruction?: string;
+      recommendation?: string;
       mascotId?: string;
     }
   | {

@@ -9,44 +9,49 @@
  */
 
 import type { Ingredient } from "../../types/Ingredient";
-
+import { INGREDIENT_CAPABILITIES_CATALOG } from "./ingredientCapabilities";
 
 export const ingredients: Ingredient[] = [
-
   {
     id: "potato",
     icon: "🥔",
     name: "Potatoes",
+    capabilities: INGREDIENT_CAPABILITIES_CATALOG.potato?.capabilities,
   },
 
   {
     id: "egg",
     icon: "🥚",
     name: "Eggs",
+    capabilities: INGREDIENT_CAPABILITIES_CATALOG.egg?.capabilities,
   },
 
   {
     id: "oil",
     icon: "🫒",
     name: "Olive Oil",
+    capabilities: INGREDIENT_CAPABILITIES_CATALOG.oil?.capabilities,
   },
 
   {
     id: "onion",
     icon: "🧅",
     name: "Onion",
+    capabilities: INGREDIENT_CAPABILITIES_CATALOG.onion?.capabilities,
   },
 
   {
     id: "chorizo",
     icon: "🌭",
     name: "Chorizo",
+    capabilities: INGREDIENT_CAPABILITIES_CATALOG.chorizo?.capabilities,
   },
 
   {
     id: "salt",
     icon: "🧂",
     name: "Salt",
+    capabilities: INGREDIENT_CAPABILITIES_CATALOG.salt?.capabilities,
   },
 
   {
@@ -59,7 +64,9 @@ export const ingredients: Ingredient[] = [
     id: "garlic",
     icon: "🧄",
     name: "Garlic",
+    capabilities: INGREDIENT_CAPABILITIES_CATALOG.garlic?.capabilities,
   },
+
 
   {
     id: "tomato",
