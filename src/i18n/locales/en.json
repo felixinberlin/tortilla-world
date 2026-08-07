@@ -14,14 +14,36 @@
     "preparationBowl": "Preparation Bowl",
     "cookingPan": "Cooking Pan",
     "servingPlate": "Serving Plate",
-    "mascot": "Assistant Mascot"
+    "mascot": "Assistant Mascot",
+    "resetKitchen": "🔄 Reset Kitchen",
+    "showControls": "🔽 Show Controls & Modes",
+    "hideControls": "🔼 Hide Controls",
+    "tabs": {
+      "database": "🗄️ Firestore Recipe Database",
+      "playRecipe": "▶️ Play Recipe",
+      "cookbook": "📕 Cookbook",
+      "actionRecorder": "🎥 Action Recorder"
+    },
+    "devModeActive": "🛠️ Dev Mode (Active) ➔ Switch to Slim Publish",
+    "slimPublishPreview": "👁️ Slim Publish Preview ➔ Switch to Dev"
   },
   "recorder": {
+    "title": "🎥 Action Recording & Translator",
+    "subtitle": "Record live human interactions, replay logs, or translate actions into a mascot recipe.",
+    "status": "Captured Actions: {{actions}} | Events: {{events}}",
     "startRecording": "⏺️ Record Session",
     "recording": "🔴 Recording Actions...",
     "stopRecording": "⏹️ Stop Recording",
+    "stopRecordingCount": "⏹ Stop Recording ({{count}})",
     "saveToDb": "💾 Save Recipe to DB",
     "cancelSave": "💾 Cancel Save",
+    "clearLog": "🗑 Clear Log",
+    "hideTranslator": "🪄 Hide Translator",
+    "translateViewFormats": "🪄 Translate / View Formats",
+    "resetKitchen": "🔄 Reset Kitchen",
+    "savedIngredientsCount": "🛒 Saved Ingredients ({{count}}):",
+    "noIngredientsUsed": "No ingredients used yet. Drag items from the right panel into the kitchen.",
+    "saveToFirestoreTitle": "💾 Save Recorded Recipe to Firestore",
     "translatorPreview": "🪄 Action Export Formats & Translator Preview",
     "saveTitle": "Recipe Title",
     "saveAuthor": "Author Name",
@@ -33,7 +55,12 @@
     "saving": "⏳ Saving to Firestore...",
     "saveSuccess": "✅ Recipe successfully saved to Cloud Firestore! You can play it anytime in the Recipe Catalog.",
     "saveError": "❌ Error saving: {{error}}",
-    "usedIngredients": "🛒 Saved Ingredients ({{count}}):"
+    "usedIngredients": "🛒 Saved Ingredients ({{count}}):",
+    "dishNameModalTitle": "🍽️ Name Your Recipe!",
+    "dishNameModalSubtitle": "There is a dish prepared on your plate! What would you like to call this creation?",
+    "dishNamePlaceholder": "e.g., Grandma's Potato Omelette",
+    "saveDishNameAndStop": "💾 Save Name & Finish",
+    "skipDishName": "Skip"
   },
   "replayer": {
     "loadJson": "📂 Load Log (.json)",
@@ -81,5 +108,170 @@
     "title": "Welcome to Tortilla World! 🌮",
     "subtitle": "A Player's Guide to the Kitchen Simulation",
     "startBtn": "Let's Start Cooking!"
+  },
+  "ui": {
+    "recipe": "Recipe",
+    "requiredMaterials": "Required Materials",
+    "dragToWorkstation": "(Drag items to workstation)",
+    "instructions": "Instructions",
+    "chefsHints": "Chef's Hints",
+    "ingredientsCatalog": "Ingredients Catalog",
+    "basicIngredients": "Basic Ingredients",
+    "otherIngredients": "Other Ingredients",
+    "showOthers": "Show Other Ingredients",
+    "hideOthers": "Hide Other Ingredients",
+    "moveToOthers": "Move to Others",
+    "moveToBasic": "Move to Basic",
+    "resetCategories": "Reset Categories",
+    "dropToCategorize": "Drop ingredients here to reassign category",
+    "sidebarSubtitle": "Drag items or tap ➕ to place into the kitchen workstation",
+    "searchIngredientsPlaceholder": "🔍 Search ingredients...",
+    "noIngredientsFound": "No ingredients found matching \"{{query}}\"",
+    "targetLabel": "Cooking Target / Time:",
+    "targetPlaceholder": "e.g. 10 min, medium heat, until golden",
+    "finalNameLabel": "Final Dish Name:",
+    "finalNamePlaceholder": "Dish name (e.g. Oma's Tortilla)",
+    "mixtureNamePlaceholder": "Mixture name (optional)",
+    "heatOn": "Heat On",
+    "heatOff": "Heat Off",
+    "serveToPlate": "Serve to Plate 🍽️",
+    "emptyContainerHint": "Drop entities here",
+    "noRecipesAvailable": "No recipes available.",
+    "showIngredients": "Show Ingredients",
+    "hideIngredients": "Hide Ingredients",
+    "emptyTrash": "Empty Trash",
+    "confirmEmptyTrash": "Are you sure you want to empty the trash?",
+    "yesEmpty": "Yes, empty",
+    "cancel": "Cancel",
+    "save": "Save",
+    "leaveHere": "Leave Here",
+    "takeMe": "Take me",
+    "recordedSession": "Recorded / Loaded",
+    "noIngredientsListed": "No ingredients listed.",
+    "noInstructionsListed": "No steps recorded yet.",
+    "handsFull": "My hands are full! Place an item down first.",
+    "nothingInHands": "I'm not holding anything!"
+  },
+  "workstations": {
+    "sink": "Washing Area 💧",
+    "board": "Cutting Workspace 🔪",
+    "bowl": "Preparation 🥣",
+    "burner": "Pan 🍳",
+    "burner1": "pan",
+    "burner2": "Pan 2 🍳",
+    "plate": "plate",
+    "trash": "Trash Can 🗑️",
+    "despensa": "Pantry 🧺",
+    "default": "Workstation 📦"
+  },
+  "verbs": {
+    "cut": "Cut",
+    "cook": "Cook",
+    "wash": "Wash",
+    "peel": "Peel",
+    "mix": "Mix",
+    "whisk": "Whisk",
+    "beat": "Beat",
+    "combine": "Combine",
+    "heat": "Heat",
+    "flip": "Flip",
+    "serve": "Serve",
+    "add": "Add",
+    "fry": "Fry",
+    "take": "Take",
+    "move": "Move",
+    "grab": "Grab",
+    "drop": "Drop",
+    "celebrate": "Celebrate!"
+  },
+  "stepFormat": {
+    "moveFromTo": "Move {{ingredient}} from {{source}} to {{target}}",
+    "moveTo": "Move {{ingredient}} to {{target}}",
+    "mixToMake": "{{verb}} {{inputs}} to make {{output}}",
+    "cookFor": "{{verb}} {{target}} for {{duration}} {{unit}}",
+    "cookForToMake": "{{verb}} {{target}} {{duration}} {{unit}} to make {{as}}",
+    "flipInContainer": "flip in the {{container}}",
+    "flip": "Flip {{target}}",
+    "serveOntoAs": "Serve onto the {{container}} as {{as}}",
+    "serveAs": "Serve as {{as}}",
+    "serveOnto": "Serve onto the {{container}}"
+  },
+  "ingredients": {
+    "potato": "Potatoes",
+    "egg": "Eggs",
+    "oil": "Olive Oil",
+    "onion": "Onion",
+    "chorizo": "Chorizo",
+    "salt": "Salt",
+    "pepper": "Bell Pepper",
+    "garlic": "Garlic",
+    "tomato": "Tomato",
+    "cheese": "Cheese",
+    "bread": "Bread",
+    "milk": "Milk",
+    "butter": "Butter",
+    "black_pepper": "Black Pepper",
+    "flour": "Flour",
+    "sugar": "Sugar",
+    "rice": "Rice",
+    "chicken": "Chicken",
+    "beef": "Beef",
+    "mushroom": "Mushroom",
+    "spinach": "Spinach",
+    "lemon": "Lemon"
+  },
+  "tools": {
+    "knife": "Chef Knife",
+    "peeler": "Vegetable Peeler",
+    "whisk": "Whisk",
+    "fork": "Fork",
+    "spatula": "Spatula",
+    "grater": "Grater",
+    "mandoline": "Mandoline",
+    "spoon": "Spoon"
+  },
+  "states": {
+    "raw": "Raw 🌾",
+    "cooking": "Cooking 🔥",
+    "finished": "Finished ✨",
+    "prepared": "Prepared 🔪",
+    "cut": "Cut",
+    "sliced": "Sliced",
+    "peeled": "Peeled",
+    "whisked": "Whisked",
+    "washed": "Washed",
+    "mixed": "Mixed",
+    "fried": "Fried",
+    "heated": "Heated"
+  },
+  "recipes": {
+    "concebolla": {
+      "name": "Tortilla with Onion",
+      "description": "Spanish Tortilla with juicy caramelized onions.",
+      "hints": [
+        "Fry onions until golden before mixing."
+      ]
+    },
+    "clasica": {
+      "name": "Classic Tortilla",
+      "description": "Traditional Spanish Tortilla without onion.",
+      "hints": [
+        "Don't let the garlic burn.",
+        "With a soft spatula, make sure the tortilla does not stick to the pan."
+      ]
+    },
+    "francesa": {
+      "name": "French Omelette (Tortilla Francesa)",
+      "description": "Traditional French Omelette.",
+      "hints": [
+        "Mix eggs with salt in the bowl to make beaten eggs.",
+        "Turn on the heat, add oil and heat it up.",
+        "With a soft spatula, make sure the tortilla does not stick to the pan."
+      ]
+    },
+    "recorded": {
+      "name": "Recorded / Loaded Recipe",
+      "description": "Dynamically generated recipe from recorded or loaded kitchen actions."
+    }
   }
 }

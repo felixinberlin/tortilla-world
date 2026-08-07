@@ -46,7 +46,7 @@ function seed() {
         name: 'Recipe',
         type: 'plate',
         entityIds: [],
-        rules: { allowedTypes: ['ingredient'], uniqueTypesOnly: true },
+        rules: { allowedTypes: ['ingredient'] },
       },
       sink: {
         id: 'sink',
@@ -108,30 +108,12 @@ describe('worldStore container rule enforcement', () => {
     expect(state.containers.kitchen.entityIds).toContain('knife');
   });
 
-  it('blocks a move that would duplicate a type in a uniqueTypesOnly container', () => {
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: { entityId: 'potato', targetContainerId: 'recipe' },
-    });
-    worldStore.getState().dispatch({
-      type: 'MOVE_ENTITY',
-      payload: { entityId: 'onion', targetContainerId: 'recipe' },
-    });
-
-    // both are 'ingredient' type; uniqueTypesOnly blocks the second
-    const state = worldStore.getState();
-    expect(state.containers.recipe.entityIds).toEqual(['potato']);
-    expect(state.containers.kitchen.entityIds).toContain('onion');
-  });
-
   it('never re-validates a same-container reorder', () => {
     worldStore.getState().dispatch({
       type: 'MOVE_ENTITY',
       payload: { entityId: 'potato', targetContainerId: 'kitchen', positionIndex: 0 },
     });
 
-    // would fail uniqueTypesOnly-style self-comparison if the entity
-    // weren't excluded from its own container's current entities
     const state = worldStore.getState();
     expect(state.containers.kitchen.entityIds[0]).toBe('potato');
   });
@@ -510,5 +492,118 @@ describe('worldStore container rule enforcement', () => {
     const tomato = worldStore.getState().entities.tomatoes;
     expect(tomato.status).toBe('peeled-cutted-cooked-tomatoes');
     expect(tomato.name).toBe('🍅 Peeled Cut Cooked Tomatoes');
+  });
+
+  describe('Trash behavior and EMPTY_TRASH action', () => {
+    it('empties the trash container and deletes trashed entities', () => {
+      worldStore.setState({
+        entities: {
+          lemon_1: { id: 'lemon_1', ingredientId: 'lemon', name: '🍋 Lemon 1', type: 'ingredient' },
+          potato_1: { id: 'potato_1', ingredientId: 'potato', name: '🥔 Potato 1', type: 'ingredient' },
+        },
+        containers: {
+          trash: { id: 'trash', name: 'Trash', type: 'storage', entityIds: ['lemon_1', 'potato_1'] },
+        },
+      });
+
+      worldStore.getState().dispatch({ type: 'EMPTY_TRASH' });
+
+      const state = worldStore.getState();
+      expect(state.containers.trash.entityIds).toEqual([]);
+      expect(state.entities.lemon_1).toBeUndefined();
+      expect(state.entities.potato_1).toBeUndefined();
+    });
+
+    it('rejects adding 2 raw lemons to the trash container (uniqueness rule)', () => {
+      worldStore.setState({
+        entities: {
+          lemon_1: { id: 'lemon_1', ingredientId: 'lemon', name: '🍋 Lemon 1', type: 'ingredient', state: {} },
+          lemon_2: { id: 'lemon_2', ingredientId: 'lemon', name: '🍋 Lemon 2', type: 'ingredient', state: {} },
+        },
+        containers: {
+          pantry: { id: 'pantry', name: 'Pantry', type: 'storage', entityIds: ['lemon_1', 'lemon_2'] },
+          trash: { id: 'trash', name: 'Trash', type: 'storage', entityIds: [] },
+        },
+      });
+
+      // First raw lemon moved to trash -> succeeds
+      worldStore.getState().dispatch({
+        type: 'MOVE_ENTITY',
+        payload: { entityId: 'lemon_1', targetContainerId: 'trash', sourceContainerId: 'pantry' },
+      });
+      expect(worldStore.getState().containers.trash.entityIds).toEqual(['lemon_1']);
+
+      // Second raw lemon moved to trash -> rejected by uniqueness check
+      worldStore.getState().dispatch({
+        type: 'MOVE_ENTITY',
+        payload: { entityId: 'lemon_2', targetContainerId: 'trash', sourceContainerId: 'pantry' },
+      });
+      expect(worldStore.getState().containers.trash.entityIds).toEqual(['lemon_1']);
+      expect(worldStore.getState().containers.pantry.entityIds).toContain('lemon_2');
+    });
+
+    it('accepts raw lemon AND peeled lemon in the trash container', () => {
+      worldStore.setState({
+        entities: {
+          lemon_raw: { id: 'lemon_raw', ingredientId: 'lemon', name: '🍋 Raw Lemon', type: 'ingredient', state: {} },
+          lemon_peeled: { id: 'lemon_peeled', ingredientId: 'lemon', name: '🍋 Peeled Lemon', type: 'ingredient', state: { preparation: 'peeled' } },
+        },
+        containers: {
+          pantry: { id: 'pantry', name: 'Pantry', type: 'storage', entityIds: ['lemon_raw', 'lemon_peeled'] },
+          trash: { id: 'trash', name: 'Trash', type: 'storage', entityIds: [] },
+        },
+      });
+
+      // Move raw lemon to trash -> succeeds
+      worldStore.getState().dispatch({
+        type: 'MOVE_ENTITY',
+        payload: { entityId: 'lemon_raw', targetContainerId: 'trash', sourceContainerId: 'pantry' },
+      });
+      expect(worldStore.getState().containers.trash.entityIds).toEqual(['lemon_raw']);
+
+      // Move peeled lemon to trash -> succeeds because preparation states differ
+      worldStore.getState().dispatch({
+        type: 'MOVE_ENTITY',
+        payload: { entityId: 'lemon_peeled', targetContainerId: 'trash', sourceContainerId: 'pantry' },
+      });
+      expect(worldStore.getState().containers.trash.entityIds).toEqual(['lemon_raw', 'lemon_peeled']);
+    });
+
+    it('moves an ingredient sequentially between workstations using MOVE_ENTITY', () => {
+      worldStore.setState({
+        entities: {
+          potato_1: { id: 'potato_1', ingredientId: 'potato', name: '🥔 Potato', type: 'ingredient', state: {} },
+        },
+        containers: {
+          board: { id: 'board', name: 'Board', type: 'board', entityIds: ['potato_1'] },
+          bowl: { id: 'bowl', name: 'Bowl', type: 'bowl', entityIds: [] },
+          burner1: { id: 'burner1', name: 'Burner 1', type: 'burner', entityIds: [] },
+        },
+      });
+
+      // Move forward from board to bowl
+      worldStore.getState().dispatch({
+        type: 'MOVE_ENTITY',
+        payload: { entityId: 'potato_1', targetContainerId: 'bowl', sourceContainerId: 'board' },
+      });
+      expect(worldStore.getState().containers.board.entityIds).toEqual([]);
+      expect(worldStore.getState().containers.bowl.entityIds).toEqual(['potato_1']);
+
+      // Move forward from bowl to burner1
+      worldStore.getState().dispatch({
+        type: 'MOVE_ENTITY',
+        payload: { entityId: 'potato_1', targetContainerId: 'burner1', sourceContainerId: 'bowl' },
+      });
+      expect(worldStore.getState().containers.bowl.entityIds).toEqual([]);
+      expect(worldStore.getState().containers.burner1.entityIds).toEqual(['potato_1']);
+
+      // Move backward from burner1 to bowl
+      worldStore.getState().dispatch({
+        type: 'MOVE_ENTITY',
+        payload: { entityId: 'potato_1', targetContainerId: 'bowl', sourceContainerId: 'burner1' },
+      });
+      expect(worldStore.getState().containers.burner1.entityIds).toEqual([]);
+      expect(worldStore.getState().containers.bowl.entityIds).toEqual(['potato_1']);
+    });
   });
 });

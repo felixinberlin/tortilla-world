@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ExternalLink } from 'lucide-react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { LanguageSwitcher } from './LanguageSwitcher';
 import './PlayerGuideModal.scss';
 
 interface PlayerGuideModalProps {
@@ -11,7 +12,7 @@ interface PlayerGuideModalProps {
 
 export const PlayerGuideModal: React.FC<PlayerGuideModalProps> = ({ onClose, isOpen }) => {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const { language, setLanguage, t } = useTranslation();
+  const { language, t } = useTranslation();
   const isSpanish = language === 'es';
 
   // Trap focus or handle escape key
@@ -64,22 +65,108 @@ export const PlayerGuideModal: React.FC<PlayerGuideModalProps> = ({ onClose, isO
                   <span>{t('app.tortillaInfo')}</span>
                   <ExternalLink size={13} />
                 </a>
-                <button
-                  type="button"
-                  className="guide-language-btn"
-                  onClick={() => setLanguage(language === 'en' ? 'es' : 'en')}
-                  aria-label="Switch language / Cambiar idioma"
-                  title="Switch language / Cambiar idioma"
-                >
-                  🌐 {language === 'en' ? 'Español' : 'English'}
-                </button>
+                <LanguageSwitcher />
               </div>
               <h1 id="guide-title">{t('guide.title')}</h1>
               <p className="subtitle">{t('guide.subtitle')}</p>
             </div>
 
             <div className="player-guide-content">
-              {isSpanish ? (
+              {language === 'de' ? (
+                <>
+                  <section className="guide-section introduction">
+                    <p>
+                      Willkommen in der Küche! Tortilla World ist nicht nur ein digitales Rezeptbuch; es ist eine lebendige Simulation, in der du mit Objekten genau wie in einer echten Küche interagierst.
+                    </p>
+                    <p>
+                      In dieser Welt ist alles – von einer Zwiebel bis zur Bratpfanne selbst – eine physische "Entität", die du greifen, bewegen und benutzen kannst.
+                    </p>
+                  </section>
+
+                  <section className="guide-section">
+                    <h2>🧭 Teil 1: Die Grundlagen</h2>
+
+                    <div className="subsection">
+                      <h3>Wie die Welt funktioniert</h3>
+                      <p>
+                        Du steuerst die Umgebung per <strong>Drag-and-Drop</strong>. Du benötigst keine komplexen Menüs, um Zutaten zuzubereiten. Stattdessen greifst du eine Kartoffel und legst sie auf das Schneidebrett oder Eier in die Schüssel.
+                      </p>
+                      <p>
+                        Objekte werden zwischen <strong>Behältern</strong> bewegt. Ein Behälter kann ein Regalboden in der Vorratskammer, eine Rührschüssel oder eine heiße Herdplatte sein.
+                      </p>
+                    </div>
+
+                    <div className="subsection">
+                      <h3>Arbeitsbereiche & Zonen</h3>
+                      <ul className="feature-list">
+                        <li><span className="icon">🚪</span> <strong>Vorratskammer (`despensa`):</strong> Wo deine rohen Zutaten lagern.</li>
+                        <li><span className="icon">🚰</span> <strong>Waschplatz (`sink`):</strong> Zum Waschen von Gemüse vor der Verwendung.</li>
+                        <li><span className="icon">🔪</span> <strong>Schneidebereich (`board`):</strong> Zum Schneiden und Schälen von Zutaten.</li>
+                        <li><span className="icon">🥣</span> <strong>Zubereitungsschüssel (`bowl`):</strong> Zum Kombinieren von Zutaten und Verquirlen von Eiern.</li>
+                        <li><span className="icon">🔥</span> <strong>Kochbereich (`burner`):</strong> Zum Braten und Kochen auf der Herdplatte.</li>
+                        <li><span className="icon">🍽️</span> <strong>Servierteller (`plate`):</strong> Das Ziel für dein fertiges Gericht.</li>
+                      </ul>
+                    </div>
+                  </section>
+
+                  <section className="guide-section">
+                    <h2>🍳 Teil 2: Fortgeschrittene Mechaniken</h2>
+
+                    <div className="subsection">
+                      <h3>Zustandsänderungen</h3>
+                      <p>Zutaten ändern ihren Zustand basierend auf dem Behälter, in dem sie sich befinden.</p>
+                      <ul className="bullet-list">
+                        <li>Eine ganze Kartoffel auf dem Schneidebrett wird zu <em>geschnittenen Kartoffeln</em>.</li>
+                        <li>Ein ganzes Ei in der Schüssel wird zu <em>verquirlten Eiern</em>.</li>
+                        <li>Eine rohe Mischung in der heißen Pfanne wird <em>gebraten</em>.</li>
+                      </ul>
+                    </div>
+                  </section>
+
+                  <section className="guide-section tutorial-section">
+                    <h2>👨‍🍳 Teil 3: Anleitung - Spanische Tortilla zubereiten</h2>
+                    <p className="tutorial-intro">Lass uns eine klassische <em>Tortilla de Patatas</em> zubereiten!</p>
+
+                    <div className="step-card">
+                      <h4>Schritt 1: Zutaten vorbereiten</h4>
+                      <ol>
+                        <li><strong>Greife</strong> die Kartoffeln (🥔) aus der Vorratskammer und <strong>lege</strong> sie auf das Schneidebrett.</li>
+                        <li><strong>Greife</strong> die Zwiebel (🧅) aus der Vorratskammer und <strong>lege</strong> sie auf das Schneidebrett.</li>
+                      </ol>
+                    </div>
+
+                    <div className="step-card">
+                      <h4>Schritt 2: Eier verquirlen</h4>
+                      <ol>
+                        <li><strong>Greife</strong> die Eier (🥚) aus der Vorratskammer und <strong>lege</strong> sie in die Schüssel.</li>
+                      </ol>
+                    </div>
+
+                    <div className="step-card">
+                      <h4>Schritt 3: Mischen</h4>
+                      <ol>
+                        <li><strong>Ziehe</strong> die geschnittenen Kartoffeln und Zwiebeln in die Schüssel zu den Eiern.</li>
+                        <li>Gib eine Prise Salz (🧂) hinzu.</li>
+                      </ol>
+                    </div>
+
+                    <div className="step-card">
+                      <h4>Schritt 4: Kochen</h4>
+                      <ol>
+                        <li>Gib Olivenöl (🫒) in die Pfanne und füge die Mischung hinzu.</li>
+                        <li>Lass die Hitze arbeiten!</li>
+                      </ol>
+                    </div>
+
+                    <div className="step-card">
+                      <h4>Schritt 5: Servieren</h4>
+                      <ol>
+                        <li>Ziehe die fertige Tortilla auf den Servierteller (🍽️).</li>
+                      </ol>
+                    </div>
+                  </section>
+                </>
+              ) : isSpanish ? (
                 <>
                   <section className="guide-section introduction">
                     <p>
@@ -314,6 +401,53 @@ export const PlayerGuideModal: React.FC<PlayerGuideModalProps> = ({ onClose, isO
                   </section>
                 </>
               )}
+
+              {/* Render keyboard shortcuts section for power users */}
+              {(() => {
+                const isDe = language === 'de';
+                const isEs = language === 'es';
+
+                const title = isDe ? '⌨️ Tastaturkürzel' : isEs ? '⌨️ Atajos de Teclado' : '⌨️ Keyboard Shortcuts';
+                const subtitle = isDe
+                  ? 'Steuere die Simulation blitzschnell mit deiner Tastatur!'
+                  : isEs
+                  ? '¡Controla la simulación a toda velocidad con tu teclado!'
+                  : 'Control the simulation at lightning speed with your keyboard!';
+
+                const items = [
+                  { label: isDe ? 'Nächster Schritt' : isEs ? 'Siguiente paso' : 'Next Step', keys: ['➡️', 'N'] },
+                  { label: isDe ? 'Vorheriger Schritt' : isEs ? 'Paso anterior' : 'Previous Step', keys: ['⬅️', 'P'] },
+                  { label: isDe ? 'Wiedergabe / Pause' : isEs ? 'Reproducir / Pausa' : 'Play / Pause', keys: ['Space', 'K'] },
+                  { label: isDe ? 'Küche zurücksetzen' : isEs ? 'Reiniciar cocina' : 'Reset Kitchen', keys: ['R'] },
+                  { label: isDe ? 'Geschwindigkeit +/-' : isEs ? 'Velocidad +/-' : 'Speed +/-', keys: ['+', '-'] },
+                  { label: isDe ? 'Maskottchen Salto' : isEs ? 'Salto Mascota' : 'Mascot Flip', keys: ['F'] },
+                  { label: isDe ? 'Maskottchen Feiern' : isEs ? 'Celebración Mascota' : 'Mascot Celebrate', keys: ['C'] },
+                  { label: isDe ? 'Zur Vorratskammer' : isEs ? 'Ir a Despensa' : 'Move to Pantry', keys: ['1'] },
+                  { label: isDe ? 'Zum Schneidebrett' : isEs ? 'Ir a Tabla' : 'Move to Board', keys: ['2'] },
+                  { label: isDe ? 'Zur Pfanne' : isEs ? 'Ir a Sartén' : 'Move to Pan', keys: ['3'] },
+                  { label: isDe ? 'Hilfe / Anleitung' : isEs ? 'Guía / Ayuda' : 'Toggle Guide', keys: ['?', 'H'] },
+                  { label: isDe ? 'Schließen' : isEs ? 'Cerrar' : 'Close Modal', keys: ['Esc'] },
+                ];
+
+                return (
+                  <section className="guide-section shortcuts-section" style={{ marginTop: '2rem' }}>
+                    <h2>{title}</h2>
+                    <p style={{ margin: '0.25rem 0 1rem', color: '#64748b' }}>{subtitle}</p>
+                    <div className="shortcuts-grid">
+                      {items.map((item, idx) => (
+                        <div key={idx} className="shortcut-card">
+                          <span className="shortcut-label">{item.label}</span>
+                          <div className="kbd-group">
+                            {item.keys.map((k, kIdx) => (
+                              <kbd key={kIdx}>{k}</kbd>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                );
+              })()}
             </div>
 
             <div className="player-guide-footer">

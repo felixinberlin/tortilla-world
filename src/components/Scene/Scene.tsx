@@ -12,7 +12,7 @@
  * The bridge between game world and React UI.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useStore } from 'zustand';
 import { DndContext } from '@dnd-kit/core';
 import { worldStore } from '../../store/worldStore';
@@ -25,11 +25,13 @@ import { IngredientsSidebar } from '../Controls/IngredientsSidebar';
 import { RecipeDatabaseModal } from '../Controls/RecipeDatabaseModal';
 import { useDevMode } from '../../utils/devMode';
 import { useTranslation } from '../../i18n/useTranslation';
+import { recipes } from '../../data/catalog/recipes';
+import { getRecipeWorkstationIds } from '../../systems/recipeWorkstations';
 import './RecipePlayer.scss';
 
 export const Scene: React.FC = () => {
   const isDev = useDevMode();
-  const { language, setLanguage } = useTranslation();
+  const { t } = useTranslation();
   const [forcePublishMode, setForcePublishMode] = useState<boolean>(false);
 
   // Active mode logic: in slim publish mode default to player, in dev mode default to database
@@ -37,14 +39,36 @@ export const Scene: React.FC = () => {
   const [activeMode, setActiveMode] = useState<'player' | 'cookbook' | 'recorder' | 'database'>(
     effectiveDevMode ? 'database' : 'player'
   );
-  const dispatch = useStore(worldStore, (state) => state.dispatch);
 
   // 1. Mount the drag-and-drop input listeners and dispatch handler
   const { sensors, handleDragStart, handleDragOver, handleDragEnd } = useSceneDragAndDrop();
 
-  // 2. Query the pure simulation state for rendering (hiding despensa container from UI view)
+  // 2. Query simulation state and active recipe to filter visible workstations
   const containersMap = useStore(worldStore, (state) => state.containers);
-  const containers = Object.values(containersMap).filter((c) => c.id !== 'despensa');
+  const activeRecipeId = useStore(worldStore, (state) => state.activeRecipeId);
+
+  const activeRecipe = useMemo(
+    () => recipes.find((r) => r.id === activeRecipeId) || recipes[0],
+    [activeRecipeId]
+  );
+
+  const recipeWorkstationIds = useMemo(
+    () => getRecipeWorkstationIds(activeRecipe, containersMap),
+    [activeRecipe, containersMap]
+  );
+
+  const containers = useMemo(() => {
+    return Object.values(containersMap).filter((container) => {
+      // Always hide despensa (pantry) from main workstation row
+      if (container.id === 'despensa') return false;
+
+      // Show all workstations in recorder or database modes
+      if (activeMode === 'recorder' || activeMode === 'database') return true;
+
+      // Filter strictly by workstations generated for the active recipe
+      return recipeWorkstationIds.has(container.id);
+    });
+  }, [containersMap, recipeWorkstationIds, activeMode]);
 
   const renderWorkspace = (leftNode?: React.ReactNode, rightNode?: React.ReactNode) => (
     <div className="scene-workspace">
@@ -76,12 +100,12 @@ export const Scene: React.FC = () => {
             onClick={() => setIsPanelExpanded(!isPanelExpanded)}
             className="panel-toggle-btn"
           >
-            {isPanelExpanded ? '🔼 Hide Controls' : '🔽 Show Controls & Modes'}
+            {isPanelExpanded ? t('scene.hideControls') : t('scene.showControls')}
           </button>
         </div>
 
         <div className={`scene-controls-wrapper ${isPanelExpanded ? 'expanded' : 'collapsed'}`}>
-          {/* Mode Selector Navigation Tabs & Reset Control */}
+          {/* Mode Selector Navigation Tabs */}
           <div className="mode-tabs">
             {effectiveDevMode && (
               <button
@@ -89,7 +113,7 @@ export const Scene: React.FC = () => {
                 className={`mode-tab-btn ${activeMode === 'database' ? 'active' : ''}`}
                 onClick={() => setActiveMode('database')}
               >
-                🗄️ Firestore Recipe Database
+                {t('scene.tabs.database')}
               </button>
             )}
 
@@ -98,7 +122,7 @@ export const Scene: React.FC = () => {
               className={`mode-tab-btn ${activeMode === 'player' ? 'active' : ''}`}
               onClick={() => setActiveMode('player')}
             >
-              ▶️ Play Recipe
+              {t('scene.tabs.playRecipe')}
             </button>
 
             <button
@@ -106,7 +130,7 @@ export const Scene: React.FC = () => {
               className={`mode-tab-btn ${activeMode === 'cookbook' ? 'active' : ''}`}
               onClick={() => setActiveMode('cookbook')}
             >
-              📕 Cookbook
+              {t('scene.tabs.cookbook')}
             </button>
 
             <button
@@ -114,33 +138,7 @@ export const Scene: React.FC = () => {
               className={`mode-tab-btn ${activeMode === 'recorder' ? 'active' : ''}`}
               onClick={() => setActiveMode('recorder')}
             >
-              🎥 Action Recorder
-            </button>
-
-            <button
-              type="button"
-              className="reset-kitchen-header-btn"
-              onClick={() => dispatch({ type: 'RESET_WORLD' })}
-              title="Clean the kitchen and reset all containers"
-            >
-              🔄 Reset Kitchen
-            </button>
-
-            {/* Language Switcher */}
-            <button
-              type="button"
-              className="mode-tab-btn"
-              onClick={() => setLanguage(language === 'en' ? 'es' : 'en')}
-              title="Switch language / Cambiar idioma"
-              style={{
-                fontWeight: 600,
-                backgroundColor: '#f8fafc',
-                border: '1px solid #cbd5e1',
-                padding: '4px 10px',
-                borderRadius: '6px',
-              }}
-            >
-              🌐 {language.toUpperCase()}
+              {t('scene.tabs.actionRecorder')}
             </button>
 
             {/* Dev Mode Indicator & Toggle */}
@@ -165,7 +163,7 @@ export const Scene: React.FC = () => {
                 }}
                 title="Toggle between Developer Admin Mode and Slim Published View"
               >
-                {effectiveDevMode ? '🛠️ Dev Mode (Active) ➔ Switch to Slim Publish' : '👁️ Slim Publish Preview ➔ Switch to Dev'}
+                {effectiveDevMode ? t('scene.devModeActive') : t('scene.slimPublishPreview')}
               </button>
             )}
           </div>

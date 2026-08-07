@@ -1,0 +1,83 @@
+{
+  "id": "francesa",
+  "name": "Tortilla Francesa",
+  "description": "Tortilla francesa tradicional.",
+  "difficulty": "easy",
+  "tags": ["traditional", "spanish", "french", "vegetarian", "no-onion"],
+  "hints": [
+    "Mezcla los huevos en el bol con la sal para hacer el Huevo batido.",
+    "Enciende el fuego, añade aceite y caliéntalo.",
+    "Con una espátula blanda, asegúrate de que la tortilla no se pega a la sartén."
+  ],
+  "requirements": {
+    "eggs": {
+      "entityId": "egg",
+      "amount": 6,
+      "unit": "pcs"
+    },
+    "oil": {
+      "entityId": "oil",
+      "amount": 100,
+      "unit": "ml"
+    },
+    "salt": {
+      "entityId": "salt",
+      "amount": 1,
+      "unit": "tsp"
+    }
+  },
+  "cooklang": "Beat the @eggs{6%pcs} in the bowl with @salt{1%tsp} to make Huevo batido.\nHeat the @oil{100%ml} in the pan.\nPour the Huevo batido into the pan.\nStir slightly and cook for 5 minutes.\nFlip the tortilla.\nCook for another 5 minutes.\nServe onto the plate as Tortilla francesa.",
+  "steps": [
+    {
+      "action": "prepare",
+      "target": "eggs",
+      "preparation": "beaten",
+      "tool": "whisk",
+      "instruction": "Whisk eggs vigorously at the mixing bowl!"
+    },
+    {
+      "action": "mix",
+      "inputs": [
+        "eggs",
+        "salt"
+      ],
+      "output": "Huevo batido",
+      "tool": "whisk",
+      "instruction": "Mix beaten eggs with salt using the whisk!"
+    },
+    {
+      "action": "cook",
+      "target": "oil",
+      "method": "heat",
+      "containerId": "burner1",
+      "tool": "small_pan",
+      "instruction": "Heat oil in the small pan on burner 1."
+    },
+    {
+      "action": "cook",
+      "target": "Huevo batido",
+      "method": "fry",
+      "containerId": "burner1",
+      "tool": "small_pan",
+      "duration": 5,
+      "unit": "min",
+      "as": "Tortilla francesa",
+      "instruction": "In the small pan cook egg mixture until soft and golden!"
+    },
+    {
+      "action": "flip",
+      "target": "Huevo batido",
+      "tool": "spatula",
+      "instruction": "Flip gently with soft spatula!"
+    },
+    {
+      "action": "serve",
+      "target": "Huevo batido",
+      "as": "Tortilla francesa",
+      "containerId": "plate"
+    },
+    {
+      "action": "celebrate"
+    }
+  ]
+}

@@ -62,8 +62,9 @@ The Interaction System converts external events into world actions.
 
 External events:
 
-* mouse clicks
-* drag and drop
+* mouse drag and drop
+* touch drag and drop (configured via `TouchSensor` with delay/tolerance & `touch-action: none`)
+* workstation navigation buttons (`◀` / `▶` step movement)
 * AI requests
 * future keyboard/gamepad input
 
@@ -205,26 +206,24 @@ container
 
 ## Duplicate rules
 
-The container checks uniqueness.
+The container checks uniqueness using state-aware ingredient matching (`getIngredientCatalogId`).
 
-Example:
+Uniqueness incorporates ingredient preparation and cooking states (`baseId:preparation:cooking`):
 
-Valid:
+Valid (different ingredients OR different states):
 
 ```text
-Recipe
-
-potato
-egg
+Trash
+  - raw lemon (lemon)
+  - peeled lemon (lemon:peeled)
 ```
 
-Invalid:
+Invalid (two identical raw ingredients):
 
 ```text
-Recipe
-
-potato
-potato
+Trash
+  - raw lemon (lemon)
+  - raw lemon (lemon)
 ```
 
 ---
@@ -374,7 +373,22 @@ false
 
 ---
 
-# Action Queue
+## Trash Container & EMPTY_TRASH Action
+
+The `trash` container stores discarded entities.
+
+When the user empties the trash bin:
+1. `EMPTY_TRASH` action is dispatched to `worldStore`.
+2. The system empties `containers.trash.entityIds = []`.
+3. The trashed entities are deleted from `worldStore.entities`.
+
+### Mascot Empty Trash Confirmation Flow
+When the user clicks the "Empty Trash" button on the trash container:
+1. The Mascot moves gaze/focus to `trash` (`MASCOT_MOVE`) and shows a speech message asking *"Are you sure you want to empty the trash?"*.
+2. The user is presented with **Yes, empty** (`EMPTY_TRASH`) or **Cancel** options.
+3. Confirming executes `EMPTY_TRASH` and dismisses the Mascot speech bubble; canceling dismisses the message.
+
+---
 
 ## Responsibility
 
@@ -756,6 +770,14 @@ The Recipe System executes declarative, step-based recipe state machines via `Re
 
 ---
 
+### Focus System & Workstation Visibility (`src/systems/focus.ts`)
+
+* **Purpose**: Calculates visual priority classes (`focus-primary`, `focus-secondary`, `focus-background`) during mascot-centered focus transitions.
+* **Workstation Container Rule**: Active and related workstations stay in primary or secondary focus. Inactive workstations receive `focus-background` styling (subtle desaturation and border opacity) on their frame containers.
+* **Ingredient Entity Rule**: Ingredients and entities sitting inside any workstation or container retain `opacity: 1` and `focus-secondary` priority so they never hide, blur, or lose visibility during focus mode.
+
+---
+
 ### Action Recording & Replay System
 
 * **Action Log Integration**: World actions are captured in `recordSlice` when recording mode is active.
@@ -805,6 +827,17 @@ The Recipe System executes declarative, step-based recipe state machines via `Re
   - Resets the world state and sequentially re-dispatches exported event streams onto `worldStore`.
 * **Analytics Utilities (`analytics.ts`)**:
   - Pure headless functions for calculating recipe metrics (`getRecipeMetrics`), filtering audit trails (`getAuditTrail`), and exporting history to CSV (`exportToCSV`).
+
+---
+
+### Ingredient Capability System & AI Grounding Planner (`src/systems/ingredientCapabilities.ts`, `src/systems/geminiCapabilityPlanner.ts`)
+
+* **Purpose**: Grounds AI cooking logic in a structured ingredient capability catalog, preventing action hallucinations (e.g., "peeling salt" or "dicing raw egg") and verifying state prerequisites before actions execute.
+* **Architecture & Principles**:
+  - **Strict Capability Schema**: Each ingredient (e.g., potato, egg, salt, onion, oil) defines allowed actions, compatible tools, workstations, and required preparation or cooking states (`requires`).
+  - **Omission Implies False**: Any action not explicitly defined in an ingredient's capability schema is treated as strictly disallowed.
+  - **Validation Engine (`validateIngredientAction`, `validateActionSequence`)**: Checks if an action is allowed for an ingredient in its current state (e.g. requires `peeled` before `slice`, or `boiled` before `peel`) and simulates state evolution across multi-step action sequences.
+  - **Gemini AI Planner (`buildCookingAgentSystemInstructions`, `validateAIPlan`)**: Generates grounded system instructions containing the capability catalog JSON for LLMs, and validates AI-generated plans or user intents before execution.
 
 ---
 

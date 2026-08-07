@@ -5,7 +5,7 @@
   "difficulty": "medium",
   "tags": ["traditional", "spanish", "vegetarian", "with-onion"],
   "hints": [
-    "Fry onions until golden before mixing."
+    "Fry onions in the small pan while potatoes cook in the big pan."
   ],
   "requirements": {
     "potatoes": {
@@ -33,18 +33,20 @@
       "amount": 1,
       "unit": "tsp"
     },
-    "pepper": {
-      "entityId": "pepper",
+    "black_pepper": {
+      "entityId": "black_pepper",
       "amount": 1,
       "unit": "pinch"
     }
   },
-  "cooklang": "Peel the @potatoes{4%pcs}.\nWash the @potatoes.\nSlice the @potatoes.\nPeel the @onions{1%pcs}.\nWash the @onions.\nDice the @onions.\nHeat the @oil{100%ml}.\nFry the @potatoes until tender.\nFry the @onions until golden.\nBeat the @eggs{6%pcs}.\nAdd @salt{1%tsp} and @pepper{1%pinch}.\nMix the fried potatoes and onions with the beaten eggs, salt and pepper.\nPour the mixture into the pan.\nCook for 5 minutes.\nWith a soft spatula, make sure the tortilla does not stick to the pan.\nFlip the tortilla.\nCook for another 5 minutes.\nServe the tortilla.\nCelebrate.",
+  "cooklang": "Peel the @potatoes{4%pcs}.\nWash the @potatoes.\nSlice the @potatoes.\nPeel the @onions{1%pcs}.\nWash the @onions.\nDice the @onions.\nHeat the @oil{100%ml}.\nFry the @potatoes in the big pan until tender.\nIn the small pan cook the garlic and onions until golden.\nBeat the @eggs{6%pcs}.\nAdd @salt{1%tsp} and @pepper{1%pinch}.\nMix the fried potatoes and onions with the beaten eggs, salt and pepper.\nPour the mixture into the pan.\nCook for 5 minutes.\nWith a soft spatula, make sure the tortilla does not stick to the pan.\nFlip the tortilla.\nCook for another 5 minutes.\nServe the tortilla.\nCelebrate.",
   "steps": [
     {
       "action": "prepare",
       "target": "potatoes",
-      "preparation": "peeled"
+      "preparation": "peeled",
+      "tool": "peeler",
+      "instruction": "Peel the potatoes cleanly at the board using the peeler."
     },
     {
       "action": "wash",
@@ -53,12 +55,16 @@
     {
       "action": "prepare",
       "target": "potatoes",
-      "preparation": "sliced"
+      "preparation": "sliced",
+      "tool": "knife",
+      "instruction": "Slice potatoes into even slices with the chef knife!"
     },
     {
       "action": "prepare",
       "target": "onions",
-      "preparation": "peeled"
+      "preparation": "peeled",
+      "tool": "peeler",
+      "instruction": "Peel the onions carefully at the board."
     },
     {
       "action": "wash",
@@ -67,27 +73,40 @@
     {
       "action": "prepare",
       "target": "onions",
-      "preparation": "diced"
+      "preparation": "diced",
+      "tool": "knife",
+      "instruction": "Dice the onions into small pieces on the board."
     },
     {
       "action": "cook",
       "target": "oil",
-      "method": "heat"
+      "method": "heat",
+      "containerId": "burner1",
+      "tool": "big_pan",
+      "instruction": "Heat oil in the big pan on burner 1."
     },
     {
       "action": "cook",
       "target": "potatoes",
-      "method": "fry"
+      "method": "fry",
+      "containerId": "burner1",
+      "tool": "big_pan",
+      "instruction": "In the big pan, fry potatoes until tender and golden!"
     },
     {
       "action": "cook",
       "target": "onions",
-      "method": "fry"
+      "method": "fry",
+      "containerId": "burner2",
+      "tool": "small_pan",
+      "instruction": "In the small pan on burner 2, fry onions until sweet and caramelized!"
     },
     {
       "action": "prepare",
       "target": "eggs",
-      "preparation": "beaten"
+      "preparation": "beaten",
+      "tool": "whisk",
+      "instruction": "At the bowl, whisk eggs until fluffy."
     },
     {
       "action": "mix",
@@ -96,37 +115,34 @@
         "onions",
         "eggs",
         "salt",
-        "pepper"
+        "black_pepper"
       ],
-      "output": "mixture"
+      "output": "mixture",
+      "tool": "whisk",
+      "instruction": "Combine potatoes and caramelized onions with beaten eggs!"
     },
     {
       "action": "cook",
       "target": "mixture",
       "method": "fry",
+      "containerId": "burner1",
+      "tool": "big_pan",
       "duration": 5,
-      "unit": "min"
-    },
-    {
-      "action": "instruction",
-      "text": "Con una espátula blanda, asegúrate de que la tortilla no se pega a la sartén."
+      "unit": "min",
+      "as": "Tortilla con cebolla",
+      "instruction": "Pour mixture into the big pan and cook until set!"
     },
     {
       "action": "flip",
       "target": "mixture",
-      "instruction": "Dale la vuelta a la tortilla."
-    },
-    {
-      "action": "cook",
-      "target": "mixture",
-      "method": "fry",
-      "duration": 5,
-      "unit": "min",
-      "instruction": "Deja cocinar por otros 5 min."
+      "tool": "spatula",
+      "instruction": "Flip with confidence using your spatula!"
     },
     {
       "action": "serve",
-      "target": "mixture"
+      "target": "mixture",
+      "as": "Tortilla con cebolla",
+      "containerId": "plate"
     },
     {
       "action": "celebrate"

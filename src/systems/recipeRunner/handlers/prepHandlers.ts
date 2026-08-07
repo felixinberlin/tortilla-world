@@ -6,14 +6,15 @@
  */
 
 import { worldStore } from '../../../store/worldStore';
-import { moveTortillaTo } from '../../mascotActions';
+import { moveTortillaTo, equipTool, unequipTool, speakTortilla } from '../../mascotActions';
 import { resolveContainerId } from '../../../engine/containerRules';
+import { getActionRecommendation } from '../../actionRecommendations';
 import type { RecipeStep } from '../../../types/RecipeStep';
 import type { RecipeRunnerContext } from '../types';
 
 type PrepStep = Extract<
   RecipeStep,
-  { action: 'cut' | 'prepare' | 'peel' | 'wash' | 'rinse' | 'drain' }
+  { action: 'cut' | 'prepare' | 'peel' | 'wash' | 'rinse' | 'drain' | 'clean' }
 >;
 
 export async function handlePrepStep(
@@ -30,16 +31,6 @@ export async function handlePrepStep(
 
   ctx.validateEntity(entityId, step.action);
 
-  const targetContainerId = resolveContainerId(
-    step.containerId || workstationDefaultContainerId || ctx.defaultTargetId
-  );
-
-  // Ensure bound entity is in workspace
-  entityId = await ctx.ensureEntityInWorkspace(entityId, targetContainerId);
-
-  moveTortillaTo(targetContainerId, ctx.mascotId);
-  await ctx.wait();
-
   const prepStyle = (() => {
     if ('preparation' in step && step.preparation) return step.preparation;
     if ('style' in step && step.style) return step.style;
@@ -47,6 +38,49 @@ export async function handlePrepStep(
     if (step.action === 'wash') return 'washed';
     return 'prepared';
   })();
+
+  // Resolve tool for step (custom step tool or auto-deduced)
+  const stepTool = ('tool' in step && typeof step.tool === 'string' ? step.tool : undefined) ||
+    ('toolId' in step && typeof step.toolId === 'string' ? step.toolId : undefined) ||
+    (step.action === 'peel' || prepStyle === 'peeled'
+      ? 'peeler'
+      : prepStyle === 'beaten'
+      ? 'whisk'
+      : step.action === 'cut' || prepStyle === 'sliced' || prepStyle === 'diced'
+      ? 'knife'
+      : undefined);
+
+  const defaultContainerForPrep =
+    prepStyle === 'beaten' || prepStyle === 'mixed'
+      ? 'bowl'
+      : ctx.defaultTargetId;
+
+  const targetContainerId = resolveContainerId(
+    step.containerId || workstationDefaultContainerId || defaultContainerForPrep
+  );
+
+  // Ensure bound entity is in workspace
+  entityId = await ctx.ensureEntityInWorkspace(entityId, targetContainerId);
+
+  // 1. Move mascot to workstation and equip tool if present
+  moveTortillaTo(targetContainerId, ctx.mascotId);
+  if (stepTool) {
+    equipTool(stepTool, ctx.mascotId);
+  }
+
+  // 2. Speak recommendation advice for step
+  const recommendation =
+    ('instruction' in step && typeof step.instruction === 'string' && step.instruction) ||
+    ('recommendation' in step && typeof step.recommendation === 'string' && step.recommendation) ||
+    getActionRecommendation({
+      action: step.action,
+      style: prepStyle,
+      toolId: stepTool,
+      ingredientName: rawKey,
+    });
+  speakTortilla(recommendation, 2500, ctx.mascotId);
+
+  await ctx.wait();
 
   worldStore.getState().dispatch({
     type: 'PREPARE_INGREDIENT',
@@ -57,4 +91,9 @@ export async function handlePrepStep(
   });
 
   await ctx.wait();
+
+  // Unequip tool when step completes
+  if (stepTool) {
+    unequipTool(ctx.mascotId);
+  }
 }

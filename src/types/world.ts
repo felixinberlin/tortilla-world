@@ -35,14 +35,9 @@ export interface Entity {
 export interface ContainerRules {
   maxCapacity?: number;
   allowedTypes?: EntityType[];
-  uniqueTypesOnly?: boolean;
   consumesOnDrag?: boolean;
   isImmutable?: boolean;
-  customValidator?: ( 
-    container: Container,
-    entity: Entity,
-    currentEntities: Entity[]
-  ) => boolean;
+  allowDuplicateIngredients?: boolean;
 }
 
 export interface Container {

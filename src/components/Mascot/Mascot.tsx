@@ -15,21 +15,32 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useDroppable } from '@dnd-kit/core';
+import { useTranslation } from '../../i18n/useTranslation';
 import { useStore } from 'zustand';
 import { worldStore } from '../../store/worldStore';
 import { TortillaSvg } from './TortillaSvg';
 import { ingredients } from '../../data/catalog/ingredients';
+import { catalogTools } from '../../data/catalog/tools';
 import type { GazeTarget } from '../../systems/gaze';
 import { gazeEntityId } from '../../systems/gaze';
+import { getMascotFocusClass } from '../../systems/focus';
 
 interface MascotProps {
   mascotId?: string;
+  onLeftArmClick?: () => void;
+  onRightArmClick?: () => void;
 }
 
-export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
+export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef', onLeftArmClick: onLeftArmClickProp, onRightArmClick: onRightArmClickProp }) => {
+  const { t } = useTranslation();
+  const { setNodeRef, isOver } = useDroppable({ id: mascotId });
   const mascotEntity = useStore(worldStore, (state) => state.entities[mascotId]);
   const entities = useStore(worldStore, (state) => state.entities);
+  const focusTarget = useStore(worldStore, (state) => state.focusTarget);
   const dispatch = useStore(worldStore, (state) => state.dispatch);
+  
+  const focusClass = getMascotFocusClass(focusTarget);
   
   const [offset, setOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const mascotAnchorRef = useRef<HTMLDivElement>(null);
@@ -40,16 +51,39 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
   const gazingAtEntityId = gazeEntityId(gazingAt);
   const targetContainerId = (mascotEntity?.state?.targetContainerId as string | undefined) ?? gazingAtEntityId ?? undefined;
   const state = (mascotEntity?.state?.state as string | undefined) || 'idle';
-  const holdingEntityId = mascotEntity?.state?.holdingEntityId as string | undefined;
   const speechMessage = mascotEntity?.state?.speechMessage as string | undefined;
+  const equippedToolId = mascotEntity?.state?.equippedToolId as string | undefined;
 
-  // Resolve held entity and ingredient metadata
-  const heldEntity = holdingEntityId ? entities[holdingEntityId] : undefined;
-  const heldIngredientInfo = heldEntity
-    ? ingredients.find(
-        (i) => i.id === heldEntity.ingredientId || i.id === heldEntity.id || heldEntity.id.startsWith(i.id)
-      )
-    : undefined;
+  // Extract array of holdingEntityIds (supporting multi-item carrying or legacy single holdingEntityId)
+  const rawHoldingIds = mascotEntity?.state?.holdingEntityIds as string[] | undefined;
+  const singleHoldingId = mascotEntity?.state?.holdingEntityId as string | undefined;
+
+  const holdingEntityIds: string[] = Array.isArray(rawHoldingIds) && rawHoldingIds.length > 0
+    ? rawHoldingIds
+    : singleHoldingId
+    ? [singleHoldingId]
+    : [];
+
+  const isHoldingLeft = holdingEntityIds.length > 0;
+  const isHoldingRight = holdingEntityIds.length > 1;
+
+  // Resolve held item info helper
+  const getHeldItemInfo = (id: string) => {
+    const entity = entities[id];
+    const catalogIng = ingredients.find(
+      (i) => i.id === entity?.ingredientId || i.id === id || id.startsWith(i.id) || i.id.includes(id)
+    );
+    const catalogTool = catalogTools.find(
+      (t) => t.id === entity?.id || t.id === id || id.startsWith(t.id)
+    );
+
+    const name = entity?.name || catalogIng?.name || catalogTool?.name || id.charAt(0).toUpperCase() + id.slice(1);
+    const icon = catalogIng?.icon || catalogTool?.icon || '🥔';
+
+    return { name, icon };
+  };
+
+  const holdingEntityIdsKey = holdingEntityIds.join(',');
 
   // Calculate physical DOM position offset to target container
   useEffect(() => {
@@ -103,19 +137,34 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
     };
 
     updatePosition();
+    const rafId = requestAnimationFrame(updatePosition);
     window.addEventListener('resize', updatePosition);
     window.addEventListener('scroll', updatePosition);
     return () => {
+      cancelAnimationFrame(rafId);
       window.removeEventListener('resize', updatePosition);
       window.removeEventListener('scroll', updatePosition);
     };
-  }, [targetContainerId]);
+  }, [targetContainerId, gazingAtEntityId, holdingEntityIdsKey, state]);
 
   // Guarded until after all hooks so hook call order never changes between renders.
   if (!mascotEntity) return null;
 
   const handleDoubleClick = () => {
     dispatch({ type: 'MASCOT_FLIP', payload: { mascotId } });
+    window.dispatchEvent(new CustomEvent('mascot-flip', { detail: { mascotId } }));
+  };
+
+  const handleLeftArmClick = (e: React.MouseEvent<SVGElement>) => {
+    e.stopPropagation();
+    window.dispatchEvent(new CustomEvent('recipe-step-prev'));
+    onLeftArmClickProp?.();
+  };
+
+  const handleRightArmClick = (e: React.MouseEvent<SVGElement>) => {
+    e.stopPropagation();
+    window.dispatchEvent(new CustomEvent('recipe-step-next'));
+    onRightArmClickProp?.();
   };
 
   const isFloating = offset.x !== 0 || offset.y !== 0;
@@ -148,7 +197,8 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
         }}
       >
         <div
-          className={`mascot-wrapper ${isFloating ? 'is-floating' : ''} ${holdingEntityId ? 'is-holding' : ''}`}
+          ref={setNodeRef}
+          className={`mascot-wrapper ${focusClass} ${isFloating ? 'is-floating' : ''} ${holdingEntityIds.length > 0 ? 'is-holding' : ''} ${isOver ? 'is-droppable-over scale-105' : ''}`}
           style={
             {
               position: 'absolute',
@@ -165,22 +215,40 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
             state={state}
             gazingAt={gazingAt}
             onDoubleClick={handleDoubleClick}
+            isHoldingLeft={isHoldingLeft}
+            isHoldingRight={isHoldingRight}
+            onLeftArmClick={handleLeftArmClick}
+            onRightArmClick={handleRightArmClick}
+            leftArmTitle={t('replayer.stepBack') || '⏮️ Previous Step'}
+            rightArmTitle={t('replayer.stepForward') || '⏭️ Next Step'}
+            equippedToolId={equippedToolId}
           />
 
-          {/* Held Ingredient Badge ("Really Grab") */}
-          {holdingEntityId && (
-            <div className="mascot-held-badge">
-              <span style={{ fontSize: '16px' }}>{heldIngredientInfo?.icon || '🥔'}</span>
-              <span>{heldEntity?.name || heldIngredientInfo?.name || holdingEntityId}</span>
-            </div>
-          )}
+          {/* Held Ingredient Badges (Up to 2 items) */}
+          {holdingEntityIds.slice(0, 2).map((id, index) => {
+            const info = getHeldItemInfo(id);
+            const isFirst = index === 0;
+            return (
+              <div
+                key={`held-badge-${id}-${index}`}
+                className={`mascot-held-badge ${isFirst ? 'badge-left' : 'badge-right'}`}
+                style={{
+                  bottom: '-8px',
+                  ...(isFirst ? { left: '-12px', right: 'auto' } : { right: '-12px', left: 'auto' }),
+                }}
+              >
+                <span style={{ fontSize: '16px' }}>{info.icon}</span>
+                <span>{info.name}</span>
+              </div>
+            );
+          })}
 
           {speechMessage && (
             <div
               className="mascot-speech-bubble"
               style={{
                 position: 'absolute',
-                top: '-40px',
+                top: '-50px',
                 left: '50%',
                 transform: 'translateX(-50%)',
                 padding: '8px 12px',
@@ -192,14 +260,70 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef' }) => {
                 borderRadius: '8px',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
                 gap: '6px',
                 whiteSpace: 'nowrap',
                 zIndex: 10,
               }}
             >
-              <span>💬</span>
-              <span>{speechMessage}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span>💬</span>
+                <span>{speechMessage}</span>
+              </div>
+              {(speechMessage.includes('empty') ||
+                speechMessage.includes('vaciar') ||
+                speechMessage.includes('leeren') ||
+                speechMessage.includes('trash') ||
+                speechMessage.includes('papelera') ||
+                speechMessage.includes('Mülleimer')) && (
+                <div style={{ display: 'flex', gap: '8px', marginTop: '2px' }}>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      dispatch({ type: 'EMPTY_TRASH' });
+                      dispatch({
+                        type: 'UPDATE_ENTITY_STATE',
+                        payload: { entityId: 'chef', changes: { speechMessage: undefined } },
+                      });
+                    }}
+                    style={{
+                      backgroundColor: '#ef4444',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: '4px',
+                      padding: '3px 8px',
+                      fontSize: '11px',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                    }}
+                  >
+                    ✅ {t('ui.yesEmpty')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      dispatch({
+                        type: 'UPDATE_ENTITY_STATE',
+                        payload: { entityId: 'chef', changes: { speechMessage: undefined } },
+                      });
+                    }}
+                    style={{
+                      backgroundColor: '#6b7280',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: '4px',
+                      padding: '3px 8px',
+                      fontSize: '11px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    ❌ {t('ui.cancel')}
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>

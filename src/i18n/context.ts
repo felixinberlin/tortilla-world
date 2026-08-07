@@ -7,7 +7,7 @@
 
 import { createContext } from 'react';
 
-export type SupportedLanguage = 'en' | 'es';
+export type SupportedLanguage = 'en' | 'es' | 'de';
 
 export interface I18nContextType {
   language: SupportedLanguage;

@@ -198,7 +198,7 @@ describe('Mix & Cook Actions with Dynamic Naming & Conditions', () => {
       expect(cookedMixture.state?.cookCondition).toBe('until golden');
     });
 
-    it('defaults cooked mixture name to active recipe name if customName is omitted', () => {
+    it('retains mixture name during pan cooking if customName is omitted, and sets dish name when moved to plate', () => {
       const store = worldStore.getState();
       worldStore.getState().setActiveRecipeName('Tortilla con Cebolla');
 
@@ -221,15 +221,107 @@ describe('Mix & Cook Actions with Dynamic Naming & Conditions', () => {
         payload: { entityId: mixtureId, targetContainerId: 'burner1' },
       });
 
-      // Cook without custom name
+      // Cook without custom name - pan retains mixture name
       store.dispatch({
         type: 'COOK_CONTAINER_CONTENTS',
         payload: { containerId: 'burner1' },
       });
 
-      const cookedMixture = worldStore.getState().entities[mixtureId];
-      expect(cookedMixture.name).toBe('Tortilla con Cebolla');
-      expect(cookedMixture.status).toBe('cooked');
+      const cookedMixtureInPan = worldStore.getState().entities[mixtureId];
+      expect(cookedMixtureInPan.status).toBe('cooked');
+      expect(cookedMixtureInPan.name).toBe('mixture_1');
+
+      // Moving to plate assigns the final active recipe dish name
+      store.dispatch({
+        type: 'MOVE_ENTITY',
+        payload: { entityId: mixtureId, targetContainerId: 'plate' },
+      });
+
+      const cookedMixtureOnPlate = worldStore.getState().entities[mixtureId];
+      expect(cookedMixtureOnPlate.name).toBe('Tortilla con Cebolla');
+    });
+  });
+
+  describe('3. Mixture & Final Dish Renaming', () => {
+    it('allows updating mixture entity name directly via UPDATE_ENTITY_STATE in bowl', () => {
+      const store = worldStore.getState();
+
+      store.dispatch({
+        type: 'ADD_ENTITY',
+        payload: {
+          entity: { id: 'p_mix', name: 'Potato', type: 'ingredient' },
+          containerId: 'bowl',
+        },
+      });
+
+      store.dispatch({
+        type: 'MIX_CONTAINER_CONTENTS',
+        payload: { containerId: 'bowl' },
+      });
+
+      const mixtureId = worldStore.getState().containers.bowl.entityIds[0];
+      expect(worldStore.getState().entities[mixtureId].name).toBe('mixture_1');
+
+      // Rename mixture directly in bowl
+      store.dispatch({
+        type: 'UPDATE_ENTITY_STATE',
+        payload: {
+          entityId: mixtureId,
+          changes: { name: 'Mezcla Especial de la Casa' },
+        },
+      });
+
+      expect(worldStore.getState().entities[mixtureId].name).toBe('Mezcla Especial de la Casa');
+    });
+
+    it('allows updating final dish name on plate and preserves custom name when moved', () => {
+      const store = worldStore.getState();
+
+      // Create mixture and cook it with custom name
+      store.dispatch({
+        type: 'ADD_ENTITY',
+        payload: {
+          entity: { id: 'potato_cook', name: 'Potato', type: 'ingredient' },
+          containerId: 'bowl',
+        },
+      });
+      store.dispatch({
+        type: 'MIX_CONTAINER_CONTENTS',
+        payload: { containerId: 'bowl', customName: 'Batido Secreto' },
+      });
+
+      const mixtureId = worldStore.getState().containers.bowl.entityIds[0];
+
+      // Cook in burner
+      store.dispatch({
+        type: 'MOVE_ENTITY',
+        payload: { entityId: mixtureId, targetContainerId: 'burner1' },
+      });
+      store.dispatch({
+        type: 'COOK_CONTAINER_CONTENTS',
+        payload: { containerId: 'burner1', customName: 'Tortilla Gourmet' },
+      });
+
+      expect(worldStore.getState().entities[mixtureId].name).toBe('Tortilla Gourmet');
+
+      // Move to plate - custom name 'Tortilla Gourmet' should be preserved (not overwritten by active recipe)
+      store.dispatch({
+        type: 'MOVE_ENTITY',
+        payload: { entityId: mixtureId, targetContainerId: 'plate' },
+      });
+
+      expect(worldStore.getState().entities[mixtureId].name).toBe('Tortilla Gourmet');
+
+      // User renames final dish on plate to 'Tortilla Suprema'
+      store.dispatch({
+        type: 'UPDATE_ENTITY_STATE',
+        payload: {
+          entityId: mixtureId,
+          changes: { name: 'Tortilla Suprema' },
+        },
+      });
+
+      expect(worldStore.getState().entities[mixtureId].name).toBe('Tortilla Suprema');
     });
   });
 });

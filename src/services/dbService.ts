@@ -15,6 +15,7 @@ import {
   deleteDoc,
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { isDevMode } from '../utils/devMode';
 import { catalogTools } from '../data/catalog/tools';
 import { ingredients as catalogIngredients } from '../data/catalog/ingredients';
 import { KITCHEN_WORKSTATIONS } from '../data/catalog/workstations';
@@ -130,6 +131,11 @@ export async function saveRecipeToDb(
     updatedAt: now,
   };
 
+  if (!isDevMode() || !db) {
+    console.warn('Database access is disabled in release mode or Firestore is not configured. Recipe saved locally only.');
+    return newRecipe;
+  }
+
   const sanitized = sanitizeForFirestore(newRecipe);
   const docRef = doc(db, RECIPES_COLLECTION, id);
   await setDoc(docRef, sanitized, { merge: true });
@@ -138,6 +144,7 @@ export async function saveRecipeToDb(
 }
 
 export async function fetchAllRecipesFromDb(): Promise<SavedRecipe[]> {
+  if (!isDevMode() || !db) return [];
   try {
     const colRef = collection(db, RECIPES_COLLECTION);
     const snapshot = await getDocs(colRef);
@@ -154,6 +161,7 @@ export async function fetchAllRecipesFromDb(): Promise<SavedRecipe[]> {
 }
 
 export async function fetchRecipeByIdFromDb(id: string): Promise<SavedRecipe | null> {
+  if (!isDevMode() || !db) return null;
   try {
     const docRef = doc(db, RECIPES_COLLECTION, id);
     const snapshot = await getDoc(docRef);
@@ -168,6 +176,7 @@ export async function fetchRecipeByIdFromDb(id: string): Promise<SavedRecipe | n
 }
 
 export async function deleteRecipeFromDb(id: string): Promise<boolean> {
+  if (!isDevMode() || !db) return false;
   try {
     const docRef = doc(db, RECIPES_COLLECTION, id);
     await deleteDoc(docRef);
@@ -187,6 +196,7 @@ export async function searchRecipesInDb(options: {
   hasMascotSupport?: boolean;
   searchTerm?: string;
 }): Promise<SavedRecipe[]> {
+  if (!isDevMode() || !db) return [];
   const allRecipes = await fetchAllRecipesFromDb();
 
   return allRecipes.filter((recipe) => {
@@ -229,6 +239,7 @@ export async function searchRecipesInDb(options: {
 // ==========================================
 
 export async function fetchKitchenToolsFromDb(): Promise<SavedTool[]> {
+  if (!isDevMode() || !db) return catalogTools;
   try {
     const colRef = collection(db, TOOLS_COLLECTION);
     const snapshot = await getDocs(colRef);
@@ -252,6 +263,8 @@ export async function seedDefaultToolsInDb(): Promise<SavedTool[]> {
     category: t.category,
   }));
 
+  if (!isDevMode() || !db) return seeded;
+
   for (const tool of seeded) {
     const docRef = doc(db, TOOLS_COLLECTION, tool.id);
     await setDoc(docRef, sanitizeForFirestore(tool), { merge: true });
@@ -265,6 +278,7 @@ export async function seedDefaultToolsInDb(): Promise<SavedTool[]> {
 // ==========================================
 
 export async function fetchIngredientsFromDb(): Promise<SavedIngredient[]> {
+  if (!isDevMode() || !db) return catalogIngredients;
   try {
     const colRef = collection(db, INGREDIENTS_COLLECTION);
     const snapshot = await getDocs(colRef);
@@ -288,6 +302,8 @@ export async function seedDefaultIngredientsInDb(): Promise<SavedIngredient[]> {
     category: 'pantry',
   }));
 
+  if (!isDevMode() || !db) return seeded;
+
   for (const ing of seeded) {
     const docRef = doc(db, INGREDIENTS_COLLECTION, ing.id);
     await setDoc(docRef, sanitizeForFirestore(ing), { merge: true });
@@ -301,6 +317,7 @@ export async function seedDefaultIngredientsInDb(): Promise<SavedIngredient[]> {
 // ==========================================
 
 export async function fetchKitchenConfigsFromDb(): Promise<SavedKitchenConfig[]> {
+  if (!isDevMode() || !db) return [];
   try {
     const colRef = collection(db, CONFIGS_COLLECTION);
     const snapshot = await getDocs(colRef);
@@ -325,6 +342,8 @@ export async function seedDefaultKitchenConfigInDb(): Promise<SavedKitchenConfig
     createdAt: new Date().toISOString(),
   };
 
+  if (!isDevMode() || !db) return defaultConfig;
+
   const docRef = doc(db, CONFIGS_COLLECTION, defaultConfig.id);
   await setDoc(docRef, sanitizeForFirestore(defaultConfig), { merge: true });
 
@@ -336,6 +355,7 @@ export async function seedDefaultKitchenConfigInDb(): Promise<SavedKitchenConfig
 // ==========================================
 
 export async function seedDefaultRecipesInDb(): Promise<SavedRecipe[]> {
+  if (!isDevMode() || !db) return [];
   const defaultRecipes: Array<Omit<SavedRecipe, 'createdAt' | 'updatedAt'>> = [
     {
       id: 'clasica_tortilla_db',

@@ -21,6 +21,8 @@ import { createEntitySlice } from './slices/entitySlice';
 import { createContainerSlice } from './slices/containerSlice';
 import { createMascotSlice } from './slices/mascotSlice';
 import { createRecordSlice } from './slices/recordSlice';
+import { createFocusSlice } from './slices/focusSlice';
+import { inferFocusFromAction } from '../systems/focus';
 import type { WorldStateStore } from './types';
 
 const eventListeners = new Set<(event: WorldEvent) => void>();
@@ -33,15 +35,21 @@ export const worldStore = createStore<WorldStateStore>()(
         ...createContainerSlice(set, get, api),
         ...createMascotSlice(set, get, api),
         ...createRecordSlice(set, get, api),
+        ...createFocusSlice(set, get, api),
 
         // Deep clone initial state to avoid reference mutations
         entities: JSON.parse(JSON.stringify(defaultEntities)),
         containers: JSON.parse(JSON.stringify(defaultContainers)),
         events: [],
         activeRecipeName: 'Tortilla Española Clásica',
+        activeRecipeId: 'concebolla',
 
         setActiveRecipeName: (name: string) => {
           set({ activeRecipeName: name }, false, 'SET_ACTIVE_RECIPE_NAME');
+        },
+
+        setActiveRecipeId: (recipeId: string) => {
+          set({ activeRecipeId: recipeId }, false, 'SET_ACTIVE_RECIPE_ID');
         },
 
         emitEvent: (event: WorldEvent) => {
@@ -68,6 +76,7 @@ export const worldStore = createStore<WorldStateStore>()(
             draft.containers = JSON.parse(JSON.stringify(defaultContainers));
             draft.events = [];
           }, false, 'RESET_WORLD');
+          get().clearFocus();
         },
 
         dispatch: (action: WorldAction) => {
@@ -77,6 +86,16 @@ export const worldStore = createStore<WorldStateStore>()(
           // Record action if recording is currently active
           if (store.isRecording) {
             store.recordAction(action);
+          }
+
+          // Automatically infer focus target from world actions unless userOverride is active
+          const focusInferred = inferFocusFromAction(action);
+          if (focusInferred && !store.userOverride) {
+            store.setFocus({
+              containerId: focusInferred.containerId,
+              entityIds: focusInferred.entityIds,
+              mode: 'focused',
+            });
           }
 
           switch (action.type) {
@@ -131,7 +150,29 @@ export const worldStore = createStore<WorldStateStore>()(
               }
               break;
             }
-            case 'COOK_INGREDIENT':
+            case 'COOK_INGREDIENT': {
+              const entityId = action.payload.entityId;
+              const containers = get().containers;
+              const parentContainerId = Object.keys(containers).find((cId) =>
+                containers[cId].entityIds.includes(entityId)
+              );
+              if (parentContainerId && containers[parentContainerId]) {
+                const parentContainer = containers[parentContainerId];
+                if (
+                  (parentContainer.type === 'burner' || parentContainer.id.includes('burner')) &&
+                  !parentContainer.isOn
+                ) {
+                  set(
+                    (draft) => {
+                      if (draft.containers[parentContainerId]) {
+                        draft.containers[parentContainerId].isOn = true;
+                      }
+                    },
+                    false,
+                    'TOGGLE_HEAT'
+                  );
+                }
+              }
               store.cookIngredient(action.payload.entityId, action.payload.cooking);
               if (action.payload.customName || action.payload.cookCondition) {
                 set(
@@ -154,6 +195,7 @@ export const worldStore = createStore<WorldStateStore>()(
                 );
               }
               break;
+            }
             case 'ADD_ENTITY':
               store.addEntity(action.payload.entity, action.payload.containerId);
               break;
@@ -161,6 +203,16 @@ export const worldStore = createStore<WorldStateStore>()(
             case 'REMOVE_ENTITY':
               store.removeEntity(action.payload.entityId);
               break;
+
+            case 'EMPTY_TRASH': {
+              const trashedIds = [...(get().containers.trash?.entityIds || [])];
+              store.emptyTrash();
+              get().emitEvent({
+                type: 'TRASH_EMPTIED',
+                payload: { entityIds: trashedIds },
+              });
+              break;
+            }
 
             case 'UPDATE_ENTITY_STATE':
               store.updateEntityState(action.payload.entityId, action.payload.changes);
@@ -317,12 +369,22 @@ export const worldStore = createStore<WorldStateStore>()(
               const containerId = action.payload.containerId;
               const targetContainer = get().containers[containerId];
               if (targetContainer) {
+                if (!targetContainer.isOn) {
+                  set(
+                    (draft) => {
+                      if (draft.containers[containerId]) {
+                        draft.containers[containerId].isOn = true;
+                      }
+                    },
+                    false,
+                    'TOGGLE_HEAT'
+                  );
+                }
                 const entityIds = [...targetContainer.entityIds];
                 const cookCondition =
                   action.payload.cookCondition ||
                   targetContainer.cookCondition ||
                   targetContainer.timer;
-                const activeRecipeName = get().activeRecipeName || 'Tortilla Española Clásica';
                 const customName = action.payload.customName?.trim();
                 const cookingMethod = action.payload.cooking || 'cooked';
 
@@ -337,12 +399,13 @@ export const worldStore = createStore<WorldStateStore>()(
                       entity.name.toLowerCase().includes('mixture');
 
                     if (isMixture) {
-                      const finalName = customName || activeRecipeName;
                       set(
                         (draft) => {
                           const ent = draft.entities[id];
                           if (ent) {
-                            ent.name = finalName;
+                            if (customName) {
+                              ent.name = customName;
+                            }
                             ent.status = 'cooked';
                             ent.state = {
                               ...ent.state,
@@ -389,6 +452,43 @@ export const worldStore = createStore<WorldStateStore>()(
               }
               break;
             }
+
+            case 'SET_FOCUS':
+              store.setFocus(
+                {
+                  containerId: action.payload.containerId,
+                  entityIds: action.payload.entityIds,
+                  mode: action.payload.mode ?? 'focused',
+                },
+                action.payload.isUserOverride
+              );
+              break;
+
+            case 'CLEAR_FOCUS':
+              store.clearFocus(action.payload?.isUserOverride);
+              break;
+
+            case 'FOCUS_CONTAINER':
+              store.setFocus(
+                {
+                  containerId: action.payload.containerId,
+                  entityIds: action.payload.entityIds,
+                  mode: 'focused',
+                },
+                action.payload.isUserOverride
+              );
+              break;
+
+            case 'FOCUS_ENTITY':
+              store.setFocus(
+                {
+                  containerId: action.payload.containerId,
+                  entityIds: [action.payload.entityId],
+                  mode: 'focused',
+                },
+                action.payload.isUserOverride
+              );
+              break;
 
             case 'RESET_WORLD':
               store.resetWorld();

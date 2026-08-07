@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
 import type { GazePoint, GazeTarget } from "../../systems/gaze";
 import type { MascotState } from "../../systems/mascot";
+import { catalogTools } from "../../data/catalog/tools";
 import "./TortillaSvg.scss";
 
 export interface Potato {
@@ -33,6 +34,13 @@ export interface TortillaSvgProps {
   toastMarks?: ToastMark[];
   gazingAt?: GazeTarget;
   onDoubleClick?: (e: React.MouseEvent<SVGSVGElement>) => void;
+  isHoldingLeft?: boolean;
+  isHoldingRight?: boolean;
+  onLeftArmClick?: (e: React.MouseEvent<SVGElement>) => void;
+  onRightArmClick?: (e: React.MouseEvent<SVGElement>) => void;
+  leftArmTitle?: string;
+  rightArmTitle?: string;
+  equippedToolId?: string;
 }
 
 const DEFAULT_POTATOES: Potato[] = [
@@ -62,6 +70,13 @@ export function TortillaSvg({
   toastMarks = DEFAULT_TOAST_MARKS,
   gazingAt,
   onDoubleClick,
+  isHoldingLeft = false,
+  isHoldingRight = false,
+  onLeftArmClick,
+  onRightArmClick,
+  leftArmTitle,
+  rightArmTitle,
+  equippedToolId,
 }: TortillaSvgProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [isFlipping, setIsFlipping] = useState(false);
@@ -70,7 +85,14 @@ export function TortillaSvg({
     right: { x: 0, y: 0 },
   });
 
-  const handleDoubleClick = (e: React.MouseEvent<SVGSVGElement>) => {
+  const lastFlipTimeRef = useRef<number>(0);
+  const lastTapTimeRef = useRef<number>(0);
+
+  const triggerFlip = (e: React.MouseEvent<SVGSVGElement>) => {
+    const now = Date.now();
+    if (now - lastFlipTimeRef.current < 400) return;
+    lastFlipTimeRef.current = now;
+
     if (!isFlipping) {
       setIsFlipping(true);
       setTimeout(() => {
@@ -78,6 +100,20 @@ export function TortillaSvg({
       }, 800);
     }
     onDoubleClick?.(e);
+  };
+
+  const handleDoubleClick = (e: React.MouseEvent<SVGSVGElement>) => {
+    triggerFlip(e);
+  };
+
+  const handleClick = (e: React.MouseEvent<SVGSVGElement>) => {
+    const now = Date.now();
+    if (now - lastTapTimeRef.current < 300) {
+      triggerFlip(e);
+      lastTapTimeRef.current = 0;
+    } else {
+      lastTapTimeRef.current = now;
+    }
   };
 
   useEffect(() => {
@@ -169,6 +205,52 @@ export function TortillaSvg({
   const r = radius ?? 28;
   const effectiveState = isFlipping ? "flipping" : state;
 
+  const armTransition = {
+    type: "spring" as const,
+    stiffness: 260,
+    damping: 18,
+  };
+
+  const getLeftHandPos = () => {
+    if (effectiveState === "celebrating") return { x: -28, y: -24 };
+    if (effectiveState === "flipping") return { x: -22, y: -10 };
+    if (isHoldingLeft) return { x: -32, y: -16 };
+    return { x: -30, y: 22 };
+  };
+
+  const getRightHandPos = () => {
+    if (effectiveState === "celebrating") return { x: 28, y: -24 };
+    if (effectiveState === "flipping") return { x: 22, y: -10 };
+    if (isHoldingRight) return { x: 32, y: -16 };
+    return { x: 30, y: 22 };
+  };
+
+  const getLeftArmPath = () => {
+    if (effectiveState === "celebrating") {
+      return "M -26 4 Q -38 -14 -28 -24";
+    }
+    if (effectiveState === "flipping") {
+      return "M -26 4 Q -34 0 -22 -10";
+    }
+    if (isHoldingLeft) {
+      return "M -26 4 Q -38 -4 -32 -16";
+    }
+    return "M -26 4 Q -36 12 -30 22";
+  };
+
+  const getRightArmPath = () => {
+    if (effectiveState === "celebrating") {
+      return "M 26 4 Q 38 -14 28 -24";
+    }
+    if (effectiveState === "flipping") {
+      return "M 26 4 Q 34 0 22 -10";
+    }
+    if (isHoldingRight) {
+      return "M 26 4 Q 38 -4 32 -16";
+    }
+    return "M 26 4 Q 36 12 30 22";
+  };
+
   return (
     <motion.svg
       ref={svgRef}
@@ -177,6 +259,7 @@ export function TortillaSvg({
       height={height}
       className={`tortilla-svg is-${effectiveState}`}
       onDoubleClick={handleDoubleClick}
+      onClick={handleClick}
       style={{ cursor: "pointer" }}
     >
       <defs>
@@ -252,6 +335,95 @@ export function TortillaSvg({
         ry={r * 0.85}
         fill="#7a4a15"
       />
+
+      {/* === ARMS (Left & Right) === */}
+      <g
+        className="tortilla-arm tortilla-arm-left"
+        onClick={(e) => {
+          e.stopPropagation();
+          onLeftArmClick?.(e);
+        }}
+        style={{ cursor: onLeftArmClick ? 'pointer' : 'default' }}
+      >
+        <motion.path
+          d={getLeftArmPath()}
+          fill="none"
+          stroke="transparent"
+          strokeWidth="16"
+          strokeLinecap="round"
+          animate={{ d: getLeftArmPath() }}
+          transition={armTransition}
+        />
+        <motion.path
+          d={getLeftArmPath()}
+          fill="none"
+          stroke="#b8731f"
+          strokeWidth="3.5"
+          strokeLinecap="round"
+          animate={{ d: getLeftArmPath() }}
+          transition={armTransition}
+          whileHover={onLeftArmClick ? { strokeWidth: 5, stroke: "#d98a28" } : undefined}
+          whileTap={onLeftArmClick ? { scale: 0.92 } : undefined}
+        />
+        {onLeftArmClick && (
+          <motion.g
+            animate={{ x: getLeftHandPos().x, y: getLeftHandPos().y }}
+            transition={armTransition}
+            whileHover={{ scale: 1.25 }}
+            whileTap={{ scale: 0.9 }}
+          >
+            <circle cx="0" cy="0" r="5.5" fill="#ffffff" stroke="#b8731f" strokeWidth="1.3" />
+            <text x="0" y="2" textAnchor="middle" fontSize="6.5" fontWeight="bold" fill="#7a4a15" style={{ userSelect: 'none', pointerEvents: 'none' }}>
+              ◀
+            </text>
+          </motion.g>
+        )}
+        {leftArmTitle && <title>{leftArmTitle}</title>}
+      </g>
+
+      <g
+        className="tortilla-arm tortilla-arm-right"
+        onClick={(e) => {
+          e.stopPropagation();
+          onRightArmClick?.(e);
+        }}
+        style={{ cursor: onRightArmClick ? 'pointer' : 'default' }}
+      >
+        <motion.path
+          d={getRightArmPath()}
+          fill="none"
+          stroke="transparent"
+          strokeWidth="16"
+          strokeLinecap="round"
+          animate={{ d: getRightArmPath() }}
+          transition={armTransition}
+        />
+        <motion.path
+          d={getRightArmPath()}
+          fill="none"
+          stroke="#b8731f"
+          strokeWidth="3.5"
+          strokeLinecap="round"
+          animate={{ d: getRightArmPath() }}
+          transition={armTransition}
+          whileHover={onRightArmClick ? { strokeWidth: 5, stroke: "#d98a28" } : undefined}
+          whileTap={onRightArmClick ? { scale: 0.92 } : undefined}
+        />
+        {onRightArmClick && (
+          <motion.g
+            animate={{ x: getRightHandPos().x, y: getRightHandPos().y }}
+            transition={armTransition}
+            whileHover={{ scale: 1.25 }}
+            whileTap={{ scale: 0.9 }}
+          >
+            <circle cx="0" cy="0" r="5.5" fill="#ffffff" stroke="#b8731f" strokeWidth="1.3" />
+            <text x="0" y="2" textAnchor="middle" fontSize="6.5" fontWeight="bold" fill="#7a4a15" style={{ userSelect: 'none', pointerEvents: 'none' }}>
+              ▶
+            </text>
+          </motion.g>
+        )}
+        {rightArmTitle && <title>{rightArmTitle}</title>}
+      </g>
 
       {/* === HAUPTKÖRPER === */}
       <ellipse
@@ -378,23 +550,38 @@ export function TortillaSvg({
       />
       <ellipse cx="-8" cy="-16" rx="3" ry="1.5" fill="#ffffff" opacity="0.3" transform="rotate(-20 -8 -16)" />
 
-      {/* === BASILIKUM-BLATT (als "Haarschmuck") === */}
-      <g transform="translate(18, -22) rotate(25)">
-        <path
-          d="M 0 0 Q -4 -8 0 -14 Q 4 -8 0 0 Z"
-          fill="#5a8f3a"
-          stroke="#4a7a2e"
-          strokeWidth="0.8"
-        />
-        <path
-          d="M 0 0 L 0 -12"
-          fill="none"
-          stroke="#4a7a2e"
-          strokeWidth="0.5"
-        />
-        <ellipse cx="-1.5" cy="-5" rx="1" ry="0.8" fill="#6ba84a" opacity="0.7" />
-        <ellipse cx="1.5" cy="-9" rx="0.8" ry="0.6" fill="#6ba84a" opacity="0.7" />
-      </g>
+      {/* === HAARSCHMUCK (Basil leaf default, or equipped workstation tool in hair) === */}
+      {equippedToolId ? (
+        <g transform="translate(18, -22) rotate(15)">
+          <circle cx="0" cy="0" r="11" fill="#f59e0b" stroke="#ffffff" strokeWidth="1.5" />
+          <text
+            x="0"
+            y="5"
+            textAnchor="middle"
+            fontSize="12"
+            style={{ userSelect: 'none', pointerEvents: 'none' }}
+          >
+            {catalogTools.find((t) => t.id === equippedToolId || equippedToolId.startsWith(t.id))?.icon || '🔪'}
+          </text>
+        </g>
+      ) : (
+        <g transform="translate(18, -22) rotate(25)">
+          <path
+            d="M 0 0 Q -4 -8 0 -14 Q 4 -8 0 0 Z"
+            fill="#5a8f3a"
+            stroke="#4a7a2e"
+            strokeWidth="0.8"
+          />
+          <path
+            d="M 0 0 L 0 -12"
+            fill="none"
+            stroke="#4a7a2e"
+            strokeWidth="0.5"
+          />
+          <ellipse cx="-1.5" cy="-5" rx="1" ry="0.8" fill="#6ba84a" opacity="0.7" />
+          <ellipse cx="1.5" cy="-9" rx="0.8" ry="0.6" fill="#6ba84a" opacity="0.7" />
+        </g>
+      )}
 
       {/* === DAMPF (nur im Cooking-State) === */}
       {state === "cooking" && (

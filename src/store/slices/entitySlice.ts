@@ -102,6 +102,10 @@ export const createEntitySlice: StateCreator<
         const targetEntity = state.entities[entityId];
         if (!targetEntity) return;
 
+        if (changes.name && typeof changes.name === 'string') {
+          targetEntity.name = changes.name;
+        }
+
         targetEntity.state = {
           ...targetEntity.state,
           ...changes,
@@ -207,6 +211,17 @@ export const createEntitySlice: StateCreator<
           draft.containers[cId].entityIds = draft.containers[cId].entityIds.filter(
             (id) => id !== entityId
           );
+        }
+
+        const mascot = draft.entities['chef'];
+        if (mascot) {
+          const rawHolding = mascot.state?.holdingEntityIds as string[] | undefined;
+          const updatedHolding = rawHolding ? rawHolding.filter((id) => id !== entityId) : [];
+          mascot.state = {
+            ...mascot.state,
+            holdingEntityIds: updatedHolding,
+            holdingEntityId: updatedHolding.length > 0 ? updatedHolding[updatedHolding.length - 1] : undefined,
+          };
         }
 
         // If usedIn matches an existing container ID, add to that container

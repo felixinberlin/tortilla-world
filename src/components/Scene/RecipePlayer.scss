@@ -334,6 +334,15 @@
         width: 100%;
         box-sizing: border-box;
         transition: all 0.2s ease;
+        opacity: 1 !important;
+        filter: none !important;
+        visibility: visible !important;
+
+        .entity-view {
+          opacity: 1 !important;
+          filter: none !important;
+          visibility: visible !important;
+        }
 
         &:hover {
           border-color: $tortilla-yellow;

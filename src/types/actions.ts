@@ -17,6 +17,7 @@ export type WorldAction =
     payload: {
       entityId: string;
       targetContainerId: string;
+      sourceContainerId?: string;
       positionIndex?: number;
     };
   }
@@ -156,6 +157,41 @@ export type WorldAction =
       };
     }
   | {
+      type: 'SET_FOCUS';
+      payload: {
+        containerId?: string;
+        entityIds?: string[];
+        mode?: 'normal' | 'focused';
+        isUserOverride?: boolean;
+      };
+    }
+  | {
+      type: 'CLEAR_FOCUS';
+      payload?: {
+        isUserOverride?: boolean;
+      };
+    }
+  | {
+      type: 'FOCUS_CONTAINER';
+      payload: {
+        containerId: string;
+        entityIds?: string[];
+        isUserOverride?: boolean;
+      };
+    }
+  | {
+      type: 'FOCUS_ENTITY';
+      payload: {
+        entityId: string;
+        containerId?: string;
+        isUserOverride?: boolean;
+      };
+    }
+  | {
+      type: 'EMPTY_TRASH';
+      payload?: Record<string, never>;
+    }
+  | {
       type: 'RESET_WORLD';
       payload?: Record<string, never>;
     };
@@ -167,6 +203,12 @@ export type WorldEvent =
       payload: {
         entityId: string;
         consumedBy?: string;
+      };
+    }
+  | {
+      type: 'TRASH_EMPTIED';
+      payload: {
+        entityIds: string[];
       };
     }
   | {

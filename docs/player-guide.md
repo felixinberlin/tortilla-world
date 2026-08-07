@@ -27,10 +27,22 @@ Your kitchen is divided into distinct workstations, each with a specific purpose
 4. **Preparation Station (`bowl`)**: Used for combining ingredients. This is where you crack eggs, beat them, and mix in your chopped vegetables.
 5. **Cooking Station (`burner`)**: Where heat is applied. You place a `Pan` here, add oil, and fry, boil, or cook your mixtures.
 6. **Serving Station (`plate`)**: The final destination for your completed dish.
+7. **Trash Station (`trash`)**: Where unwanted ingredients or scrap items can be placed. You can empty the trash when needed, with the Mascot asking for confirmation before clearing out discarded items.
 
 ---
 
 ## 🍳 Part 2: Advanced Mechanics
+
+### Chef Tortilla Mascot & Carrying Ingredients 🍳
+- **Drag Ingredients to Tortilla**: You can drag any ingredient directly onto Chef Tortilla. If she has a free arm, she will catch and carry the ingredient for you!
+- **"Take me" (Llévame) Button**: Ingredients inside workstations feature a **"🤲 Llévame / Take me"** button. Clicking it instantly prompts Chef Tortilla to pick up and carry that ingredient in her free arm!
+- **Dual Arm Carrying**: Tortilla has two arms and can hold up to 2 items simultaneously (one in each arm).
+- **Full Hands Warning**: If you try to give Tortilla a 3rd item while her hands are full, she will display a friendly speech bubble: *"¡Mis manos están llenas! 🤲 / My hands are full!"*.
+- **Dropping Carried Items**: Dragging or dropping an ingredient carried by Tortilla into any workstation (like the Cutting Board or Bowl) places it directly into that container.
+- **Arm Controls & Tricks**:
+  - Click on Tortilla's **Left Arm** to step back in a recipe (`◀ Previous Step`).
+  - Click on Tortilla's **Right Arm** to step forward in a recipe (`▶ Next Step`).
+  - **Double Click** Tortilla to make her execute her signature flip trick in place!
 
 ### Changing States
 Ingredients don't just move; they change state based on the container they inhabit.
@@ -38,8 +50,25 @@ Ingredients don't just move; they change state based on the container they inhab
 - A whole egg moved to a bowl becomes *beaten eggs*.
 - A raw mixture moved to a hot pan becomes *cooked*.
 
-### Tools (Workstation Mechanics)
-Workstations represent tools in action! In the current version, workstations process ingredients automatically upon placement (for example, the cutting board automatically chops vegetables and the bowl automatically mixes ingredients). Manual tool manipulation (like grabbing a separate knife or whisk) is coming in a future update.
+### Ingredient Uniqueness & State Distinction
+Containers enforce ingredient uniqueness to prevent duplicate identical raw items. However, state changes are recognized:
+- You **cannot** put two identical raw lemons in a single container or trash bin.
+- You **can** put a *raw lemon* AND a *peeled lemon* together because their preparation states differ.
+
+### Managing the Trash Bin 🗑️
+- Dropping unwanted items into the **Trash** station holds them temporarily.
+- Clicking **Empty Trash** summons the Mascot to ask *"Are you sure you want to empty the trash?"*.
+- Confirming clears the trash bin and permanently removes the discarded items from the world.
+
+### Workstation Navigation Buttons (◀ ▶)
+Each ingredient inside a workstation has `◀` (previous) and `▶` (next) navigation buttons:
+- Tapping `◀` instantly moves the ingredient to the preceding workstation (e.g. from `Bowl` back to `Cutting Board`).
+- Tapping `▶` moves the ingredient to the next workstation (e.g. from `Cutting Board` forward to `Bowl`).
+- This makes kitchen workflow fast and accessible on both desktop and touch/mobile screens without requiring precision dragging!
+
+### Mobile Drag & Drop & Controls 📱
+- Ingredients support full touch drag-and-drop on mobile devices with activation distance and touch delay constraints.
+- You can collapse or expand the top controls panel at any time using the **Show/Hide Controls** button to maximize your workspace on small screens.
 
 ### The Action Player & Recorder
 On the left side of your screen, you might notice controls for **Play Catalog Recipe** or the **Action Recorder**.

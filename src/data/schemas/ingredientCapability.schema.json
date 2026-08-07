@@ -1,0 +1,66 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "IngredientCapabilities",
+  "description": "Strict JSON Schema enforcing the shape of ingredient capabilities, tools, workstations, and prerequisites.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the ingredient (e.g., 'potato', 'egg', 'salt')"
+    },
+    "name": {
+      "type": "string",
+      "description": "Display name of the ingredient"
+    },
+    "capabilities": {
+      "type": "object",
+      "description": "Allowed actions for this ingredient. Omission implies the action is disallowed.",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "tools": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tools that can perform this action on the ingredient"
+          },
+          "workstation": {
+            "type": "string",
+            "description": "Preferred or required workstation for this action"
+          },
+          "requires": {
+            "type": "object",
+            "properties": {
+              "preparation": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Preparation states required before this action can be executed"
+              },
+              "cooking": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Cooking states required before this action can be executed"
+              },
+              "temperature": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Temperature prerequisites for this action"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["id", "capabilities"],
+  "additionalProperties": true
+}

@@ -92,12 +92,12 @@ describe('Clásica Recipe Completion State', () => {
     // 2. fireplace is empty
     //expect(state.containers.pan.entityIds).toEqual([]);
 
-    // 3. Plato (plate) contains ONLY mixture
+    // 3. Plato (plate) contains ONLY the served Tortilla clásica
     expect(state.containers.plate.entityIds).toHaveLength(1);
     const servedEntityId = state.containers.plate.entityIds[0];
     const servedEntity = state.entities[servedEntityId];
     expect(servedEntity).toBeDefined();
-    expect(servedEntity.name).toBe('mixture');
+    expect(servedEntity.name).toBe('Tortilla clásica');
 
     // 4. Input ingredients and cooking oil are marked as consumed
     const mixtureId = runner.recipeContext.bindings['mixture'];

@@ -6,20 +6,56 @@
  */
 
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
-import { getAuth, signInAnonymously } from 'firebase/auth';
-import config from '../../firebase-applet-config.json';
+import { getFirestore, type Firestore } from 'firebase/firestore';
+import { getAuth, signInAnonymously, type Auth } from 'firebase/auth';
+import { isDevMode } from '../utils/devMode';
 
-const app = getApps().length === 0 ? initializeApp(config) : getApp();
+interface FirebaseConfig {
+  apiKey?: string;
+  authDomain?: string;
+  projectId?: string;
+  storageBucket?: string;
+  messagingSenderId?: string;
+  appId?: string;
+  firestoreDatabaseId?: string;
+  [key: string]: unknown;
+}
 
-export const db =
-  config.firestoreDatabaseId && config.firestoreDatabaseId !== '(default)'
-    ? getFirestore(app, config.firestoreDatabaseId)
-    : getFirestore(app);
-
-export const auth = getAuth(app);
-
-// Anonymous auth initialization for testing session identity
-signInAnonymously(auth).catch((err) => {
-  console.warn('Firebase anonymous auth status:', err?.message || err);
+const configModules = import.meta.glob('../../firebase-applet-config.json', {
+  eager: true,
+  import: 'default',
 });
+const configKeys = Object.keys(configModules);
+const config = configKeys.length > 0 ? (configModules[configKeys[0]] as FirebaseConfig) : null;
+
+const isConfigValid = Boolean(
+  config && typeof config.apiKey === 'string' && config.apiKey.trim().length > 0
+);
+
+let app: ReturnType<typeof initializeApp> | null = null;
+let dbRef: Firestore | null = null;
+let authRef: Auth | null = null;
+
+// Only initialize Firebase/Firestore when in developer mode. In release mode, database access is completely disabled.
+if (isDevMode() && isConfigValid && config) {
+  try {
+    app = getApps().length === 0 ? initializeApp(config) : getApp();
+    const databaseId = typeof config.firestoreDatabaseId === 'string' ? config.firestoreDatabaseId : undefined;
+    dbRef = databaseId && databaseId !== '(default)'
+      ? getFirestore(app, databaseId)
+      : getFirestore(app);
+    authRef = getAuth(app);
+
+    signInAnonymously(authRef).catch((err) => {
+      console.warn('Firebase anonymous auth status:', err?.message || err);
+    });
+  } catch (err) {
+    console.warn('Firebase initialization error:', err);
+  }
+}
+
+export { app };
+export const db = dbRef as Firestore;
+export const auth = authRef as Auth;
+export const isFirebaseConfigured = isDevMode() && isConfigValid && !!dbRef;
+

@@ -6,8 +6,9 @@
  */
 
 import { worldStore } from '../../../store/worldStore';
-import { moveTortillaTo, flipTortilla } from '../../mascotActions';
+import { moveTortillaTo, flipTortilla, equipTool, unequipTool, speakTortilla } from '../../mascotActions';
 import { resolveContainerId } from '../../../engine/containerRules';
+import { getActionRecommendation } from '../../actionRecommendations';
 import type { RecipeStep } from '../../../types/RecipeStep';
 import type { RecipeRunnerContext } from '../types';
 
@@ -32,20 +33,26 @@ export async function handleCookStep(
   const rawContainerId = step.containerId || workstationDefaultContainerId || 'burner1';
   const containerId = resolveContainerId(rawContainerId);
 
-  if (step.instruction) {
-    worldStore.getState().dispatch({
-      type: 'UPDATE_ENTITY_STATE',
-      payload: {
-        entityId: step.mascotId || ctx.mascotId,
-        changes: { speechMessage: step.instruction },
-      },
-    });
-  }
+  // Resolve tool for cooking action (e.g. spatula, pan, big_pan, small_pan, wok)
+  const cookTool = ('tool' in step && typeof step.tool === 'string' ? step.tool : undefined) ||
+    ('toolId' in step && typeof step.toolId === 'string' ? step.toolId : undefined) ||
+    (containerId === 'wok' ? 'wok' : containerId === 'big_pan' ? 'big_pan' : containerId === 'small_pan' ? 'small_pan' : 'spatula');
+
+  const recommendation = step.instruction || step.recommendation || getActionRecommendation({
+    action: 'cook',
+    style: cookingMethod,
+    toolId: cookTool,
+    ingredientName: rawKey,
+  });
+
+  speakTortilla(recommendation, 2500, step.mascotId || ctx.mascotId);
 
   // Ensure bound entity is brought to cooking container via mascot actions if not already there
   entityId = await ctx.ensureEntityInWorkspace(entityId, containerId);
 
   moveTortillaTo(containerId, ctx.mascotId);
+  equipTool(cookTool, ctx.mascotId);
+
   await ctx.wait();
 
   // Turn ON fire if currently off
@@ -64,6 +71,17 @@ export async function handleCookStep(
       cooking: cookingMethod,
     },
   });
+
+  const cookName = step.as || step.name || step.output;
+  if (cookName) {
+    worldStore.getState().dispatch({
+      type: 'UPDATE_ENTITY_STATE',
+      payload: {
+        entityId,
+        changes: { name: cookName },
+      },
+    });
+  }
 
   // Consume cooking medium helper ingredients currently in the cooking container (e.g. oil)
     /**
@@ -128,28 +146,40 @@ export async function handleCookStep(
       payload: { containerId },
     });
   }
+
+  unequipTool(ctx.mascotId);
 }
 
 export async function handleFlipStep(
   ctx: RecipeRunnerContext,
   step: FlipStep
 ): Promise<void> {
+  const state = worldStore.getState();
   const rawKey = step.target;
-  const rawContainer = rawKey === 'mixture' ? 'burner1' : rawKey || 'burner1';
-  const targetContainer = resolveContainerId(rawContainer);
-  const instructionText = step.instruction;
+  let targetContainer = 'burner1';
 
-  if (instructionText) {
-    worldStore.getState().dispatch({
-      type: 'UPDATE_ENTITY_STATE',
-      payload: {
-        entityId: step.mascotId || ctx.mascotId,
-        changes: { speechMessage: instructionText },
-      },
-    });
+  if (rawKey) {
+    const resolved = resolveContainerId(rawKey);
+    if (state.containers[resolved]) {
+      targetContainer = resolved;
+    } else {
+      // Find container currently holding this entity (e.g. 'Huevo batido' or 'mixture')
+      const boundEntityId = ctx.getBoundEntityId(rawKey) || rawKey;
+      for (const container of Object.values(state.containers)) {
+        if (container.entityIds.includes(boundEntityId)) {
+          targetContainer = container.id;
+          break;
+        }
+      }
+    }
   }
 
+  const instructionText = step.instruction || getActionRecommendation({ action: 'flip', toolId: 'spatula' });
+
+  speakTortilla(instructionText, 2500, step.mascotId || ctx.mascotId);
+
   moveTortillaTo(targetContainer, ctx.mascotId);
+  equipTool('spatula', ctx.mascotId);
   await ctx.wait();
 
   flipTortilla(step.mascotId || ctx.mascotId);
@@ -184,4 +214,5 @@ export async function handleFlipStep(
   }
 
   await ctx.wait();
+  unequipTool(step.mascotId || ctx.mascotId);
 }
