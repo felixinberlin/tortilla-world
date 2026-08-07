@@ -12,6 +12,7 @@
  */
 
 import { generateCapabilityPromptContext, validateActionSequence } from './ingredientCapabilities';
+import { getActionDefinition } from '../data/catalog/actions';
 import type { SequenceStepInput, SequenceValidationResult } from './ingredientCapabilities';
 
 /**
@@ -126,7 +127,8 @@ export function evaluateKitchenLogicEngine(
   }
 
   // Rule 3: Recommend Tools
-  const tools = capability.tools || (capability.workstation ? [capability.workstation] : []);
+  const actionDef = getActionDefinition(matchedVerb);
+  const tools = capability.tools || (capability.workstation ? [capability.workstation] : (actionDef?.tools || (actionDef?.workstation ? [actionDef.workstation] : [])));
 
   return {
     allowed: true,

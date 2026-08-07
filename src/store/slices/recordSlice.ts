@@ -184,6 +184,10 @@ export const createRecordSlice: StateCreator<
       recordedAt: new Date().toISOString(),
       durationMs,
       actionCount: activeActions.length,
+      workspace: {
+        kitId: get().activeKitId || 'base',
+        containers: updatedState.containers,
+      },
       usedIngredients: updatedState.usedIngredients,
       initialState: filteredInitState,
       finalState: filteredFinalState,

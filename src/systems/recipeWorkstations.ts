@@ -34,7 +34,7 @@ export function getRecipeWorkstationIds(
   result.add('plate');
   result.add('trash');
 
-  const knownContainers = new Set(['sink', 'board', 'bowl', 'burner1', 'burner2', 'plate', 'trash']);
+  const knownContainers = new Set(['sink', 'board', 'board2', 'bowl', 'bowl2', 'burner1', 'burner2', 'burner3', 'plate', 'trash']);
 
   const addWorkstation = (rawId?: string) => {
     if (!rawId) return;
@@ -59,8 +59,16 @@ export function getRecipeWorkstationIds(
       result.add('burner2');
       return;
     }
+    if (cId === 'fuego3' || cId === 'fuego 3' || cId === 'burner3') {
+      result.add('burner3');
+      return;
+    }
     if (cId === 'cutting_board' || cId === 'cutting' || cId === 'tabla' || cId === 'board') {
       result.add('board');
+      return;
+    }
+    if (cId === 'tabla2' || cId === 'board2') {
+      result.add('board2');
       return;
     }
     if (cId === 'fregadero' || cId === 'sink') {
@@ -69,6 +77,10 @@ export function getRecipeWorkstationIds(
     }
     if (cId === 'bol' || cId === 'bowl') {
       result.add('bowl');
+      return;
+    }
+    if (cId === 'bol2' || cId === 'bowl2') {
+      result.add('bowl2');
       return;
     }
     if (cId === 'plato' || cId === 'plate') {

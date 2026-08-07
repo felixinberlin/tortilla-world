@@ -18,6 +18,10 @@ export interface ContainerSlice {
   containers: Record<string, Container>;
   moveEntity: (entityId: string, targetContainerId: string, positionIndex?: number) => void;
   emptyTrash: () => void;
+  addWorkstationContainer: (
+    typeOrContainer: 'board' | 'burner' | 'bowl' | 'sink' | 'plate' | 'trash' | Container
+  ) => void;
+  removeWorkstationContainer: (containerId: string) => void;
 }
 
 export const createContainerSlice: StateCreator<
@@ -27,6 +31,96 @@ export const createContainerSlice: StateCreator<
   ContainerSlice
 > = (set, get) => ({
   containers: {},
+
+  addWorkstationContainer: (typeOrContainer) => {
+    set(
+      (draft) => {
+        if (typeof typeOrContainer === 'object' && typeOrContainer !== null) {
+          const container = typeOrContainer as Container;
+          draft.containers[container.id] = JSON.parse(JSON.stringify(container));
+          return;
+        }
+
+        const type = typeOrContainer;
+        const currentContainers = Object.values(draft.containers);
+        const existingOfType = currentContainers.filter(
+          (c) => c.type === type || c.id.startsWith(type) || c.id.includes(type)
+        );
+        const count = existingOfType.length;
+
+        let newId: string;
+        let newName: string;
+        let rules: Container['rules'] = { maxCapacity: 10, allowedTypes: ['ingredient', 'tool'] };
+        let isOn: boolean | undefined = undefined;
+
+        if (type === 'board') {
+          newId = count === 0 && !draft.containers['board'] ? 'board' : `board${count + 1}`;
+          newName = `Tabla ${count + 1} (Cutting Board ${count + 1})`;
+        } else if (type === 'burner') {
+          newId = count === 0 && !draft.containers['burner1'] ? 'burner1' : `burner${count + 1}`;
+          newName = `Fuego ${count + 1} (Burner ${count + 1})`;
+          rules = { maxCapacity: 5, allowedTypes: ['ingredient', 'tool'] };
+          isOn = false;
+        } else if (type === 'bowl') {
+          newId = count === 0 && !draft.containers['bowl'] ? 'bowl' : `bowl${count + 1}`;
+          newName = `Bol ${count + 1} (Prep Bowl ${count + 1})`;
+        } else if (type === 'sink') {
+          newId = count === 0 && !draft.containers['sink'] ? 'sink' : `sink${count + 1}`;
+          newName = `Fregadero ${count + 1} (Sink ${count + 1})`;
+        } else if (type === 'plate') {
+          newId = count === 0 && !draft.containers['plate'] ? 'plate' : `plate${count + 1}`;
+          newName = `Plato ${count + 1} (Serving Plate ${count + 1})`;
+        } else if (type === 'trash') {
+          newId = count === 0 && !draft.containers['trash'] ? 'trash' : `trash${count + 1}`;
+          newName = `Basura ${count + 1} (Trash ${count + 1})`;
+          rules = { maxCapacity: 20, allowedTypes: ['ingredient', 'tool'] };
+        } else {
+          newId = `${type}_${Date.now()}`;
+          newName = `${type} (${count + 1})`;
+        }
+
+        if (draft.containers[newId]) {
+          newId = `${type}_${Date.now()}`;
+        }
+
+        const newContainer: Container = {
+          id: newId,
+          name: newName,
+          type,
+          entityIds: [],
+          rules,
+          ...(isOn !== undefined ? { isOn } : {}),
+        };
+
+        draft.containers[newId] = newContainer;
+      },
+      false,
+      'ADD_CONTAINER'
+    );
+  },
+
+  removeWorkstationContainer: (containerId: string) => {
+    if (containerId === 'despensa') return;
+    set(
+      (draft) => {
+        const targetContainer = draft.containers[containerId];
+        if (!targetContainer) return;
+
+        const orphanEntityIds = targetContainer.entityIds || [];
+        if (orphanEntityIds.length > 0 && draft.containers['despensa']) {
+          orphanEntityIds.forEach((eId) => {
+            if (!draft.containers['despensa'].entityIds.includes(eId)) {
+              draft.containers['despensa'].entityIds.push(eId);
+            }
+          });
+        }
+
+        delete draft.containers[containerId];
+      },
+      false,
+      'REMOVE_CONTAINER'
+    );
+  },
 
   emptyTrash: () => {
     set(
@@ -79,7 +173,41 @@ export const createContainerSlice: StateCreator<
         .map((id) => state.entities[id])
         .filter((e): e is Entity => Boolean(e));
       const result = validateContainerRules(targetContainer, copyEntity, currentEntities);
-      if (!result.allowed) return;
+      if (!result.allowed) {
+        if (result.reason) {
+          set(
+            (draft) => {
+              const mascot = draft.entities['chef'];
+              if (mascot) {
+                mascot.state = {
+                  ...mascot.state,
+                  speechMessage: result.reason,
+                  targetContainerId,
+                  gazingAt: { type: 'entity', entityId: targetContainerId },
+                };
+              }
+            },
+            false,
+            'MASCOT_REFUSAL_SPEECH'
+          );
+          setTimeout(() => {
+            set(
+              (draft) => {
+                const mascot = draft.entities['chef'];
+                if (mascot && mascot.state?.speechMessage === result.reason) {
+                  mascot.state = {
+                    ...mascot.state,
+                    speechMessage: undefined,
+                  };
+                }
+              },
+              false,
+              'CLEAR_MASCOT_REFUSAL_SPEECH'
+            );
+          }, 3500);
+        }
+        return;
+      }
 
       set(
         (draft) => {
@@ -114,7 +242,41 @@ export const createContainerSlice: StateCreator<
         .map((id) => state.entities[id])
         .filter((e): e is Entity => Boolean(e) && e.id !== entityId);
       const result = validateContainerRules(targetContainer, entity, currentEntities);
-      if (!result.allowed) return;
+      if (!result.allowed) {
+        if (result.reason) {
+          set(
+            (draft) => {
+              const mascot = draft.entities['chef'];
+              if (mascot) {
+                mascot.state = {
+                  ...mascot.state,
+                  speechMessage: result.reason,
+                  targetContainerId,
+                  gazingAt: { type: 'entity', entityId: targetContainerId },
+                };
+              }
+            },
+            false,
+            'MASCOT_REFUSAL_SPEECH'
+          );
+          setTimeout(() => {
+            set(
+              (draft) => {
+                const mascot = draft.entities['chef'];
+                if (mascot && mascot.state?.speechMessage === result.reason) {
+                  mascot.state = {
+                    ...mascot.state,
+                    speechMessage: undefined,
+                  };
+                }
+              },
+              false,
+              'CLEAR_MASCOT_REFUSAL_SPEECH'
+            );
+          }, 3500);
+        }
+        return;
+      }
     }
 
     set(

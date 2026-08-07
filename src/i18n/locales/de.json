@@ -272,6 +272,15 @@
         "Achte darauf, dass das Omelett nicht festklebt."
       ]
     },
+    "yema": {
+      "name": "Tortilla mit Eigelb (Tortilla de Yema)",
+      "description": "Cremiges Omelett mit einem zusätzlichen Eigelb.",
+      "hints": [
+        "Gib das zusätzliche Eigelb vor dem Verquirlen zu den Eiern für extra Cremigkeit.",
+        "Mische es in der Schüssel mit Salz zu einer Ei-Eigelb-Mischung.",
+        "Bei schwacher Hitze garen, um die cremige Textur zu bewahren."
+      ]
+    },
     "recorded": {
       "name": "Aufgezeichnetes / Geladenes Rezept",
       "description": "Dynamisch generiertes Rezept aus aufgezeichneten oder geladenen Kochaktionen."

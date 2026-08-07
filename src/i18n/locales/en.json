@@ -272,6 +272,15 @@
         "With a soft spatula, make sure the tortilla does not stick to the pan."
       ]
     },
+    "yema": {
+      "name": "Tortilla de Yema",
+      "description": "Rich creamy Spanish Omelette with an extra egg yolk.",
+      "hints": [
+        "Add the extra yolk to the eggs before whisking for extra creaminess.",
+        "Mix in the bowl with salt to create the egg and yolk mixture.",
+        "Cook gently to maintain the soft creamy texture."
+      ]
+    },
     "recorded": {
       "name": "Recorded / Loaded Recipe",
       "description": "Dynamically generated recipe from recorded or loaded kitchen actions."

@@ -25,6 +25,7 @@ import type { RecordedAction } from '../../types/recording';
 import { getRecipeRequirementsArray } from '../../types/Recipe';
 import { RecipeRequirements } from '../Recipe/RecipeRequirements';
 import { ActionReplayer } from '../Controls/ActionReplayer';
+import { WorkstationSelector } from '../Controls/WorkstationSelector';
 import { PlateDishNameModal } from '../Controls/PlateDishNameModal';
 import { extractUsedIngredientsFromActions } from '../../utils/sessionLogUtils';
 import { useTranslation } from '../../i18n/useTranslation';
@@ -958,7 +959,7 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
             <div className="recipe-buttons">
               {recipes.map((r) => {
                 const isActive = r.id === selectedRecipeId;
-                const recipeIcon = r.id === 'concebolla' ? '🧅' : '🥔';
+                const recipeIcon = r.id === 'concebolla' ? '🧅' : r.id === 'yema' ? '🟡' : r.id === 'francesa' ? '🍳' : '🥔';
                 return (
                   <button
                     key={r.id}
@@ -1112,6 +1113,9 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
               setCurrentStepIndex(0);
             }}
           />
+
+          {/* Workstation Kit Selector */}
+          <WorkstationSelector mode="player" showAddWorkstations={false} />
 
           {/* Kitchen Reset Button */}
           <button

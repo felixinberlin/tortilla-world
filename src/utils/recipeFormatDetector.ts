@@ -20,6 +20,9 @@ export interface FullSessionLogData {
   version?: string;
   title?: string;
   recordedAt?: string;
+  workspace?: {
+    kitId?: import('../types/workstations').WorkstationKitId;
+  };
   zustandInit?: SerializedWorldState;
   actions: RecordedAction[] | WorldAction[];
   events?: unknown[];

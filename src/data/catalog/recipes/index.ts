@@ -15,6 +15,7 @@ import { loadAllRecipes, loadRecipe } from '../../../systems/recipeLoader';
 export const concebollaRecipe: Recipe = loadRecipe('concebolla');
 export const clasicaRecipe: Recipe = loadRecipe('clasica');
 export const francesaRecipe: Recipe = loadRecipe('francesa');
+export const yemaRecipe: Recipe = loadRecipe('yema');
 export const sincebollaRecipe: Recipe = clasicaRecipe;
 
 /**

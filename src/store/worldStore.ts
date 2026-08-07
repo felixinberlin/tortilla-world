@@ -13,10 +13,12 @@
 import { createStore } from 'zustand/vanilla';
 import { devtools } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
-import type { WorldAction, WorldEvent, Entity } from '../types/world';
+import type { WorldAction, WorldEvent, Entity, Container } from '../types/world';
 import { eventStore } from '../systems/EventStore';
 import { actionLog } from './middleware/actionLog';
-import { defaultEntities, defaultContainers } from './defaults';
+import { defaultEntities } from './defaults';
+import { WORKSTATION_KITS } from '../data/catalog/workstations';
+import type { WorkstationKitId } from '../types/workstations';
 import { createEntitySlice } from './slices/entitySlice';
 import { createContainerSlice } from './slices/containerSlice';
 import { createMascotSlice } from './slices/mascotSlice';
@@ -39,10 +41,47 @@ export const worldStore = createStore<WorldStateStore>()(
 
         // Deep clone initial state to avoid reference mutations
         entities: JSON.parse(JSON.stringify(defaultEntities)),
-        containers: JSON.parse(JSON.stringify(defaultContainers)),
+        containers: JSON.parse(JSON.stringify(WORKSTATION_KITS.base.containers)),
         events: [],
+        activeKitId: 'base',
         activeRecipeName: 'Tortilla Española Clásica',
         activeRecipeId: 'concebolla',
+
+        setWorkstationKit: (kitId: WorkstationKitId) => {
+          const kit = WORKSTATION_KITS[kitId];
+          if (!kit) return;
+
+          set((draft) => {
+            draft.activeKitId = kitId;
+            const currentContainers = draft.containers;
+            const newContainers: Record<string, Container> = {};
+
+            // For containers in the new kit: keep existing state if container exists, otherwise create fresh clone
+            Object.keys(kit.containers).forEach((cId) => {
+              if (currentContainers[cId]) {
+                newContainers[cId] = currentContainers[cId];
+              } else {
+                newContainers[cId] = JSON.parse(JSON.stringify(kit.containers[cId]));
+              }
+            });
+
+            // Handle orphan entities in containers that are no longer part of the kit
+            Object.keys(currentContainers).forEach((cId) => {
+              if (!newContainers[cId]) {
+                const orphanEntityIds = currentContainers[cId].entityIds || [];
+                if (orphanEntityIds.length > 0 && newContainers.despensa) {
+                  orphanEntityIds.forEach((eId) => {
+                    if (!newContainers.despensa.entityIds.includes(eId)) {
+                      newContainers.despensa.entityIds.push(eId);
+                    }
+                  });
+                }
+              }
+            });
+
+            draft.containers = newContainers;
+          }, false, 'SET_WORKSTATION_KIT');
+        },
 
         setActiveRecipeName: (name: string) => {
           set({ activeRecipeName: name }, false, 'SET_ACTIVE_RECIPE_NAME');
@@ -70,11 +109,25 @@ export const worldStore = createStore<WorldStateStore>()(
           };
         },
 
-        resetWorld: () => {
+        resetWorld: (
+          target?: WorkstationKitId | Record<string, Container>,
+          customContainers?: Record<string, Container>
+        ) => {
           set((draft) => {
             draft.entities = JSON.parse(JSON.stringify(defaultEntities));
-            draft.containers = JSON.parse(JSON.stringify(defaultContainers));
             draft.events = [];
+
+            if (customContainers) {
+              draft.containers = JSON.parse(JSON.stringify(customContainers));
+              if (typeof target === 'string') draft.activeKitId = target;
+            } else if (typeof target === 'object' && target !== null) {
+              draft.containers = JSON.parse(JSON.stringify(target));
+            } else {
+              const targetKitId = (target as WorkstationKitId) || get().activeKitId || 'base';
+              const kit = WORKSTATION_KITS[targetKitId] || WORKSTATION_KITS.base;
+              draft.activeKitId = targetKitId;
+              draft.containers = JSON.parse(JSON.stringify(kit.containers));
+            }
           }, false, 'RESET_WORLD');
           get().clearFocus();
         },
@@ -576,6 +629,22 @@ export const worldStore = createStore<WorldStateStore>()(
                 },
                 action.payload.isUserOverride
               );
+              break;
+
+            case 'SET_WORKSTATION_KIT':
+              store.setWorkstationKit(action.payload.kitId);
+              break;
+
+            case 'ADD_CONTAINER':
+              if (action.payload.container) {
+                store.addWorkstationContainer(action.payload.container);
+              } else if (action.payload.workstationType) {
+                store.addWorkstationContainer(action.payload.workstationType);
+              }
+              break;
+
+            case 'REMOVE_CONTAINER':
+              store.removeWorkstationContainer(action.payload.containerId);
               break;
 
             case 'RESET_WORLD':

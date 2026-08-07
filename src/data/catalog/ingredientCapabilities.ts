@@ -6,8 +6,9 @@
  * and preventing invalid action hallucinations (e.g., "peeling salt" or "slicing raw egg").
  *
  * RESPONSIBILITY:
- * - Maps ingredient IDs to allowed capabilities, required tools, workstations, and state prerequisites.
+ * - Maps ingredient IDs to allowed capabilities and ingredient-specific state prerequisites.
  * - Enforces the principle that omission implies false (unlisted actions are strictly disallowed).
+ * - Execution metadata (workstations, tools) is resolved via the central Action Catalog (src/data/catalog/actions.ts).
  */
 
 import type { IngredientCapabilityCatalogItem } from '../../types/IngredientCapability';
@@ -17,40 +18,25 @@ export const INGREDIENT_CAPABILITIES_CATALOG: Record<string, IngredientCapabilit
     id: 'potato',
     name: 'Potatoes',
     capabilities: {
-      wash: {
-        workstation: 'sink',
-      },
-      peel: {
-        tools: ['peeler', 'knife'],
-        workstation: 'cutting_station',
-      },
+      wash: {},
+      peel: {},
       slice: {
-        tools: ['knife', 'mandoline'],
-        workstation: 'cutting_station',
         requires: {
           preparation: ['peeled'],
         },
       },
       dice: {
-        tools: ['knife'],
-        workstation: 'cutting_station',
         requires: {
           preparation: ['peeled'],
         },
       },
       cut: {
-        tools: ['knife'],
-        workstation: 'cutting_station',
         requires: {
           preparation: ['peeled'],
         },
       },
-      fry: {
-        workstation: 'pan',
-      },
-      boil: {
-        workstation: 'pot',
-      },
+      fry: {},
+      boil: {},
     },
   },
 
@@ -58,53 +44,35 @@ export const INGREDIENT_CAPABILITIES_CATALOG: Record<string, IngredientCapabilit
     id: 'egg',
     name: 'Eggs',
     capabilities: {
-      crack: {
-        tools: ['hands', 'bowl'],
-        workstation: 'preparation_station',
-      },
+      crack: {},
       beat: {
-        tools: ['whisk', 'fork'],
-        workstation: 'preparation_station',
         requires: {
           preparation: ['cracked'],
         },
       },
       whisk: {
-        tools: ['whisk', 'fork'],
-        workstation: 'preparation_station',
         requires: {
           preparation: ['cracked'],
         },
       },
       fry: {
-        workstation: 'pan',
         requires: {
           preparation: ['cracked'],
         },
       },
-      boil: {
-        workstation: 'pot',
-      },
+      boil: {},
       peel: {
-        tools: ['hands'],
         requires: {
           cooking: ['boiled'],
         },
       },
-      separate: {
-        tools: ['hands', 'separator', 'bowl'],
-        workstation: 'preparation_station',
-      },
+      separate: {},
       cut: {
-        tools: ['knife'],
-        workstation: 'cutting_station',
         requires: {
           cooking: ['boiled', 'cooked', 'fried'],
         },
       },
       slice: {
-        tools: ['knife'],
-        workstation: 'cutting_station',
         requires: {
           cooking: ['boiled', 'cooked', 'fried'],
         },
@@ -116,13 +84,8 @@ export const INGREDIENT_CAPABILITIES_CATALOG: Record<string, IngredientCapabilit
     id: 'yolk',
     name: 'Yolk',
     capabilities: {
-      beat: {
-        tools: ['whisk', 'fork'],
-        workstation: 'preparation_station',
-      },
-      fry: {
-        workstation: 'pan',
-      },
+      beat: {},
+      fry: {},
       mix: {},
     },
   },
@@ -131,17 +94,9 @@ export const INGREDIENT_CAPABILITIES_CATALOG: Record<string, IngredientCapabilit
     id: 'egg_white',
     name: 'Egg White',
     capabilities: {
-      whisk: {
-        tools: ['whisk', 'fork'],
-        workstation: 'preparation_station',
-      },
-      beat: {
-        tools: ['whisk', 'fork'],
-        workstation: 'preparation_station',
-      },
-      fry: {
-        workstation: 'pan',
-      },
+      whisk: {},
+      beat: {},
+      fry: {},
       mix: {},
     },
   },
@@ -160,37 +115,24 @@ export const INGREDIENT_CAPABILITIES_CATALOG: Record<string, IngredientCapabilit
     id: 'onion',
     name: 'Onion',
     capabilities: {
-      wash: {
-        workstation: 'sink',
-      },
-      peel: {
-        tools: ['knife', 'hands'],
-        workstation: 'cutting_station',
-      },
+      wash: {},
+      peel: {},
       slice: {
-        tools: ['knife'],
-        workstation: 'cutting_station',
         requires: {
           preparation: ['peeled'],
         },
       },
       dice: {
-        tools: ['knife'],
-        workstation: 'cutting_station',
         requires: {
           preparation: ['peeled'],
         },
       },
       cut: {
-        tools: ['knife'],
-        workstation: 'cutting_station',
         requires: {
           preparation: ['peeled'],
         },
       },
-      fry: {
-        workstation: 'pan',
-      },
+      fry: {},
     },
   },
 
@@ -199,9 +141,7 @@ export const INGREDIENT_CAPABILITIES_CATALOG: Record<string, IngredientCapabilit
     name: 'Olive Oil',
     capabilities: {
       pour: {},
-      heat: {
-        workstation: 'pan',
-      },
+      heat: {},
       season: {},
       mix: {},
     },
@@ -211,37 +151,24 @@ export const INGREDIENT_CAPABILITIES_CATALOG: Record<string, IngredientCapabilit
     id: 'garlic',
     name: 'Garlic',
     capabilities: {
-      wash: {
-        workstation: 'sink',
-      },
-      peel: {
-        tools: ['hands', 'knife'],
-        workstation: 'cutting_station',
-      },
+      wash: {},
+      peel: {},
       mince: {
-        tools: ['knife'],
-        workstation: 'cutting_station',
         requires: {
           preparation: ['peeled'],
         },
       },
       slice: {
-        tools: ['knife'],
-        workstation: 'cutting_station',
         requires: {
           preparation: ['peeled'],
         },
       },
       cut: {
-        tools: ['knife'],
-        workstation: 'cutting_station',
         requires: {
           preparation: ['peeled'],
         },
       },
-      fry: {
-        workstation: 'pan',
-      },
+      fry: {},
     },
   },
 
@@ -249,24 +176,11 @@ export const INGREDIENT_CAPABILITIES_CATALOG: Record<string, IngredientCapabilit
     id: 'chorizo',
     name: 'Chorizo',
     capabilities: {
-      wash: {
-        workstation: 'sink',
-      },
-      slice: {
-        tools: ['knife'],
-        workstation: 'cutting_station',
-      },
-      dice: {
-        tools: ['knife'],
-        workstation: 'cutting_station',
-      },
-      cut: {
-        tools: ['knife'],
-        workstation: 'cutting_station',
-      },
-      fry: {
-        workstation: 'pan',
-      },
+      wash: {},
+      slice: {},
+      dice: {},
+      cut: {},
+      fry: {},
     },
   },
 
@@ -274,27 +188,12 @@ export const INGREDIENT_CAPABILITIES_CATALOG: Record<string, IngredientCapabilit
     id: 'tomato',
     name: 'Tomato',
     capabilities: {
-      wash: {
-        workstation: 'sink',
-      },
-      slice: {
-        tools: ['knife'],
-        workstation: 'cutting_station',
-      },
-      dice: {
-        tools: ['knife'],
-        workstation: 'cutting_station',
-      },
-      cut: {
-        tools: ['knife'],
-        workstation: 'cutting_station',
-      },
-      fry: {
-        workstation: 'pan',
-      },
-      boil: {
-        workstation: 'pot',
-      },
+      wash: {},
+      slice: {},
+      dice: {},
+      cut: {},
+      fry: {},
+      boil: {},
     },
   },
 
@@ -302,24 +201,11 @@ export const INGREDIENT_CAPABILITIES_CATALOG: Record<string, IngredientCapabilit
     id: 'pepper',
     name: 'Bell Pepper',
     capabilities: {
-      wash: {
-        workstation: 'sink',
-      },
-      slice: {
-        tools: ['knife'],
-        workstation: 'cutting_station',
-      },
-      dice: {
-        tools: ['knife'],
-        workstation: 'cutting_station',
-      },
-      cut: {
-        tools: ['knife'],
-        workstation: 'cutting_station',
-      },
-      fry: {
-        workstation: 'pan',
-      },
+      wash: {},
+      slice: {},
+      dice: {},
+      cut: {},
+      fry: {},
     },
   },
 };

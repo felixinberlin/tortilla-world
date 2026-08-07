@@ -12,10 +12,14 @@ import type { MascotSlice } from './slices/mascotSlice';
 import type { RecordSlice } from './slices/recordSlice';
 import type { FocusSlice } from './slices/focusSlice';
 
+import type { WorkstationKitId } from '../types/workstations';
+
 export type WorldStateStore = {
   entities: Record<string, Entity>;
   containers: Record<string, Container>;
   events: WorldEvent[];
+  activeKitId?: WorkstationKitId;
+  setWorkstationKit: (kitId: WorkstationKitId) => void;
   activeRecipeName?: string;
   setActiveRecipeName: (name: string) => void;
   activeRecipeId?: string;
@@ -23,7 +27,10 @@ export type WorldStateStore = {
   dispatch: (action: WorldAction) => void;
   emitEvent: (event: WorldEvent) => void;
   onEvent: (listener: (event: WorldEvent) => void) => () => void;
-  resetWorld: () => void;
+  resetWorld: (
+    target?: WorkstationKitId | Record<string, Container>,
+    customContainers?: Record<string, Container>
+  ) => void;
 } & EntitySlice &
   ContainerSlice &
   MascotSlice &

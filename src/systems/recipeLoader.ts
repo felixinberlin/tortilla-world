@@ -17,6 +17,7 @@ import { validateRecipeJSON } from './recipeValidator';
 import clasicaJSON from '../data/catalog/recipes/clasica.json';
 import concebollaJSON from '../data/catalog/recipes/concebolla.json';
 import francesaJSON from '../data/catalog/recipes/francesa.json';
+import yemaJSON from '../data/catalog/recipes/yema.json';
 import eggSeparationJSON from '../data/catalog/recipes/egg_separation_test.json';
 
 const recipeRegistry: Record<string, unknown> = {
@@ -24,6 +25,7 @@ const recipeRegistry: Record<string, unknown> = {
   sincebolla: clasicaJSON,
   concebolla: concebollaJSON,
   francesa: francesaJSON,
+  yema: yemaJSON,
   egg_separation_test: eggSeparationJSON,
 };
 
@@ -32,6 +34,7 @@ const cooklangRegistry: Record<string, string> = {
   sincebolla: clasicaJSON.cooklang || '',
   concebolla: concebollaJSON.cooklang || '',
   francesa: francesaJSON.cooklang || '',
+  yema: yemaJSON.cooklang || '',
   egg_separation_test: eggSeparationJSON.cooklang || '',
 };
 
@@ -76,7 +79,7 @@ export function loadRecipe(idOrData: string | unknown): Recipe {
  * Returns a list of all available recipe IDs in the registry.
  */
 export function getAvailableRecipeIds(): string[] {
-  return ['concebolla', 'clasica', 'francesa'];
+  return ['concebolla', 'clasica', 'francesa', 'yema'];
 }
 
 /**
@@ -87,6 +90,7 @@ export function loadAllRecipes(): Recipe[] {
     loadRecipe('concebolla'),
     loadRecipe('clasica'),
     loadRecipe('francesa'),
+    loadRecipe('yema'),
   ];
 }
 

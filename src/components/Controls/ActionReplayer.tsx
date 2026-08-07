@@ -110,7 +110,16 @@ export const ActionReplayer: React.FC<ActionReplayerProps> = ({
       return;
     }
 
-    worldStore.getState().resetWorld();
+    const foundObj = found as unknown as Record<string, unknown>;
+    const fullLog = (foundObj?.formats as Record<string, unknown>)?.fullSessionLog as Record<string, unknown> | undefined;
+    const workspaceObj = (foundObj?.workspace || fullLog?.workspace) as Record<string, unknown> | undefined;
+    const targetKitId = (workspaceObj?.kitId as string) || 'base';
+    const customContainers = workspaceObj?.containers as Record<string, import('../../types/world').Container> | undefined;
+
+    worldStore.getState().resetWorld(
+      targetKitId as import('../../types/workstations').WorkstationKitId,
+      customContainers
+    );
     const extractedIngs = extractUsedIngredientsFromActions(playable.actions);
     worldStore.getState().setRecordedActions(playable.actions as unknown as RecordedAction[], extractedIngs);
     setCurrentStep(0);
@@ -149,7 +158,16 @@ export const ActionReplayer: React.FC<ActionReplayerProps> = ({
           }
 
           setErrorMessage(null);
-          worldStore.getState().resetWorld();
+          const parsedObj = parsed as unknown as Record<string, unknown>;
+          const fileFullLog = parsedObj?.fullSessionLog as Record<string, unknown> | undefined;
+          const fileWorkspaceObj = (parsedObj?.workspace || fileFullLog?.workspace) as Record<string, unknown> | undefined;
+          const fileKitId = (fileWorkspaceObj?.kitId as string) || 'base';
+          const fileContainers = fileWorkspaceObj?.containers as Record<string, import('../../types/world').Container> | undefined;
+
+          worldStore.getState().resetWorld(
+            fileKitId as import('../../types/workstations').WorkstationKitId,
+            fileContainers
+          );
           const extractedIngs = extractUsedIngredientsFromActions(playable.actions);
           worldStore.getState().setRecordedActions(playable.actions as unknown as RecordedAction[], extractedIngs);
           setCurrentStep(0);

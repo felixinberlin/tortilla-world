@@ -136,6 +136,12 @@
       "defaultForm": "singular",
       "article": { "singular": "die", "plural": "die" }
     },
+    "tortilla de yema": {
+      "singular": "Tortilla de Yema",
+      "plural": "Tortilla de Yema",
+      "defaultForm": "singular",
+      "article": { "singular": "die", "plural": "die" }
+    },
     "burner": {
       "singular": "Pfanne",
       "plural": "Pfannen",

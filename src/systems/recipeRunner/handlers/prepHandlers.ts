@@ -102,10 +102,14 @@ export async function handlePrepStep(
         .find((e) => e?.ingredientId === 'egg_white');
 
       if (yolkEntity) {
+        ctx.recipeContext.bindings['yolk'] = yolkEntity.id;
+        ctx.recipeContext.bindings['yema'] = yolkEntity.id;
         ctx.updateBindingIfCopied(entityId, yolkEntity.id, 'yolk');
         ctx.updateBindingIfCopied(entityId, yolkEntity.id, 'yema');
       }
       if (eggWhiteEntity) {
+        ctx.recipeContext.bindings['egg_white'] = eggWhiteEntity.id;
+        ctx.recipeContext.bindings['clara'] = eggWhiteEntity.id;
         ctx.updateBindingIfCopied(entityId, eggWhiteEntity.id, 'egg_white');
         ctx.updateBindingIfCopied(entityId, eggWhiteEntity.id, 'clara');
       }

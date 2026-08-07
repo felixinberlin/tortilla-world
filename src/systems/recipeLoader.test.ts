@@ -99,11 +99,23 @@ describe('RecipeLoader', () => {
     expect(reqs.some((r) => r.entityId === 'salt')).toBe(true);
   });
 
+  it('loads yema recipe by ID correctly', () => {
+    const recipe = loadRecipe('yema');
+    expect(recipe.id).toBe('yema');
+    expect(recipe.name).toBe('Tortilla de Yema');
+
+    const reqs = getRecipeRequirementsArray(recipe);
+    expect(reqs.some((r) => r.id === 'yema-extraEgg')).toBe(true);
+    expect(reqs.some((r) => r.id === 'yema-eggs')).toBe(true);
+    expect(reqs.some((r) => r.entityId === 'oil')).toBe(true);
+    expect(reqs.some((r) => r.entityId === 'salt')).toBe(true);
+  });
+
   it('loads all recipes using loadAllRecipes', () => {
     const all = loadAllRecipes();
     expect(Array.isArray(all)).toBe(true);
-    expect(all.length).toBe(3);
-    expect(all.map((r) => r.id)).toEqual(['concebolla', 'clasica', 'francesa']);
+    expect(all.length).toBe(4);
+    expect(all.map((r) => r.id)).toEqual(['concebolla', 'clasica', 'francesa', 'yema']);
   });
 
   it('returns available recipe IDs', () => {
@@ -111,6 +123,7 @@ describe('RecipeLoader', () => {
     expect(ids).toContain('concebolla');
     expect(ids).toContain('clasica');
     expect(ids).toContain('francesa');
+    expect(ids).toContain('yema');
   });
 
   it('retrieves cooklang string for valid recipe ID', () => {

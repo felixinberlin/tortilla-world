@@ -16,6 +16,17 @@ export interface ActionRequirement {
   temperature?: string[];
 }
 
+export interface ActionDefinition {
+  id: string;
+  name?: string;
+  workstation?: string;
+  tools?: string[];
+  duration?: number;
+  requiresHeat?: boolean;
+}
+
+export type ActionCatalog = Record<string, ActionDefinition>;
+
 export interface CapabilityDefinition {
   tools?: string[];
   workstation?: string;

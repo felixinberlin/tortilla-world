@@ -272,6 +272,15 @@
         "Con una espátula blanda, asegúrate de que la tortilla no se pega a la sartén."
       ]
     },
+    "yema": {
+      "name": "Tortilla de Yema",
+      "description": "Tortilla de huevo cremosa con una yema extra.",
+      "hints": [
+        "Añade la yema extra a los huevos antes de batir para conseguir mayor cremosidad.",
+        "Mezcla en el bol con la sal para hacer la mezcla de Huevo y Yema.",
+        "Cocina a fuego lento para mantener la textura cremosa."
+      ]
+    },
     "recorded": {
       "name": "Receta Grabada / Cargada",
       "description": "Receta generada dinámicamente a partir de acciones de cocina grabadas o cargadas."

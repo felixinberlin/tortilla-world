@@ -1,0 +1,96 @@
+{
+  "id": "yema",
+  "name": "Tortilla de Yema",
+  "description": "Tortilla de huevo cremosa con una yema extra.",
+  "difficulty": "easy",
+  "tags": ["traditional", "spanish", "creamy", "vegetarian", "no-onion", "yolk"],
+  "hints": [
+    "Añade la yema extra a los huevos antes de batir para conseguir mayor cremosidad.",
+    "Mezcla en el bol con la sal para hacer la mezcla de Huevo y Yema.",
+    "Cocina a fuego lento para mantener la textura cremosa."
+  ],
+  "requirements": {
+    "eggs": {
+      "entityId": "egg",
+      "amount": 6,
+      "unit": "pcs"
+    },
+    "extraEgg": {
+      "entityId": "egg",
+      "amount": 1,
+      "unit": "pcs"
+    },
+    "oil": {
+      "entityId": "oil",
+      "amount": 100,
+      "unit": "ml"
+    },
+    "salt": {
+      "entityId": "salt",
+      "amount": 1,
+      "unit": "tsp"
+    }
+  },
+  "cooklang": "Separate @extraEgg{1%pcs} in the bowl to obtain an extra yolk.\nBeat the @eggs{6%pcs} in the bowl with @salt{1%tsp} and extra yolk to make Huevo batido con yema.\nHeat the @oil{100%ml} in the pan.\nPour the Huevo batido con yema into the pan.\nStir slightly and cook for 5 minutes.\nFlip the tortilla.\nCook for another 5 minutes.\nServe onto the plate as Tortilla de Yema.",
+  "steps": [
+    {
+      "action": "separate",
+      "target": "extraEgg",
+      "preparation": "separated",
+      "containerId": "bowl",
+      "instruction": "Separate one egg in the bowl to get an extra yolk."
+    },
+    {
+      "action": "prepare",
+      "target": "eggs",
+      "preparation": "beaten",
+      "tool": "whisk",
+      "instruction": "Whisk main eggs vigorously in the mixing bowl!"
+    },
+    {
+      "action": "mix",
+      "inputs": [
+        "eggs",
+        "yolk",
+        "salt"
+      ],
+      "output": "Huevo batido con yema",
+      "tool": "whisk",
+      "instruction": "Mix beaten eggs with the extra yolk and salt using the whisk!"
+    },
+    {
+      "action": "cook",
+      "target": "oil",
+      "method": "heat",
+      "containerId": "burner1",
+      "tool": "small_pan",
+      "instruction": "Heat oil in the small pan on burner 1."
+    },
+    {
+      "action": "cook",
+      "target": "Huevo batido con yema",
+      "method": "fry",
+      "containerId": "burner1",
+      "tool": "small_pan",
+      "duration": 5,
+      "unit": "min",
+      "as": "Tortilla de Yema",
+      "instruction": "In the small pan cook egg and yolk mixture until soft and golden!"
+    },
+    {
+      "action": "flip",
+      "target": "Huevo batido con yema",
+      "tool": "spatula",
+      "instruction": "Flip gently with soft spatula!"
+    },
+    {
+      "action": "serve",
+      "target": "Huevo batido con yema",
+      "as": "Tortilla de Yema",
+      "containerId": "plate"
+    },
+    {
+      "action": "celebrate"
+    }
+  ]
+}

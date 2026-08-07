@@ -12,6 +12,7 @@
 import type { RecipeStep } from '../types/RecipeStep';
 import type { Workstation } from '../types/workstations';
 import { KITCHEN_WORKSTATIONS } from '../data/catalog/workstations';
+import { getActionDefinition } from '../data/catalog/actions';
 
 /**
  * Automatically determines the appropriate Workstation for a given RecipeStep.
@@ -24,23 +25,28 @@ export function findWorkstationForStep(step: RecipeStep): Workstation {
     if (['beaten', 'whisked', 'kneaded', 'seasoned', 'cracked'].includes(prep)) {
       return KITCHEN_WORKSTATIONS.preparation_station;
     }
-    return KITCHEN_WORKSTATIONS.cutting_station;
   }
 
-  if (action === 'cook') {
-    return KITCHEN_WORKSTATIONS.cooking_station;
-  }
-
-  if (action === 'mix' || action === 'beat') {
-    return KITCHEN_WORKSTATIONS.preparation_station;
-  }
-
-  if (action === 'serve') {
-    return KITCHEN_WORKSTATIONS.serving_station;
-  }
-
-  if (action === 'wash' || action === 'rinse' || action === 'drain') {
-    return KITCHEN_WORKSTATIONS.washing_station;
+  const actionDef = getActionDefinition(action);
+  if (actionDef?.workstation) {
+    if (actionDef.workstation === 'sink' || actionDef.workstation === 'washing_station') {
+      return KITCHEN_WORKSTATIONS.washing_station;
+    }
+    if (actionDef.workstation === 'cutting_station') {
+      return KITCHEN_WORKSTATIONS.cutting_station;
+    }
+    if (actionDef.workstation === 'preparation_station') {
+      return KITCHEN_WORKSTATIONS.preparation_station;
+    }
+    if (actionDef.workstation === 'cooking_station' || actionDef.workstation === 'pan' || actionDef.workstation === 'pot') {
+      return KITCHEN_WORKSTATIONS.cooking_station;
+    }
+    if (actionDef.workstation === 'serving_station') {
+      return KITCHEN_WORKSTATIONS.serving_station;
+    }
+    if (actionDef.workstation === 'pantry') {
+      return KITCHEN_WORKSTATIONS.pantry;
+    }
   }
 
   if (action === 'move' || action === 'grab' || action === 'drop') {
@@ -67,15 +73,14 @@ export function findToolsForStep(step: RecipeStep): string[] {
     if (prep === 'grated') {
       return ['grater'];
     }
-    return ['knife'];
+    if (prep === 'sliced' || prep === 'diced' || prep === 'minced') {
+      return ['knife'];
+    }
   }
 
-  if (action === 'mix' || action === 'beat') {
-    return ['whisk', 'fork', 'spoon'];
-  }
-
-  if (action === 'cook') {
-    return ['spatula', 'pan'];
+  const actionDef = getActionDefinition(action);
+  if (actionDef?.tools && actionDef.tools.length > 0) {
+    return actionDef.tools;
   }
 
   return [];

@@ -874,6 +874,46 @@ All 3 formats are previewable in UI tabs and downloadable as formatted `.json` f
 
 ---
 
+# Decision: Extract Action Knowledge into a Shared Action Catalog
+
+## Context
+Previously, `ingredientCapabilities.ts` mixed two separate concerns:
+1. What actions an ingredient supports and its specific state prerequisites.
+2. Execution metadata (workstations, tools, timing) for generic actions.
+
+This caused significant duplication across ingredient capability schemas (e.g., repeatedly defining that slicing uses a knife/mandoline at the cutting station).
+
+## Decision
+1. **Central Action Catalog (`src/data/catalog/actions.ts`)**: Extracted all generic action execution metadata into `ACTION_CATALOG` (`workstation`, `tools`, `duration`, `requiresHeat`).
+2. **Normalized Ingredients (`src/data/catalog/ingredientCapabilities.ts`)**: Updated ingredient definitions so they only define supported actions and ingredient-specific prerequisites (`requires`). Removed all workstation/tool properties from ingredient entries.
+3. **Dynamic Engine Resolution (`src/systems/ingredientCapabilities.ts` & `src/engine/workstations.ts`)**: `getIngredientCapability` and `generateCapabilityPromptContext` now merge ingredient capabilities with execution metadata from `ACTION_CATALOG`. `findWorkstationForStep` and `findToolsForStep` query `ACTION_CATALOG` directly via `getActionDefinition`.
+
+## Consequences
+- Clean separation of concerns: ingredients describe capability support; actions define execution details.
+- Zero metadata duplication when adding new ingredients.
+- System engine dynamically resolves workstations and tools without breaking existing recipes or LLM prompt grounding.
+
+---
+
+# Decision: Add Tortilla de Yema as a Core Base Catalog Recipe
+
+## Context
+The user requested a new base catalog recipe (`yema`) at the same level as `concebolla`, `clasica`, and `francesa`, utilizing the egg yolk concept (like Tortilla Francesa but with 1 extra egg yolk for richness).
+
+## Decision
+1. **JSON Recipe Asset (`src/data/catalog/recipes/yema.json`)**: Defined `yema.json` declaring requirements (6 eggs, 1 extra yolk, 100ml oil, 1 tsp salt), Cooklang recipe string, and step sequence (`prepare` eggs -> `mix` eggs with yolk & salt -> `cook` oil -> `cook` mixture in small pan as "Tortilla de Yema" -> `flip` -> `serve` on plate -> `celebrate`).
+2. **Catalog & Loader Registration**: Re-exported `yemaRecipe` in `src/data/catalog/recipes/index.ts` and registered `yema` in `src/systems/recipeLoader.ts` (`recipeRegistry`, `getAvailableRecipeIds`, `loadAllRecipes`).
+3. **i18n & Grammar Localizations**: Updated `en.json`, `es.json`, `de.json`, and German grammar dictionary (`de.json`) with localized names, descriptions, hints, and noun forms.
+4. **UI Integration**: Added tab & selector icons (`🟡`) in `CookbookView.tsx` and `RecipePlayer.tsx`.
+5. **Testing & Completion Verification**: Added integration test `src/systems/yemaCompletion.test.ts` to verify full recipe state execution and container cleanups. Updated `recipeLoader.test.ts` and `recipes.test.ts`.
+6. **Documentation**: Updated `player-guide.md`, `systems.md`, and `decisions.md`.
+
+## Consequences
+- Tortilla de Yema is fully available across the world store, UI recipe selector, player, cookbook view, and automated recipe runner.
+- All 4 base recipes (`concebolla`, `clasica`, `francesa`, `yema`) exist at equal catalog tier.
+
+---
+
 # Final Principle
 
 The rule of Tortilla World:

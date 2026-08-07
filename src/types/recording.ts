@@ -29,6 +29,10 @@ export interface SerializedRecipeExport {
   recordedAt: string;
   durationMs: number;
   actionCount: number;
+  workspace?: {
+    kitId?: import('./workstations').WorkstationKitId;
+    containers?: Record<string, Container>;
+  };
   usedIngredients?: Array<{ id: string; name: string; icon?: string }>;
   initialState: SerializedWorldState;
   finalState: SerializedWorldState;

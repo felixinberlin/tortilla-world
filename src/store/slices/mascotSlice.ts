@@ -281,6 +281,38 @@ export const createMascotSlice: StateCreator<
 
         const result = validateContainerRules(targetContainer, copyEntity, currentEntities);
         if (!result.allowed) {
+          if (result.reason) {
+            set(
+              (draft) => {
+                const m = draft.entities[mascotId];
+                if (m) {
+                  m.state = {
+                    ...m.state,
+                    speechMessage: result.reason,
+                    targetContainerId,
+                    gazingAt: { type: 'entity', entityId: targetContainerId },
+                  };
+                }
+              },
+              false,
+              'MASCOT_REFUSAL_SPEECH'
+            );
+            setTimeout(() => {
+              set(
+                (draft) => {
+                  const m = draft.entities[mascotId];
+                  if (m && m.state?.speechMessage === result.reason) {
+                    m.state = {
+                      ...m.state,
+                      speechMessage: undefined,
+                    };
+                  }
+                },
+                false,
+                'CLEAR_MASCOT_REFUSAL_SPEECH'
+              );
+            }, 3500);
+          }
           continue;
         }
 
@@ -293,6 +325,38 @@ export const createMascotSlice: StateCreator<
 
         const result = validateContainerRules(targetContainer, entityToMove, currentEntities);
         if (!result.allowed) {
+          if (result.reason) {
+            set(
+              (draft) => {
+                const m = draft.entities[mascotId];
+                if (m) {
+                  m.state = {
+                    ...m.state,
+                    speechMessage: result.reason,
+                    targetContainerId,
+                    gazingAt: { type: 'entity', entityId: targetContainerId },
+                  };
+                }
+              },
+              false,
+              'MASCOT_REFUSAL_SPEECH'
+            );
+            setTimeout(() => {
+              set(
+                (draft) => {
+                  const m = draft.entities[mascotId];
+                  if (m && m.state?.speechMessage === result.reason) {
+                    m.state = {
+                      ...m.state,
+                      speechMessage: undefined,
+                    };
+                  }
+                },
+                false,
+                'CLEAR_MASCOT_REFUSAL_SPEECH'
+              );
+            }, 3500);
+          }
           continue;
         }
       }

@@ -92,19 +92,16 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
     (e) => e.id.includes('mixture') || e.name.toLowerCase().includes('mixture')
   );
 
-  const getWorkstationBadge = (id: string) => {
-    switch (id) {
-      case 'sink': return t('workstations.sink');
-      case 'board': return t('workstations.board');
-      case 'bowl': return t('workstations.bowl');
-      case 'burner': return t('workstations.burner');
-      case 'burner1': return t('workstations.burner1');
-      case 'burner2': return t('workstations.burner2');
-      case 'plate': return t('workstations.plate');
-      case 'trash': return t('workstations.trash');
-      case 'despensa': return t('workstations.despensa');
-      default: return t('workstations.default');
-    }
+  const getWorkstationBadge = (id: string, type?: string) => {
+    if (id.startsWith('board') || id.startsWith('tabla')) return t('workstations.board');
+    if (id.startsWith('burner') || id.startsWith('fuego')) return t('workstations.burner');
+    if (id.startsWith('bowl') || id.startsWith('bol')) return t('workstations.bowl');
+    if (id.startsWith('sink') || id.startsWith('fregadero')) return t('workstations.sink');
+    if (id.startsWith('plate') || id.startsWith('plato')) return t('workstations.plate');
+    if (id.startsWith('trash') || id.startsWith('basura')) return t('workstations.trash');
+    if (id === 'despensa' || id === 'pantry') return t('workstations.despensa');
+    if (type) return type;
+    return t('workstations.default');
   };
 
   const [showConfirmTrash, setShowConfirmTrash] = useState(false);
@@ -139,7 +136,40 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
     >
       <div className="container-view__header">
         <h3 className="container-view__title">{container.name}</h3>
-        <span className="container-view__badge">{getWorkstationBadge(container.id)}</span>
+        <span className="container-view__badge">{getWorkstationBadge(container.id, container.type)}</span>
+        {container.id !== 'despensa' && (
+          <button
+            type="button"
+            className="remove-workstation-btn"
+            title="Remove workstation"
+            aria-label="Remove workstation"
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              dispatch({
+                type: 'REMOVE_CONTAINER',
+                payload: { containerId: container.id },
+              });
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+            style={{
+              marginLeft: '6px',
+              backgroundColor: '#fef2f2',
+              color: '#ef4444',
+              border: '1px solid #fca5a5',
+              borderRadius: '4px',
+              padding: '1px 6px',
+              fontSize: '0.75rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              lineHeight: 1,
+            }}
+          >
+            🗑️
+          </button>
+        )}
         {isTrash && container.entityIds.length > 0 && (
           showConfirmTrash ? (
             <div

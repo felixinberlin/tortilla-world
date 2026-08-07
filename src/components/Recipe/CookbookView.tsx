@@ -205,7 +205,7 @@ export const CookbookView: React.FC = () => {
           const isRec = r.id === 'recording' || r.id.startsWith('db-');
           const tName = t(`recipes.${r.id}.name`);
           const displayName = (tName && !tName.startsWith('recipes.')) ? tName : r.name;
-          const icon = isRec ? '🎥' : r.id === 'concebolla' ? '🧅' : '🥔';
+          const icon = isRec ? '🎥' : r.id === 'concebolla' ? '🧅' : r.id === 'yema' ? '🟡' : r.id === 'francesa' ? '🍳' : '🥔';
 
           return (
             <button

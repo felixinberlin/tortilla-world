@@ -205,6 +205,25 @@ export type WorldAction =
       payload?: Record<string, never>;
     }
   | {
+      type: 'SET_WORKSTATION_KIT';
+      payload: {
+        kitId: import('./workstations').WorkstationKitId;
+      };
+    }
+  | {
+      type: 'ADD_CONTAINER';
+      payload: {
+        container?: import('./world').Container;
+        workstationType?: 'board' | 'burner' | 'bowl' | 'sink' | 'plate' | 'trash';
+      };
+    }
+  | {
+      type: 'REMOVE_CONTAINER';
+      payload: {
+        containerId: string;
+      };
+    }
+  | {
       type: 'RESET_WORLD';
       payload?: Record<string, never>;
     };

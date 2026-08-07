@@ -12,6 +12,7 @@ import { worldStore } from '../../store/worldStore';
 import { eventStore } from '../../systems/EventStore';
 import { ActionReplayer } from './ActionReplayer';
 import { actionPlayer } from '../../systems/actionPlayer';
+import { WorkstationSelector } from './WorkstationSelector';
 import {
   translateHumanActionsToMascotActions,
   translateHumanActionsToRecipe,
@@ -291,6 +292,8 @@ export const ActionRecorder: React.FC<ActionRecorderProps> = ({ isDev = true }) 
           </span>
         </div>
       </div>
+
+      <WorkstationSelector mode="creator" />
 
       <div className="recorder-actions-bar">
         {!isRecording ? (

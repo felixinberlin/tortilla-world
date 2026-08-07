@@ -17,6 +17,8 @@ export type WorkstationId =
   | 'cooking_station'
   | 'serving_station';
 
+export type WorkstationKitId = 'compact' | 'base' | 'profi';
+
 export type Workstation = {
   id: WorkstationId;
   name: string;
@@ -27,3 +29,10 @@ export type Workstation = {
   optionalTools?: string[];
   isOn?: boolean;
 };
+
+export interface WorkstationKit {
+  id: WorkstationKitId;
+  name: string;
+  description: string;
+  containers: Record<string, import('./world').Container>;
+}

@@ -12,6 +12,7 @@
  */
 
 import { INGREDIENT_CAPABILITIES_CATALOG } from '../data/catalog/ingredientCapabilities';
+import { getActionDefinition } from '../data/catalog/actions';
 import type {
   IngredientActionValidationResult,
   IngredientCapabilities,
@@ -49,7 +50,8 @@ function normalizeState(term?: string): string {
 }
 
 /**
- * Retrieves capability definition for a specific ingredient and action.
+ * Retrieves capability definition for a specific ingredient and action,
+ * resolving generic execution metadata (tools, workstations) from the Action Catalog.
  */
 export function getIngredientCapability(
   ingredientId: string,
@@ -61,10 +63,16 @@ export function getIngredientCapability(
   const normalizedAct = normalizeAction(action);
   const caps = catalogItem.capabilities;
 
-  if (caps[normalizedAct]) return caps[normalizedAct];
-  if (caps[action]) return caps[action];
+  const capDef = caps[normalizedAct] || caps[action];
+  if (!capDef) return undefined;
 
-  return undefined;
+  const actionDef = getActionDefinition(normalizedAct) || getActionDefinition(action);
+
+  return {
+    ...capDef,
+    tools: capDef.tools || actionDef?.tools,
+    workstation: capDef.workstation || actionDef?.workstation,
+  };
 }
 
 /**
@@ -260,8 +268,17 @@ export function generateCapabilityPromptContext(filterIngredientIds?: string[]):
 
   const catalogObj: Record<string, unknown> = {};
   for (const [id, item] of filtered) {
+    const resolvedCapabilities: Record<string, CapabilityDefinition> = {};
+    for (const [actionKey, rawCap] of Object.entries(item.capabilities || {})) {
+      const actionDef = getActionDefinition(actionKey);
+      resolvedCapabilities[actionKey] = {
+        ...rawCap,
+        tools: rawCap.tools || actionDef?.tools,
+        workstation: rawCap.workstation || actionDef?.workstation,
+      };
+    }
     catalogObj[id] = {
-      capabilities: item.capabilities,
+      capabilities: resolvedCapabilities,
     };
   }
 

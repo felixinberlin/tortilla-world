@@ -72,6 +72,7 @@ export const ingredients: Ingredient[] = [
     id: "pepper",
     icon: "🫑",
     name: "Bell Pepper",
+    capabilities: INGREDIENT_CAPABILITIES_CATALOG.pepper?.capabilities,
   },
 
   {
@@ -86,6 +87,7 @@ export const ingredients: Ingredient[] = [
     id: "tomato",
     icon: "🍅",
     name: "Tomato",
+    capabilities: INGREDIENT_CAPABILITIES_CATALOG.tomato?.capabilities,
   },
 
   {
