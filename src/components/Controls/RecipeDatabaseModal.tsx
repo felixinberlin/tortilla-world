@@ -389,18 +389,6 @@ export const RecipeDatabaseModal: React.FC = () => {
                   ⚡ Play Alone
                 </button>
 
-                {isDev && (
-                  <>
-                    <button
-                      type="button"
-                      className="delete-btn"
-                      aria-label={`Delete recipe ${recipe.title}`}
-                      onClick={() => handleDeleteRecipe(recipe.id, recipe.title)}
-                    >
-                      🗑️
-                    </button>
-                 </>
-                )}
                 <button
                   type="button"
                   className="inspect-btn"
@@ -421,7 +409,7 @@ export const RecipeDatabaseModal: React.FC = () => {
           <div className="format-inspector-content" onClick={(e) => e.stopPropagation()}>
             <div className="inspector-header">
               <h3>📜 Multi-Format Export Preview: {selectedFormatPreview.title}</h3>
-              <button className="close-btn" aria-label="Close preview" onClick={() => setSelectedFormatPreview(null)}>
+              <button className="close-btn" onClick={() => setSelectedFormatPreview(null)}>
                 ✕
               </button>
             </div>
