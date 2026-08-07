@@ -344,6 +344,7 @@ export const RecipeDatabaseModal: React.FC = () => {
                   <button
                     type="button"
                     className="delete-btn"
+                    aria-label={`Delete recipe ${recipe.title}`}
                     onClick={() => handleDeleteRecipe(recipe.id, recipe.title)}
                     title="Delete recipe from Firestore"
                   >
@@ -388,6 +389,18 @@ export const RecipeDatabaseModal: React.FC = () => {
                   ⚡ Play Alone
                 </button>
 
+                {isDev && (
+                  <>
+                    <button
+                      type="button"
+                      className="delete-btn"
+                      aria-label={`Delete recipe ${recipe.title}`}
+                      onClick={() => handleDeleteRecipe(recipe.id, recipe.title)}
+                    >
+                      🗑️
+                    </button>
+                 </>
+                )}
                 <button
                   type="button"
                   className="inspect-btn"
