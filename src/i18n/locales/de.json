@@ -182,6 +182,7 @@
     "move": "Bewegen",
     "grab": "Greifen",
     "drop": "Ablegen",
+    "separate": "Trennen",
     "celebrate": "Guten Appetit!"
   },
   "stepFormat": {
@@ -199,6 +200,8 @@
   "ingredients": {
     "potato": "Kartoffeln",
     "egg": "Eier",
+    "yolk": "Eigelb",
+    "egg_white": "Eiweiß",
     "oil": "Olivenöl",
     "onion": "Zwiebel",
     "chorizo": "Chorizo",

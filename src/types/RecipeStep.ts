@@ -9,12 +9,12 @@
  * - Supports cooking actions (prepare, cook, mix, flip, serve, move, grab, drop, wait, speak, celebrate).
  */
 
-export type PreparationStyle = 'whole' | 'peeled' | 'sliced' | 'diced' | 'minced' | 'beaten' | string;
+export type PreparationStyle = 'whole' | 'peeled' | 'sliced' | 'diced' | 'minced' | 'beaten' | 'separated' | string;
 export type CookingMethod = 'raw' | 'fried' | 'boiled' | 'burned' | 'heat' | string;
 
 export type RecipeStep =
   | {
-      action: 'prepare' | 'cut' | 'peel' | 'wash';
+      action: 'prepare' | 'cut' | 'peel' | 'wash' | 'separate';
       target?: string;
       ingredient?: string;
       preparation?: PreparationStyle;

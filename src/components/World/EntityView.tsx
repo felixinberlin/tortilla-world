@@ -78,6 +78,7 @@ export const DefaultEntityRenderer: React.FC<EntityRendererProps> = ({ entity, c
             type="button"
             className="entity-take-btn"
             title={t('ui.takeMe') || '🤲 Llévame'}
+            aria-label={t('ui.takeMe') || 'Llévame'}
             onClick={(e) => {
               e.stopPropagation();
               e.preventDefault();
@@ -126,6 +127,7 @@ export const DefaultEntityRenderer: React.FC<EntityRendererProps> = ({ entity, c
             type="button"
             className="entity-nav-btn nav-prev"
             title={prevContainerId ? `Move to ${prevContainerId}` : undefined}
+            aria-label={prevContainerId ? `Move to ${prevContainerId}` : 'Previous workstation'}
             disabled={!prevContainerId}
             onClick={(e) => {
               e.stopPropagation();
@@ -151,6 +153,7 @@ export const DefaultEntityRenderer: React.FC<EntityRendererProps> = ({ entity, c
             type="button"
             className="entity-nav-btn nav-next"
             title={nextContainerId ? `Move to ${nextContainerId}` : undefined}
+            aria-label={nextContainerId ? `Move to ${nextContainerId}` : 'Next workstation'}
             disabled={!nextContainerId}
             onClick={(e) => {
               e.stopPropagation();
@@ -177,6 +180,7 @@ export const DefaultEntityRenderer: React.FC<EntityRendererProps> = ({ entity, c
               type="button"
               className="entity-delete-btn"
               title="Move to trash"
+              aria-label="Move to trash"
               onClick={(e) => {
                 e.stopPropagation();
                 e.preventDefault();

@@ -17,6 +17,9 @@ export const INGREDIENT_CAPABILITIES_CATALOG: Record<string, IngredientCapabilit
     id: 'potato',
     name: 'Potatoes',
     capabilities: {
+      wash: {
+        workstation: 'sink',
+      },
       peel: {
         tools: ['peeler', 'knife'],
         workstation: 'cutting_station',
@@ -88,6 +91,58 @@ export const INGREDIENT_CAPABILITIES_CATALOG: Record<string, IngredientCapabilit
           cooking: ['boiled'],
         },
       },
+      separate: {
+        tools: ['hands', 'separator', 'bowl'],
+        workstation: 'preparation_station',
+      },
+      cut: {
+        tools: ['knife'],
+        workstation: 'cutting_station',
+        requires: {
+          cooking: ['boiled', 'cooked', 'fried'],
+        },
+      },
+      slice: {
+        tools: ['knife'],
+        workstation: 'cutting_station',
+        requires: {
+          cooking: ['boiled', 'cooked', 'fried'],
+        },
+      },
+    },
+  },
+
+  yolk: {
+    id: 'yolk',
+    name: 'Yolk',
+    capabilities: {
+      beat: {
+        tools: ['whisk', 'fork'],
+        workstation: 'preparation_station',
+      },
+      fry: {
+        workstation: 'pan',
+      },
+      mix: {},
+    },
+  },
+
+  egg_white: {
+    id: 'egg_white',
+    name: 'Egg White',
+    capabilities: {
+      whisk: {
+        tools: ['whisk', 'fork'],
+        workstation: 'preparation_station',
+      },
+      beat: {
+        tools: ['whisk', 'fork'],
+        workstation: 'preparation_station',
+      },
+      fry: {
+        workstation: 'pan',
+      },
+      mix: {},
     },
   },
 
@@ -105,6 +160,9 @@ export const INGREDIENT_CAPABILITIES_CATALOG: Record<string, IngredientCapabilit
     id: 'onion',
     name: 'Onion',
     capabilities: {
+      wash: {
+        workstation: 'sink',
+      },
       peel: {
         tools: ['knife', 'hands'],
         workstation: 'cutting_station',
@@ -153,6 +211,9 @@ export const INGREDIENT_CAPABILITIES_CATALOG: Record<string, IngredientCapabilit
     id: 'garlic',
     name: 'Garlic',
     capabilities: {
+      wash: {
+        workstation: 'sink',
+      },
       peel: {
         tools: ['hands', 'knife'],
         workstation: 'cutting_station',
@@ -171,6 +232,13 @@ export const INGREDIENT_CAPABILITIES_CATALOG: Record<string, IngredientCapabilit
           preparation: ['peeled'],
         },
       },
+      cut: {
+        tools: ['knife'],
+        workstation: 'cutting_station',
+        requires: {
+          preparation: ['peeled'],
+        },
+      },
       fry: {
         workstation: 'pan',
       },
@@ -181,11 +249,71 @@ export const INGREDIENT_CAPABILITIES_CATALOG: Record<string, IngredientCapabilit
     id: 'chorizo',
     name: 'Chorizo',
     capabilities: {
+      wash: {
+        workstation: 'sink',
+      },
       slice: {
         tools: ['knife'],
         workstation: 'cutting_station',
       },
       dice: {
+        tools: ['knife'],
+        workstation: 'cutting_station',
+      },
+      cut: {
+        tools: ['knife'],
+        workstation: 'cutting_station',
+      },
+      fry: {
+        workstation: 'pan',
+      },
+    },
+  },
+
+  tomato: {
+    id: 'tomato',
+    name: 'Tomato',
+    capabilities: {
+      wash: {
+        workstation: 'sink',
+      },
+      slice: {
+        tools: ['knife'],
+        workstation: 'cutting_station',
+      },
+      dice: {
+        tools: ['knife'],
+        workstation: 'cutting_station',
+      },
+      cut: {
+        tools: ['knife'],
+        workstation: 'cutting_station',
+      },
+      fry: {
+        workstation: 'pan',
+      },
+      boil: {
+        workstation: 'pot',
+      },
+    },
+  },
+
+  pepper: {
+    id: 'pepper',
+    name: 'Bell Pepper',
+    capabilities: {
+      wash: {
+        workstation: 'sink',
+      },
+      slice: {
+        tools: ['knife'],
+        workstation: 'cutting_station',
+      },
+      dice: {
+        tools: ['knife'],
+        workstation: 'cutting_station',
+      },
+      cut: {
         tools: ['knife'],
         workstation: 'cutting_station',
       },

@@ -141,6 +141,19 @@ export type WorldAction =
       };
     }
   | {
+      type: 'SEPARATE_EGG';
+      payload: {
+        entityId?: string;
+        containerId?: string;
+      };
+    }
+  | {
+      type: 'SEPARATE_CONTAINER_CONTENTS';
+      payload: {
+        containerId: string;
+      };
+    }
+  | {
       type: 'MIX_CONTAINER_CONTENTS';
       payload: {
         containerId: string;
@@ -256,5 +269,13 @@ export type WorldEvent =
         entityIds: string[];
         customName?: string;
         cookCondition?: string;
+      };
+    }
+  | {
+      type: 'EGG_SEPARATED';
+      payload: {
+        containerId: string;
+        eggEntityIds: string[];
+        createdEntityIds: { yolkId: string; eggWhiteId: string }[];
       };
     };

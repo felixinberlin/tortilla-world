@@ -163,6 +163,7 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
               <button
                 type="button"
                 className="confirm-empty-trash-btn"
+                aria-label={t('ui.yesEmpty')}
                 onClick={(e) => {
                   e.stopPropagation();
                   e.preventDefault();
@@ -189,6 +190,7 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
               <button
                 type="button"
                 className="cancel-empty-trash-btn"
+                aria-label={t('ui.cancel')}
                 onClick={(e) => {
                   e.stopPropagation();
                   e.preventDefault();
@@ -217,6 +219,7 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
               type="button"
               className="empty-trash-btn"
               title={t('ui.emptyTrash')}
+              aria-label={t('ui.emptyTrash')}
               onClick={(e) => {
                 e.stopPropagation();
                 e.preventDefault();
@@ -267,6 +270,7 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
             type="button"
             className={`burner-toggle ${container.isOn ? 'burner-toggle--on' : ''}`}
             title="Toggle Heat"
+            aria-label={container.isOn ? t('ui.heatOff') : t('ui.heatOn')}
             onClick={(e) => {
               e.stopPropagation();
               dispatch({
@@ -290,6 +294,7 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
                 type="button"
                 className={`container-action-btn leave-here-btn ${isHoldingItems ? 'leave-here-btn--highlight' : ''}`}
                 title={t('ui.leaveHere') || 'Dejar aquí'}
+                aria-label={t('ui.leaveHere') || 'Dejar aquí'}
                 onClick={(e) => {
                   e.stopPropagation();
                   if (!isHoldingItems) {
@@ -349,6 +354,7 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
                   <button
                     type="button"
                     className={`container-action-btn toggle-heat-btn ${container.isOn ? 'container-action-btn--active' : ''}`}
+                    aria-label={container.isOn ? t('ui.heatOff') : t('ui.heatOn')}
                     onClick={(e) => {
                       e.stopPropagation();
                       dispatch({
@@ -382,6 +388,7 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
                   <button
                     type="button"
                     className="container-action-btn cook-btn"
+                    aria-label={t('verbs.cook')}
                     onClick={(e) => {
                       e.stopPropagation();
                       if (!container.isOn) {
@@ -411,6 +418,7 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
             <button
               type="button"
               className="container-action-btn wash-btn"
+              aria-label={t('verbs.wash')}
               onClick={(e) => {
                 e.stopPropagation();
                 dispatch({
@@ -428,6 +436,7 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
               <button
                 type="button"
                 className="container-action-btn cut-btn"
+                aria-label={t('verbs.cut')}
                 onClick={(e) => {
                   e.stopPropagation();
                   dispatch({
@@ -441,6 +450,7 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
               <button
                 type="button"
                 className="container-action-btn peel-btn"
+                aria-label={t('verbs.peel')}
                 onClick={(e) => {
                   e.stopPropagation();
                   dispatch({
@@ -493,6 +503,7 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
                 <button
                   type="button"
                   className="container-action-btn mix-btn"
+                  aria-label={t('verbs.mix')}
                   onClick={(e) => {
                     e.stopPropagation();
                     const trimmedName = mixCustomName.trim();
@@ -521,6 +532,23 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
                 </button>
               </div>
             </div>
+          )}
+
+          {containerEntities.some((e) => !e.state?.consumed && e.ingredientId === 'egg') && (
+            <button
+              type="button"
+              className="container-action-btn separate-btn"
+              aria-label={t('verbs.separate') || 'Separate'}
+              onClick={(e) => {
+                e.stopPropagation();
+                dispatch({
+                  type: 'SEPARATE_CONTAINER_CONTENTS',
+                  payload: { containerId: container.id },
+                });
+              }}
+            >
+              🥚 {t('verbs.separate') || 'Separate'}
+            </button>
           )}
 
           {isPlate && containerEntities.length > 0 && (
@@ -558,6 +586,7 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
                   <button
                     type="button"
                     className="container-action-btn save-dish-name-btn"
+                    aria-label={t('ui.save')}
                     onClick={(e) => {
                       e.stopPropagation();
                       const newName = (plateCustomName || displayPlateName).trim();
@@ -585,6 +614,7 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
             <button
               type="button"
               className="container-action-btn serve-plate-btn"
+              aria-label={t('ui.serveToPlate')}
               onClick={(e) => {
                 e.stopPropagation();
                 containerEntities.forEach((ent) => {

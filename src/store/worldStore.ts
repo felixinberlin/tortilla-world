@@ -13,7 +13,7 @@
 import { createStore } from 'zustand/vanilla';
 import { devtools } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
-import type { WorldAction, WorldEvent } from '../types/world';
+import type { WorldAction, WorldEvent, Entity } from '../types/world';
 import { eventStore } from '../systems/EventStore';
 import { actionLog } from './middleware/actionLog';
 import { defaultEntities, defaultContainers } from './defaults';
@@ -302,6 +302,94 @@ export const worldStore = createStore<WorldStateStore>()(
                   payload: {
                     containerId: action.payload.containerId,
                     entityIds,
+                  },
+                });
+              }
+              break;
+            }
+
+            case 'SEPARATE_EGG':
+            case 'SEPARATE_CONTAINER_CONTENTS': {
+              const payloadAny = action.payload as { containerId?: string; entityId?: string };
+              const targetContainerId =
+                payloadAny.containerId
+                  ? payloadAny.containerId
+                  : payloadAny.entityId
+                  ? (Object.entries(get().containers).find(([, c]) =>
+                      c.entityIds.includes(payloadAny.entityId!)
+                    )?.[0] || 'bowl')
+                  : 'bowl';
+
+              const targetContainer = get().containers[targetContainerId];
+              if (targetContainer) {
+                let eggEntities: Entity[] = [];
+                if (action.type === 'SEPARATE_EGG' && payloadAny.entityId) {
+                  const target = get().entities[payloadAny.entityId];
+                  if (target && target.ingredientId === 'egg' && !target.state?.consumed) {
+                    eggEntities = [target];
+                  }
+                } else {
+                  eggEntities = targetContainer.entityIds
+                    .map((id) => get().entities[id])
+                    .filter(
+                      (e): e is Entity =>
+                        Boolean(e) &&
+                        !e.state?.consumed &&
+                        e.ingredientId === 'egg'
+                    );
+                }
+
+                const createdEntityIds: { yolkId: string; eggWhiteId: string }[] = [];
+
+                eggEntities.forEach((eggEntity, index) => {
+                  const timestamp = Date.now();
+                  const yolkId = `yolk_${timestamp}_${index}_${Math.floor(Math.random() * 1000)}`;
+                  const eggWhiteId = `egg_white_${timestamp}_${index}_${Math.floor(Math.random() * 1000)}`;
+
+                  // 1. Mark egg as consumed/separated
+                  get().useIngredient(eggEntity.id, 'separated');
+
+                  // 2. Add Yolk entity
+                  get().addEntity(
+                    {
+                      id: yolkId,
+                      name: 'Yolk 🟡',
+                      type: 'ingredient',
+                      ingredientId: 'yolk',
+                      state: {
+                        preparation: 'separated',
+                        status: 'yolk',
+                        parentEggId: eggEntity.id,
+                      },
+                    },
+                    targetContainerId
+                  );
+
+                  // 3. Add Egg White entity
+                  get().addEntity(
+                    {
+                      id: eggWhiteId,
+                      name: 'Egg White ⚪',
+                      type: 'ingredient',
+                      ingredientId: 'egg_white',
+                      state: {
+                        preparation: 'separated',
+                        status: 'egg-white',
+                        parentEggId: eggEntity.id,
+                      },
+                    },
+                    targetContainerId
+                  );
+
+                  createdEntityIds.push({ yolkId, eggWhiteId });
+                });
+
+                get().emitEvent({
+                  type: 'EGG_SEPARATED',
+                  payload: {
+                    containerId: targetContainerId,
+                    eggEntityIds: eggEntities.map((e) => e.id),
+                    createdEntityIds,
                   },
                 });
               }

@@ -182,6 +182,7 @@
     "move": "Mover",
     "grab": "Coger",
     "drop": "Colocar",
+    "separate": "Separar",
     "celebrate": "¡A celebrar!"
   },
   "stepFormat": {
@@ -199,6 +200,8 @@
   "ingredients": {
     "potato": "Patatas",
     "egg": "Huevos",
+    "yolk": "Yema",
+    "egg_white": "Clara",
     "oil": "Aceite de Oliva",
     "onion": "Cebolla",
     "chorizo": "Chorizo",

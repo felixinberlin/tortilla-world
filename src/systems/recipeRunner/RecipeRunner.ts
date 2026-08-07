@@ -435,6 +435,7 @@ export class RecipeRunner implements RecipeRunnerContext {
       case 'rinse':
       case 'drain':
       case 'clean':
+      case 'separate':
         return handlePrepStep(this, step, workstation.defaultContainerId);
 
       case 'cook':

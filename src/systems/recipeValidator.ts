@@ -79,6 +79,7 @@ export function validateRecipeJSON(data: unknown): RecipeJSON {
     'wash',
     'rinse',
     'drain',
+    'separate',
     'cook',
     'mix',
     'beat',

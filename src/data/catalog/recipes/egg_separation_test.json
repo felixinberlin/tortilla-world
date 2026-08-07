@@ -1,0 +1,24 @@
+{
+  "id": "egg_separation_test",
+  "name": "Egg Separation Test Recipe",
+  "description": "Recipe to test separating an egg into yolk and egg-white.",
+  "difficulty": "easy",
+  "tags": ["test", "egg", "separation"],
+  "requirements": {
+    "egg": {
+      "entityId": "egg",
+      "amount": 1,
+      "unit": "pcs"
+    }
+  },
+  "cooklang": "Separate the @egg{1%pcs} into yolk and egg white.",
+  "steps": [
+    {
+      "action": "separate",
+      "target": "egg",
+      "preparation": "separated",
+      "containerId": "bowl",
+      "instruction": "Separate the egg into yolk and egg-white in the bowl."
+    }
+  ]
+}

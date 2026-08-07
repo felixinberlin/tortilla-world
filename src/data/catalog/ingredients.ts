@@ -27,6 +27,20 @@ export const ingredients: Ingredient[] = [
   },
 
   {
+    id: "yolk",
+    icon: "🟡",
+    name: "Yolk",
+    capabilities: INGREDIENT_CAPABILITIES_CATALOG.yolk?.capabilities,
+  },
+
+  {
+    id: "egg_white",
+    icon: "⚪",
+    name: "Egg White",
+    capabilities: INGREDIENT_CAPABILITIES_CATALOG.egg_white?.capabilities,
+  },
+
+  {
     id: "oil",
     icon: "🫒",
     name: "Olive Oil",

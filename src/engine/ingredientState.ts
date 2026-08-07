@@ -12,6 +12,7 @@
 
 import type { Entity } from '../types/world';
 import { ingredients as catalogIngredients } from '../data/catalog/ingredients';
+import { validateIngredientAction, type IngredientState } from '../systems/ingredientCapabilities';
 
 /**
  * Normalizes an ingredient entity ID or ingredientId to a singular ingredient key for generic status formatting.
@@ -150,6 +151,40 @@ export function applyIngredientTransformation(
 ): { status: string; name: string; state: Record<string, unknown> } | null {
   if (entity.type !== 'ingredient') return null;
 
+  const rawBase = (entity.ingredientId || entity.id.split('_')[0] || 'ingredient').toLowerCase();
+  const singularKey = getIngredientSingularKey(entity);
+
+  // 1. You cannot wash salt or dry seasoning
+  if (transformation === 'wash' && (rawBase === 'salt' || singularKey === 'salt' || entity.ingredientId === 'salt')) {
+    return null;
+  }
+
+  // 2. You cannot cut an egg unless it is cooked
+  if (transformation === 'cut' && (rawBase === 'egg' || entity.ingredientId === 'egg')) {
+    const isCooked =
+      entity.state?.cooking === 'boiled' ||
+      entity.state?.cooking === 'cooked' ||
+      entity.state?.cooking === 'fried' ||
+      getTransformationsFromEntity(entity).includes('cooked');
+    if (!isCooked) {
+      return null;
+    }
+  }
+
+  // 3. Ingredient capability checks
+  const ingredientState: IngredientState = {
+    preparation: entity.state?.preparation as string | undefined,
+    cooking: entity.state?.cooking as string | undefined,
+  };
+  const validationResult = validateIngredientAction(
+    entity.ingredientId || rawBase,
+    transformation,
+    ingredientState
+  );
+  if (!validationResult.valid && validationResult.missingPrerequisites?.type === 'preparation') {
+    return null;
+  }
+
   const stageMap: Record<string, string> = {
     wash: 'washed',
     peel: 'peeled',
@@ -168,14 +203,10 @@ export function applyIngredientTransformation(
 
   const updatedTransformations = [...currentTransformations, stage];
 
-  // Base key derivation (e.g., 'onion', 'egg', 'tomatoes', 'potatoes')
-  const rawBase = (entity.ingredientId || entity.id.split('_')[0] || 'ingredient').toLowerCase();
-
   // Create combined status string e.g., 'washed-onion', 'peeled-cutted-cooked-tomatoes'
   const newStatus = `${updatedTransformations.join('-')}-${rawBase}`;
 
   // Retrieve metadata for icon and base name
-  const singularKey = getIngredientSingularKey(entity);
   const catalogItem = catalogIngredients.find(
     (i) => i.id === entity.ingredientId || i.id === rawBase || i.id === singularKey
   );

@@ -17,12 +17,14 @@ import { validateRecipeJSON } from './recipeValidator';
 import clasicaJSON from '../data/catalog/recipes/clasica.json';
 import concebollaJSON from '../data/catalog/recipes/concebolla.json';
 import francesaJSON from '../data/catalog/recipes/francesa.json';
+import eggSeparationJSON from '../data/catalog/recipes/egg_separation_test.json';
 
 const recipeRegistry: Record<string, unknown> = {
   clasica: clasicaJSON,
   sincebolla: clasicaJSON,
   concebolla: concebollaJSON,
   francesa: francesaJSON,
+  egg_separation_test: eggSeparationJSON,
 };
 
 const cooklangRegistry: Record<string, string> = {
@@ -30,6 +32,7 @@ const cooklangRegistry: Record<string, string> = {
   sincebolla: clasicaJSON.cooklang || '',
   concebolla: concebollaJSON.cooklang || '',
   francesa: francesaJSON.cooklang || '',
+  egg_separation_test: eggSeparationJSON.cooklang || '',
 };
 
 /**

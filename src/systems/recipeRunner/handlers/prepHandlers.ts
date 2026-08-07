@@ -14,7 +14,7 @@ import type { RecipeRunnerContext } from '../types';
 
 type PrepStep = Extract<
   RecipeStep,
-  { action: 'cut' | 'prepare' | 'peel' | 'wash' | 'rinse' | 'drain' | 'clean' }
+  { action: 'cut' | 'prepare' | 'peel' | 'wash' | 'rinse' | 'drain' | 'clean' | 'separate' }
 >;
 
 export async function handlePrepStep(
@@ -82,13 +82,43 @@ export async function handlePrepStep(
 
   await ctx.wait();
 
-  worldStore.getState().dispatch({
-    type: 'PREPARE_INGREDIENT',
-    payload: {
-      entityId,
-      preparation: prepStyle,
-    },
-  });
+  if (step.action === 'separate' || prepStyle === 'separated') {
+    worldStore.getState().dispatch({
+      type: 'SEPARATE_EGG',
+      payload: {
+        entityId,
+        containerId: targetContainerId,
+      },
+    });
+
+    const state = worldStore.getState();
+    const container = state.containers[targetContainerId];
+    if (container) {
+      const yolkEntity = container.entityIds
+        .map((id) => state.entities[id])
+        .find((e) => e?.ingredientId === 'yolk');
+      const eggWhiteEntity = container.entityIds
+        .map((id) => state.entities[id])
+        .find((e) => e?.ingredientId === 'egg_white');
+
+      if (yolkEntity) {
+        ctx.updateBindingIfCopied(entityId, yolkEntity.id, 'yolk');
+        ctx.updateBindingIfCopied(entityId, yolkEntity.id, 'yema');
+      }
+      if (eggWhiteEntity) {
+        ctx.updateBindingIfCopied(entityId, eggWhiteEntity.id, 'egg_white');
+        ctx.updateBindingIfCopied(entityId, eggWhiteEntity.id, 'clara');
+      }
+    }
+  } else {
+    worldStore.getState().dispatch({
+      type: 'PREPARE_INGREDIENT',
+      payload: {
+        entityId,
+        preparation: prepStyle,
+      },
+    });
+  }
 
   await ctx.wait();
 
