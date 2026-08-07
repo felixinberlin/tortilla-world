@@ -409,7 +409,7 @@ export const RecipeDatabaseModal: React.FC = () => {
           <div className="format-inspector-content" onClick={(e) => e.stopPropagation()}>
             <div className="inspector-header">
               <h3>📜 Multi-Format Export Preview: {selectedFormatPreview.title}</h3>
-              <button className="close-btn" onClick={() => setSelectedFormatPreview(null)}>
+              <button className="close-btn" aria-label="Close format inspector" onClick={() => setSelectedFormatPreview(null)}>
                 ✕
               </button>
             </div>
