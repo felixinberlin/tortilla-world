@@ -74,6 +74,10 @@ export function getWorkstationSupportedActions(container: Container): string[] |
  * Retrieves allowed action verbs/transformations for an ingredient entity.
  */
 export function getIngredientVerbs(entity: Entity): string[] | null {
+  if (entity.type === 'mixture' || entity.id.startsWith('mixture')) {
+    return ['mix', 'combine', 'heat', 'fry', 'cook', 'flip', 'serve', 'season', 'pour', 'beat'];
+  }
+
   if (entity.type !== 'ingredient') return null;
 
   // Look up catalog capability definition

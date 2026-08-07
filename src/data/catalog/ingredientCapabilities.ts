@@ -37,6 +37,8 @@ export const INGREDIENT_CAPABILITIES_CATALOG: Record<string, IngredientCapabilit
       },
       fry: {},
       boil: {},
+      mix: {},
+      combine: {},
     },
   },
 
@@ -77,6 +79,8 @@ export const INGREDIENT_CAPABILITIES_CATALOG: Record<string, IngredientCapabilit
           cooking: ['boiled', 'cooked', 'fried'],
         },
       },
+      mix: {},
+      combine: {},
     },
   },
 
@@ -133,6 +137,8 @@ export const INGREDIENT_CAPABILITIES_CATALOG: Record<string, IngredientCapabilit
         },
       },
       fry: {},
+      mix: {},
+      combine: {},
     },
   },
 

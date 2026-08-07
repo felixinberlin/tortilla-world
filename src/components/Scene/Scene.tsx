@@ -23,6 +23,7 @@ import { CookbookView } from '../Recipe/CookbookView';
 import { ActionRecorder } from '../Controls/ActionRecorder';
 import { IngredientsSidebar } from '../Controls/IngredientsSidebar';
 import { RecipeDatabaseModal } from '../Controls/RecipeDatabaseModal';
+import { ArchitectureVisualizer } from '../Dev/ArchitectureVisualizer';
 import { useDevMode } from '../../utils/devMode';
 import { useTranslation } from '../../i18n/useTranslation';
 import { recipes } from '../../data/catalog/recipes';
@@ -36,7 +37,7 @@ export const Scene: React.FC = () => {
 
   // Active mode logic: in slim publish mode default to player, in dev mode default to database
   const effectiveDevMode = isDev && !forcePublishMode;
-  const [activeMode, setActiveMode] = useState<'player' | 'cookbook' | 'recorder' | 'database'>(
+  const [activeMode, setActiveMode] = useState<'player' | 'cookbook' | 'recorder' | 'database' | 'architecture'>(
     effectiveDevMode ? 'database' : 'player'
   );
 
@@ -62,8 +63,8 @@ export const Scene: React.FC = () => {
       // Always hide despensa (pantry) from main workstation row
       if (container.id === 'despensa') return false;
 
-      // Show all workstations in recorder or database modes
-      if (activeMode === 'recorder' || activeMode === 'database') return true;
+      // Show all workstations in recorder, database, or architecture modes
+      if (activeMode === 'recorder' || activeMode === 'database' || activeMode === 'architecture') return true;
 
       // Filter strictly by workstations generated for the active recipe
       return recipeWorkstationIds.has(container.id);
@@ -108,13 +109,23 @@ export const Scene: React.FC = () => {
           {/* Mode Selector Navigation Tabs */}
           <div className="mode-tabs">
             {effectiveDevMode && (
-              <button
-                type="button"
-                className={`mode-tab-btn ${activeMode === 'database' ? 'active' : ''}`}
-                onClick={() => setActiveMode('database')}
-              >
-                {t('scene.tabs.database')}
-              </button>
+              <>
+                <button
+                  type="button"
+                  className={`mode-tab-btn ${activeMode === 'database' ? 'active' : ''}`}
+                  onClick={() => setActiveMode('database')}
+                >
+                  {t('scene.tabs.database')}
+                </button>
+
+                <button
+                  type="button"
+                  className={`mode-tab-btn ${activeMode === 'architecture' ? 'active' : ''}`}
+                  onClick={() => setActiveMode('architecture')}
+                >
+                  📐 Architecture
+                </button>
+              </>
             )}
 
             <button
@@ -170,6 +181,8 @@ export const Scene: React.FC = () => {
 
           {activeMode === 'database' && effectiveDevMode ? (
             <RecipeDatabaseModal />
+          ) : activeMode === 'architecture' && effectiveDevMode ? (
+            <ArchitectureVisualizer />
           ) : activeMode === 'cookbook' ? (
             <CookbookView />
           ) : activeMode === 'player' ? (
