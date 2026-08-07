@@ -31,7 +31,9 @@
     {
       "action": "prepare",
       "target": "eggs",
-      "preparation": "beaten"
+      "preparation": "beaten",
+      "tool": "whisk",
+      "instruction": "Whisk eggs vigorously at the mixing bowl!"
     },
     {
       "action": "mix",
@@ -39,24 +41,34 @@
         "eggs",
         "salt"
       ],
-      "output": "Huevo batido"
+      "output": "Huevo batido",
+      "tool": "whisk",
+      "instruction": "Mix beaten eggs with salt using the whisk!"
     },
     {
       "action": "cook",
       "target": "oil",
-      "method": "heat"
+      "method": "heat",
+      "containerId": "burner1",
+      "tool": "small_pan",
+      "instruction": "Heat oil in the small pan on burner 1."
     },
     {
       "action": "cook",
       "target": "Huevo batido",
       "method": "fry",
+      "containerId": "burner1",
+      "tool": "small_pan",
       "duration": 5,
       "unit": "min",
-      "as": "Tortilla francesa"
+      "as": "Tortilla francesa",
+      "instruction": "In the small pan cook egg mixture until soft and golden!"
     },
     {
       "action": "flip",
-      "target": "Huevo batido"
+      "target": "Huevo batido",
+      "tool": "spatula",
+      "instruction": "Flip gently with soft spatula!"
     },
     {
       "action": "serve",

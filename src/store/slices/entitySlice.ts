@@ -213,6 +213,17 @@ export const createEntitySlice: StateCreator<
           );
         }
 
+        const mascot = draft.entities['chef'];
+        if (mascot) {
+          const rawHolding = mascot.state?.holdingEntityIds as string[] | undefined;
+          const updatedHolding = rawHolding ? rawHolding.filter((id) => id !== entityId) : [];
+          mascot.state = {
+            ...mascot.state,
+            holdingEntityIds: updatedHolding,
+            holdingEntityId: updatedHolding.length > 0 ? updatedHolding[updatedHolding.length - 1] : undefined,
+          };
+        }
+
         // If usedIn matches an existing container ID, add to that container
         if (usedIn && draft.containers[usedIn]) {
           draft.containers[usedIn].entityIds.push(entityId);

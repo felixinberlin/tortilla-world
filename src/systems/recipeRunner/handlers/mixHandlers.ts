@@ -6,8 +6,9 @@
  */
 
 import { worldStore } from '../../../store/worldStore';
-import { moveTortillaTo, flipTortilla } from '../../mascotActions';
+import { moveTortillaTo, flipTortilla, equipTool, unequipTool, speakTortilla } from '../../mascotActions';
 import { resolveContainerId } from '../../../engine/containerRules';
+import { getActionRecommendation } from '../../actionRecommendations';
 import type { RecipeStep } from '../../../types/RecipeStep';
 import type { RecipeRunnerContext } from '../types';
 
@@ -76,15 +77,18 @@ export async function handleMixStep(
       : targetContainerId.replace('_', ' ');
   const mixMessage = `Mix ${formattedInputs.join(', ')} in the ${containerName} -> ${step.output || 'mixture'}`;
 
-  worldStore.getState().dispatch({
-    type: 'UPDATE_ENTITY_STATE',
-    payload: {
-      entityId: ctx.mascotId,
-      changes: { speechMessage: mixMessage },
-    },
+  const mixTool = ('tool' in step && typeof step.tool === 'string' ? step.tool : undefined) || 'whisk';
+
+  const rec = step.instruction || step.recommendation || getActionRecommendation({
+    action: step.action,
+    style: 'beaten',
+    toolId: mixTool,
   });
 
+  speakTortilla(`${rec} (${mixMessage})`, 3000, ctx.mascotId);
+
   moveTortillaTo(targetContainerId, ctx.mascotId);
+  equipTool(mixTool, ctx.mascotId);
   await ctx.wait();
   flipTortilla(ctx.mascotId);
   await ctx.wait();
@@ -131,4 +135,6 @@ export async function handleMixStep(
   if (step.output) {
     ctx.recipeContext.bindings[step.output] = mixtureId;
   }
+
+  unequipTool(ctx.mascotId);
 }

@@ -14,7 +14,7 @@
  * - Modify world state directly.
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ExternalLink } from 'lucide-react';
 import { Scene } from './components/Scene/Scene';
@@ -26,6 +26,17 @@ import { useTranslation } from './i18n/useTranslation';
 function App() {
   const [showGuide, setShowGuide] = useState(true);
   const { t } = useTranslation();
+
+  useEffect(() => {
+    const handleToggleGuide = () => {
+      setShowGuide((prev) => !prev);
+    };
+
+    window.addEventListener('toggle-player-guide', handleToggleGuide);
+    return () => {
+      window.removeEventListener('toggle-player-guide', handleToggleGuide);
+    };
+  }, []);
 
   return (
     <motion.div

@@ -44,6 +44,19 @@
   }
 }
 
+/* === Interactive Arm Controls === */
+.tortilla-arm {
+  transition: opacity 0.2s ease, filter 0.2s ease;
+
+  &:hover {
+    filter: drop-shadow(0 2px 5px rgba(184, 115, 31, 0.5));
+  }
+
+  &:active {
+    filter: drop-shadow(0 1px 2px rgba(184, 115, 31, 0.7));
+  }
+}
+
 /* === Physical Movement & Wrapper Animations === */
 .mascot-card {
   @include ceramic-card($warm-surface, $warm-border);
@@ -79,7 +92,6 @@
 .mascot-held-badge {
   position: absolute;
   bottom: -8px;
-  right: -12px;
   background: #ffffff;
   border: 2px solid $tortilla-yellow;
   border-radius: 20px;
@@ -95,6 +107,16 @@
   pointer-events: none;
   z-index: 1001;
   animation: heldBadgeEnter 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, heldBadgeFloat 2.5s ease-in-out infinite 0.35s;
+
+  &.badge-left {
+    left: -12px;
+    right: auto;
+  }
+
+  &.badge-right {
+    right: -12px;
+    left: auto;
+  }
 }
 
 @keyframes heldBadgeEnter {

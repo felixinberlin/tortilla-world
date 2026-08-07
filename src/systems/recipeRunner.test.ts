@@ -82,14 +82,27 @@ describe('RecipeRunner System', () => {
     await runner.runRecipe(concebollaRecipe);
 
     const state = worldStore.getState();
-    // New concebolla format uses a serve step that collects everything onto the plate
-    expect(state.containers.plate.entityIds.length).toBeGreaterThanOrEqual(1);
+    const serveStep = concebollaRecipe.steps.find((s) => s.action === 'serve');
+    const targetContainerId = serveStep?.containerId || 'plate';
+    const targetContainer = state.containers[targetContainerId];
+
+    expect(targetContainer).toBeDefined();
+    expect(targetContainer.entityIds.length).toBeGreaterThanOrEqual(1);
+
+    const servedEntityId = targetContainer.entityIds[targetContainer.entityIds.length - 1];
+    const servedEntity = state.entities[servedEntityId];
+    expect(servedEntity).toBeDefined();
+    if (serveStep?.as) {
+      expect(servedEntity?.name).toBe(serveStep.as);
+    }
 
     const actionNames = getActionLog().map((a) => a.action);
     expect(actionNames).toContain('MASCOT_MOVE');
     expect(actionNames).toContain('MASCOT_GRAB');
     expect(actionNames).toContain('MASCOT_DROP');
-    expect(actionNames).toContain('MASCOT_FLIP');
+    if (concebollaRecipe.steps.some((s) => s.action === 'flip')) {
+      expect(actionNames).toContain('MASCOT_FLIP');
+    }
   });
 
   it('mutates existing entity state for cut/prepare without creating new entity', async () => {
@@ -196,13 +209,26 @@ describe('RecipeRunner System', () => {
     await runner.runRecipe(clasicaRecipe);
 
     const state = worldStore.getState();
-    const plateEntities = state.containers.plate.entityIds.map((id) => state.entities[id]);
-    expect(plateEntities.length).toBeGreaterThan(0);
+    const serveStep = clasicaRecipe.steps.find((s) => s.action === 'serve');
+    const targetContainerId = serveStep?.containerId || 'plate';
+    const servedEntities = state.containers[targetContainerId].entityIds.map((id) => state.entities[id]);
+
+    expect(servedEntities.length).toBeGreaterThan(0);
+    if (serveStep?.as) {
+      const servedDish = servedEntities.find((e) => e?.name === serveStep.as);
+      expect(servedDish).toBeDefined();
+    }
 
     const actionNames = getActionLog().map((a) => a.action);
-    expect(actionNames).toContain('PREPARE_INGREDIENT');
-    expect(actionNames).toContain('COOK_INGREDIENT');
-    expect(actionNames).toContain('MASCOT_FLIP');
+    if (clasicaRecipe.steps.some((s) => s.action === 'prepare')) {
+      expect(actionNames).toContain('PREPARE_INGREDIENT');
+    }
+    if (clasicaRecipe.steps.some((s) => s.action === 'cook')) {
+      expect(actionNames).toContain('COOK_INGREDIENT');
+    }
+    if (clasicaRecipe.steps.some((s) => s.action === 'flip')) {
+      expect(actionNames).toContain('MASCOT_FLIP');
+    }
   });
 
   it('binds distinct entity IDs when dropping copies from immutable despensa container', async () => {

@@ -1,6 +1,12 @@
+<<<<<<< Updated upstream
+## 2026-08-06 - Adding ARIA labels to icon-only buttons
+**Learning:** Found several icon-only buttons in modals (like RecipeDatabaseModal) that were completely inaccessible to screen readers because they lacked descriptive text or ARIA attributes.
+**Action:** Always verify icon-only buttons (like ✕, ▶, ◀) have descriptive aria-labels for accessibility.
+=======
 ## 2025-02-18 - Icon-Only Button Accessibility Pattern in Modals
 **Learning:** Modals with dynamic content like `RecipeDatabaseModal` often have icon-only buttons for actions like clearing search (`✕`), deleting items (`🗑️`), or closing sub-modals (`✕`). While visually clear to sighted users, these were entirely silent to screen readers. Furthermore, for repeated list items, a generic "Delete" label is insufficient.
 **Action:** When adding ARIA labels to list item actions, use dynamic labels like ``aria-label={`Delete recipe ${recipe.title}`}`` to ensure context is not lost for screen reader users navigating by interactive elements. For standard utility icons, `aria-label="Clear search"` and `aria-label="Close format preview"` drastically improve usability. Always check for missing ARIA labels on buttons containing only text symbols or emoji.
 ## 2025-03-01 - EntityView navigation and deletion buttons
 **Learning:** Found icon-only action buttons ('◀', '▶', '×') in EntityView that lacked accessible labels, making it impossible for screen readers to determine their function.
 **Action:** Added `aria-label` to these generic icon-only buttons to convey their action (e.g. `aria-label="Move to trash"`) and include dynamic context when moving entities (`Move to ${nextContainerId}`).
+>>>>>>> Stashed changes

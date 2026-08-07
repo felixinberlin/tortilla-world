@@ -82,28 +82,94 @@ export const createMascotSlice: StateCreator<
     const mascot = state.entities[mascotId];
     if (!mascot) return;
 
-    // Resolve target entity from state.entities
-    let grabbedEntity: Entity | undefined = state.entities[entityId];
-    if (!grabbedEntity) {
-      grabbedEntity = Object.values(state.entities).find(
-        (e): e is Entity => Boolean(e) && Boolean(e.ingredientId === entityId || e.id.startsWith(entityId))
+    // Read current holding IDs array
+    const rawHoldingIds = mascot.state?.holdingEntityIds as string[] | undefined;
+    const singleHoldingId = mascot.state?.holdingEntityId as string | undefined;
+
+    const currentHoldingIds: string[] = Array.isArray(rawHoldingIds) && rawHoldingIds.length > 0
+      ? [...rawHoldingIds]
+      : singleHoldingId
+      ? [singleHoldingId]
+      : [];
+
+    if (currentHoldingIds.length >= 2) {
+      // Hands are full (up to 2 items)
+      return;
+    }
+
+    // Resolve target entity from state.entities & containers
+    let grabbedEntity: Entity | undefined;
+
+    // 1. If sourceContainerId is specified, check that container first
+    if (sourceContainerId && state.containers[sourceContainerId]) {
+      const sourceContainer = state.containers[sourceContainerId];
+      const matchInSource = sourceContainer.entityIds.find(
+        (id) => id === entityId || state.entities[id]?.ingredientId === entityId || id.startsWith(`${entityId}_`)
       );
+      if (matchInSource) {
+        grabbedEntity = state.entities[matchInSource];
+      }
+    }
+
+    // 2. If entityId is a specific entity instance (not a catalog/storage ID), check state.entities directly
+    if (
+      !grabbedEntity &&
+      state.entities[entityId] &&
+      !state.containers.despensa?.entityIds.includes(entityId)
+    ) {
+      grabbedEntity = state.entities[entityId];
+    }
+
+    // 3. Search non-storage workstation containers for an active instance
+    if (!grabbedEntity) {
+      for (const container of Object.values(state.containers)) {
+        if (container.rules?.isImmutable) continue;
+        const matchId = container.entityIds.find(
+          (id) => id === entityId || state.entities[id]?.ingredientId === entityId || id.startsWith(`${entityId}_`)
+        );
+        if (matchId) {
+          grabbedEntity = state.entities[matchId];
+          break;
+        }
+      }
+    }
+
+    // 4. Fallback to exact entityId or catalog entity in storage
+    if (!grabbedEntity) {
+      grabbedEntity =
+        state.entities[entityId] ||
+        Object.values(state.entities).find(
+          (e): e is Entity => Boolean(e) && Boolean(e.ingredientId === entityId || e.id.startsWith(entityId))
+        );
     }
 
     const actualEntityId = grabbedEntity ? grabbedEntity.id : entityId;
 
-    const foundSource = sourceContainerId
-      ? state.containers[sourceContainerId]
-      : Object.values(state.containers).find((c) => c.entityIds.includes(actualEntityId));
+    currentHoldingIds.push(actualEntityId);
+
+    const foundSource =
+      sourceContainerId && state.containers[sourceContainerId]
+        ? state.containers[sourceContainerId]
+        : Object.values(state.containers).find(
+            (c) => !c.rules?.isImmutable && c.entityIds.includes(actualEntityId)
+          ) ||
+          Object.values(state.containers).find((c) => c.entityIds.includes(actualEntityId));
 
     set(
       (draft) => {
         const m = draft.entities[mascotId];
         if (!m) return;
+        if (foundSource && !foundSource.rules?.isImmutable) {
+          const srcContainer = draft.containers[foundSource.id];
+          if (srcContainer) {
+            srcContainer.entityIds = srcContainer.entityIds.filter((id) => id !== actualEntityId);
+          }
+        }
         const grabGaze: GazeTarget = { type: 'entity', entityId: actualEntityId };
         m.state = {
           ...m.state,
-          holdingEntityId: actualEntityId,
+          holdingEntityId: currentHoldingIds[currentHoldingIds.length - 1],
+          holdingEntityIds: currentHoldingIds,
           sourceContainerId: foundSource?.id,
           gazingAt: grabGaze,
           targetContainerId: foundSource?.id || m.state?.targetContainerId,
@@ -131,9 +197,16 @@ export const createMascotSlice: StateCreator<
     const mascot = state.entities[mascotId];
     if (!mascot) return;
 
-    const holdingEntityId = mascot.state?.holdingEntityId as string | undefined;
+    const rawHoldingIds = mascot.state?.holdingEntityIds as string[] | undefined;
+    const singleHoldingId = mascot.state?.holdingEntityId as string | undefined;
 
-    if (!holdingEntityId) {
+    const currentHoldingIds: string[] = Array.isArray(rawHoldingIds) && rawHoldingIds.length > 0
+      ? [...rawHoldingIds]
+      : singleHoldingId
+      ? [singleHoldingId]
+      : [];
+
+    if (currentHoldingIds.length === 0) {
       set(
         (draft) => {
           const m = draft.entities[mascotId];
@@ -154,79 +227,107 @@ export const createMascotSlice: StateCreator<
     const targetContainer = state.containers[targetContainerId];
     if (!targetContainer) return;
 
-    let entityToMove: Entity | undefined = state.entities[holdingEntityId];
-    if (!entityToMove) {
-      entityToMove = Object.values(state.entities).find(
-        (e): e is Entity => Boolean(e) && Boolean(e.ingredientId === holdingEntityId || e.id.startsWith(holdingEntityId))
-      );
-    }
-
-    if (!entityToMove) {
-      entityToMove = {
-        id: holdingEntityId,
-        ingredientId: holdingEntityId.split('_')[0],
-        name: holdingEntityId.charAt(0).toUpperCase() + holdingEntityId.slice(1),
-        type: 'ingredient',
-        state: {},
-      };
-    }
+    const itemsToDrop: Array<{
+      finalEntityId: string;
+      entityToMove: Entity;
+      copyEntity?: Entity;
+      sourceContainer?: typeof targetContainer;
+      isSourceImmutable?: boolean;
+    }> = [];
 
     const sourceContainerId = mascot.state?.sourceContainerId as string | undefined;
-    const sourceContainer = sourceContainerId
-      ? state.containers[sourceContainerId]
-      : Object.values(state.containers).find((c) => c.entityIds.includes(entityToMove.id));
 
-    const isSourceImmutable =
-      sourceContainer?.rules?.isImmutable || sourceContainer?.rules?.consumesOnDrag === false;
-
-    let finalEntityId = entityToMove.id;
-    let copyEntity: Entity | undefined;
-
-    if (sourceContainer && sourceContainer.id !== targetContainerId && isSourceImmutable) {
-      const copyId = `${entityToMove.id}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
-      copyEntity = {
-        ...entityToMove,
-        id: copyId,
-        ingredientId: entityToMove.ingredientId || entityToMove.id.split('_')[0],
-      };
-
-      const currentEntities = targetContainer.entityIds
-        .map((id) => state.entities[id])
-        .filter((e): e is Entity => Boolean(e));
-      const result = validateContainerRules(targetContainer, copyEntity, currentEntities);
-      if (!result.allowed) {
-        return;
+    for (const hId of currentHoldingIds) {
+      let entityToMove: Entity | undefined = state.entities[hId];
+      if (!entityToMove) {
+        entityToMove = Object.values(state.entities).find(
+          (e): e is Entity => Boolean(e) && Boolean(e.ingredientId === hId || e.id.startsWith(hId))
+        );
       }
 
-      finalEntityId = copyId;
-    } else {
-      const currentEntities = targetContainer.entityIds
-        .map((id) => state.entities[id])
-        .filter((e): e is Entity => Boolean(e) && e.id !== entityToMove.id);
-      const result = validateContainerRules(targetContainer, entityToMove, currentEntities);
-      if (!result.allowed) {
-        return;
+      if (!entityToMove) {
+        entityToMove = {
+          id: hId,
+          ingredientId: hId.split('_')[0],
+          name: hId.charAt(0).toUpperCase() + hId.slice(1),
+          type: 'ingredient',
+          state: {},
+        };
       }
+
+      const sourceContainer =
+        sourceContainerId && state.containers[sourceContainerId]?.entityIds.includes(entityToMove.id)
+          ? state.containers[sourceContainerId]
+          : Object.values(state.containers).find((c) => c.entityIds.includes(entityToMove!.id));
+
+      const isSourceImmutable =
+        sourceContainer?.rules?.isImmutable || sourceContainer?.rules?.consumesOnDrag === false;
+
+      let finalEntityId = entityToMove.id;
+      let copyEntity: Entity | undefined;
+
+      if (sourceContainer && sourceContainer.id !== targetContainerId && isSourceImmutable) {
+        const copyId = `${entityToMove.id}_${Date.now()}_${Math.floor(Math.random() * 10000)}_${Math.floor(Math.random() * 10000)}`;
+        copyEntity = {
+          ...entityToMove,
+          id: copyId,
+          ingredientId: entityToMove.ingredientId || entityToMove.id.split('_')[0],
+        };
+
+        const currentEntities = [
+          ...targetContainer.entityIds.map((id) => state.entities[id]),
+          ...itemsToDrop.map((i) => i.copyEntity || i.entityToMove),
+        ].filter((e): e is Entity => Boolean(e));
+
+        const result = validateContainerRules(targetContainer, copyEntity, currentEntities);
+        if (!result.allowed) {
+          continue;
+        }
+
+        finalEntityId = copyId;
+      } else {
+        const currentEntities = [
+          ...targetContainer.entityIds.map((id) => state.entities[id]),
+          ...itemsToDrop.map((i) => i.copyEntity || i.entityToMove),
+        ].filter((e): e is Entity => Boolean(e) && e.id !== entityToMove!.id);
+
+        const result = validateContainerRules(targetContainer, entityToMove, currentEntities);
+        if (!result.allowed) {
+          continue;
+        }
+      }
+
+      itemsToDrop.push({
+        finalEntityId,
+        entityToMove,
+        copyEntity,
+        sourceContainer,
+        isSourceImmutable,
+      });
     }
+
+    if (itemsToDrop.length === 0) return;
 
     set(
       (draft) => {
-        if (copyEntity) {
-          draft.entities[copyEntity.id] = copyEntity;
-        } else if (!draft.entities[entityToMove.id]) {
-          draft.entities[entityToMove.id] = entityToMove;
-        }
+        for (const item of itemsToDrop) {
+          if (item.copyEntity) {
+            draft.entities[item.copyEntity.id] = item.copyEntity;
+          } else if (!draft.entities[item.entityToMove.id]) {
+            draft.entities[item.entityToMove.id] = item.entityToMove;
+          }
 
-        if (sourceContainer && !isSourceImmutable) {
-          draft.containers[sourceContainer.id].entityIds = draft.containers[
-            sourceContainer.id
-          ].entityIds.filter((id) => id !== entityToMove.id);
-        }
+          if (item.sourceContainer && !item.isSourceImmutable) {
+            draft.containers[item.sourceContainer.id].entityIds = draft.containers[
+              item.sourceContainer.id
+            ].entityIds.filter((id) => id !== item.entityToMove.id);
+          }
 
-        if (typeof positionIndex === 'number') {
-          draft.containers[targetContainerId].entityIds.splice(positionIndex, 0, finalEntityId);
-        } else {
-          draft.containers[targetContainerId].entityIds.push(finalEntityId);
+          if (typeof positionIndex === 'number') {
+            draft.containers[targetContainerId].entityIds.splice(positionIndex, 0, item.finalEntityId);
+          } else {
+            draft.containers[targetContainerId].entityIds.push(item.finalEntityId);
+          }
         }
 
         const m = draft.entities[mascotId];
@@ -234,6 +335,7 @@ export const createMascotSlice: StateCreator<
           m.state = {
             ...m.state,
             holdingEntityId: undefined,
+            holdingEntityIds: [],
             sourceContainerId: undefined,
             gazingAt: { type: 'entity', entityId: targetContainerId } satisfies GazeTarget,
             targetContainerId,

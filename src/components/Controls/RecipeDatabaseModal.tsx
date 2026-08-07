@@ -25,7 +25,10 @@ import {
 } from '../../services/dbService';
 import type { SavedRecipe } from '../../services/dbService';
 import { RecipeRunner } from '../../systems/recipeRunner';
-import type { Recipe } from '../../types/Recipe';
+import { actionPlayer } from '../../systems/actionPlayer';
+import { detectRecipeFormat, getPlayableActionsFromFormat } from '../../utils/recipeFormatDetector';
+import { extractUsedIngredientsFromActions } from '../../utils/sessionLogUtils';
+import type { RecordedAction } from '../../types/recording';
 import './RecipeDatabaseModal.scss';
 
 const POPULAR_INGREDIENTS = [
@@ -160,21 +163,35 @@ export const RecipeDatabaseModal: React.FC = () => {
       dispatch({ type: 'RESET_WORLD' });
       await new Promise((res) => setTimeout(res, 400));
 
-      const runner = new RecipeRunner({
-        delayMs: withMascot ? 500 : 350,
-      });
+      const detected = detectRecipeFormat(savedRecipe);
+      const playable = getPlayableActionsFromFormat(detected);
 
-      const recipeObj = savedRecipe.formats?.recipeJson as unknown as Recipe;
+      if (playable.actions.length > 0) {
+        const extracted = extractUsedIngredientsFromActions(playable.actions);
+        worldStore.getState().setRecordedActions(playable.actions as unknown as RecordedAction[], extracted);
+        window.dispatchEvent(new CustomEvent('select-recorded-session'));
+      }
 
-      if (recipeObj && recipeObj.steps) {
+      if (detected.type === 'declarative' && detected.declarativeRecipe?.steps) {
+        const runner = new RecipeRunner({
+          delayMs: withMascot ? 500 : 350,
+        });
         if (!withMascot) {
-          // Autonomous direct playback: override runner to skip mascot animations and move directly
           runner.useMascot = false;
         }
-        await runner.runRecipe(recipeObj);
-        setStatusMessage(`✅ Finished playing "${savedRecipe.title}"!`);
+        await runner.runRecipe(detected.declarativeRecipe);
+        setStatusMessage(`✅ Finished playing "${savedRecipe.title}" [Declarative Recipe]!`);
       } else {
-        setStatusMessage(`⚠️ Recipe JSON format missing in database object.`);
+        const playable = getPlayableActionsFromFormat(detected);
+        if (playable.actions.length > 0) {
+          await actionPlayer.playLog(playable.actions, {
+            delayMs: withMascot ? 400 : 250,
+            resetWorld: false,
+          });
+          setStatusMessage(`✅ Finished playing "${savedRecipe.title}" [${detected.typeLabel}]!`);
+        } else {
+          setStatusMessage(`⚠️ Selected recipe "${savedRecipe.title}" contains no playable format.`);
+        }
       }
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : 'Unknown error';
@@ -239,7 +256,7 @@ export const RecipeDatabaseModal: React.FC = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           {searchQuery && (
-            <button className="clear-btn" onClick={() => setSearchQuery('')}>
+            <button className="clear-btn" aria-label="Clear search" onClick={() => setSearchQuery('')}>
               ✕
             </button>
           )}
@@ -391,7 +408,7 @@ export const RecipeDatabaseModal: React.FC = () => {
           <div className="format-inspector-content" onClick={(e) => e.stopPropagation()}>
             <div className="inspector-header">
               <h3>📜 Multi-Format Export Preview: {selectedFormatPreview.title}</h3>
-              <button className="close-btn" onClick={() => setSelectedFormatPreview(null)}>
+              <button className="close-btn" aria-label="Close preview" onClick={() => setSelectedFormatPreview(null)}>
                 ✕
               </button>
             </div>

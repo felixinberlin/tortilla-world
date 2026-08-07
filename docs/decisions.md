@@ -834,6 +834,46 @@ All 3 formats are previewable in UI tabs and downloadable as formatted `.json` f
 
 ---
 
+# Decision: Cooking Workstation Heat Requirement & Enhanced Inputs UI
+
+## Context
+1. **Workstation Heat Requirement**: Executing the cook action requires the cooking workstation (e.g. pan/burner) to be ON (heat active).
+2. **Dish Name Input Empty State**: When cooking/naming a dish, the custom name input was previously blank, causing confusion when the mascot or player cooked a dish without a pre-filled name.
+3. **Cooking Target Input Clarity & Size**: The target input (`Objetivo`) was squeezed, small, and lacked clear group labels.
+
+## Decision
+1. **Workstation Heat Enforcement**: Updated `COOK_CONTAINER_CONTENTS` and `COOK_INGREDIENT` in `worldStore.ts` to automatically turn heat ON (`isOn = true`) if the target cooking workstation is off. Updated the `ContainerView` Cook button to also activate burner heat when clicked.
+2. **Auto-Prefilled Dish Name**: `cookedCustomName` in `ContainerView` now dynamically falls back to `activeRecipeName` (e.g., "Tortilla Española Clásica"), ensuring the name input is never empty.
+3. **Spacious & Labeled Input UI**: Added explicit section labels (`🎯 Objetivo / Tiempo de cocción:` and `🍳 Nombre del plato:`) and enlarged input padding, font sizing, and row spacing (`container-view__input--lg`) in `World.scss`.
+
+---
+
+# Decision: ContainerRules Simplification & RecipeRunner Test Stabilization
+
+## Context
+1. **ContainerRules Simplification**: `ContainerRules` contained unused/future properties (`uniqueTypesOnly` and `customValidator`) that added complexity without active enforcement in gameplay or engine logic.
+2. **Declarative Recipe Test Reliability**: RecipeRunner unit and mascot integration tests previously contained hardcoded ingredient count expectations and static assumptions about container items.
+
+## Decision
+1. **Pruned ContainerRules**: Removed `uniqueTypesOnly` and `customValidator` from `ContainerRules` in `src/types/world.ts` and pruned corresponding checks in `validateContainerRules` in `src/engine/containerRules.ts`.
+2. **Dynamic Declarative Test Assertions**: Refactored `recipeRunner.test.ts` and `mascotActions.test.ts` to dynamically inspect active recipe steps (e.g., target containers in `serve` steps) and requirements (`getRecipeRequirementsArray`), ensuring tests adapt reliably when recipes or ingredients evolve without relying on hardcoded lengths.
+
+---
+
+# Decision: Direct Drag-to-Mascot Carrying & Dual-Arm Capacity
+
+## Context
+1. **Direct Dragging onto Mascot**: Users requested the ability to drag ingredients directly onto Chef Tortilla to have her catch and carry them in her free arms.
+2. **Dual-Arm Carrying & Limit**: Tortilla has two physical arms in her SVG/component representation and can hold up to 2 items simultaneously. Attempts to give her a 3rd item should be gracefully blocked with visual/speech feedback.
+
+## Decision
+1. **`useDroppable` on Mascot**: Attached `useDroppable({ id: mascotId })` to `Mascot.tsx` so dnd-kit registers Tortilla (`chef`) as a droppable target across the viewport.
+2. **`MOVE_ENTITY` & `MASCOT_GRAB` Integration**: Updated `useSceneDragAndDrop.ts` and `containerSlice.ts` so dropping/moving an entity to target `chef`/`tortilla`/`mascot` dispatches `MASCOT_GRAB`.
+3. **Dual-Arm Carrying State**: `mascotSlice.ts` maintains `holdingEntityIds` (array of up to 2 items). When `holdingEntityIds.length < 2`, Tortilla catches the ingredient. When `holdingEntityIds.length >= 2`, her hands are full, triggering a speech bubble alert ("¡Mis manos están llenas! 🤲 / My hands are full!").
+5. **"Take me" (Llévame) Button on Workstation Ingredients**: Added a dedicated `🤲 Llévame / Take me` button to `DefaultEntityRenderer` in `EntityView.tsx` for ingredients located inside workstations. Clicking this button dispatches `MASCOT_GRAB` with `sourceContainerId`, allowing Tortilla to carry the ingredient directly without dragging.
+
+---
+
 # Final Principle
 
 The rule of Tortilla World:

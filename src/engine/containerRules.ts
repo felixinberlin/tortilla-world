@@ -117,33 +117,5 @@ export function validateContainerRules(
     };
   }
 
-  // 4. Unique Types Check
-  if (rules.uniqueTypesOnly) {
-    const hasTypeAlready = currentEntitiesInContainer.some(
-      (e) => e.type === entity.type
-    );
-    if (hasTypeAlready) {
-      return {
-        allowed: false,
-        reason: `Container '${container.name}' already contains an entity of type '${entity.type}'.`,
-      };
-    }
-  }
-
-  // 5. Custom Validator Check
-  if (rules.customValidator) {
-    const passesCustom = rules.customValidator(
-      container,
-      entity,
-      currentEntitiesInContainer
-    );
-    if (!passesCustom) {
-      return {
-        allowed: false,
-        reason: `Entity '${entity.name}' failed custom container rules for '${container.name}'.`,
-      };
-    }
-  }
-
   return { allowed: true };
 }

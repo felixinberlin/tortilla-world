@@ -82,6 +82,59 @@ export function useSceneDragAndDrop() {
     const entityId = String(active.id);
     const targetContainerId = String(over.id);
 
+    // Handle dragging directly onto Tortilla mascot
+    if (targetContainerId === 'chef' || targetContainerId === 'tortilla' || targetContainerId === 'mascot') {
+      const mascot = worldStore.getState().entities['chef'];
+      const rawHolding = mascot?.state?.holdingEntityIds as string[] | undefined;
+      const singleHolding = mascot?.state?.holdingEntityId as string | undefined;
+      const currentHolding = Array.isArray(rawHolding) && rawHolding.length > 0
+        ? rawHolding
+        : singleHolding
+        ? [singleHolding]
+        : [];
+
+      if (currentHolding.length < 2) {
+        worldStore.getState().dispatch({
+          type: 'MASCOT_GRAB',
+          payload: {
+            entityId,
+            mascotId: 'chef',
+          },
+        });
+      } else {
+        worldStore.getState().dispatch({
+          type: 'UPDATE_ENTITY_STATE',
+          payload: {
+            entityId: 'chef',
+            changes: { speechMessage: '¡Mis manos están llenas! 🤲 / My hands are full!' },
+          },
+        });
+        setTimeout(() => {
+          worldStore.getState().dispatch({
+            type: 'UPDATE_ENTITY_STATE',
+            payload: { entityId: 'chef', changes: { speechMessage: undefined } },
+          });
+        }, 2500);
+      }
+
+      setTimeout(() => {
+        if (worldStore.getState().userOverride) {
+          worldStore.getState().clearFocus(false);
+        }
+      }, 1500);
+      return;
+    }
+
+    // Handle category reassignment between Basic and Other ingredient lists in creator
+    if (targetContainerId === 'basic-ingredients-list' || targetContainerId === 'other-ingredients-list') {
+      window.dispatchEvent(
+        new CustomEvent('move-ingredient-category', {
+          detail: { entityId, targetCategory: targetContainerId },
+        })
+      );
+      return;
+    }
+
     updateMascotGaze('chef', { type: 'entity', entityId: targetContainerId });
 
     // Dispatch the intent. The ContainerRules engine inside worldStore

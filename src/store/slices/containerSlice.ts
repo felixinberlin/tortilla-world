@@ -46,6 +46,11 @@ export const createContainerSlice: StateCreator<
 
   moveEntity: (entityId, targetContainerId, positionIndex) => {
     const state = get();
+    if (targetContainerId === 'chef' || targetContainerId === 'tortilla' || targetContainerId === 'mascot') {
+      state.mascotGrab(entityId, undefined, 'chef');
+      return;
+    }
+
     const entity = state.entities[entityId];
     const targetContainer = state.containers[targetContainerId];
     if (!entity || !targetContainer) return;
@@ -56,6 +61,7 @@ export const createContainerSlice: StateCreator<
 
     const isSourceImmutable =
       sourceContainer?.rules?.isImmutable || sourceContainer?.rules?.consumesOnDrag === false;
+    const isTargetPlate = targetContainerId === 'plate' || targetContainerId === 'plato';
 
     // Immutable source container logic: create a copy instance in target
     if (sourceContainer && sourceContainer.id !== targetContainerId && isSourceImmutable) {
@@ -65,6 +71,9 @@ export const createContainerSlice: StateCreator<
         id: copyId,
         ingredientId: entity.ingredientId || entity.id.split('_')[0],
       };
+      if (isTargetPlate) {
+        copyEntity.name = state.activeRecipeName || 'Tortilla Española Clásica';
+      }
 
       const currentEntities = targetContainer.entityIds
         .map((id) => state.entities[id])
@@ -82,11 +91,14 @@ export const createContainerSlice: StateCreator<
           }
           const mascot = draft.entities['chef'];
           if (mascot) {
+            const rawHolding = mascot.state?.holdingEntityIds as string[] | undefined;
+            const updatedHolding = rawHolding ? rawHolding.filter((id) => id !== entityId) : [];
             mascot.state = {
               ...mascot.state,
               gazingAt: { type: 'entity', entityId: targetContainerId },
               targetContainerId,
-              holdingEntityId: mascot.state?.holdingEntityId === entityId ? undefined : mascot.state?.holdingEntityId,
+              holdingEntityIds: updatedHolding,
+              holdingEntityId: updatedHolding.length > 0 ? updatedHolding[updatedHolding.length - 1] : undefined,
             };
           }
         },
@@ -118,13 +130,35 @@ export const createContainerSlice: StateCreator<
         } else {
           draft.containers[targetContainerId].entityIds.push(entityId);
         }
+
+        if (isTargetPlate) {
+          const activeRecipeName = state.activeRecipeName || 'Tortilla Española Clásica';
+          const ent = draft.entities[entityId];
+          if (ent) {
+            const isGenericOrMixture =
+              !ent.name ||
+              ent.name.startsWith('mixture_') ||
+              ent.name.toLowerCase().includes('mixture') ||
+              ent.name.toLowerCase().includes('mezcla') ||
+              ent.name.toLowerCase().includes('huevo batido') ||
+              ent.name.toLowerCase().includes('raw');
+
+            if (isGenericOrMixture) {
+              ent.name = activeRecipeName;
+            }
+          }
+        }
+
         const mascot = draft.entities['chef'];
         if (mascot) {
+          const rawHolding = mascot.state?.holdingEntityIds as string[] | undefined;
+          const updatedHolding = rawHolding ? rawHolding.filter((id) => id !== entityId) : [];
           mascot.state = {
             ...mascot.state,
             gazingAt: { type: 'entity', entityId: targetContainerId },
             targetContainerId,
-            holdingEntityId: mascot.state?.holdingEntityId === entityId ? undefined : mascot.state?.holdingEntityId,
+            holdingEntityIds: updatedHolding,
+            holdingEntityId: updatedHolding.length > 0 ? updatedHolding[updatedHolding.length - 1] : undefined,
           };
         }
       },

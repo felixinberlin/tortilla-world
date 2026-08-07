@@ -55,7 +55,12 @@
     "saving": "⏳ Guardando en Firestore...",
     "saveSuccess": "✅ ¡Receta guardada con éxito en Cloud Firestore! Puedes reproducirla en cualquier momento desde el Catálogo de Recetas.",
     "saveError": "❌ Error al guardar: {{error}}",
-    "usedIngredients": "🛒 Ingredientes Guardados ({{count}}):"
+    "usedIngredients": "🛒 Ingredientes Guardados ({{count}}):",
+    "dishNameModalTitle": "🍽️ ¡Nombra tu Receta!",
+    "dishNameModalSubtitle": "¡Hay un plato preparado en tu plato! ¿Qué nombre quieres darle a esta creación?",
+    "dishNamePlaceholder": "p. ej., Tortilla de Patatas de la Abuela",
+    "saveDishNameAndStop": "💾 Guardar Nombre y Finalizar",
+    "skipDishName": "Omitir"
   },
   "replayer": {
     "loadJson": "📂 Cargar Registro (.json)",
@@ -111,14 +116,25 @@
     "instructions": "Instrucciones",
     "chefsHints": "Consejos del Chef",
     "ingredientsCatalog": "Catálogo de Ingredientes",
+    "basicIngredients": "Ingredientes Básicos",
+    "otherIngredients": "Otros Ingredientes",
+    "showOthers": "Mostrar otros ingredientes",
+    "hideOthers": "Ocultar otros ingredientes",
+    "moveToOthers": "Mover a otros",
+    "moveToBasic": "Mover a básicos",
+    "resetCategories": "Restablecer categorías",
+    "dropToCategorize": "Arrastra ingredientes aquí para cambiar de categoría",
     "sidebarSubtitle": "Arrastra elementos o pulsa ➕ para colocarlos en el área de trabajo",
     "searchIngredientsPlaceholder": "🔍 Buscar ingredientes...",
     "noIngredientsFound": "No se encontraron ingredientes para \"{{query}}\"",
-    "targetPlaceholder": "Objetivo (ej. 10 min, hasta dorar)",
+    "targetLabel": "Objetivo / Tiempo de cocción:",
+    "targetPlaceholder": "ej. 10 min, fuego medio, hasta dorar",
+    "finalNameLabel": "Nombre del plato:",
     "finalNamePlaceholder": "Nombre del plato (ej. Tortilla de la abuela)",
     "mixtureNamePlaceholder": "Nombre de la mezcla (opcional)",
     "heatOn": "Encender Fuego",
     "heatOff": "Apagar Fuego",
+    "serveToPlate": "Servir al plato 🍽️",
     "emptyContainerHint": "Coloca elementos aquí",
     "noRecipesAvailable": "No hay recetas disponibles.",
     "showIngredients": "Mostrar Ingredientes",
@@ -126,7 +142,15 @@
     "emptyTrash": "Vaciar Papelera",
     "confirmEmptyTrash": "¿Estás seguro de que quieres vaciar la papelera?",
     "yesEmpty": "Sí, vaciar",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "leaveHere": "Dejar aquí",
+    "takeMe": "Llévame",
+    "recordedSession": "Grabada / Cargada",
+    "noIngredientsListed": "Sin ingredientes especificadas.",
+    "noInstructionsListed": "Sin pasos registrados todavía.",
+    "handsFull": "¡Mis manos están ocupadas! Deja un ingrediente primero.",
+    "nothingInHands": "¡No tengo nada en las manos!"
   },
   "workstations": {
     "sink": "Zona de Lavado 💧",
@@ -244,6 +268,10 @@
         "Enciende el fuego, añade aceite y caliéntalo.",
         "Con una espátula blanda, asegúrate de que la tortilla no se pega a la sartén."
       ]
+    },
+    "recorded": {
+      "name": "Receta Grabada / Cargada",
+      "description": "Receta generada dinámicamente a partir de acciones de cocina grabadas o cargadas."
     }
   }
 }

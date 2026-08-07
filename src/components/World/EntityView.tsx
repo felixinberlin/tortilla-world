@@ -55,7 +55,9 @@ export const DefaultEntityRenderer: React.FC<EntityRendererProps> = ({ entity, c
   const translatedTool = t(`tools.${toolKey}`);
 
   let displayName = entity.name;
-  if (translatedIng && !translatedIng.startsWith('ingredients.')) {
+  const isMixtureEntity = ingKey === 'mixture' || entity.ingredientId === 'mixture';
+
+  if (!isMixtureEntity && translatedIng && !translatedIng.startsWith('ingredients.')) {
     // If entity.name has icon prefix, e.g., "🥔 Potatoes"
     const hasIconPrefix = entity.icon && entity.name.startsWith(entity.icon);
     displayName = hasIconPrefix ? `${entity.icon} ${translatedIng}` : translatedIng;
@@ -72,6 +74,54 @@ export const DefaultEntityRenderer: React.FC<EntityRendererProps> = ({ entity, c
       <EntityStateBadge entity={entity} containerId={containerId} />
       {containerId && containerId !== 'despensa' && !readOnly && (
         <div className="entity-nav-buttons">
+          <button
+            type="button"
+            className="entity-take-btn"
+            title={t('ui.takeMe') || '🤲 Llévame'}
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              const mascot = worldStore.getState().entities['chef'];
+              const rawHolding = mascot?.state?.holdingEntityIds as string[] | undefined;
+              const singleHolding = mascot?.state?.holdingEntityId as string | undefined;
+              const currentHolding = Array.isArray(rawHolding) && rawHolding.length > 0
+                ? rawHolding
+                : singleHolding
+                ? [singleHolding]
+                : [];
+
+              if (currentHolding.length < 2) {
+                worldStore.getState().dispatch({
+                  type: 'MASCOT_GRAB',
+                  payload: {
+                    entityId: entity.id,
+                    sourceContainerId: containerId,
+                    mascotId: 'chef',
+                  },
+                });
+              } else {
+                worldStore.getState().dispatch({
+                  type: 'UPDATE_ENTITY_STATE',
+                  payload: {
+                    entityId: 'chef',
+                    changes: { speechMessage: '¡Mis manos están llenas! 🤲 / My hands are full!' },
+                  },
+                });
+                setTimeout(() => {
+                  worldStore.getState().dispatch({
+                    type: 'UPDATE_ENTITY_STATE',
+                    payload: { entityId: 'chef', changes: { speechMessage: undefined } },
+                  });
+                }, 2500);
+              }
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+          >
+            <span className="take-btn-icon">🤲</span>
+            <span className="take-btn-text">{t('ui.takeMe') || 'Llévame'}</span>
+          </button>
           <button
             type="button"
             className="entity-nav-btn nav-prev"
@@ -124,32 +174,32 @@ export const DefaultEntityRenderer: React.FC<EntityRendererProps> = ({ entity, c
           >
             ▶
           </button>
+          {containerId !== 'trash' && (
+            <button
+              type="button"
+              className="entity-delete-btn"
+              title="Move to trash"
+              aria-label="Move to trash"
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                worldStore.getState().dispatch({
+                  type: 'MOVE_ENTITY',
+                  payload: {
+                    entityId: entity.id,
+                    targetContainerId: 'trash',
+                    sourceContainerId: containerId,
+                  },
+                });
+              }}
+              onPointerDown={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+            >
+              ×
+            </button>
+          )}
         </div>
-      )}
-      {containerId && containerId !== 'despensa' && containerId !== 'trash' && !readOnly && (
-        <button
-          type="button"
-          className="entity-delete-btn"
-          title="Move to trash"
-          aria-label="Move to trash"
-          onClick={(e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            worldStore.getState().dispatch({
-              type: 'MOVE_ENTITY',
-              payload: {
-                entityId: entity.id,
-                targetContainerId: 'trash',
-                sourceContainerId: containerId,
-              },
-            });
-          }}
-          onPointerDown={(e) => e.stopPropagation()}
-          onMouseDown={(e) => e.stopPropagation()}
-          onTouchStart={(e) => e.stopPropagation()}
-        >
-          ×
-        </button>
       )}
     </>
   );

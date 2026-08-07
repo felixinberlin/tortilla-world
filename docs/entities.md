@@ -82,9 +82,16 @@ Example:
   id: "potato",
   type: "ingredient",
   name: "Potato",
-  icon: "🥔"
+  icon: "🥔",
+  capabilities: {
+    peel: { tools: ["peeler", "knife"], workstation: "cutting_station" },
+    slice: { tools: ["knife", "mandoline"], requires: { preparation: ["peeled"] } },
+    fry: { workstation: "pan" }
+  }
 }
 ```
+
+Capabilities define allowed actions, required tools, and prerequisites (`requires`). Omission of an action implies it is disallowed.
 
 ---
 
@@ -416,13 +423,28 @@ The world systems decide this.
 
 This model allows adding:
 
-## Characters
+## Mascot (`chef`)
 
+The Mascot (`chef`) is a character entity representing Chef Tortilla:
+
+```ts
+{
+  id: "chef",
+  type: "mascot",
+  name: "Chef Tortilla 🍳",
+  state: {
+    holdingEntityId: "potato",
+    holdingEntityIds: ["potato", "onion"], // Supports up to 2 items simultaneously (one in each arm)
+    targetContainerId: "board",
+    gazingAt: { type: "entity", entityId: "board" },
+    speechMessage: undefined
+  }
+}
 ```
-Tortilla
-  owns
-    Knife
-```
+
+- **Dual-Item Carrying**: Tortilla has two arms and can carry up to 2 items simultaneously (`holdingEntityIds`). Dragging an ingredient onto Tortilla when she has a free arm (`holdingEntityIds.length < 2`) triggers `MASCOT_GRAB`.
+- **Hands Full Capacity**: Attempting to give Tortilla a 3rd item triggers a friendly speech bubble alert ("¡Mis manos están llenas! 🤲").
+- **Drop Action**: Executing `MASCOT_DROP` or dragging a held item onto a workstation places it in the target container.
 
 ## Machines
 

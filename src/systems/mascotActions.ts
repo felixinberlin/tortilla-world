@@ -59,6 +59,64 @@ export function grabIngredient(
 }
 
 /**
+ * Commands Tortilla mascot to equip/wear a tool in hand while performing an action.
+ */
+export function equipTool(toolId: string, mascotId: string = 'chef'): void {
+  worldStore.getState().dispatch({
+    type: 'UPDATE_ENTITY_STATE',
+    payload: {
+      entityId: mascotId,
+      changes: { equippedToolId: toolId },
+    },
+  });
+}
+
+/**
+ * Unequips tool from Tortilla mascot's hand.
+ */
+export function unequipTool(mascotId: string = 'chef'): void {
+  worldStore.getState().dispatch({
+    type: 'UPDATE_ENTITY_STATE',
+    payload: {
+      entityId: mascotId,
+      changes: { equippedToolId: undefined },
+    },
+  });
+}
+
+/**
+ * Commands Tortilla mascot to display a speech bubble message.
+ */
+export function speakTortilla(
+  message: string,
+  durationMs: number = 3000,
+  mascotId: string = 'chef'
+): void {
+  worldStore.getState().dispatch({
+    type: 'UPDATE_ENTITY_STATE',
+    payload: {
+      entityId: mascotId,
+      changes: { speechMessage: message },
+    },
+  });
+
+  if (durationMs > 0) {
+    setTimeout(() => {
+      const current = worldStore.getState().entities[mascotId]?.state?.speechMessage;
+      if (current === message) {
+        worldStore.getState().dispatch({
+          type: 'UPDATE_ENTITY_STATE',
+          payload: {
+            entityId: mascotId,
+            changes: { speechMessage: undefined },
+          },
+        });
+      }
+    }, durationMs);
+  }
+}
+
+/**
  * Commands Tortilla to drop the currently held ingredient into a target container.
  */
 export function dropIngredient(

@@ -316,7 +316,11 @@ export class RecipeRunner implements RecipeRunnerContext {
     }
 
     const mascot = state.entities[this.mascotId];
-    if (mascot?.state?.holdingEntityId === entityId) {
+    const rawHolding = mascot?.state?.holdingEntityIds as string[] | undefined;
+    const singleHolding = mascot?.state?.holdingEntityId as string | undefined;
+    const holdingIds = Array.isArray(rawHolding) && rawHolding.length > 0 ? rawHolding : singleHolding ? [singleHolding] : [];
+
+    if (holdingIds.includes(entityId)) {
       return entityId;
     }
 

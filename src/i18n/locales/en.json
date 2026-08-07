@@ -55,7 +55,12 @@
     "saving": "⏳ Saving to Firestore...",
     "saveSuccess": "✅ Recipe successfully saved to Cloud Firestore! You can play it anytime in the Recipe Catalog.",
     "saveError": "❌ Error saving: {{error}}",
-    "usedIngredients": "🛒 Saved Ingredients ({{count}}):"
+    "usedIngredients": "🛒 Saved Ingredients ({{count}}):",
+    "dishNameModalTitle": "🍽️ Name Your Recipe!",
+    "dishNameModalSubtitle": "There is a dish prepared on your plate! What would you like to call this creation?",
+    "dishNamePlaceholder": "e.g., Grandma's Potato Omelette",
+    "saveDishNameAndStop": "💾 Save Name & Finish",
+    "skipDishName": "Skip"
   },
   "replayer": {
     "loadJson": "📂 Load Log (.json)",
@@ -111,14 +116,25 @@
     "instructions": "Instructions",
     "chefsHints": "Chef's Hints",
     "ingredientsCatalog": "Ingredients Catalog",
+    "basicIngredients": "Basic Ingredients",
+    "otherIngredients": "Other Ingredients",
+    "showOthers": "Show Other Ingredients",
+    "hideOthers": "Hide Other Ingredients",
+    "moveToOthers": "Move to Others",
+    "moveToBasic": "Move to Basic",
+    "resetCategories": "Reset Categories",
+    "dropToCategorize": "Drop ingredients here to reassign category",
     "sidebarSubtitle": "Drag items or tap ➕ to place into the kitchen workstation",
     "searchIngredientsPlaceholder": "🔍 Search ingredients...",
     "noIngredientsFound": "No ingredients found matching \"{{query}}\"",
-    "targetPlaceholder": "Target (e.g. 10 min, until brown)",
-    "finalNamePlaceholder": "Final name (e.g. Oma tortilla)",
+    "targetLabel": "Cooking Target / Time:",
+    "targetPlaceholder": "e.g. 10 min, medium heat, until golden",
+    "finalNameLabel": "Final Dish Name:",
+    "finalNamePlaceholder": "Dish name (e.g. Oma's Tortilla)",
     "mixtureNamePlaceholder": "Mixture name (optional)",
     "heatOn": "Heat On",
     "heatOff": "Heat Off",
+    "serveToPlate": "Serve to Plate 🍽️",
     "emptyContainerHint": "Drop entities here",
     "noRecipesAvailable": "No recipes available.",
     "showIngredients": "Show Ingredients",
@@ -126,7 +142,15 @@
     "emptyTrash": "Empty Trash",
     "confirmEmptyTrash": "Are you sure you want to empty the trash?",
     "yesEmpty": "Yes, empty",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "save": "Save",
+    "leaveHere": "Leave Here",
+    "takeMe": "Take me",
+    "recordedSession": "Recorded / Loaded",
+    "noIngredientsListed": "No ingredients listed.",
+    "noInstructionsListed": "No steps recorded yet.",
+    "handsFull": "My hands are full! Place an item down first.",
+    "nothingInHands": "I'm not holding anything!"
   },
   "workstations": {
     "sink": "Washing Area 💧",
@@ -244,6 +268,10 @@
         "Turn on the heat, add oil and heat it up.",
         "With a soft spatula, make sure the tortilla does not stick to the pan."
       ]
+    },
+    "recorded": {
+      "name": "Recorded / Loaded Recipe",
+      "description": "Dynamically generated recipe from recorded or loaded kitchen actions."
     }
   }
 }

@@ -830,6 +830,17 @@ The Recipe System executes declarative, step-based recipe state machines via `Re
 
 ---
 
+### Ingredient Capability System & AI Grounding Planner (`src/systems/ingredientCapabilities.ts`, `src/systems/geminiCapabilityPlanner.ts`)
+
+* **Purpose**: Grounds AI cooking logic in a structured ingredient capability catalog, preventing action hallucinations (e.g., "peeling salt" or "dicing raw egg") and verifying state prerequisites before actions execute.
+* **Architecture & Principles**:
+  - **Strict Capability Schema**: Each ingredient (e.g., potato, egg, salt, onion, oil) defines allowed actions, compatible tools, workstations, and required preparation or cooking states (`requires`).
+  - **Omission Implies False**: Any action not explicitly defined in an ingredient's capability schema is treated as strictly disallowed.
+  - **Validation Engine (`validateIngredientAction`, `validateActionSequence`)**: Checks if an action is allowed for an ingredient in its current state (e.g. requires `peeled` before `slice`, or `boiled` before `peel`) and simulates state evolution across multi-step action sequences.
+  - **Gemini AI Planner (`buildCookingAgentSystemInstructions`, `validateAIPlan`)**: Generates grounded system instructions containing the capability catalog JSON for LLMs, and validates AI-generated plans or user intents before execution.
+
+---
+
 # Final Principle
 
 The rule of Tortilla World:

@@ -63,6 +63,13 @@ function seedTestWorld() {
         entityIds: [],
         rules: { maxCapacity: 5 },
       },
+      burner2: {
+        id: 'burner2',
+        name: 'burner2',
+        type: 'burner',
+        entityIds: [],
+        rules: { maxCapacity: 5 },
+      },
       plate: {
         id: 'plate',
         name: 'Plate',
@@ -111,7 +118,7 @@ describe('Concebolla Recipe Completion State', () => {
     expect(state.entities[pepperId]?.state?.consumed).toBe(true);
 
     // Verify none of the consumed ingredients remain in any workstation container
-    const workstationContainerIds = ['sink', 'board', 'bowl', 'burner1', 'plate'];
+    const workstationContainerIds = ['sink', 'board', 'bowl', 'burner1', 'burner2', 'plate'];
     for (const cId of workstationContainerIds) {
       expect(state.containers[cId].entityIds).not.toContain(potatoesId);
       expect(state.containers[cId].entityIds).not.toContain(onionsId);

@@ -46,6 +46,24 @@
     box-shadow: 0 4px 12px rgba(232, 168, 56, 0.4);
     transform: translateY(-2px);
   }
+
+  &.recorded-tab {
+    border-color: #8b5cf6;
+    color: #5b21b6;
+    background: #f5f3ff;
+
+    &:hover {
+      border-color: #7c3aed;
+      background: #ede9fe;
+    }
+
+    &.active {
+      background: #7c3aed;
+      color: #ffffff;
+      border-color: #6d28d9;
+      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+    }
+  }
 }
 
 .cookbook-card {
@@ -113,6 +131,30 @@
     color: $olive-green;
     border-color: $olive-green-border;
   }
+
+  &.custom-tag {
+    background: #f3e8ff;
+    color: #6b21a8;
+    border-color: #d8b4fe;
+  }
+}
+
+.recorded-badge {
+  font-size: 0.9rem;
+  background: #f3e8ff;
+  color: #6b21a8;
+  border: 1px solid #d8b4fe;
+  padding: 4px 10px;
+  border-radius: 12px;
+  vertical-align: middle;
+  margin-left: 10px;
+  display: inline-block;
+}
+
+.empty-notice {
+  font-style: italic;
+  color: $wood-muted;
+  margin: 10px 0;
 }
 
 .cookbook-body {
