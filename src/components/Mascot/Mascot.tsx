@@ -20,6 +20,8 @@ import { useTranslation } from '../../i18n/useTranslation';
 import { useStore } from 'zustand';
 import { worldStore } from '../../store/worldStore';
 import { TortillaSvg } from './TortillaSvg';
+import { MascotBodyMock } from './MascotBodyMock';
+import { useEmotionStore } from '../../store/emotionStore';
 import { ingredients } from '../../data/catalog/ingredients';
 import { catalogTools } from '../../data/catalog/tools';
 import type { GazeTarget } from '../../systems/gaze';
@@ -39,6 +41,12 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef', onLeftArmClic
   const entities = useStore(worldStore, (state) => state.entities);
   const focusTarget = useStore(worldStore, (state) => state.focusTarget);
   const dispatch = useStore(worldStore, (state) => state.dispatch);
+
+  // Emotion performance channels
+  const currentMouthState = useEmotionStore((state) => state.currentMouthState);
+  const currentArmAction = useEmotionStore((state) => state.currentArmAction);
+  const currentEyeAction = useEmotionStore((state) => state.currentEyeAction);
+  const currentDialogue = useEmotionStore((state) => state.currentDialogue);
   
   const focusClass = getMascotFocusClass(focusTarget);
   
@@ -51,7 +59,7 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef', onLeftArmClic
   const gazingAtEntityId = gazeEntityId(gazingAt);
   const targetContainerId = (mascotEntity?.state?.targetContainerId as string | undefined) ?? gazingAtEntityId ?? undefined;
   const state = (mascotEntity?.state?.state as string | undefined) || 'idle';
-  const speechMessage = mascotEntity?.state?.speechMessage as string | undefined;
+  const speechMessage = currentDialogue || (mascotEntity?.state?.speechMessage as string | undefined);
   const equippedToolId = mascotEntity?.state?.equippedToolId as string | undefined;
 
   // Extract array of holdingEntityIds (supporting multi-item carrying or legacy single holdingEntityId)
@@ -211,18 +219,23 @@ export const Mascot: React.FC<MascotProps> = ({ mascotId = 'chef', onLeftArmClic
             } as React.CSSProperties
           }
         >
-          <TortillaSvg
-            state={state}
-            gazingAt={gazingAt}
-            onDoubleClick={handleDoubleClick}
-            isHoldingLeft={isHoldingLeft}
-            isHoldingRight={isHoldingRight}
-            onLeftArmClick={handleLeftArmClick}
-            onRightArmClick={handleRightArmClick}
-            leftArmTitle={t('replayer.stepBack') || '⏮️ Previous Step'}
-            rightArmTitle={t('replayer.stepForward') || '⏭️ Next Step'}
-            equippedToolId={equippedToolId}
-          />
+          <MascotBodyMock>
+            <TortillaSvg
+              state={state}
+              gazingAt={gazingAt}
+              mouthState={currentMouthState}
+              armAction={currentArmAction}
+              eyebrows={currentEyeAction.eyebrows}
+              onDoubleClick={handleDoubleClick}
+              isHoldingLeft={isHoldingLeft}
+              isHoldingRight={isHoldingRight}
+              onLeftArmClick={handleLeftArmClick}
+              onRightArmClick={handleRightArmClick}
+              leftArmTitle={t('replayer.stepBack') || '⏮️ Previous Step'}
+              rightArmTitle={t('replayer.stepForward') || '⏭️ Next Step'}
+              equippedToolId={equippedToolId}
+            />
+          </MascotBodyMock>
 
           {/* Held Ingredient Badges (Up to 2 items) */}
           {holdingEntityIds.slice(0, 2).map((id, index) => {

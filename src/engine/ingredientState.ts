@@ -94,8 +94,9 @@ export function formatCookedName(targetEntity: Entity, cooking: string): string 
   const baseName = catalogItem?.name || targetEntity.name.replace(/^(\p{Emoji}|\p{Extended_Pictographic})\s*/u, '');
 
   const cookingWord = cooking === 'fry' || cooking === 'fried' ? 'Cooked' : cooking.charAt(0).toUpperCase() + cooking.slice(1);
-  const prep = targetEntity.state?.preparation;
-  const prepWord = prep && prep !== 'whole' && prep !== 'raw' ? prep.charAt(0).toUpperCase() + prep.slice(1) + ' ' : '';
+  const prepRaw = targetEntity.state?.preparation;
+  const prepStr = Array.isArray(prepRaw) ? prepRaw.join(' ') : (prepRaw || '');
+  const prepWord = prepStr && prepStr !== 'whole' && prepStr !== 'raw' ? prepStr.charAt(0).toUpperCase() + prepStr.slice(1) + ' ' : '';
   return `${icon} ${cookingWord} ${prepWord}${baseName}`.trim();
 }
 
@@ -108,8 +109,10 @@ export function getTransformationsFromEntity(entity: Entity): string[] {
   }
 
   const status = (entity.state?.status || entity.status || '').toLowerCase();
-  const prep = (entity.state?.preparation || '').toLowerCase();
-  const cooking = (entity.state?.cooking || '').toLowerCase();
+  const prepRaw = entity.state?.preparation;
+  const prep = (Array.isArray(prepRaw) ? prepRaw.join(' ') : (prepRaw || '')).toLowerCase();
+  const cookingRaw = entity.state?.cooking;
+  const cooking = (Array.isArray(cookingRaw) ? cookingRaw.join(' ') : (cookingRaw || '')).toLowerCase();
 
   const stages: string[] = [];
 
@@ -248,5 +251,45 @@ export function applyIngredientTransformation(
     status: newStatus,
     name: newName,
     state: updatedState,
+  };
+}
+
+/**
+ * Creates a peel entity representing the skin or peels produced when peeling an ingredient.
+ */
+export function createPeelEntity(entity: Entity): Entity {
+  const rawBase = (entity.ingredientId || entity.id.split('_')[0] || 'ingredient').toLowerCase();
+  const singularKey = getIngredientSingularKey(entity);
+  const catalogItem = catalogIngredients.find(
+    (i) => i.id === entity.ingredientId || i.id === rawBase || i.id === singularKey
+  );
+
+  const icon = catalogItem?.icon || (entity.name.match(/^(\p{Emoji}|\p{Extended_Pictographic})/u)?.[0] ?? '🧹');
+
+  let baseName = catalogItem?.name || entity.name
+    .replace(/^(\p{Emoji}|\p{Extended_Pictographic})\s*/u, '')
+    .replace(/\b(Washed|Peeled|Cutted|Cut|Sliced|Diced|Cooked|Fried|Mixed|Raw|Whole)\b/gi, '')
+    .trim();
+
+  if (!baseName) {
+    baseName = 'Ingredient';
+  }
+
+  const peelName = `${icon} ${baseName} Peels`.trim();
+  const peelId = `${entity.id}_peel`;
+
+  return {
+    id: peelId,
+    name: peelName,
+    type: 'ingredient',
+    ingredientId: `${rawBase}_peels`,
+    icon,
+    state: {
+      isPeel: true,
+      preparation: 'peel',
+      status: 'peels',
+      cooking: 'raw',
+      sourceEntityId: entity.id,
+    },
   };
 }

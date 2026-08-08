@@ -20,7 +20,9 @@ import {
   formatPreparedName,
   formatCookedName,
   applyIngredientTransformation,
+  createPeelEntity,
 } from '../../engine/ingredientState';
+import { infuseEntityInDraft } from '../../engine/stateEngine';
 
 export interface EntitySlice {
   entities: Record<string, Entity>;
@@ -37,6 +39,12 @@ export interface EntitySlice {
   ) => void;
   removeEntity: (entityId: string) => void;
   updateEntityState: (entityId: string, changes: Record<string, unknown>) => void;
+  infuseEntity: (
+    sourceEntityId: string,
+    targetEntityId: string,
+    property: 'flavor',
+    intensity: number
+  ) => void;
   prepareIngredient: (entityId: string, preparation: PreparationStyle) => void;
   cookIngredient: (entityId: string, cooking: CookingMethod) => void;
   transformIngredient: (
@@ -116,12 +124,30 @@ export const createEntitySlice: StateCreator<
     );
   },
 
+  infuseEntity: (sourceEntityId, targetEntityId, property, intensity) => {
+    set(
+      (draft) => {
+        infuseEntityInDraft(draft, sourceEntityId, targetEntityId, property, intensity);
+      },
+      false,
+      'INFUSE_ENTITY'
+    );
+  },
+
   prepareIngredient: (entityId, preparation) => {
     const targetEntity = get().entities[entityId];
     if (!targetEntity) return;
 
     const status = derivePreparationStatus(targetEntity, preparation);
     const updatedName = formatPreparedName(targetEntity, preparation);
+
+    let containerId: string | undefined;
+    for (const cId in get().containers) {
+      if (get().containers[cId].entityIds.includes(entityId)) {
+        containerId = cId;
+        break;
+      }
+    }
 
     set(
       (state) => {
@@ -134,6 +160,14 @@ export const createEntitySlice: StateCreator<
           preparation,
           status,
         };
+
+        if (preparation === 'peeled' && containerId && state.containers[containerId]) {
+          const peelEntity = createPeelEntity(entity);
+          if (!state.entities[peelEntity.id]) {
+            state.entities[peelEntity.id] = peelEntity;
+            state.containers[containerId].entityIds.push(peelEntity.id);
+          }
+        }
       },
       false,
       'PREPARE_INGREDIENT'
@@ -171,6 +205,14 @@ export const createEntitySlice: StateCreator<
     const result = applyIngredientTransformation(targetEntity, transformation);
     if (!result) return;
 
+    let containerId: string | undefined;
+    for (const cId in get().containers) {
+      if (get().containers[cId].entityIds.includes(entityId)) {
+        containerId = cId;
+        break;
+      }
+    }
+
     set(
       (state) => {
         const entity = state.entities[entityId];
@@ -182,6 +224,14 @@ export const createEntitySlice: StateCreator<
           ...entity.state,
           ...result.state,
         };
+
+        if (transformation === 'peel' && containerId && state.containers[containerId]) {
+          const peelEntity = createPeelEntity(entity);
+          if (!state.entities[peelEntity.id]) {
+            state.entities[peelEntity.id] = peelEntity;
+            state.containers[containerId].entityIds.push(peelEntity.id);
+          }
+        }
       },
       false,
       'TRANSFORM_INGREDIENT'

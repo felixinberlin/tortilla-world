@@ -914,6 +914,137 @@ The user requested a new base catalog recipe (`yema`) at the same level as `conc
 
 ---
 
+# Decision: Workstation Kits (Base, Profi, Compact) & Session Recording Integration
+
+## Context
+Recipes in Tortilla World describe culinary actions without hardcoding physical workstation layouts. To support diverse kitchen physical setups (minimalist kitchens, high-capacity profi setups, standard fallback), Workstation Kits provide reusable container preset configurations. Recorded action logs must capture the active workstation kit to ensure accurate replay.
+
+## Decision
+1. **Workstation Kit Catalog (`src/data/catalog/workstations.ts`)**: Defined `WORKSTATION_KITS` containing 3 layout presets:
+   - `compact`: Minimalist setup (`board`, `burner1`, `sink`, `trash`, `despensa`).
+   - `base`: Standard setup (`board`, `bowl`, `burner1`, `burner2`, `plate`, `sink`, `trash`, `despensa`).
+   - `profi`: High-capacity setup (`board`, `board2`, `bowl`, `bowl2`, `burner1`, `burner2`, `burner3`, `plate`, `sink`, `trash`, `despensa`).
+2. **World Store Engine Integration**: Added `activeKitId` state (`WorkstationKitId`) and `setWorkstationKit` / `resetWorld(kitId)` methods to `worldStore.ts`. Container authority rules (`containerRules.ts`) dynamically accept and resolve multi-zone kit containers (`burner3`, `board2`, `bowl2`).
+3. **Session Recording Metadata**: `stopRecording` saves `workspace: { kitId }` into `SerializedRecipeExport`.
+4. **Action Replayer Restoration**: `ActionReplayer.tsx` reads `workspace.kitId` from loaded JSON files or database recipes and sets the corresponding workstation kit during `resetWorld(targetKitId)` prior to playback.
+5. **UI Kit Selectors**: Integrated Workstation Kit dropdown selectors into `ActionRecorder.tsx` (Creator View) and `RecipePlayer.tsx` (Player View).
+
+## Consequences
+- Recipes remain fully decoupled from physical workstation layouts while enabling users to customize and replay custom workstation environments seamlessly.
+
+---
+
+# Decision: Dynamic Workstation Addition and Removal in Creator Mode
+
+## Context
+Creators building custom recipes need the ability to dynamically customize their kitchen layout in Creator Mode by adding new workstations (e.g. additional cutting boards, burners, prep bowls) or removing unneeded workstations. These custom workstations must be serialized into recorded recipe exports and accurately reconstructed during replay.
+
+## Decision
+1. **Container Management Actions**:
+   - Added `ADD_CONTAINER` and `REMOVE_CONTAINER` actions to `types/actions.ts` and `worldStore.ts`.
+   - `addWorkstationContainer(type)` dynamically instantiates containers (`board`, `burner`, `bowl`, `sink`, `plate`, `trash`) with auto-incremented IDs and names.
+   - `removeWorkstationContainer(containerId)` removes specified workstation containers while safely evacuating any internal entities to `despensa` (pantry).
+2. **Recipe Serialization**:
+   - `recordSlice.ts` (`stopRecording`) saves `workspace: { kitId, containers }` containing the complete active `containers` snapshot.
+3. **Replay & Reconstruction**:
+   - `resetWorld(targetKitId, customContainers)` in `worldStore.ts` accepts custom container definitions.
+   - `ActionReplayer.tsx` extracts `workspace.containers` when loading recipe JSON files or database recipes, automatically reconstructing the creator's exact workstation layout.
+4. **Creator UI**:
+   - `ActionRecorder.tsx` provides an "➕ Add Workstation" selector allowing creators to instantly add cutting boards, burners, bowls, sinks, plates, and trash containers.
+   - `ContainerView.tsx` renders a 🗑️ remove button on non-pantry workstation headers.
+
+## Consequences
+- Creators have full freedom to build custom kitchen layouts in Creator Mode.
+- Recorded recipes preserve custom workstation arrangements for exact replay across sessions.
+
+---
+
+# Decision: Ingredient-Workstation Capability Validation & Mascot Refusal Speech
+
+## Context
+Ingredients have allowable verbs/transformations (e.g., salt can be seasoned, dissolved, or mixed; potatoes can be washed, peeled, cut, fried, or boiled). Workstations hold supported action transformations (e.g., sink supports washing/rinsing; cutting board supports cutting/peeling; bowl supports mixing/whisking; burner supports cooking/frying). Placing an ingredient on an incompatible workstation (e.g., dropping salt in the sink) violates culinary domain logic and should be prevented with friendly mascot feedback.
+
+## Decision
+1. **Workstation Capability Validation (`validateContainerRules`)**:
+   - `getWorkstationSupportedActions(container)` maps workstation containers (`sink`, `board`, `bowl`, `burner`) to supported culinary action verbs. Open storage (`despensa`), trash (`trash`), and serving plates (`plate`) remain unrestricted.
+   - `getIngredientVerbs(entity)` retrieves allowed transformation verbs from the ingredient capability catalog (`INGREDIENT_CAPABILITIES_CATALOG`).
+   - `validateContainerRules` verifies that at least one allowed ingredient verb overlaps with the target workstation's supported actions. If there is no overlap, the move is rejected with `allowed: false` and a descriptive refusal reason.
+2. **Mascot Speech Refusal Feedback**:
+   - When `validateContainerRules` rejects a move, `moveEntity` (`containerSlice.ts`) and `mascotDrop` (`mascotSlice.ts`) catch `result.reason` and update Chef Tortilla's `speechMessage` state (e.g., *"¡Oye! Salt has no allowed transformations at Sink!"*).
+   - The mascot focuses/gazes at the target workstation and displays a speech bubble for 3.5 seconds before auto-clearing.
+
+## Consequences
+- Prevents invalid drag-and-drop placement of ingredients into workstations where they cannot undergo culinary transformations.
+- Provides immediate, friendly feedback from Chef Tortilla explaining why the action was rejected.
+
+---
+
+# Decision: Cozy & Mobile-First Workstation Selector Component
+
+## Context
+Previous workstation selection and kit preset switching relied on standard, plain HTML `<select>` dropdown menus. On mobile devices, these controls suffered from small tap targets, poor visual context, and clunky touch interaction.
+
+## Decision
+1. **Dedicated Workstation Selector Component (`WorkstationSelector.tsx`)**:
+   - Replaced plain `<select>` dropdowns with tactile visual cards and rounded pill controls.
+   - **Kit Presets**: Large, 44px+ touch-friendly pills with warm ceramic styling for `Standard Kitchen` (🏠) and `Profi Kitchen` (👨‍🍳).
+   - **Dynamic Workstation Cards**: Touch-friendly cards for `Tabla` (🪵), `Fuego` (🍳), `Bol` (🥣), `Fregadero` (🚰), `Plato` (🍽️), and `Basura` (🗑️).
+   - **Live Count Badges**: Real-time counter badges (e.g. `×2`) showing how many of each workstation container exist in the active world store.
+2. **Mobile-First Responsive Layout (`WorkstationSelector.scss`)**:
+   - Mobile viewports (< 640px) render a smooth horizontal scroll track with snap alignment and 44px+ touch targets for effortless one-tap workstation additions.
+
+## Consequences
+- Provides an intuitive, tactile, cozy user interface for configuring kitchen layouts.
+- Delivers an accessible, mobile-first touch experience across all mobile devices, tablets, and desktop displays.
+
+---
+
+# Decision: Interactive Developer Architecture Visualizer & Comprehensive Test Suite
+
+## Context
+As Tortilla World evolved with dynamic workstation containers, kit presets, verb/capability validation rules, and mascot refusal speech, visualizing the entity-container mental model in dev mode and maintaining regression coverage became critical.
+
+## Decision
+1. **Developer Architecture Visualizer Component (`ArchitectureVisualizer.tsx`)**:
+   - Added a dedicated `📐 Architecture` tab in Dev Mode (`Scene.tsx`).
+   - **Container & Entity Topology**: Renders real-time node cards for every active workstation container in the Zustand store, displaying current entity items, capacity limits, and supported culinary verbs.
+   - **Action Execution Pipeline**: Provides an interactive 5-step flowchart illustrating how user inputs (dnd-kit/RecipeRunner) flow through the Validation Engine (`containerRules.ts`), Store Dispatchers, Zustand/Immer state storage, and Framer Motion reactive views.
+   - **AGENTS.md Core Rules Checklist**: Live inspection checklist verifying compliance with the 6 foundational simulation rules (business logic outside components, Zustand as world state, entity identity preservation, container rule enforcement, ordered container lists, and ingredient uniqueness).
+2. **Expanded Vitest Test Coverage**:
+   - Added `src/engine/containerRules.test.ts` covering workstation supported actions, catalog capability extraction, mixture verbs, and duplicate ingredient/capacity validation.
+   - Added `src/components/Controls/WorkstationSelector.test.tsx` covering kit preset switching (`base` / `profi`), dynamic workstation addition (`ADD_CONTAINER`), and evacuation of container entities to pantry on removal (`REMOVE_CONTAINER`).
+
+## Consequences
+- Developers can inspect live simulation topology, store state, and execution pipelines directly inside dev mode.
+- Ensured 100% test pass rate across 37 test files and 230+ unit/integration tests.
+
+---
+
+# Decision: Workstation Preset Layouts Update (Empty Kit) & Record Mode Ingredient Controls
+
+## Context
+User requested replacing the "Profi" kitchen preset kit with an "Empty" kit layout, making workstation menus visible in Record mode, ensuring active workstations change dynamically when changing recipes, allowing choosing and removing ingredients in Record mode as before, and adding a confirmation dialog before resetting the world.
+
+## Decision
+1. **Empty Kitchen Preset Kit (`empty`)**:
+   - Updated `WorkstationKitId` type in `src/types/workstations.ts` to replace `'profi'` with `'empty'`.
+   - Replaced `profi` in `src/data/catalog/workstations.ts` with `empty`, providing a minimal starting canvas (`despensa`, `plate`, `trash`).
+   - Updated `WorkstationSelector.tsx` and unit tests (`WorkstationSelector.test.tsx`) to support `empty` preset selection.
+2. **Record Mode Ingredient Management**:
+   - Enhanced `IngredientsSidebar.tsx` to explicitly indicate whether each ingredient exists in the kitchen store (`entitiesInStore`).
+   - Added explicit `➕ Add` (to add ingredient to despensa via `ADD_ENTITY`), `🖐️ Take` (to take into mascot hand via `MASCOT_GRAB`), and `❌ Remove` (to remove ingredient via `REMOVE_ENTITY`) actions.
+   - In Record mode, adding and removing ingredients emits standard store dispatches, seamlessly logging changes to the recorded recipe timeline.
+3. **Reset World Confirmation Modal**:
+   - Added an interactive confirmation modal in `RecipePlayer.tsx` before triggering `resetWorld()`.
+   - Asks the player "Are you sure you want to reset the kitchen world?" to prevent accidental data loss.
+
+## Consequences
+- Players have full control to build custom workstation layouts starting from an empty slate (`empty`).
+- Ingredient selection and removal during recipe recording is intuitive and fully recorded.
+- World resets require explicit user confirmation.
+
+---
+
 # Final Principle
 
 The rule of Tortilla World:

@@ -53,7 +53,24 @@ export type WorldAction =
     type: 'UPDATE_ENTITY_STATE';
     payload: {
       entityId: string;
-      changes: Record<string, unknown>;
+      patch?: Partial<import('./world').EntityState>;
+      changes?: Record<string, unknown>;
+    };
+  }
+  | {
+    type: 'INFUSE_ENTITY';
+    payload: {
+      sourceEntityId: string;
+      targetEntityId: string;
+      property: 'flavor';
+      intensity: number;
+    };
+  }
+  | {
+    type: 'HEAT_TICK';
+    payload?: {
+      containerId?: string;
+      deltaMs?: number;
     };
   }
   | {

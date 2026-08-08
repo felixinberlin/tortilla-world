@@ -12,25 +12,28 @@ import { WORKSTATION_KITS } from '../../data/catalog/workstations';
 describe('WorkstationSelector & Workstation Store Operations', () => {
   beforeEach(() => {
     // Reset kitchen world store to base state before each test
-    worldStore.getState().resetWorld();
+    worldStore.getState().resetWorld('base');
   });
 
-  it('contains valid catalog definition for base and profi kit presets', () => {
+  it('contains valid catalog definition for base and empty kit presets', () => {
     expect(WORKSTATION_KITS.base).toBeDefined();
-    expect(WORKSTATION_KITS.profi).toBeDefined();
+    expect(WORKSTATION_KITS.empty).toBeDefined();
     expect(WORKSTATION_KITS.base.name).toBe('Base Kit');
-    expect(WORKSTATION_KITS.profi.name).toBe('Profi Kit');
+    expect(WORKSTATION_KITS.empty.name).toBe('Empty Kit');
   });
 
   it('allows switching active workstation kit preset via setWorkstationKit', () => {
     expect(worldStore.getState().activeKitId).toBe('base');
 
-    worldStore.getState().setWorkstationKit('profi');
-    expect(worldStore.getState().activeKitId).toBe('profi');
+    worldStore.getState().setWorkstationKit('empty');
+    expect(worldStore.getState().activeKitId).toBe('empty');
 
-    // Verify profi kit workstations are loaded in store
+    // Verify empty kit workstations are loaded in store
     const containers = worldStore.getState().containers;
-    expect(Object.keys(containers).length).toBeGreaterThan(0);
+    expect(Object.keys(containers).length).toBe(3);
+    expect(containers.despensa).toBeDefined();
+    expect(containers.plate).toBeDefined();
+    expect(containers.trash).toBeDefined();
   });
 
   it('supports dynamically adding workstation containers via ADD_CONTAINER', () => {

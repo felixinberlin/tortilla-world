@@ -803,7 +803,7 @@ The Recipe System executes declarative, step-based recipe state machines via `Re
 
 ### Recipe Loader & Validation System (`src/systems/recipeLoader.ts`, `src/systems/recipeValidator.ts`)
 
-* **Purpose**: Decouples recipe definitions from TypeScript code files into structured, validated JSON assets (`clasica.json`, `concebolla.json`).
+* **Purpose**: Decouples recipe definitions from TypeScript code files into structured, validated JSON assets (`clasica.json`, `concebolla.json`, `francesa.json`, `yema.json`).
 * **Recipe Validator (`recipeValidator.ts`)**:
   - Validates raw JSON structures against `RecipeJSON` schema.
   - Ensures required fields (`id`, `name`, `steps`, `requirements`/`ingredients`) exist and meet data type constraints.

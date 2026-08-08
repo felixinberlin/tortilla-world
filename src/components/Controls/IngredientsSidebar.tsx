@@ -48,7 +48,10 @@ interface DroppableCategoryProps {
   title: string;
   items: CatalogItem[];
   isBasic: boolean;
+  entitiesInStore: Record<string, Entity>;
   onQuickAdd: (id: string) => void;
+  onAddToKitchen: (id: string) => void;
+  onRemoveFromKitchen: (id: string) => void;
   onMoveCategory: (ingredientId: string, targetCategory: 'basic' | 'other') => void;
   onDropNative: (e: React.DragEvent, targetCategory: 'basic' | 'other') => void;
 }
@@ -58,7 +61,10 @@ const DroppableCategoryList: React.FC<DroppableCategoryProps> = ({
   title,
   items,
   isBasic,
+  entitiesInStore,
   onQuickAdd,
+  onAddToKitchen,
+  onRemoveFromKitchen,
   onMoveCategory,
   onDropNative,
 }) => {
@@ -86,40 +92,75 @@ const DroppableCategoryList: React.FC<DroppableCategoryProps> = ({
         <div className="empty-category-hint">{t('ui.dropToCategorize')}</div>
       ) : (
         <div className="items-grid">
-          {items.map((item) => (
-            <div
-              key={item.id}
-              className="sidebar-item-card"
-              draggable
-              onDragStart={(e) => {
-                const baseId = item.ingredientId || item.id;
-                e.dataTransfer.setData('text/plain', baseId);
-                e.dataTransfer.setData('source-category', isBasic ? 'basic' : 'other');
-              }}
-            >
-              <div className="item-entity-wrapper">
-                <EntityView entity={item} containerId="despensa" readOnly={false} />
+          {items.map((item) => {
+            const existsInStore = Boolean(entitiesInStore[item.id]);
+
+            return (
+              <div
+                key={item.id}
+                className={`sidebar-item-card ${existsInStore ? 'in-kitchen' : ''}`}
+                draggable
+                onDragStart={(e) => {
+                  const baseId = item.ingredientId || item.id;
+                  e.dataTransfer.setData('text/plain', baseId);
+                  e.dataTransfer.setData('source-category', isBasic ? 'basic' : 'other');
+                }}
+              >
+                <div className="item-entity-wrapper">
+                  <EntityView entity={item} containerId="despensa" readOnly={false} />
+                </div>
+                <div className="item-card-actions">
+                  {existsInStore ? (
+                    <>
+                      <button
+                        type="button"
+                        className="quick-add-btn"
+                        onClick={() => onQuickAdd(item.id)}
+                        title={`${t('verbs.take')} ${item.name}`}
+                      >
+                        🖐️ {t('verbs.take')}
+                      </button>
+                      <button
+                        type="button"
+                        className="remove-from-kitchen-btn"
+                        onClick={() => onRemoveFromKitchen(item.id)}
+                        title={`Remove ${item.name} from kitchen`}
+                      >
+                        ❌ Remove
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        className="add-to-kitchen-btn"
+                        onClick={() => onAddToKitchen(item.id)}
+                        title={`Add ${item.name} to kitchen despensa`}
+                      >
+                        ➕ Add
+                      </button>
+                      <button
+                        type="button"
+                        className="quick-add-btn"
+                        onClick={() => onQuickAdd(item.id)}
+                        title={`${t('verbs.take')} ${item.name}`}
+                      >
+                        🖐️ {t('verbs.take')}
+                      </button>
+                    </>
+                  )}
+                  <button
+                    type="button"
+                    className="shift-category-btn"
+                    onClick={() => onMoveCategory(item.ingredientId || item.id, isBasic ? 'other' : 'basic')}
+                    title={isBasic ? t('ui.moveToOthers') : t('ui.moveToBasic')}
+                  >
+                    {isBasic ? '⬇️ ' + t('ui.moveToOthers') : '⬆️ ' + t('ui.moveToBasic')}
+                  </button>
+                </div>
               </div>
-              <div className="item-card-actions">
-                <button
-                  type="button"
-                  className="quick-add-btn"
-                  onClick={() => onQuickAdd(item.id)}
-                  title={`${t('verbs.take')} ${item.name}`}
-                >
-                  ➕ {t('verbs.take')}
-                </button>
-                <button
-                  type="button"
-                  className="shift-category-btn"
-                  onClick={() => onMoveCategory(item.ingredientId || item.id, isBasic ? 'other' : 'basic')}
-                  title={isBasic ? t('ui.moveToOthers') : t('ui.moveToBasic')}
-                >
-                  {isBasic ? '⬇️ ' + t('ui.moveToOthers') : '⬆️ ' + t('ui.moveToBasic')}
-                </button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
@@ -230,10 +271,48 @@ export const IngredientsSidebar: React.FC = () => {
   // Automatically expand Others list if user is actively searching and there are matching items in Others
   const effectiveShowOthers = isOthersShown || (searchQuery.trim().length > 0 && otherItems.length > 0);
 
+  // Handle adding an ingredient to the kitchen pantry despensa
+  const handleAddToKitchen = (entityId: string) => {
+    const state = worldStore.getState();
+    if (!state.entities[entityId]) {
+      const catalogIng = ingredients.find((i) => i.id === entityId);
+      state.dispatch({
+        type: 'ADD_ENTITY',
+        payload: {
+          entity: {
+            id: entityId,
+            name: catalogIng ? `${catalogIng.icon} ${catalogIng.name}` : entityId,
+            type: 'ingredient',
+            ingredientId: entityId,
+            icon: catalogIng?.icon,
+            state: {},
+          },
+          containerId: 'despensa',
+        },
+      });
+    }
+  };
+
+  // Handle removing an ingredient from the kitchen
+  const handleRemoveFromKitchen = (entityId: string) => {
+    const state = worldStore.getState();
+    state.dispatch({
+      type: 'REMOVE_ENTITY',
+      payload: { entityId },
+    });
+  };
+
   // Handle quick-adding / taking an ingredient into Tortilla's hands (up to 2 items max)
   const handleQuickAdd = (entityId: string) => {
     const state = worldStore.getState();
-    const mascot = state.entities['chef'];
+
+    // Ensure entity exists in store despensa before mascot grab
+    if (!state.entities[entityId]) {
+      handleAddToKitchen(entityId);
+    }
+
+    const currentState = worldStore.getState();
+    const mascot = currentState.entities['chef'];
     const rawHolding = mascot?.state?.holdingEntityIds as string[] | undefined;
     const singleHolding = mascot?.state?.holdingEntityId as string | undefined;
 
@@ -245,7 +324,7 @@ export const IngredientsSidebar: React.FC = () => {
 
     if (holdingEntityIds.length >= 2) {
       // Hands are full (max 2 items)
-      state.dispatch({
+      currentState.dispatch({
         type: 'UPDATE_ENTITY_STATE',
         payload: {
           entityId: 'chef',
@@ -264,7 +343,7 @@ export const IngredientsSidebar: React.FC = () => {
     }
 
     // Tortilla has a free hand! Take the ingredient into her hand
-    state.dispatch({
+    currentState.dispatch({
       type: 'MASCOT_GRAB',
       payload: {
         entityId,
@@ -342,7 +421,10 @@ export const IngredientsSidebar: React.FC = () => {
               title={t('ui.basicIngredients')}
               items={basicItems}
               isBasic={true}
+              entitiesInStore={entities}
               onQuickAdd={handleQuickAdd}
+              onAddToKitchen={handleAddToKitchen}
+              onRemoveFromKitchen={handleRemoveFromKitchen}
               onMoveCategory={handleMoveCategory}
               onDropNative={handleDropNative}
             />
@@ -367,7 +449,10 @@ export const IngredientsSidebar: React.FC = () => {
                 title={t('ui.otherIngredients')}
                 items={otherItems}
                 isBasic={false}
+                entitiesInStore={entities}
                 onQuickAdd={handleQuickAdd}
+                onAddToKitchen={handleAddToKitchen}
+                onRemoveFromKitchen={handleRemoveFromKitchen}
                 onMoveCategory={handleMoveCategory}
                 onDropNative={handleDropNative}
               />

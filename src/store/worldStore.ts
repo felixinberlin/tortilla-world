@@ -25,6 +25,7 @@ import { createMascotSlice } from './slices/mascotSlice';
 import { createRecordSlice } from './slices/recordSlice';
 import { createFocusSlice } from './slices/focusSlice';
 import { inferFocusFromAction } from '../systems/focus';
+import { processHeatTickInDraft } from '../engine/stateEngine';
 import type { WorldStateStore } from './types';
 
 const eventListeners = new Set<(event: WorldEvent) => void>();
@@ -267,8 +268,29 @@ export const worldStore = createStore<WorldStateStore>()(
               break;
             }
 
-            case 'UPDATE_ENTITY_STATE':
-              store.updateEntityState(action.payload.entityId, action.payload.changes);
+            case 'UPDATE_ENTITY_STATE': {
+              const changes = action.payload.patch || action.payload.changes || {};
+              store.updateEntityState(action.payload.entityId, changes as Record<string, unknown>);
+              break;
+            }
+
+            case 'INFUSE_ENTITY':
+              store.infuseEntity(
+                action.payload.sourceEntityId,
+                action.payload.targetEntityId,
+                action.payload.property,
+                action.payload.intensity
+              );
+              break;
+
+            case 'HEAT_TICK':
+              set(
+                (draft) => {
+                  processHeatTickInDraft(draft, action.payload?.containerId);
+                },
+                false,
+                'HEAT_TICK'
+              );
               break;
 
             case 'PREPARE_INGREDIENT':

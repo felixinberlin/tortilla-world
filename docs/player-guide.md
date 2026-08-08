@@ -18,7 +18,7 @@ You don't need complex menus to prepare ingredients. Instead, you grab a potato 
 Objects are moved between **Containers**.
 A container can be a pantry shelf, a mixing bowl, or a hot burner. The rules of the world dictate what happens when you drop an item into a specific container.
 
-### Workstations & Zones
+### Workstations, Zones & Workstation Kits
 Your kitchen is divided into distinct workstations, each with a specific purpose:
 
 1. **Pantry (`despensa`)**: Where all your raw ingredients are stored.
@@ -28,6 +28,14 @@ Your kitchen is divided into distinct workstations, each with a specific purpose
 5. **Cooking Station (`burner`)**: Where heat is applied. You place a `Pan` here, add oil, and fry, boil, or cook your mixtures.
 6. **Serving Station (`plate`)**: The final destination for your completed dish.
 7. **Trash Station (`trash`)**: Where unwanted ingredients or scrap items can be placed. You can empty the trash when needed, with the Mascot asking for confirmation before clearing out discarded items.
+
+#### 🧰 Workstation Kits (Preset Kitchen Layouts)
+You can switch between 3 physical kitchen layouts using the **🧰 Kitchen Preset Layout** menu in the Recipe Player or Action Recorder:
+- **Empty (`empty`)**: An empty workspace canvas containing basic pantry, plate, and trash—perfect for custom layout building.
+- **Compact (`compact`)**: A minimalist setup featuring 1 cutting board, 1 burner, 1 sink, and trash.
+- **Base (`base`)**: The standard layout featuring 1 board, 1 bowl, 2 burners, plate, sink, and trash.
+
+When you save or record a session, the selected workstation kit is saved automatically into the recipe metadata and restored whenever you replay the recorded recipe!
 
 ---
 
@@ -71,8 +79,13 @@ Each ingredient inside a workstation has `◀` (previous) and `▶` (next) navig
 - You can collapse or expand the top controls panel at any time using the **Show/Hide Controls** button to maximize your workspace on small screens.
 
 ### The Action Player & Recorder
-On the left side of your screen, you might notice controls for **Play Catalog Recipe** or the **Action Recorder**.
-- You can watch the kitchen's Mascot automatically perform actions by playing a recipe.
+On the left side of your screen, you can switch between four primary base catalog recipes (**Tortilla con Cebolla**, **Tortilla Clásica**, **Tortilla Francesa**, and **Tortilla de Yema**) or the **Action Recorder**.
+- **Base Recipes Catalog**:
+  - **Tortilla con Cebolla (`concebolla`)**: Juicy Spanish Tortilla with caramelized onions.
+  - **Tortilla Clásica (`clasica`)**: Traditional Spanish Tortilla without onion.
+  - **Tortilla Francesa (`francesa`)**: Traditional French Omelette with beaten eggs and salt.
+  - **Tortilla de Yema (`yema`)**: Rich and creamy French-style omelette made like Tortilla Francesa with 1 extra egg yolk for extra richness! Includes the step to separate the egg yolk directly in the recipe sequence.
+- You can watch the kitchen's Mascot automatically perform actions by playing any recipe.
 - If you switch to the Action Recorder, the game will record every drag and drop you make, generating a custom recipe script!
 
 ---

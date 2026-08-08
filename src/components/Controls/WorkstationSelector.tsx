@@ -78,7 +78,9 @@ export const WorkstationSelector: React.FC<WorkstationSelectorProps> = ({
         <div className="kit-presets-section">
           <div className="ws-section-title">
             <span>🧰 Kitchen Preset Layout</span>
-            <span className="ws-badge">{activeKitId === 'profi' ? '👨‍🍳 Profi' : '🏠 Standard'}</span>
+            <span className="ws-badge">
+              {activeKitId === 'empty' ? '🧹 Empty' : activeKitId === 'compact' ? '📦 Compact' : '🏠 Standard'}
+            </span>
           </div>
           <div className="kit-presets-grid">
             {Object.values(WORKSTATION_KITS).map((kit) => {
@@ -91,7 +93,9 @@ export const WorkstationSelector: React.FC<WorkstationSelectorProps> = ({
                   onClick={() => setWorkstationKit(kit.id as WorkstationKitId)}
                   title={`Switch layout to ${kit.name}: ${kit.description}`}
                 >
-                  <div className="kit-icon">{kit.id === 'profi' ? '👨‍🍳' : '🏠'}</div>
+                  <div className="kit-icon">
+                    {kit.id === 'empty' ? '🧹' : kit.id === 'compact' ? '📦' : '🏠'}
+                  </div>
                   <div className="kit-info">
                     <span className="kit-name">{kit.name}</span>
                     <span className="kit-desc">{kit.description}</span>

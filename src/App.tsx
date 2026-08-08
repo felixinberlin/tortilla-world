@@ -22,18 +22,22 @@ import { Mascot } from './components/Mascot/Mascot';
 import { PlayerGuideModal } from './components/Controls/PlayerGuideModal';
 import { LanguageSwitcher } from './components/Controls/LanguageSwitcher';
 import { useTranslation } from './i18n/useTranslation';
+import { setupEmotionBridge } from './systems/emotion/eventEmotionBridge';
 
 function App() {
   const [showGuide, setShowGuide] = useState(true);
   const { t } = useTranslation();
 
   useEffect(() => {
+    const cleanupBridge = setupEmotionBridge();
+
     const handleToggleGuide = () => {
       setShowGuide((prev) => !prev);
     };
 
     window.addEventListener('toggle-player-guide', handleToggleGuide);
     return () => {
+      cleanupBridge();
       window.removeEventListener('toggle-player-guide', handleToggleGuide);
     };
   }, []);

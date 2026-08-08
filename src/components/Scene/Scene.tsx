@@ -19,9 +19,6 @@ import { worldStore } from '../../store/worldStore';
 import { ContainerView } from '../World/ContainerView';
 import { useSceneDragAndDrop } from './useSceneDragAndDrop';
 import { RecipePlayer } from './RecipePlayer';
-import { CookbookView } from '../Recipe/CookbookView';
-import { ActionRecorder } from '../Controls/ActionRecorder';
-import { IngredientsSidebar } from '../Controls/IngredientsSidebar';
 import { RecipeDatabaseModal } from '../Controls/RecipeDatabaseModal';
 import { ArchitectureVisualizer } from '../Dev/ArchitectureVisualizer';
 import { useDevMode } from '../../utils/devMode';
@@ -48,6 +45,8 @@ export const Scene: React.FC = () => {
   const containersMap = useStore(worldStore, (state) => state.containers);
   const activeRecipeId = useStore(worldStore, (state) => state.activeRecipeId);
 
+  const isRecording = useStore(worldStore, (state) => state.isRecording);
+
   const activeRecipe = useMemo(
     () => recipes.find((r) => r.id === activeRecipeId) || recipes[0],
     [activeRecipeId]
@@ -63,13 +62,13 @@ export const Scene: React.FC = () => {
       // Always hide despensa (pantry) from main workstation row
       if (container.id === 'despensa') return false;
 
-      // Show all workstations in recorder, database, or architecture modes
-      if (activeMode === 'recorder' || activeMode === 'database' || activeMode === 'architecture') return true;
+      // Show all workstations in recording or dev inspection modes
+      if (isRecording || activeMode === 'database' || activeMode === 'architecture') return true;
 
       // Filter strictly by workstations generated for the active recipe
       return recipeWorkstationIds.has(container.id);
     });
-  }, [containersMap, recipeWorkstationIds, activeMode]);
+  }, [containersMap, recipeWorkstationIds, isRecording, activeMode]);
 
   const renderWorkspace = (leftNode?: React.ReactNode, rightNode?: React.ReactNode) => (
     <div className="scene-workspace">
@@ -105,99 +104,65 @@ export const Scene: React.FC = () => {
           </button>
         </div>
 
-        <div className={`scene-controls-wrapper ${isPanelExpanded ? 'expanded' : 'collapsed'}`}>
-          {/* Mode Selector Navigation Tabs */}
-          <div className="mode-tabs">
-            {effectiveDevMode && (
-              <>
-                <button
-                  type="button"
-                  className={`mode-tab-btn ${activeMode === 'database' ? 'active' : ''}`}
-                  onClick={() => setActiveMode('database')}
-                >
-                  {t('scene.tabs.database')}
-                </button>
-
-                <button
-                  type="button"
-                  className={`mode-tab-btn ${activeMode === 'architecture' ? 'active' : ''}`}
-                  onClick={() => setActiveMode('architecture')}
-                >
-                  📐 Architecture
-                </button>
-              </>
-            )}
-
+        {/* Dev Mode Toolbar - only rendered if developer mode is active */}
+        {isDev && effectiveDevMode && (
+          <div className="dev-admin-bar" style={{ display: 'flex', gap: '8px', padding: '8px 16px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '12px', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b' }}>🛠️ Dev Admin:</span>
             <button
               type="button"
               className={`mode-tab-btn ${activeMode === 'player' ? 'active' : ''}`}
               onClick={() => setActiveMode('player')}
+              style={{ padding: '4px 10px', fontSize: '0.8rem', borderRadius: '8px' }}
             >
-              {t('scene.tabs.playRecipe')}
+              🍳 Player
+            </button>
+            <button
+              type="button"
+              className={`mode-tab-btn ${activeMode === 'database' ? 'active' : ''}`}
+              onClick={() => setActiveMode('database')}
+              style={{ padding: '4px 10px', fontSize: '0.8rem', borderRadius: '8px' }}
+            >
+              {t('scene.tabs.database')}
+            </button>
+            <button
+              type="button"
+              className={`mode-tab-btn ${activeMode === 'architecture' ? 'active' : ''}`}
+              onClick={() => setActiveMode('architecture')}
+              style={{ padding: '4px 10px', fontSize: '0.8rem', borderRadius: '8px' }}
+            >
+              📐 Architecture
             </button>
 
             <button
               type="button"
-              className={`mode-tab-btn ${activeMode === 'cookbook' ? 'active' : ''}`}
-              onClick={() => setActiveMode('cookbook')}
+              className="mode-toggle-pill"
+              style={{
+                marginLeft: 'auto',
+                padding: '4px 10px',
+                borderRadius: '12px',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                border: '1px solid #cbd5e1',
+                backgroundColor: '#e0f2fe',
+                color: '#0369a1',
+              }}
+              onClick={() => setForcePublishMode(true)}
+              title="Switch to Slim Published View"
             >
-              {t('scene.tabs.cookbook')}
+              {t('scene.devModeActive')}
             </button>
-
-            <button
-              type="button"
-              className={`mode-tab-btn ${activeMode === 'recorder' ? 'active' : ''}`}
-              onClick={() => setActiveMode('recorder')}
-            >
-              {t('scene.tabs.actionRecorder')}
-            </button>
-
-            {/* Dev Mode Indicator & Toggle */}
-            {isDev && (
-              <button
-                type="button"
-                className="mode-toggle-pill"
-                style={{
-                  marginLeft: 'auto',
-                  padding: '4px 10px',
-                  borderRadius: '12px',
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: effectiveDevMode ? '#e0f2fe' : '#f1f5f9',
-                  color: effectiveDevMode ? '#0369a1' : '#475569',
-                }}
-                onClick={() => {
-                  setForcePublishMode(!forcePublishMode);
-                  if (effectiveDevMode) setActiveMode('player');
-                }}
-                title="Toggle between Developer Admin Mode and Slim Published View"
-              >
-                {effectiveDevMode ? t('scene.devModeActive') : t('scene.slimPublishPreview')}
-              </button>
-            )}
           </div>
+        )}
 
+        <div className={`scene-controls-wrapper ${isPanelExpanded ? 'expanded' : 'collapsed'}`}>
           {activeMode === 'database' && effectiveDevMode ? (
             <RecipeDatabaseModal />
           ) : activeMode === 'architecture' && effectiveDevMode ? (
             <ArchitectureVisualizer />
-          ) : activeMode === 'cookbook' ? (
-            <CookbookView />
-          ) : activeMode === 'player' ? (
-            <RecipePlayer />
           ) : (
-            <div className="action-recorder-layout">
-              <ActionRecorder isDev={effectiveDevMode} />
-              <IngredientsSidebar />
-            </div>
+            <RecipePlayer renderWorkspace={renderWorkspace} />
           )}
-        </div>
-
-        {/* Render Workspace independently so it doesn't get collapsed */}
-        <div className="scene-workspace-independent" style={{ marginTop: '20px' }}>
-          {renderWorkspace()}
         </div>
       </div>
     </DndContext>

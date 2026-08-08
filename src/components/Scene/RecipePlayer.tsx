@@ -27,6 +27,8 @@ import { RecipeRequirements } from '../Recipe/RecipeRequirements';
 import { ActionReplayer } from '../Controls/ActionReplayer';
 import { WorkstationSelector } from '../Controls/WorkstationSelector';
 import { PlateDishNameModal } from '../Controls/PlateDishNameModal';
+import { CookbookModal } from '../Recipe/CookbookModal';
+import { IngredientsSidebar } from '../Controls/IngredientsSidebar';
 import { extractUsedIngredientsFromActions } from '../../utils/sessionLogUtils';
 import { useTranslation } from '../../i18n/useTranslation';
 import './RecipePlayer.scss';
@@ -350,7 +352,7 @@ function getStepDetails(step?: RecipeStep): { icon: string; text: string; action
 }
 
 interface RecipePlayerProps {
-  renderWorkspace?: (requirementsNode: React.ReactNode) => React.ReactNode;
+  renderWorkspace?: (requirementsNode: React.ReactNode, rightNode?: React.ReactNode) => React.ReactNode;
 }
 
 export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) => {
@@ -360,6 +362,9 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [speed, setSpeed] = useState<number>(1); // 0.5, 1, 2, 3
   const [isIngredientsCollapsed, setIsIngredientsCollapsed] = useState<boolean>(false);
+  const [isCookbookOpen, setIsCookbookOpen] = useState<boolean>(false);
+  const [isRecordingSetup, setIsRecordingSetup] = useState<boolean>(false);
+  const [isIngredientsSidebarOpen, setIsIngredientsSidebarOpen] = useState<boolean>(false);
 
   const runnerRef = useRef<RecipeRunner | null>(null);
   const isExecutingRef = useRef<boolean>(false);
@@ -596,8 +601,10 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
     });
   };
 
+  const [isResetConfirmOpen, setIsResetConfirmOpen] = useState<boolean>(false);
+
   // Full reset of world and player step
-  const handleReset = useCallback(() => {
+  const executeReset = useCallback(() => {
     setIsPlaying(false);
     setCurrentStepIndex(0);
     runnerRef.current = null;
@@ -628,6 +635,10 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
       }
     });
   }, [activeRecipe]);
+
+  const handleReset = useCallback(() => {
+    setIsResetConfirmOpen(true);
+  }, [setIsResetConfirmOpen]);
 
   // Jump to a specific target step index
   const jumpToStep = useCallback(
@@ -973,6 +984,26 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
                 );
               })}
 
+              <button
+                type="button"
+                className="recipe-btn cookbook-trigger-btn"
+                onClick={() => setIsCookbookOpen(true)}
+                title="Open Cookbook & Recipe Catalog"
+              >
+                <span className="recipe-btn-icon">📕</span>
+                <span className="recipe-btn-text">Cookbook</span>
+              </button>
+
+              <button
+                type="button"
+                className={`recipe-btn ${isIngredientsSidebarOpen ? 'active' : ''}`}
+                onClick={() => setIsIngredientsSidebarOpen(!isIngredientsSidebarOpen)}
+                title="Toggle Ingredients & Pantry Catalog Sidebar"
+              >
+                <span className="recipe-btn-icon">📦</span>
+                <span className="recipe-btn-text">Ingredients</span>
+              </button>
+
               {(recordedActions.length > 0 || isRecording) && (
                 <button
                   type="button"
@@ -999,6 +1030,48 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
             </span>
           </div>
         </div>
+
+        {/* Recording Setup Banner - Workstation menus appear ONLY when Record is clicked */}
+        {isRecordingSetup && (
+          <div className="recording-setup-banner">
+            <div className="setup-banner-header">
+              <span className="setup-icon">🛠️</span>
+              <div>
+                <h4>Kitchen Layout & Ingredient Setup</h4>
+                <p>
+                  Choose your kitchen workstation preset below and pick ingredients from the right sidebar.
+                  When your kitchen setup is ready, click <strong>"I am ready!"</strong> to start recording your actions!
+                </p>
+              </div>
+            </div>
+
+            <div className="setup-layout-picker">
+              <WorkstationSelector mode="creator" showKitPresets={true} showAddWorkstations={true} />
+            </div>
+
+            <div className="setup-actions-row">
+              <button
+                type="button"
+                className="i-am-ready-btn"
+                onClick={() => {
+                  setIsRecordingSetup(false);
+                  startRecording();
+                  setSelectedRecipeId('recording');
+                  setCurrentStepIndex(0);
+                }}
+              >
+                ✅ I am ready! (Start Recording)
+              </button>
+              <button
+                type="button"
+                className="cancel-setup-btn"
+                onClick={() => setIsRecordingSetup(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Progress Bar */}
         <div className="player-progress-track">
@@ -1074,24 +1147,22 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
           {/* Record / Stop Recording Toggle */}
           <button
             type="button"
-            className={`ctrl-btn record-btn ${isRecording ? 'is-recording' : ''}`}
+            className={`ctrl-btn record-btn ${isRecording ? 'is-recording' : isRecordingSetup ? 'is-setup' : ''}`}
             onClick={
               isRecording
                 ? handleStopRecordingRequest
-                : () => {
-                    startRecording();
-                    setSelectedRecipeId('recording');
-                    setCurrentStepIndex(0);
-                  }
+                : isRecordingSetup
+                ? () => setIsRecordingSetup(false)
+                : () => setIsRecordingSetup(true)
             }
             title={
               isRecording
                 ? 'Stop recording world interactions'
-                : 'Record world interactions into a serialized recipe'
+                : 'Configure layout and ingredients then start recording'
             }
           >
             <span className={`record-indicator ${isRecording ? 'active' : ''}`}></span>
-            {isRecording ? `⏹ Stop (${recordedActions.length})` : '⏺ Record'}
+            {isRecording ? `⏹ Stop (${recordedActions.length})` : isRecordingSetup ? '⚙️ Setup...' : '⏺ Record'}
           </button>
 
           {/* Download Recipe JSON Link */}
@@ -1113,9 +1184,6 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
               setCurrentStepIndex(0);
             }}
           />
-
-          {/* Workstation Kit Selector */}
-          <WorkstationSelector mode="player" showAddWorkstations={false} />
 
           {/* Kitchen Reset Button */}
           <button
@@ -1162,7 +1230,16 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
 
         {!renderWorkspace && requirementsNode}
       </div>
-      {renderWorkspace && renderWorkspace(requirementsNode)}
+      {renderWorkspace &&
+        renderWorkspace(
+          requirementsNode,
+          isRecordingSetup || isRecording || isIngredientsSidebarOpen ? <IngredientsSidebar /> : undefined
+        )}
+
+      <CookbookModal
+        isOpen={isCookbookOpen}
+        onClose={() => setIsCookbookOpen(false)}
+      />
 
       <PlateDishNameModal
         isOpen={isPlateNameModalOpen}
@@ -1170,6 +1247,45 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
         onConfirm={handleConfirmDishName}
         onSkip={handleSkipDishName}
       />
+
+      {/* Tortilla Reset World Confirmation Modal */}
+      {isResetConfirmOpen && (
+        <div className="reset-confirm-backdrop" onClick={() => setIsResetConfirmOpen(false)}>
+          <div className="reset-confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="tortilla-avatar-header">
+              <span className="tortilla-emoji">🐢</span>
+              <div className="tortilla-header-text">
+                <h3>Tortilla asks:</h3>
+                <p>Are you sure you want to clean and reset the kitchen?</p>
+              </div>
+            </div>
+
+            <div className="reset-confirm-body">
+              <p>All current ingredients, tools, and cooking progress on workstations will be cleared back to initial state.</p>
+            </div>
+
+            <div className="reset-confirm-actions">
+              <button
+                type="button"
+                className="confirm-btn reset-yes-btn"
+                onClick={() => {
+                  setIsResetConfirmOpen(false);
+                  executeReset();
+                }}
+              >
+                🔄 Yes, Reset Kitchen
+              </button>
+              <button
+                type="button"
+                className="confirm-btn reset-cancel-btn"
+                onClick={() => setIsResetConfirmOpen(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

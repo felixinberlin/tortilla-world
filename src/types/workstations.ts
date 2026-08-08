@@ -17,7 +17,7 @@ export type WorkstationId =
   | 'cooking_station'
   | 'serving_station';
 
-export type WorkstationKitId = 'compact' | 'base' | 'profi';
+export type WorkstationKitId = 'compact' | 'base' | 'empty';
 
 export type Workstation = {
   id: WorkstationId;

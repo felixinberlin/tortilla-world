@@ -15,12 +15,26 @@ import type { BaseWorldEvent } from './WorldEvent';
 export type EntityType = 'ingredient' | 'tool' | 'product' | 'mascot' | 'container' | string;
 export type ContainerType = 'storage' | 'board' | 'plate' | 'trash' | 'bowl' | 'sink' | 'workstation' | 'burner';
 
-export interface IngredientState {
-  preparation?: PreparationStyle;
-  cooking?: CookingMethod;
+export interface FlavorNote {
+  sourceCatalogId: string; // e.g., 'garlic', 'rosemary', 'chili'
+  intensity: number;       // 0.0 to 1.0 (or 0 to 100)
+}
+
+export interface EntityState {
+  preparation?: PreparationStyle | string[] | string;
+  cooking?: CookingMethod | string[] | string;
+  doneness?: string;
+  temperature?: number;
+
+  // Property Transfer Extensions:
+  flavorProfile?: FlavorNote[];
+  remainingFlavor?: number; // Default 1.0; decreases as flavor transfers out
+
   status?: string;
   [key: string]: unknown;
 }
+
+export type IngredientState = EntityState;
 
 export interface Entity {
   id: string;
@@ -29,7 +43,7 @@ export interface Entity {
   icon?: string;
   ingredientId?: string;
   status?: string;
-  state?: IngredientState;
+  state?: EntityState;
 }
 
 export interface ContainerRules {

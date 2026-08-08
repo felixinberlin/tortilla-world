@@ -63,7 +63,7 @@ They are controlled by systems.
 
 ---
 
-# Workstations
+# Workstations & Workstation Kits
 
 Workstations represent *where actions can be performed* in the kitchen simulation:
 
@@ -73,6 +73,22 @@ Workstations represent *where actions can be performed* in the kitchen simulatio
 * **Preparation Station (`preparation_station`)**: Mix & combine (`bowl`, `whisk`, `fork`).
 * **Cooking Station (`cooking_station`)**: Apply heat (`pan`, `spatula`).
 * **Serving Station (`serving_station`)**: Plate and serve (`plate`).
+
+## Workstation Kits (`WORKSTATION_KITS`)
+
+Workstation Kits decouple recipes from specific physical kitchen configurations by defining preset layout configurations:
+* **Compact (`compact`)**: Minimalist layout (`board`, `burner1`, `sink`, `trash`, `despensa`).
+* **Base (`base`)**: Standard kitchen layout (`board`, `bowl`, `burner1`, `burner2`, `plate`, `sink`, `trash`, `despensa`).
+* **Empty (`empty`)**: Minimalist canvas layout (`despensa`, `plate`, `trash`).
+
+Session recordings capture `workspace: { kitId, containers }` so `ActionReplayer` automatically restores the exact preset kit or custom workstation layout when loading serialized JSON or Firestore recipes.
+
+## Dynamic Workstations in Creator Mode
+
+In Creator Mode, users can dynamically add or remove workstations:
+* **Add Workstation**: Dispatches `ADD_CONTAINER` to instantiate additional cutting boards, burners, bowls, sinks, plates, or trash containers.
+* **Remove Workstation**: Dispatches `REMOVE_CONTAINER` to delete a workstation container while automatically evacuating contained entities to `despensa`.
+* **Recipe Serialization**: `recordSlice` saves `workspace.containers` in the exported JSON recipe, ensuring custom layouts are fully reconstructed during recipe playback.
 
 ---
 
@@ -213,8 +229,12 @@ Move Action
     v
 Container Validation
     |
+    +--> Capacity Check
+    +--> Duplicate Ingredient Check
+    +--> Workstation Verb / Transformation Capability Check
+    |
     v
-World Store Update
+World Store Update / Mascot Refusal Speech
     |
     v
 React Render

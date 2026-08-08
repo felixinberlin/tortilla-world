@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
 import type { GazePoint, GazeTarget } from "../../systems/gaze";
 import type { MascotState } from "../../systems/mascot";
+import type { MouthState, ArmAction, ArmPose, EyebrowState } from "../../types/emotion";
 import { catalogTools } from "../../data/catalog/tools";
 import "./TortillaSvg.scss";
 
@@ -26,6 +27,9 @@ export interface TortillaSvgProps {
   radius?: number;
   pupilOffset?: { left: GazePoint; right: GazePoint };
   mouth?: string;
+  mouthState?: MouthState;
+  armAction?: ArmAction;
+  eyebrows?: EyebrowState;
   leftEyeRef?: React.RefObject<SVGEllipseElement | null>;
   rightEyeRef?: React.RefObject<SVGEllipseElement | null>;
   width?: number | string;
@@ -42,6 +46,19 @@ export interface TortillaSvgProps {
   rightArmTitle?: string;
   equippedToolId?: string;
 }
+
+const MOUTH_PATHS: Record<MouthState, string> = {
+  smile: "M -10 6 Q 0 16 10 6",
+  frown: "M -10 14 Q 0 4 10 14",
+  open: "M -8 4 Q 0 16 8 4 Z",
+  wide_open: "M -10 2 Q 0 22 10 2 Z",
+  surprised: "M -6 6 A 6 6 0 1 0 6 6 A 6 6 0 1 0 -6 6 Z",
+  talking: "M -8 4 Q 0 14 8 4 Q 0 8 -8 4 Z",
+  laughing: "M -12 2 Q 0 18 12 2 Z",
+  trembling: "M -10 10 Q -5 6 0 10 Q 5 14 10 10",
+  pout: "M -6 12 Q 0 8 6 12",
+  neutral: "M -8 8 L 8 8",
+};
 
 const DEFAULT_POTATOES: Potato[] = [
   { x: -12, y: -10, rx: 4, ry: 3, rotate: 15 },
@@ -62,6 +79,9 @@ export function TortillaSvg({
   radius = 28,
   pupilOffset: externalPupilOffset,
   mouth = "M -10 6 Q 0 16 10 6",
+  mouthState,
+  armAction,
+  eyebrows,
   leftEyeRef,
   rightEyeRef,
   width = 100,
@@ -211,45 +231,85 @@ export function TortillaSvg({
     damping: 18,
   };
 
-  const getLeftHandPos = () => {
-    if (effectiveState === "celebrating") return { x: -28, y: -24 };
-    if (effectiveState === "flipping") return { x: -22, y: -10 };
-    if (isHoldingLeft) return { x: -32, y: -16 };
-    return { x: -30, y: 22 };
+  const getArmInfo = (pose: ArmPose | undefined, isLeft: boolean) => {
+    if (!pose || pose === 'idle') {
+      if (effectiveState === "celebrating") {
+        return {
+          path: isLeft ? "M -26 4 Q -38 -14 -28 -24" : "M 26 4 Q 38 -14 28 -24",
+          hand: isLeft ? { x: -28, y: -24 } : { x: 28, y: -24 },
+        };
+      }
+      if (effectiveState === "flipping") {
+        return {
+          path: isLeft ? "M -26 4 Q -34 0 -22 -10" : "M 26 4 Q 34 0 22 -10",
+          hand: isLeft ? { x: -22, y: -10 } : { x: 22, y: -10 },
+        };
+      }
+      if (isLeft && isHoldingLeft) {
+        return { path: "M -26 4 Q -38 -4 -32 -16", hand: { x: -32, y: -16 } };
+      }
+      if (!isLeft && isHoldingRight) {
+        return { path: "M 26 4 Q 38 -4 32 -16", hand: { x: 32, y: -16 } };
+      }
+      return {
+        path: isLeft ? "M -26 4 Q -36 12 -30 22" : "M 26 4 Q 36 12 30 22",
+        hand: isLeft ? { x: -30, y: 22 } : { x: 30, y: 22 },
+      };
+    }
+
+    switch (pose) {
+      case 'wave':
+        return {
+          path: isLeft ? "M -26 4 Q -38 -18 -32 -26" : "M 26 4 Q 38 -18 32 -26",
+          hand: isLeft ? { x: -32, y: -26 } : { x: 32, y: -26 },
+        };
+      case 'point':
+        return {
+          path: isLeft ? "M -26 4 Q -42 0 -38 -2" : "M 26 4 Q 42 0 38 -2",
+          hand: isLeft ? { x: -38, y: -2 } : { x: 38, y: -2 },
+        };
+      case 'raise':
+      case 'celebrate':
+        return {
+          path: isLeft ? "M -26 4 Q -38 -14 -28 -24" : "M 26 4 Q 38 -14 28 -24",
+          hand: isLeft ? { x: -28, y: -24 } : { x: 28, y: -24 },
+        };
+      case 'cover_face':
+        return {
+          path: isLeft ? "M -26 4 Q -16 -8 -11 -4" : "M 26 4 Q 16 -8 11 -4",
+          hand: isLeft ? { x: -11, y: -4 } : { x: 11, y: -4 },
+        };
+      case 'cross':
+        return {
+          path: isLeft ? "M -26 4 Q -8 8 2 6" : "M 26 4 Q 8 8 -2 6",
+          hand: isLeft ? { x: 2, y: 6 } : { x: -2, y: 6 },
+        };
+      case 'reach':
+        return {
+          path: isLeft ? "M -26 4 Q -36 -6 -32 -10" : "M 26 4 Q 36 -6 32 -10",
+          hand: isLeft ? { x: -32, y: -10 } : { x: 32, y: -10 },
+        };
+      case 'tremble':
+        return {
+          path: isLeft ? "M -26 4 Q -34 10 -28 18" : "M 26 4 Q 34 10 28 18",
+          hand: isLeft ? { x: -28, y: 18 } : { x: 28, y: 18 },
+        };
+      case 'shrug':
+        return {
+          path: isLeft ? "M -26 4 Q -34 -2 -38 6" : "M 26 4 Q 34 -2 38 6",
+          hand: isLeft ? { x: -38, y: 6 } : { x: 38, y: 6 },
+        };
+      default:
+        return {
+          path: isLeft ? "M -26 4 Q -36 12 -30 22" : "M 26 4 Q 36 12 30 22",
+          hand: isLeft ? { x: -30, y: 22 } : { x: 30, y: 22 },
+        };
+    }
   };
 
-  const getRightHandPos = () => {
-    if (effectiveState === "celebrating") return { x: 28, y: -24 };
-    if (effectiveState === "flipping") return { x: 22, y: -10 };
-    if (isHoldingRight) return { x: 32, y: -16 };
-    return { x: 30, y: 22 };
-  };
-
-  const getLeftArmPath = () => {
-    if (effectiveState === "celebrating") {
-      return "M -26 4 Q -38 -14 -28 -24";
-    }
-    if (effectiveState === "flipping") {
-      return "M -26 4 Q -34 0 -22 -10";
-    }
-    if (isHoldingLeft) {
-      return "M -26 4 Q -38 -4 -32 -16";
-    }
-    return "M -26 4 Q -36 12 -30 22";
-  };
-
-  const getRightArmPath = () => {
-    if (effectiveState === "celebrating") {
-      return "M 26 4 Q 38 -14 28 -24";
-    }
-    if (effectiveState === "flipping") {
-      return "M 26 4 Q 34 0 22 -10";
-    }
-    if (isHoldingRight) {
-      return "M 26 4 Q 38 -4 32 -16";
-    }
-    return "M 26 4 Q 36 12 30 22";
-  };
+  const leftArmInfo = getArmInfo(armAction?.left, true);
+  const rightArmInfo = getArmInfo(armAction?.right, false);
+  const resolvedMouthPath = mouthState ? MOUTH_PATHS[mouthState] : (mouth || "M -10 6 Q 0 16 10 6");
 
   return (
     <motion.svg
@@ -346,28 +406,28 @@ export function TortillaSvg({
         style={{ cursor: onLeftArmClick ? 'pointer' : 'default' }}
       >
         <motion.path
-          d={getLeftArmPath()}
+          d={leftArmInfo.path}
           fill="none"
           stroke="transparent"
           strokeWidth="16"
           strokeLinecap="round"
-          animate={{ d: getLeftArmPath() }}
+          animate={{ d: leftArmInfo.path }}
           transition={armTransition}
         />
         <motion.path
-          d={getLeftArmPath()}
+          d={leftArmInfo.path}
           fill="none"
           stroke="#b8731f"
           strokeWidth="3.5"
           strokeLinecap="round"
-          animate={{ d: getLeftArmPath() }}
+          animate={{ d: leftArmInfo.path }}
           transition={armTransition}
           whileHover={onLeftArmClick ? { strokeWidth: 5, stroke: "#d98a28" } : undefined}
           whileTap={onLeftArmClick ? { scale: 0.92 } : undefined}
         />
         {onLeftArmClick && (
           <motion.g
-            animate={{ x: getLeftHandPos().x, y: getLeftHandPos().y }}
+            animate={{ x: leftArmInfo.hand.x, y: leftArmInfo.hand.y }}
             transition={armTransition}
             whileHover={{ scale: 1.25 }}
             whileTap={{ scale: 0.9 }}
@@ -390,28 +450,28 @@ export function TortillaSvg({
         style={{ cursor: onRightArmClick ? 'pointer' : 'default' }}
       >
         <motion.path
-          d={getRightArmPath()}
+          d={rightArmInfo.path}
           fill="none"
           stroke="transparent"
           strokeWidth="16"
           strokeLinecap="round"
-          animate={{ d: getRightArmPath() }}
+          animate={{ d: rightArmInfo.path }}
           transition={armTransition}
         />
         <motion.path
-          d={getRightArmPath()}
+          d={rightArmInfo.path}
           fill="none"
           stroke="#b8731f"
           strokeWidth="3.5"
           strokeLinecap="round"
-          animate={{ d: getRightArmPath() }}
+          animate={{ d: rightArmInfo.path }}
           transition={armTransition}
           whileHover={onRightArmClick ? { strokeWidth: 5, stroke: "#d98a28" } : undefined}
           whileTap={onRightArmClick ? { scale: 0.92 } : undefined}
         />
         {onRightArmClick && (
           <motion.g
-            animate={{ x: getRightHandPos().x, y: getRightHandPos().y }}
+            animate={{ x: rightArmInfo.hand.x, y: rightArmInfo.hand.y }}
             transition={armTransition}
             whileHover={{ scale: 1.25 }}
             whileTap={{ scale: 0.9 }}
@@ -667,13 +727,33 @@ export function TortillaSvg({
         transition={{ type: "spring", stiffness: 300, damping: 20 }}
       />
 
+      {/* Augenbrauen */}
+      {(eyebrows === 'lowered' || eyebrows === 'angry') && (
+        <g stroke="#3b2418" strokeWidth="2.5" strokeLinecap="round">
+          <line x1="-17" y1="-16" x2="-6" y2="-12" />
+          <line x1="17" y1="-16" x2="6" y2="-12" />
+        </g>
+      )}
+      {eyebrows === 'raised' && (
+        <g stroke="#3b2418" strokeWidth="2.5" strokeLinecap="round" fill="none">
+          <path d="M -17 -18 Q -11 -22 -5 -18" />
+          <path d="M 17 -18 Q 11 -22 5 -18" />
+        </g>
+      )}
+      {eyebrows === 'sad' && (
+        <g stroke="#3b2418" strokeWidth="2.5" strokeLinecap="round">
+          <line x1="-17" y1="-12" x2="-6" y2="-16" />
+          <line x1="17" y1="-12" x2="6" y2="-16" />
+        </g>
+      )}
+
       {/* Pupillen-Highlights */}
       <circle cx="-12.5" cy="-8" r="1.2" fill="white" />
       <circle cx="9.5" cy="-8" r="1.2" fill="white" />
 
       {/* Mund */}
       <motion.path
-        d={mouth}
+        d={resolvedMouthPath}
         fill="none"
         stroke="#3b2418"
         strokeWidth="3"
@@ -683,7 +763,7 @@ export function TortillaSvg({
             ? { scale: [1, 1.1, 1] }
             : state === "cooking"
             ? { d: ["M -14 4 Q 0 18 14 4", "M -14 5 Q 0 16 14 5", "M -14 4 Q 0 18 14 4"] }
-            : {}
+            : { d: resolvedMouthPath }
         }
         transition={
           state === "celebrating"
