@@ -12,6 +12,100 @@
  */
 
 import type { RecipeJSON } from '../types/RecipeSchema';
+import type { RecipeStep } from '../types/RecipeStep';
+import type { Container, Entity } from '../types/world';
+
+export interface WorldStateLike {
+  entities: Record<string, Entity>;
+  containers: Record<string, Container>;
+}
+
+export interface RunnerContextLike {
+  getBoundEntityId?: (key?: string) => string | undefined;
+  recipeContext?: { bindings?: Record<string, string> };
+}
+
+/**
+ * Pre-Step Validator: Checks if current world state supports executing the target recipe step.
+ * Returns true if required entities exist and are unconsumed, false otherwise.
+ */
+export function validateNextStep(
+  step: RecipeStep,
+  worldState: WorldStateLike,
+  runnerContext?: RunnerContextLike
+): boolean {
+  if (!step) return false;
+
+  // 1. Check ingredient / target requirement if specified in step
+  const ingredientKey =
+    ('ingredient' in step ? step.ingredient : undefined) ||
+    ('target' in step ? step.target : undefined);
+
+  if (ingredientKey && ingredientKey !== 'mixture') {
+    let boundId: string | undefined;
+
+    if (runnerContext?.getBoundEntityId) {
+      boundId = runnerContext.getBoundEntityId(ingredientKey);
+    } else if (runnerContext?.recipeContext?.bindings) {
+      boundId = runnerContext.recipeContext.bindings[ingredientKey];
+    }
+
+    if (boundId) {
+      const entity = worldState.entities[boundId];
+      if (!entity || entity.state?.consumed) {
+        return false;
+      }
+    } else {
+      // Check if any unconsumed matching ingredient exists in world state
+      const exists = Object.values(worldState.entities).some((e) => {
+        if (!e || e.type !== 'ingredient' || e.state?.consumed) return false;
+        return (
+          e.id === ingredientKey ||
+          e.ingredientId === ingredientKey ||
+          e.name.toLowerCase().includes(ingredientKey.toLowerCase())
+        );
+      });
+
+      if (!exists) {
+        return false;
+      }
+    }
+  }
+
+  // 2. Check inputs for mix / beat / combine steps
+  if (step.action === 'mix' || step.action === 'beat' || step.action === 'combine') {
+    const inputs = step.inputs || step.ingredients || [];
+    for (const inputKey of inputs) {
+      const boundId = runnerContext?.getBoundEntityId
+        ? runnerContext.getBoundEntityId(inputKey)
+        : runnerContext?.recipeContext?.bindings?.[inputKey];
+
+      if (boundId) {
+        const entity = worldState.entities[boundId];
+        if (!entity || entity.state?.consumed) return false;
+      } else {
+        const exists = Object.values(worldState.entities).some((e) => {
+          if (!e || e.type !== 'ingredient' || e.state?.consumed) return false;
+          return (
+            e.id === inputKey ||
+            e.ingredientId === inputKey ||
+            e.name.toLowerCase().includes(inputKey.toLowerCase())
+          );
+        });
+
+        if (!exists) return false;
+      }
+    }
+  }
+
+  // 3. Check explicitly required source container if specified
+  if ('source' in step && typeof step.source === 'string' && step.source) {
+    const container = worldState.containers[step.source];
+    if (!container) return false;
+  }
+
+  return true;
+}
 
 export function validateRecipeJSON(data: unknown): RecipeJSON {
   if (!data || typeof data !== 'object') {

@@ -605,5 +605,40 @@ describe('worldStore container rule enforcement', () => {
       expect(worldStore.getState().containers.burner1.entityIds).toEqual([]);
       expect(worldStore.getState().containers.bowl.entityIds).toEqual(['potato_1']);
     });
+
+    it('automatically applies wash state when an ingredient is moved to a sink', () => {
+      worldStore.setState({
+        entities: {
+          dirty_potato: { id: 'dirty_potato', ingredientId: 'potato', name: 'Dirty Potato', type: 'ingredient', state: {} },
+        },
+        containers: {
+          despensa: { id: 'despensa', name: 'Despensa', type: 'storage', entityIds: ['dirty_potato'] },
+          sink: { id: 'sink', name: 'Sink', type: 'sink', entityIds: [] },
+        },
+      });
+
+      worldStore.getState().dispatch({
+        type: 'MOVE_ENTITY',
+        payload: { entityId: 'dirty_potato', targetContainerId: 'sink', sourceContainerId: 'despensa' },
+      });
+
+      const updatedEntity = worldStore.getState().entities['dirty_potato'];
+      expect(updatedEntity.state?.transformations).toContain('washed');
+      expect(updatedEntity.name).toContain('Washed');
+    });
+
+    it('interrupts auto recipe execution when INTERRUPT_RECIPE is dispatched', () => {
+      worldStore.setState({
+        simMode: 'RECIPE_AUTO',
+      });
+
+      worldStore.getState().dispatch({
+        type: 'INTERRUPT_RECIPE',
+        payload: { reason: 'User paused execution' },
+      });
+
+      expect(worldStore.getState().simMode).toBe('FREE_COOK');
+    });
   });
 });
+

@@ -17,6 +17,7 @@ import { getIngredientCatalogId } from '../../engine/containerRules';
 import { findWorkstationForStep } from '../../engine/workstations';
 import { loadRecipe } from '../recipeLoader';
 import { getRecipeWorkstationIds } from '../recipeWorkstations';
+import { validateNextStep } from '../recipeValidator';
 import type { Recipe, RecipeRequirementDictItem } from '../../types/Recipe';
 import type { RecipeStep } from '../../types/RecipeStep';
 import type { Entity } from '../../types/world';
@@ -404,6 +405,21 @@ export class RecipeRunner implements RecipeRunnerContext {
   }
 
   public async executeStep(step: RecipeStep): Promise<void> {
+    const currentState = worldStore.getState();
+    const isValid = validateNextStep(step, currentState, this);
+
+    if (!isValid) {
+      currentState.interruptRecipe();
+      const msg = `Timeline altered! Missing required item for step: ${step.action}.`;
+      worldStore.getState().dispatch({
+        type: 'SPEAK',
+        payload: { mascotId: this.mascotId, message: msg },
+      });
+      throw new Error(`[RecipeRunner] Step execution halted due to timeline interruption: ${msg}`);
+    }
+
+    worldStore.getState().setSimMode?.('RECIPE_AUTO');
+
     const workstation = findWorkstationForStep(step);
 
     if (!worldStore.getState().userOverride) {

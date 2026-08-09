@@ -114,7 +114,6 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
     container.id.includes('burner') ||
     container.id.includes('pan') ||
     container.id.includes('stove');
-  const isSink = container.type === 'sink' || container.id.includes('sink');
   const isCuttingBoard =
     container.type === 'board' ||
     container.id.includes('board') ||
@@ -298,8 +297,8 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
         {isCookingArea && (
           <button
             type="button"
-            className={`burner-toggle ${container.isOn ? 'burner-toggle--on' : ''}`}
-            title="Toggle Heat"
+            className={`stove-dial-indicator ${container.isOn ? 'stove-dial--on' : ''}`}
+            title={container.isOn ? t('ui.heatOff') : t('ui.heatOn')}
             aria-label={container.isOn ? t('ui.heatOff') : t('ui.heatOn')}
             onClick={(e) => {
               e.stopPropagation();
@@ -312,11 +311,14 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
                 },
               });
             }}
-          />
+          >
+            <span className="dial-label">{container.isOn ? '🔥 ON' : '⭕ OFF'}</span>
+            <span className="dial-led" />
+          </button>
         )}
       </div>
 
-      {(isCookingArea || isSink || isCuttingBoard || isBowl || isPlate || (!isPlate && containerEntities.length > 0) || container.id !== 'despensa') && (
+      {(isCookingArea || (isCuttingBoard && containerEntities.some((e) => !e.state?.consumed)) || (isBowl && (containerEntities.filter((e) => !e.state?.consumed).length >= 2 || (containerEntities.length === 1 && (containerEntities[0].ingredientId === 'mixture' || containerEntities[0].id.includes('mixture'))))) || isPlate || (!isPlate && containerEntities.length > 0) || container.id !== 'despensa') && (
         <div className="container-view__actions">
           {container.id !== 'despensa' && (
             <div className="container-view__leave-row">
@@ -381,24 +383,6 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
                     onChange={(e) => setCookConditionInput(e.target.value)}
                     onClick={(e) => e.stopPropagation()}
                   />
-                  <button
-                    type="button"
-                    className={`container-action-btn toggle-heat-btn ${container.isOn ? 'container-action-btn--active' : ''}`}
-                    aria-label={container.isOn ? t('ui.heatOff') : t('ui.heatOn')}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      dispatch({
-                        type: 'TOGGLE_HEAT',
-                        payload: {
-                          containerId: container.id,
-                          cookCondition: cookConditionInput.trim() || undefined,
-                          isOn: !container.isOn,
-                        },
-                      });
-                    }}
-                  >
-                    🔥 {container.isOn ? t('ui.heatOff') : t('ui.heatOn')}
-                  </button>
                 </div>
               </div>
 
@@ -444,24 +428,7 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
             </div>
           )}
 
-          {isSink && (
-            <button
-              type="button"
-              className="container-action-btn wash-btn"
-              aria-label={t('verbs.wash')}
-              onClick={(e) => {
-                e.stopPropagation();
-                dispatch({
-                  type: 'WASH_CONTAINER_CONTENTS',
-                  payload: { containerId: container.id },
-                });
-              }}
-            >
-              🧼 {t('verbs.wash')}
-            </button>
-          )}
-
-          {isCuttingBoard && (
+          {isCuttingBoard && containerEntities.some((e) => !e.state?.consumed) && (
             <div className="container-view__button-row">
               <button
                 type="button"
@@ -494,7 +461,7 @@ export const ContainerView: React.FC<ContainerViewProps> = ({ container }) => {
             </div>
           )}
 
-          {isBowl && (
+          {isBowl && (containerEntities.filter((e) => !e.state?.consumed).length >= 2 || (containerEntities.length === 1 && (containerEntities[0].ingredientId === 'mixture' || containerEntities[0].id.includes('mixture')))) && (
             <div className="container-view__action-group">
               <div className="container-view__input-row">
                 <input

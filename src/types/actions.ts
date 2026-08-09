@@ -228,6 +228,19 @@ export type WorldAction =
       };
     }
   | {
+      type: 'SET_PANTRY_KIT';
+      payload: {
+        pantryKitId: string;
+      };
+    }
+  | {
+      type: 'INIT_KITCHEN';
+      payload?: {
+        workstationKitId?: import('./workstations').WorkstationKitId;
+        pantryKitId?: string;
+      };
+    }
+  | {
       type: 'ADD_CONTAINER';
       payload: {
         container?: import('./world').Container;
@@ -243,6 +256,32 @@ export type WorldAction =
   | {
       type: 'RESET_WORLD';
       payload?: Record<string, never>;
+    }
+  | {
+      type: 'INTERRUPT_RECIPE';
+      payload?: {
+        reason?: string;
+      };
+    }
+  | {
+      type: 'SPEAK';
+      payload: {
+        mascotId?: string;
+        message: string;
+      };
+    }
+  | {
+      type: 'CELEBRATE';
+      payload?: {
+        mascotId?: string;
+      };
+    }
+  | {
+      type: 'UPDATE_GAZE';
+      payload?: {
+        mascotId?: string;
+        gaze?: unknown;
+      };
     };
 
 

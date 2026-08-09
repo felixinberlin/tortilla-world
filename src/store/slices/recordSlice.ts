@@ -29,6 +29,7 @@ export interface RecordSlice {
   isRecording: boolean;
   recordingStartTime: number | null;
   recordedActions: RecordedAction[];
+  currentActionIndex: number;
   usedIngredients: UsedIngredientInfo[];
   initialRecordingState: SerializedWorldState | null;
   recordedDownloadUrl: string | null;
@@ -38,7 +39,12 @@ export interface RecordSlice {
   stopRecording: (customDishName?: string) => void;
   recordAction: (action: WorldAction) => void;
   clearRecording: () => void;
-  setRecordedActions: (actions: RecordedAction[], customUsedIngredients?: UsedIngredientInfo[]) => void;
+  setRecordedActions: (
+    actions: RecordedAction[],
+    customUsedIngredients?: UsedIngredientInfo[],
+    initialWorldState?: SerializedWorldState | null
+  ) => void;
+  seekTo: (targetIndex: number) => void;
 }
 
 export const createRecordSlice: StateCreator<
@@ -50,6 +56,7 @@ export const createRecordSlice: StateCreator<
   isRecording: false,
   recordingStartTime: null,
   recordedActions: [],
+  currentActionIndex: 0,
   usedIngredients: [],
   initialRecordingState: null,
   recordedDownloadUrl: null,
@@ -67,6 +74,7 @@ export const createRecordSlice: StateCreator<
       state.isRecording = true;
       state.recordingStartTime = Date.now();
       state.recordedActions = [];
+      state.currentActionIndex = 0;
       state.usedIngredients = [];
       state.recordedDownloadUrl = null;
       state.recordedFilename = null;
@@ -87,9 +95,10 @@ export const createRecordSlice: StateCreator<
     set((state) => {
       state.recordedActions.push({
         type: action.type,
-        payload: JSON.parse(JSON.stringify(action.payload)),
+        payload: action.payload ? JSON.parse(JSON.stringify(action.payload)) : {},
         timestampMs,
       });
+      state.currentActionIndex = state.recordedActions.length;
 
       // Track used ingredients / entities during recording
       const payload = action.payload || {};
@@ -186,6 +195,7 @@ export const createRecordSlice: StateCreator<
       actionCount: activeActions.length,
       workspace: {
         kitId: get().activeKitId || 'base',
+        pantryKitId: get().activePantryKitId || 'base_pantry',
         containers: updatedState.containers,
       },
       usedIngredients: updatedState.usedIngredients,
@@ -216,6 +226,7 @@ export const createRecordSlice: StateCreator<
       state.isRecording = false;
       state.recordingStartTime = null;
       state.recordedActions = [];
+      state.currentActionIndex = 0;
       state.usedIngredients = [];
       state.initialRecordingState = null;
       state.recordedDownloadUrl = null;
@@ -223,20 +234,67 @@ export const createRecordSlice: StateCreator<
     });
   },
 
-  setRecordedActions: (actions: RecordedAction[], customUsedIngredients?: UsedIngredientInfo[]) => {
+  setRecordedActions: (
+    actions: RecordedAction[],
+    customUsedIngredients?: UsedIngredientInfo[],
+    initialWorldState?: SerializedWorldState | null
+  ) => {
     const prevUrl = get().recordedDownloadUrl;
     if (prevUrl) {
       URL.revokeObjectURL(prevUrl);
     }
+    const currentEntities = get().entities;
+    const currentContainers = get().containers;
+
     set((state) => {
       state.recordedActions = actions;
+      state.currentActionIndex = actions.length;
       if (customUsedIngredients && customUsedIngredients.length > 0) {
         state.usedIngredients = customUsedIngredients;
       } else {
         state.usedIngredients = extractUsedIngredientsFromActions(actions);
       }
+      if (initialWorldState) {
+        state.initialRecordingState = JSON.parse(JSON.stringify(initialWorldState));
+      } else if (!state.initialRecordingState) {
+        state.initialRecordingState = JSON.parse(
+          JSON.stringify({
+            entities: currentEntities,
+            containers: currentContainers,
+          })
+        );
+      }
       state.recordedDownloadUrl = null;
       state.recordedFilename = null;
+    });
+  },
+
+  seekTo: (targetIndex: number) => {
+    const { recordedActions, initialRecordingState, isRecording } = get();
+    const clampedIndex = Math.max(0, Math.min(targetIndex, recordedActions.length));
+
+    const wasRecording = isRecording;
+    set((state) => {
+      state.isRecording = false;
+    });
+
+    if (initialRecordingState) {
+      set((state) => {
+        state.entities = JSON.parse(JSON.stringify(initialRecordingState.entities));
+        state.containers = JSON.parse(JSON.stringify(initialRecordingState.containers));
+      });
+    } else {
+      get().resetWorld();
+    }
+
+    const actionsToReplay = recordedActions.slice(0, clampedIndex);
+    for (const action of actionsToReplay) {
+      get().dispatch(action as unknown as WorldAction);
+    }
+
+    set((state) => {
+      state.isRecording = wasRecording;
+      state.currentActionIndex = clampedIndex;
     });
   },
 });

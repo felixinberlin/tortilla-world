@@ -24,6 +24,7 @@ import type { RecordedAction } from '../../types/recording';
 import { useTranslation } from '../../i18n/useTranslation';
 import { PlateDishNameModal } from './PlateDishNameModal';
 import { filterUnusedIngredientsFromState } from '../../utils/sessionLogUtils';
+import { exportSessionAsZip } from '../../utils/exporter';
 import './ActionRecorder.scss';
 
 interface ActionRecorderProps {
@@ -612,6 +613,14 @@ export const ActionRecorder: React.FC<ActionRecorderProps> = ({ isDev = true }) 
 
             <button type="button" className="action-btn" onClick={handleDownloadSessionLog}>
               💾 Download Full Session Log (.json)
+            </button>
+
+            <button
+              type="button"
+              className="action-btn"
+              onClick={() => exportSessionAsZip(worldStore.getState(), { title: saveTitle || 'Recorded Session' })}
+            >
+              📦 Download Full Session Bundle (.zip)
             </button>
           </div>
         </div>

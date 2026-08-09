@@ -123,6 +123,410 @@
     }
   }
 
+  /* Active Recipe Analysis View */
+  .active-recipe-analysis {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    .active-recipe-card {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: linear-gradient(135deg, #fffbe3 0%, #fff7ed 100%);
+      border: 2px solid #f59e0b;
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 3px 12px rgba(245, 158, 11, 0.12);
+
+      .recipe-badge-icon {
+        font-size: 2.2rem;
+        width: 56px;
+        height: 56px;
+        background: #ffffff;
+        border-radius: 12px;
+        border: 1px solid #fde68a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      }
+
+      .recipe-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+
+        .recipe-title-row {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+
+          h4 {
+            margin: 0;
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #78350f;
+          }
+
+          .recipe-id-tag {
+            font-size: 0.72rem;
+            font-weight: 700;
+            background: #ffffff;
+            color: #b45309;
+            padding: 2px 8px;
+            border-radius: 6px;
+            border: 1px solid #fde68a;
+          }
+        }
+
+        .recipe-meta-text {
+          margin: 0;
+          font-size: 0.84rem;
+          color: #92400e;
+          line-height: 1.4;
+        }
+      }
+    }
+
+    .arch-section-box {
+      background: #ffffff;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+
+      .section-title-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        h5 {
+          margin: 0;
+          font-size: 0.95rem;
+          font-weight: 800;
+          color: #1e293b;
+        }
+
+        .section-count-badge {
+          font-size: 0.75rem;
+          font-weight: 700;
+          background: #eff6ff;
+          color: #1d4ed8;
+          padding: 3px 10px;
+          border-radius: 12px;
+          border: 1px solid #bfdbfe;
+        }
+      }
+
+      .section-desc {
+        margin: 0;
+        font-size: 0.8rem;
+        color: #64748b;
+        line-height: 1.35;
+      }
+
+      /* Ingredients Analysis Grid */
+      .ingredients-analysis-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 12px;
+
+        .ingredient-analysis-card {
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 10px;
+          padding: 12px;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+
+          .ing-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            .ing-name {
+              font-size: 0.85rem;
+              font-weight: 800;
+              color: #0f172a;
+            }
+
+            .ing-base-id {
+              font-size: 0.7rem;
+              font-weight: 700;
+              color: #64748b;
+              background: #e2e8f0;
+              padding: 1px 6px;
+              border-radius: 4px;
+            }
+          }
+
+          .cap-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #475569;
+            margin-bottom: 3px;
+            display: block;
+          }
+
+          .cap-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+
+            .cap-chip {
+              font-size: 0.7rem;
+              font-weight: 700;
+              background: #dbeafe;
+              color: #1e40af;
+              padding: 2px 6px;
+              border-radius: 4px;
+            }
+
+            .no-cap-text {
+              font-size: 0.72rem;
+              color: #94a3b8;
+              font-style: italic;
+            }
+          }
+
+          .ing-live-locations {
+            border-top: 1px dashed #e2e8f0;
+            padding-top: 6px;
+
+            .locations-list {
+              display: flex;
+              flex-direction: column;
+              gap: 4px;
+
+              .location-item {
+                display: flex;
+                flex-direction: column;
+                background: #ffffff;
+                border: 1px solid #cbd5e1;
+                border-radius: 6px;
+                padding: 4px 8px;
+
+                .loc-container {
+                  font-size: 0.75rem;
+                  font-weight: 700;
+                  color: #0d9488;
+                }
+
+                .loc-state {
+                  font-size: 0.7rem;
+                  color: #475569;
+                }
+              }
+            }
+
+            .empty-loc-text {
+              font-size: 0.72rem;
+              color: #b45309;
+              font-weight: 600;
+            }
+          }
+        }
+      }
+
+      /* Workstations Analysis Grid */
+      .workstations-analysis-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+        gap: 12px;
+
+        .workstation-analysis-card {
+          background: #f8fafc;
+          border: 1.5px solid #cbd5e1;
+          border-radius: 10px;
+          padding: 12px;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+
+          &.required {
+            border-color: #f59e0b;
+            background: #fffdf5;
+          }
+
+          &.is-heating {
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.4);
+          }
+
+          .ws-card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+
+            .ws-title-group {
+              display: flex;
+              flex-direction: column;
+
+              .ws-name {
+                font-size: 0.88rem;
+                font-weight: 800;
+                color: #0f172a;
+              }
+
+              .ws-id-code {
+                font-size: 0.68rem;
+                color: #64748b;
+              }
+            }
+
+            .ws-req-badge {
+              font-size: 0.68rem;
+              font-weight: 800;
+              padding: 2px 6px;
+              border-radius: 4px;
+
+              &.active-req {
+                background: #fef3c7;
+                color: #92400e;
+                border: 1px solid #fde68a;
+              }
+
+              &.idle {
+                background: #f1f5f9;
+                color: #64748b;
+              }
+            }
+          }
+
+          .ws-heating-banner {
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: #b91c1c;
+            background: #fef2f2;
+            border: 1px solid #fca5a5;
+            padding: 3px 8px;
+            border-radius: 6px;
+            text-align: center;
+          }
+
+          .verb-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+
+            .ws-verb-chip {
+              font-size: 0.68rem;
+              font-weight: 700;
+              background: #f1f5f9;
+              color: #334155;
+              padding: 2px 6px;
+              border-radius: 4px;
+            }
+          }
+
+          .ws-contents {
+            border-top: 1px dashed #e2e8f0;
+            padding-top: 6px;
+
+            .items-pills {
+              display: flex;
+              flex-wrap: wrap;
+              gap: 4px;
+
+              .item-pill {
+                font-size: 0.72rem;
+                font-weight: 700;
+                background: #ffffff;
+                border: 1px solid #cbd5e1;
+                color: #0f172a;
+                padding: 2px 6px;
+                border-radius: 4px;
+              }
+            }
+
+            .empty-ws-text {
+              font-size: 0.72rem;
+              color: #94a3b8;
+              font-style: italic;
+            }
+          }
+        }
+      }
+
+      /* Recipe Steps Pipeline Flow */
+      .recipe-steps-pipeline {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+
+        .recipe-step-node {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
+          padding: 8px 12px;
+
+          .step-idx {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: #dbeafe;
+            color: #1e40af;
+            font-size: 0.78rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+          }
+
+          .step-details {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+
+            .step-action-row {
+              display: flex;
+              align-items: center;
+              gap: 6px;
+
+              .step-verb {
+                font-size: 0.75rem;
+                font-weight: 800;
+                background: #fef3c7;
+                color: #78350f;
+                padding: 1px 6px;
+                border-radius: 4px;
+              }
+
+              .step-ent-tag, .step-ws-tag {
+                font-size: 0.7rem;
+                font-weight: 700;
+                color: #475569;
+              }
+            }
+
+            .step-desc-text {
+              margin: 0;
+              font-size: 0.78rem;
+              color: #334155;
+            }
+          }
+        }
+
+        .no-steps-box {
+          font-size: 0.8rem;
+          color: #64748b;
+          font-style: italic;
+          padding: 12px;
+          background: #f8fafc;
+          border-radius: 8px;
+        }
+      }
+    }
+  }
+
   /* Pipeline Diagram View */
   .pipeline-flow {
     display: flex;

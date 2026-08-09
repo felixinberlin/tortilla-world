@@ -20,6 +20,7 @@ import type { WorldAction } from '../../types/actions';
 import type { RecordedAction } from '../../types/recording';
 import { detectRecipeFormat, getPlayableActionsFromFormat } from '../../utils/recipeFormatDetector';
 import { extractUsedIngredientsFromActions } from '../../utils/sessionLogUtils';
+import { TimelineScrubber } from './TimelineScrubber';
 import './ActionReplayer.scss';
 
 export interface ActionReplayerProps {
@@ -44,8 +45,10 @@ export const ActionReplayer: React.FC<ActionReplayerProps> = ({
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const recordedActions = useStore(worldStore, (state) => state.recordedActions);
+  const currentActionIndex = useStore(worldStore, (state) => state.currentActionIndex ?? 0);
+  const seekTo = useStore(worldStore, (state) => state.seekTo);
+
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
-  const [currentStep, setCurrentStep] = useState<number>(0);
   const [delayMs, setDelayMs] = useState<number>(defaultDelayMs);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
@@ -77,7 +80,7 @@ export const ActionReplayer: React.FC<ActionReplayerProps> = ({
   }, []);
 
   const totalSteps = recordedActions.length;
-  const effectiveCurrentStep = Math.min(currentStep, totalSteps);
+  const effectiveCurrentStep = Math.min(currentActionIndex, totalSteps);
 
   const handleUploadClick = () => {
     setErrorMessage(null);
@@ -114,15 +117,17 @@ export const ActionReplayer: React.FC<ActionReplayerProps> = ({
     const fullLog = (foundObj?.formats as Record<string, unknown>)?.fullSessionLog as Record<string, unknown> | undefined;
     const workspaceObj = (foundObj?.workspace || fullLog?.workspace) as Record<string, unknown> | undefined;
     const targetKitId = (workspaceObj?.kitId as string) || 'base';
+    const targetPantryKitId = (workspaceObj?.pantryKitId as string) || undefined;
     const customContainers = workspaceObj?.containers as Record<string, import('../../types/world').Container> | undefined;
 
     worldStore.getState().resetWorld(
       targetKitId as import('../../types/workstations').WorkstationKitId,
-      customContainers
+      customContainers,
+      targetPantryKitId
     );
     const extractedIngs = extractUsedIngredientsFromActions(playable.actions);
     worldStore.getState().setRecordedActions(playable.actions as unknown as RecordedAction[], extractedIngs);
-    setCurrentStep(0);
+    seekTo(0);
     window.dispatchEvent(new CustomEvent('select-recorded-session'));
     setErrorMessage(null);
     setInfoMessage(
@@ -162,15 +167,17 @@ export const ActionReplayer: React.FC<ActionReplayerProps> = ({
           const fileFullLog = parsedObj?.fullSessionLog as Record<string, unknown> | undefined;
           const fileWorkspaceObj = (parsedObj?.workspace || fileFullLog?.workspace) as Record<string, unknown> | undefined;
           const fileKitId = (fileWorkspaceObj?.kitId as string) || 'base';
+          const filePantryKitId = (fileWorkspaceObj?.pantryKitId as string) || undefined;
           const fileContainers = fileWorkspaceObj?.containers as Record<string, import('../../types/world').Container> | undefined;
 
           worldStore.getState().resetWorld(
             fileKitId as import('../../types/workstations').WorkstationKitId,
-            fileContainers
+            fileContainers,
+            filePantryKitId
           );
           const extractedIngs = extractUsedIngredientsFromActions(playable.actions);
           worldStore.getState().setRecordedActions(playable.actions as unknown as RecordedAction[], extractedIngs);
-          setCurrentStep(0);
+          seekTo(0);
           window.dispatchEvent(new CustomEvent('select-recorded-session'));
           setInfoMessage(
             `Loaded "${file.name}" [Type: ${detected.typeLabel}] (${playable.actions.length} ${
@@ -186,7 +193,7 @@ export const ActionReplayer: React.FC<ActionReplayerProps> = ({
 
       reader.readAsText(file);
     },
-    []
+    [seekTo]
   );
 
   const handlePlayAll = useCallback(async () => {
@@ -194,15 +201,15 @@ export const ActionReplayer: React.FC<ActionReplayerProps> = ({
     setIsPlaying(true);
     onPlaybackStart?.();
 
-    const reset = currentStep === 0;
-    const remainingActions = recordedActions.slice(currentStep) as unknown as WorldAction[];
-    const startOffset = currentStep;
+    const reset = currentActionIndex === 0;
+    const remainingActions = recordedActions.slice(currentActionIndex) as unknown as WorldAction[];
+    const startOffset = currentActionIndex;
 
     await actionPlayer.playLog(remainingActions, {
       delayMs,
       resetWorld: reset,
       onStep: (curr) => {
-        setCurrentStep(startOffset + curr);
+        seekTo(startOffset + curr);
       },
       onComplete: () => {
         setIsPlaying(false);
@@ -212,7 +219,7 @@ export const ActionReplayer: React.FC<ActionReplayerProps> = ({
         setIsPlaying(false);
       },
     });
-  }, [recordedActions, currentStep, delayMs, onPlaybackStart, onPlaybackComplete]);
+  }, [recordedActions, currentActionIndex, delayMs, onPlaybackStart, onPlaybackComplete, seekTo]);
 
   const handleStop = () => {
     actionPlayer.stop();
@@ -220,28 +227,20 @@ export const ActionReplayer: React.FC<ActionReplayerProps> = ({
   };
 
   const handleStepForward = useCallback(() => {
-    if (currentStep < recordedActions.length) {
-      const nextAction = recordedActions[currentStep];
-      worldStore.getState().dispatch(nextAction as unknown as WorldAction);
-      setCurrentStep((prev) => prev + 1);
+    if (currentActionIndex < recordedActions.length) {
+      seekTo(currentActionIndex + 1);
     }
-  }, [currentStep, recordedActions]);
+  }, [currentActionIndex, recordedActions.length, seekTo]);
 
   const handleStepBack = useCallback(() => {
-    if (currentStep > 0) {
-      const targetIndex = currentStep - 1;
-      worldStore.getState().dispatch({ type: 'RESET_WORLD' });
-      for (let i = 0; i < targetIndex; i++) {
-        worldStore.getState().dispatch(recordedActions[i] as unknown as WorldAction);
-      }
-      setCurrentStep(targetIndex);
+    if (currentActionIndex > 0) {
+      seekTo(currentActionIndex - 1);
     }
-  }, [currentStep, recordedActions]);
+  }, [currentActionIndex, seekTo]);
 
   const handleResetSteps = useCallback(() => {
-    worldStore.getState().dispatch({ type: 'RESET_WORLD' });
-    setCurrentStep(0);
-  }, []);
+    seekTo(0);
+  }, [seekTo]);
 
   const percent = totalSteps > 0 ? Math.round((effectiveCurrentStep / totalSteps) * 100) : 0;
 
@@ -293,84 +292,95 @@ export const ActionReplayer: React.FC<ActionReplayerProps> = ({
       )}
 
       {showControls && (
-        <>
-          {totalSteps > 0 && !isPlaying && (
-            <div className="step-controls-group">
-              <button
-                type="button"
-                className="replayer-btn step-btn"
-                onClick={handleStepBack}
-                disabled={effectiveCurrentStep === 0}
-                title="Step back to previous recorded action"
-              >
-                ⏮️ Step Back
-              </button>
+        <div className="vcr-dock">
+          <div className="vcr-controls-row">
+            {!isPlaying ? (
+              <div className="step-controls-group">
+                <button
+                  type="button"
+                  className="replayer-btn step-btn"
+                  onClick={handleStepBack}
+                  disabled={effectiveCurrentStep === 0}
+                  title="Step back to previous recorded action (Rewind)"
+                  aria-label="Rewind"
+                >
+                  ⏮️
+                </button>
 
-              <button
-                type="button"
-                className="replayer-btn step-btn step-forward-btn"
-                onClick={handleStepForward}
-                disabled={effectiveCurrentStep >= totalSteps}
-                title="Step forward to next recorded action"
-              >
-                ⏭️ Step Forward
-              </button>
+                <button
+                  type="button"
+                  className="replayer-btn play-btn"
+                  onClick={handlePlayAll}
+                  disabled={totalSteps === 0 || effectiveCurrentStep >= totalSteps}
+                  title="Play all recorded actions"
+                  aria-label="Play"
+                >
+                  ▶️ Play
+                </button>
 
-              <button
-                type="button"
-                className="replayer-btn play-btn"
-                onClick={handlePlayAll}
-                title="Play all remaining actions"
-              >
-                ▶️ Play
-              </button>
+                <button
+                  type="button"
+                  className="replayer-btn step-btn step-forward-btn"
+                  onClick={handleStepForward}
+                  disabled={totalSteps === 0 || effectiveCurrentStep >= totalSteps}
+                  title="Step forward to next recorded action (Fast-Forward)"
+                  aria-label="Fast Forward"
+                >
+                  ⏭️
+                </button>
 
-              <button
-                type="button"
-                className="replayer-btn reset-btn"
-                onClick={handleResetSteps}
-                title="Reset world state to step 0"
-              >
-                🔄 Reset
-              </button>
-            </div>
-          )}
-
-          {isPlaying && (
-            <button
-              type="button"
-              className="replayer-btn stop-btn"
-              onClick={handleStop}
-              title="Stop action playback"
-            >
-              ⏹ Stop Playback
-            </button>
-          )}
-
-          {!isPlaying && (
-            <select
-              className="delay-select"
-              value={delayMs}
-              onChange={(e) => setDelayMs(Number(e.target.value))}
-              title="Playback speed step delay"
-            >
-              <option value={100}>Fast (100ms)</option>
-              <option value={300}>Normal (300ms)</option>
-              <option value={600}>Slow (600ms)</option>
-            </select>
-          )}
-
-          {totalSteps > 0 && (
-            <div className="playback-status">
-              <span>
-                Step {effectiveCurrentStep} / {totalSteps}
-              </span>
-              <div className="progress-bar-container">
-                <div className="progress-bar-fill" style={{ width: `${percent}%` }} />
+                <button
+                  type="button"
+                  className="replayer-btn reset-btn"
+                  onClick={handleResetSteps}
+                  disabled={totalSteps === 0}
+                  title="Reset world state to initial step 0"
+                  aria-label="Reset"
+                >
+                  🔄 Reset
+                </button>
               </div>
-            </div>
-          )}
-        </>
+            ) : (
+              <button
+                type="button"
+                className="replayer-btn stop-btn"
+                onClick={handleStop}
+                title="Stop action playback"
+                aria-label="Pause"
+              >
+                ⏸ Pause
+              </button>
+            )}
+
+            {!isPlaying && (
+              <select
+                className="delay-select"
+                value={delayMs}
+                onChange={(e) => setDelayMs(Number(e.target.value))}
+                title="Playback speed step delay"
+              >
+                <option value={100}>⚡ 100ms</option>
+                <option value={300}>⏱️ 300ms</option>
+                <option value={600}>🐢 600ms</option>
+              </select>
+            )}
+
+            {totalSteps > 0 && (
+              <div className="playback-status">
+                <span>
+                  Step {effectiveCurrentStep} / {totalSteps}
+                </span>
+                <div className="progress-bar-container">
+                  <div className="progress-bar-fill" style={{ width: `${percent}%` }} />
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="vcr-scrubber-row">
+            <TimelineScrubber disabled={isPlaying} />
+          </div>
+        </div>
       )}
 
       {infoMessage && <span className="info-message" style={{ color: '#0d9488', fontSize: '0.8rem', fontWeight: 600 }}>{infoMessage}</span>}

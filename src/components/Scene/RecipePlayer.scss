@@ -10,6 +10,10 @@
 @use '../../styles/variables' as *;
 @use '../../styles/mixins' as *;
 
+.scene-container {
+  padding-bottom: 90px;
+}
+
 /* === Mobile Layout Controls === */
 .mobile-panel-toggle {
   display: none;
@@ -885,5 +889,160 @@
   100% {
     transform: scale(1);
     opacity: 1;
+  }
+}
+
+.vcr-dock {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 990;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid #e2e8f0;
+  padding: 10px 20px;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .vcr-controls-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+
+    .vcr-status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 5px 12px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+
+      .step-count {
+        font-size: 0.85rem;
+        font-weight: 800;
+        color: #1e293b;
+      }
+
+      .speed-badge {
+        font-size: 0.78rem;
+        font-weight: 800;
+        padding: 2px 6px;
+        border-radius: 4px;
+        background: #fef3c7;
+        color: #92400e;
+        border: 1px solid #fde68a;
+      }
+    }
+
+    .step-controls-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .save-record-controls-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+
+      .save-recipe-btn {
+        background: linear-gradient(135deg, $tortilla-yellow, $tortilla-yellow-hover);
+        color: #ffffff;
+        border: none;
+        box-shadow: 0 2px 6px rgba(232, 168, 56, 0.3);
+
+        &:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 4px 10px rgba(232, 168, 56, 0.4);
+        }
+      }
+    }
+
+    .speed-pills {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+
+      .speed-pill {
+        border: 1px solid #cbd5e1;
+        background: #ffffff;
+        color: #334155;
+        font-size: 0.78rem;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.18s ease;
+
+        &:hover {
+          border-color: #64748b;
+          background: #f8fafc;
+        }
+
+        &.active {
+          background: #0d9488;
+          color: #ffffff;
+          border-color: #0d9488;
+          box-shadow: 0 2px 6px rgba(13, 148, 136, 0.3);
+        }
+      }
+    }
+  }
+
+  .vcr-scrubber-row {
+    width: 100%;
+
+    .stepper-dots {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      flex-wrap: wrap;
+
+      .step-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #cbd5e1;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+          transform: scale(1.3);
+          background: $tortilla-yellow;
+        }
+
+        &.completed {
+          background: #0d9488;
+        }
+
+        &.active {
+          background: $terracotta;
+          transform: scale(1.4);
+          box-shadow: 0 0 8px rgba(217, 83, 79, 0.6);
+        }
+      }
+    }
+  }
+
+  @media (max-width: 600px) {
+    padding: 8px 12px;
+    gap: 6px;
+
+    .vcr-controls-row {
+      justify-content: center;
+      gap: 6px;
+    }
   }
 }

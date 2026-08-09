@@ -20,16 +20,22 @@ export type WorldStateStore = {
   events: WorldEvent[];
   activeKitId?: WorkstationKitId;
   setWorkstationKit: (kitId: WorkstationKitId) => void;
+  activePantryKitId?: string;
+  setPantryKit: (pantryKitId: string) => void;
   activeRecipeName?: string;
   setActiveRecipeName: (name: string) => void;
   activeRecipeId?: string;
   setActiveRecipeId: (recipeId: string) => void;
+  simMode?: 'RECIPE_AUTO' | 'FREE_COOK';
+  setSimMode: (mode: 'RECIPE_AUTO' | 'FREE_COOK') => void;
+  interruptRecipe: () => void;
   dispatch: (action: WorldAction) => void;
   emitEvent: (event: WorldEvent) => void;
   onEvent: (listener: (event: WorldEvent) => void) => () => void;
   resetWorld: (
     target?: WorkstationKitId | Record<string, Container>,
-    customContainers?: Record<string, Container>
+    customContainers?: Record<string, Container>,
+    pantryKitId?: string
   ) => void;
 } & EntitySlice &
   ContainerSlice &

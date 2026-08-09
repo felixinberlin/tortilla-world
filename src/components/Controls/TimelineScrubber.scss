@@ -1,0 +1,136 @@
+/**
+ * FILE: src/components/Controls/TimelineScrubber.scss
+ *
+ * PURPOSE:
+ * SCSS styles for the TimelineScrubber interactive range slider.
+ */
+
+@use 'sass:color';
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.timeline-scrubber {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  max-width: 480px;
+  padding: 10px 14px;
+  background: #ffffff;
+  border: 1px solid $warm-border;
+  border-radius: $radius-md;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+  &.compact-scrubber {
+    padding: 4px 8px;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    max-width: 320px;
+
+    .scrubber-header {
+      font-size: 11px;
+    }
+
+    .scrubber-input {
+      height: 6px;
+    }
+  }
+
+  .scrubber-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: $dark-brown;
+
+    .scrubber-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .scrubber-counter {
+      font-size: 12px;
+      font-weight: 700;
+      color: #64748b;
+      background: #f1f5f9;
+      padding: 2px 8px;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+    }
+  }
+
+  .scrubber-track-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+
+    .scrubber-input {
+      width: 100%;
+      height: 8px;
+      appearance: none;
+      -webkit-appearance: none;
+      background: #e2e8f0;
+      border-radius: 4px;
+      outline: none;
+      cursor: pointer;
+      transition: background 0.15s ease;
+
+      &:focus {
+        background: #cbd5e1;
+      }
+
+      &::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: $tortilla-yellow;
+        border: 2px solid #ffffff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        cursor: pointer;
+        transition: transform 0.15s ease, background-color 0.15s ease;
+
+        &:hover {
+          transform: scale(1.15);
+          background: $tortilla-yellow-hover;
+        }
+      }
+
+      &::-moz-range-thumb {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: $tortilla-yellow;
+        border: 2px solid #ffffff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        cursor: pointer;
+        transition: transform 0.15s ease, background-color 0.15s ease;
+
+        &:hover {
+          transform: scale(1.15);
+          background: $tortilla-yellow-hover;
+        }
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+
+        &::-webkit-slider-thumb {
+          cursor: not-allowed;
+          background: #94a3b8;
+        }
+
+        &::-moz-range-thumb {
+          cursor: not-allowed;
+          background: #94a3b8;
+        }
+      }
+    }
+  }
+}

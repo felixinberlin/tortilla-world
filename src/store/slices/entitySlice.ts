@@ -143,10 +143,13 @@ export const createEntitySlice: StateCreator<
 
     let containerId: string | undefined;
     for (const cId in get().containers) {
-      if (get().containers[cId].entityIds.includes(entityId)) {
+      if (cId !== 'despensa' && get().containers[cId].entityIds.includes(entityId)) {
         containerId = cId;
         break;
       }
+    }
+    if (!containerId && get().containers.despensa?.entityIds.includes(entityId)) {
+      containerId = 'despensa';
     }
 
     set(
@@ -162,7 +165,7 @@ export const createEntitySlice: StateCreator<
         };
 
         if (preparation === 'peeled' && containerId && state.containers[containerId]) {
-          const peelEntity = createPeelEntity(entity);
+          const peelEntity = createPeelEntity(targetEntity);
           if (!state.entities[peelEntity.id]) {
             state.entities[peelEntity.id] = peelEntity;
             state.containers[containerId].entityIds.push(peelEntity.id);
@@ -207,10 +210,13 @@ export const createEntitySlice: StateCreator<
 
     let containerId: string | undefined;
     for (const cId in get().containers) {
-      if (get().containers[cId].entityIds.includes(entityId)) {
+      if (cId !== 'despensa' && get().containers[cId].entityIds.includes(entityId)) {
         containerId = cId;
         break;
       }
+    }
+    if (!containerId && get().containers.despensa?.entityIds.includes(entityId)) {
+      containerId = 'despensa';
     }
 
     set(

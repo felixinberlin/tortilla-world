@@ -19,6 +19,12 @@ import { ingredients } from '../../data/catalog/ingredients';
 import { EntityView } from '../World/EntityView';
 import { useTranslation } from '../../i18n/useTranslation';
 import type { Entity } from '../../types/world';
+import {
+  getIngredientConfig,
+  getIngredientCountAndUnit,
+  formatIngredientAmountLabel,
+  syncIngredientQuantity,
+} from '../../utils/ingredientAmountUtils';
 import './IngredientsSidebar.scss';
 
 const LOCAL_STORAGE_KEY = 'tortilla_world_basic_ingredient_ids';
@@ -50,8 +56,6 @@ interface DroppableCategoryProps {
   isBasic: boolean;
   entitiesInStore: Record<string, Entity>;
   onQuickAdd: (id: string) => void;
-  onAddToKitchen: (id: string) => void;
-  onRemoveFromKitchen: (id: string) => void;
   onMoveCategory: (ingredientId: string, targetCategory: 'basic' | 'other') => void;
   onDropNative: (e: React.DragEvent, targetCategory: 'basic' | 'other') => void;
 }
@@ -63,8 +67,6 @@ const DroppableCategoryList: React.FC<DroppableCategoryProps> = ({
   isBasic,
   entitiesInStore,
   onQuickAdd,
-  onAddToKitchen,
-  onRemoveFromKitchen,
   onMoveCategory,
   onDropNative,
 }) => {
@@ -93,7 +95,35 @@ const DroppableCategoryList: React.FC<DroppableCategoryProps> = ({
       ) : (
         <div className="items-grid">
           {items.map((item) => {
-            const existsInStore = Boolean(entitiesInStore[item.id]);
+            const catalogId = item.ingredientId || item.id;
+            const { count, unit } = getIngredientCountAndUnit(catalogId, entitiesInStore);
+            const config = getIngredientConfig(catalogId);
+            const existsInStore = count > 0;
+            const displayLabel = formatIngredientAmountLabel(catalogId, count > 0 ? count : config.defaultQty, unit);
+
+            const handleStepMinus = () => {
+              const currentQty = count > 0 ? count : 0;
+              const nextQty = Math.max(0, currentQty - config.step);
+              syncIngredientQuantity(catalogId, nextQty, unit);
+            };
+
+            const handleStepPlus = () => {
+              const currentQty = count > 0 ? count : 0;
+              const nextQty = currentQty === 0 ? config.defaultQty : currentQty + config.step;
+              syncIngredientQuantity(catalogId, nextQty, unit);
+            };
+
+            const handleQtyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+              const val = parseInt(e.target.value, 10);
+              const newQty = isNaN(val) ? 0 : Math.max(0, val);
+              syncIngredientQuantity(catalogId, newQty, unit);
+            };
+
+            const handleUnitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+              const newUnit = e.target.value;
+              const currentQty = count > 0 ? count : config.defaultQty;
+              syncIngredientQuantity(catalogId, currentQty, newUnit);
+            };
 
             return (
               <div
@@ -109,6 +139,64 @@ const DroppableCategoryList: React.FC<DroppableCategoryProps> = ({
                 <div className="item-entity-wrapper">
                   <EntityView entity={item} containerId="despensa" readOnly={false} />
                 </div>
+
+                {/* Amount & Unit Selector Row */}
+                <div className="item-amount-controls">
+                  <div className="amount-label-preview">
+                    {count > 0 ? (
+                      <span className="amount-active">📦 {displayLabel}</span>
+                    ) : (
+                      <span className="amount-inactive">Target: {displayLabel}</span>
+                    )}
+                  </div>
+
+                  <div className="amount-stepper-row">
+                    <button
+                      type="button"
+                      className="stepper-btn btn-minus"
+                      onClick={handleStepMinus}
+                      title={`Decrease ${item.name} quantity`}
+                    >
+                      -
+                    </button>
+                    <input
+                      type="number"
+                      className="qty-input"
+                      value={count > 0 ? count : ''}
+                      placeholder={`${config.defaultQty}`}
+                      onChange={handleQtyChange}
+                      min={0}
+                      max={10000}
+                      title="Set exact quantity"
+                    />
+                    <button
+                      type="button"
+                      className="stepper-btn btn-plus"
+                      onClick={handleStepPlus}
+                      title={`Increase ${item.name} quantity`}
+                    >
+                      +
+                    </button>
+
+                    {config.units.length > 1 ? (
+                      <select
+                        className="unit-select"
+                        value={unit}
+                        onChange={handleUnitChange}
+                        title="Select unit"
+                      >
+                        {config.units.map((u) => (
+                          <option key={u} value={u}>
+                            {u}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span className="unit-badge">{unit}</span>
+                    )}
+                  </div>
+                </div>
+
                 <div className="item-card-actions">
                   {existsInStore ? (
                     <>
@@ -123,7 +211,7 @@ const DroppableCategoryList: React.FC<DroppableCategoryProps> = ({
                       <button
                         type="button"
                         className="remove-from-kitchen-btn"
-                        onClick={() => onRemoveFromKitchen(item.id)}
+                        onClick={() => syncIngredientQuantity(catalogId, 0, unit)}
                         title={`Remove ${item.name} from kitchen`}
                       >
                         ❌ Remove
@@ -134,10 +222,10 @@ const DroppableCategoryList: React.FC<DroppableCategoryProps> = ({
                       <button
                         type="button"
                         className="add-to-kitchen-btn"
-                        onClick={() => onAddToKitchen(item.id)}
-                        title={`Add ${item.name} to kitchen despensa`}
+                        onClick={() => syncIngredientQuantity(catalogId, config.defaultQty, unit)}
+                        title={`Add ${displayLabel} to kitchen`}
                       >
-                        ➕ Add
+                        ➕ Add ({config.defaultQty} {unit})
                       </button>
                       <button
                         type="button"
@@ -293,15 +381,6 @@ export const IngredientsSidebar: React.FC = () => {
     }
   };
 
-  // Handle removing an ingredient from the kitchen
-  const handleRemoveFromKitchen = (entityId: string) => {
-    const state = worldStore.getState();
-    state.dispatch({
-      type: 'REMOVE_ENTITY',
-      payload: { entityId },
-    });
-  };
-
   // Handle quick-adding / taking an ingredient into Tortilla's hands (up to 2 items max)
   const handleQuickAdd = (entityId: string) => {
     const state = worldStore.getState();
@@ -423,8 +502,6 @@ export const IngredientsSidebar: React.FC = () => {
               isBasic={true}
               entitiesInStore={entities}
               onQuickAdd={handleQuickAdd}
-              onAddToKitchen={handleAddToKitchen}
-              onRemoveFromKitchen={handleRemoveFromKitchen}
               onMoveCategory={handleMoveCategory}
               onDropNative={handleDropNative}
             />
@@ -451,8 +528,6 @@ export const IngredientsSidebar: React.FC = () => {
                 isBasic={false}
                 entitiesInStore={entities}
                 onQuickAdd={handleQuickAdd}
-                onAddToKitchen={handleAddToKitchen}
-                onRemoveFromKitchen={handleRemoveFromKitchen}
                 onMoveCategory={handleMoveCategory}
                 onDropNative={handleDropNative}
               />

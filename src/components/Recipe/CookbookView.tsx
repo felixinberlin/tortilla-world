@@ -8,11 +8,16 @@ import type { Recipe } from '../../types/Recipe';
 import { useTranslation } from '../../i18n/useTranslation';
 import { formatRecipeSteps } from '../../systems/recipeStepFormatter';
 import { translateHumanActionsToRecipe } from '../../systems/recipeTranslator';
-import { fetchAllRecipesFromDb } from '../../services/dbService';
 import { worldStore } from '../../store/worldStore';
+import { loadAllCustomRecipes } from '../../services/customRecipeService';
 import './CookbookView.scss';
 
-export const CookbookView: React.FC = () => {
+export interface CookbookViewProps {
+  initialRecipeId?: string;
+  onSelectRecipe?: (recipeId: string) => void;
+}
+
+export const CookbookView: React.FC<CookbookViewProps> = ({ initialRecipeId, onSelectRecipe }) => {
   const { t, language } = useTranslation();
   const recordedActions = useStore(worldStore, (state) => state.recordedActions);
   const storeActiveRecipeId = useStore(worldStore, (state) => state.activeRecipeId);
@@ -20,46 +25,32 @@ export const CookbookView: React.FC = () => {
 
   const [dbRecipes, setDbRecipes] = useState<Recipe[]>([]);
 
-  // Fetch saved DB recipes on mount
+  // Fetch saved DB & custom recipes on mount and when saved
   useEffect(() => {
     let isMounted = true;
-    fetchAllRecipesFromDb()
-      .then((savedList) => {
-        if (!isMounted || !savedList || savedList.length === 0) return;
-        const parsed: Recipe[] = savedList.map((saved) => {
-          if (saved.formats?.recipeJson && typeof saved.formats.recipeJson === 'object') {
-            const rJson = saved.formats.recipeJson as unknown as Recipe;
-            return {
-              ...rJson,
-              id: `db-${saved.id}`,
-              name: saved.title || rJson.name || 'Saved Recipe',
-            };
+
+    const loadRecipes = () => {
+      loadAllCustomRecipes()
+        .then((customList) => {
+          if (isMounted && customList && customList.length > 0) {
+            setDbRecipes(customList);
           }
-          if (saved.formats?.mascotSequence && Array.isArray(saved.formats.mascotSequence)) {
-            return translateHumanActionsToRecipe(saved.formats.mascotSequence, {
-              recipeId: `db-${saved.id}`,
-              recipeName: saved.title || 'Saved Recipe',
-            });
-          }
-          return {
-            id: `db-${saved.id}`,
-            name: saved.title || 'Saved Recipe',
-            requirements: (saved.ingredients || []).map((ing) => ({
-              id: `req-${ing}`,
-              entityId: ing,
-              amount: 1,
-              unit: 'unidad',
-            })),
-            steps: [],
-          };
+        })
+        .catch((err) => {
+          console.warn('Failed to fetch custom recipes in CookbookView:', err);
         });
-        setDbRecipes(parsed);
-      })
-      .catch((err) => {
-        console.warn('Failed to fetch DB recipes in CookbookView:', err);
-      });
+    };
+
+    loadRecipes();
+
+    const handleSaved = () => {
+      loadRecipes();
+    };
+
+    window.addEventListener('custom-recipe-saved', handleSaved);
     return () => {
       isMounted = false;
+      window.removeEventListener('custom-recipe-saved', handleSaved);
     };
   }, []);
 
@@ -91,10 +82,11 @@ export const CookbookView: React.FC = () => {
   }, [recordedRecipe, dbRecipes]);
 
   const [selectedRecipeId, setSelectedRecipeId] = useState<string>(() => {
+    if (initialRecipeId) return initialRecipeId;
     if (recordedRecipe && (storeActiveRecipeId === 'recording' || storeActiveRecipeId === 'recorded')) {
       return recordedRecipe.id;
     }
-    return recipes[0]?.id || 'concebolla';
+    return storeActiveRecipeId || recipes[0]?.id || 'concebolla';
   });
 
   // Ensure activeRecipe resolves correctly
@@ -237,18 +229,46 @@ export const CookbookView: React.FC = () => {
           {recipeDesc && (
             <p className="recipe-description">{recipeDesc}</p>
           )}
-          <div className="recipe-meta">
-            {recipeMeta.difficulty && (
-              <span className="meta-badge difficulty">
-                ⭐ {recipeMeta.difficulty}
-              </span>
-            )}
-            {recipeMeta.tags && recipeMeta.tags.map((tag: string) => (
-              <span key={tag} className="meta-badge tag">🏷️ {tag}</span>
-            ))}
-            {isRecordedOrLoaded && (
-              <span className="meta-badge tag custom-tag">🎥 Custom / Recorded</span>
-            )}
+          <div className="recipe-meta" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+              {recipeMeta.difficulty && (
+                <span className="meta-badge difficulty">
+                  ⭐ {recipeMeta.difficulty}
+                </span>
+              )}
+              {recipeMeta.tags && recipeMeta.tags.map((tag: string) => (
+                <span key={tag} className="meta-badge tag">🏷️ {tag}</span>
+              ))}
+              {isRecordedOrLoaded && (
+                <span className="meta-badge tag custom-tag">🎥 Custom / Recorded</span>
+              )}
+            </div>
+            <button
+              type="button"
+              className="load-recipe-action-btn"
+              style={{
+                padding: '6px 14px',
+                fontSize: '0.85rem',
+                fontWeight: 800,
+                color: '#ffffff',
+                backgroundColor: '#e8a838',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                boxShadow: '0 2px 6px rgba(232,168,56,0.3)',
+                transition: 'all 0.15s ease'
+              }}
+              onClick={() => {
+                worldStore.getState().setActiveRecipeId(activeRecipe.id);
+                worldStore.getState().setActiveRecipeName(activeRecipe.name);
+                if (activeRecipe.id !== 'recording') {
+                  worldStore.getState().resetWorld();
+                }
+                onSelectRecipe?.(activeRecipe.id);
+              }}
+            >
+              🍳 Select & Load Recipe
+            </button>
           </div>
         </div>
         <div className="cookbook-body">

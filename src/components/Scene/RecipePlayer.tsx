@@ -27,9 +27,17 @@ import { RecipeRequirements } from '../Recipe/RecipeRequirements';
 import { ActionReplayer } from '../Controls/ActionReplayer';
 import { WorkstationSelector } from '../Controls/WorkstationSelector';
 import { PlateDishNameModal } from '../Controls/PlateDishNameModal';
+import { SaveCustomRecipeModal } from '../Controls/SaveCustomRecipeModal';
 import { CookbookModal } from '../Recipe/CookbookModal';
 import { IngredientsSidebar } from '../Controls/IngredientsSidebar';
+import { TimelineScrubber } from '../Controls/TimelineScrubber';
 import { extractUsedIngredientsFromActions } from '../../utils/sessionLogUtils';
+import { convertDeclarativeStepsToActions } from '../../utils/recipeFormatDetector';
+import {
+  saveCustomRecipe,
+  loadAllCustomRecipes,
+  type CustomRecipeMetadata,
+} from '../../services/customRecipeService';
 import { useTranslation } from '../../i18n/useTranslation';
 import './RecipePlayer.scss';
 
@@ -381,6 +389,39 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
 
   const [isPlateNameModalOpen, setIsPlateNameModalOpen] = useState<boolean>(false);
   const [plateInitialDishName, setPlateInitialDishName] = useState<string>('');
+  const [isSaveCustomRecipeModalOpen, setIsSaveCustomRecipeModalOpen] = useState<boolean>(false);
+  const [customRecipes, setCustomRecipes] = useState<Recipe[]>([]);
+
+  // Load stored custom recipes on mount & listen for saved recipes
+  useEffect(() => {
+    loadAllCustomRecipes().then((list) => {
+      if (list && list.length > 0) {
+        setCustomRecipes(list);
+      }
+    });
+
+    const handleSaved = (e: Event) => {
+      const detail = (e as CustomEvent<Recipe>).detail;
+      if (detail) {
+        setCustomRecipes((prev) => [detail, ...prev.filter((r) => r.id !== detail.id)]);
+      }
+    };
+
+    window.addEventListener('custom-recipe-saved', handleSaved);
+    return () => {
+      window.removeEventListener('custom-recipe-saved', handleSaved);
+    };
+  }, []);
+
+  const allAvailableRecipes = useMemo(() => {
+    const list = [...recipes];
+    customRecipes.forEach((cr) => {
+      if (!list.some((r) => r.id === cr.id)) {
+        list.push(cr);
+      }
+    });
+    return list;
+  }, [customRecipes]);
 
   const handleStopRecordingRequest = () => {
     const state = worldStore.getState();
@@ -391,13 +432,51 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
       const firstEntity = state.entities[plateEntityIds[0]];
       const initialDishName = firstEntity?.name || 'Tortilla Española Clásica';
       setPlateInitialDishName(initialDishName);
-      setIsPlateNameModalOpen(true);
     } else {
-      stopRecording();
+      setPlateInitialDishName('');
+    }
+    setIsSaveCustomRecipeModalOpen(true);
+  };
+
+  const handleSaveCustomRecipeSubmit = async (metadata: CustomRecipeMetadata) => {
+    setIsSaveCustomRecipeModalOpen(false);
+
+    try {
+      const saved = await saveCustomRecipe(recordedActions, metadata);
+      stopRecording(saved.name);
+      setCustomRecipes((prev) => [saved, ...prev.filter((r) => r.id !== saved.id)]);
+      setSelectedRecipeId(saved.id);
+      setCurrentStepIndex(0);
+      runnerRef.current = null;
+      window.dispatchEvent(new CustomEvent('select-recorded-session'));
+    } catch (err) {
+      console.error('Failed to save custom recipe:', err);
+      stopRecording(metadata.name);
       setSelectedRecipeId('recording');
       setCurrentStepIndex(0);
-      window.dispatchEvent(new CustomEvent('select-recorded-session'));
     }
+  };
+
+  const handleStartRecordOrFork = () => {
+    setIsPlaying(false);
+
+    // If currently playing a base or custom recipe at step K > 0, convert steps 0..K to prefix actions
+    if (selectedRecipeId !== 'recording' && currentStepIndex > 0 && activeRecipe?.steps && activeRecipe.steps.length > 0) {
+      const executedSteps = activeRecipe.steps.slice(0, currentStepIndex);
+      const worldActions = convertDeclarativeStepsToActions(executedSteps);
+      const prefixRecordedActions: RecordedAction[] = worldActions.map((act, idx) => ({
+        type: act.type,
+        payload: act.payload ? JSON.parse(JSON.stringify(act.payload)) : {},
+        timestampMs: idx * 500,
+      }));
+
+      worldStore.getState().setRecordedActions(prefixRecordedActions);
+    } else if (selectedRecipeId !== 'recording' && currentStepIndex === 0) {
+      worldStore.getState().setRecordedActions([]);
+    }
+
+    startRecording();
+    setSelectedRecipeId('recording');
   };
 
   const handleConfirmDishName = (dishName: string) => {
@@ -496,10 +575,10 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
     };
   }, [usedIngredients, recordedActions]);
 
-  const activeRecipe: Recipe = useMemo(
-    () => (selectedRecipeId === 'recording' ? recordedRecipe : recipes.find((r) => r.id === selectedRecipeId) || recipes[0]),
-    [selectedRecipeId, recordedRecipe]
-  );
+  const activeRecipe: Recipe =
+    selectedRecipeId === 'recording'
+      ? recordedRecipe
+      : allAvailableRecipes.find((r) => r.id === selectedRecipeId) || recipes[0];
   const steps: RecipeStep[] = useMemo(() => activeRecipe?.steps || [], [activeRecipe]);
 
   const totalSteps = isRecordingMode ? recordedActions.length : steps.length;
@@ -568,7 +647,7 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
     const targetRecipe =
       newRecipeId === 'recording'
         ? recordedRecipe
-        : recipes.find((r) => r.id === newRecipeId) || recipes[0];
+        : allAvailableRecipes.find((r) => r.id === newRecipeId) || recipes[0];
 
     worldStore.getState().setActiveRecipeName(targetRecipe.name);
 
@@ -601,7 +680,51 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
     });
   };
 
+  const storeActiveRecipeId = useStore(worldStore, (state) => state.activeRecipeId);
+
+  useEffect(() => {
+    if (storeActiveRecipeId && storeActiveRecipeId !== selectedRecipeId) {
+      handleRecipeChange(storeActiveRecipeId);
+    }
+  }, [storeActiveRecipeId, selectedRecipeId]);
+
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState<boolean>(false);
+
+  const checkIsKitchenClean = useCallback((): boolean => {
+    if (currentStepIndex > 0) return false;
+
+    const store = worldStore.getState();
+    const containers = store.containers;
+
+    // Check if any workstation container outside despensa has entities or is turned on
+    for (const cId in containers) {
+      const container = containers[cId];
+      if (cId !== 'despensa') {
+        if (container.entityIds && container.entityIds.length > 0) return false;
+        if (container.isOn) return false;
+      }
+    }
+
+    // Check if any entity in world is modified, created, or consumed
+    const entities = store.entities;
+    for (const eId in entities) {
+      const entity = entities[eId];
+      if (
+        entity.state?.preparation ||
+        entity.state?.cooking ||
+        (entity.state?.status && entity.state.status !== 'raw' && entity.state.status !== 'fresh') ||
+        entity.state?.consumed ||
+        entity.id.startsWith('mixture_') ||
+        entity.id.startsWith('peel_') ||
+        entity.id.startsWith('yolk_') ||
+        entity.id.startsWith('egg_white_')
+      ) {
+        return false;
+      }
+    }
+
+    return true;
+  }, [currentStepIndex]);
 
   // Full reset of world and player step
   const executeReset = useCallback(() => {
@@ -637,8 +760,12 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
   }, [activeRecipe]);
 
   const handleReset = useCallback(() => {
-    setIsResetConfirmOpen(true);
-  }, [setIsResetConfirmOpen]);
+    if (checkIsKitchenClean()) {
+      executeReset();
+    } else {
+      setIsResetConfirmOpen(true);
+    }
+  }, [checkIsKitchenClean, executeReset]);
 
   // Jump to a specific target step index
   const jumpToStep = useCallback(
@@ -654,13 +781,8 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
         worldStore.getState().dispatch({ type: 'RESET_WORLD' });
 
         if (isRecordingMode) {
-          // Replay recorded actions up to targetIndex
-          for (let i = 0; i < clampedTarget; i++) {
-            const act = recordedActions[i];
-            if (act) {
-              worldStore.getState().dispatch(act as unknown as WorldAction);
-            }
-          }
+          // Replay recorded actions up to targetIndex using unified seekTo
+          worldStore.getState().seekTo(clampedTarget);
           setCurrentStepIndex(clampedTarget);
         } else {
           // Fast-forward recipe runner
@@ -684,7 +806,7 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
         isExecutingRef.current = false;
       }
     },
-    [activeRecipe, totalSteps, steps, currentDelayMs, isRecordingMode, recordedActions]
+    [activeRecipe, totalSteps, steps, currentDelayMs, isRecordingMode]
   );
 
   // Step Up (Step forward 1 step)
@@ -963,14 +1085,23 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
   return (
     <>
       <div className="recipe-player-container">
-        {/* Header Row */}
+        {/* Header Row - Pure Recipe Selection */}
         <div className="player-header">
           <div className="recipe-select-group">
             <span className="recipe-label">{t('ui.recipe')}:</span>
             <div className="recipe-buttons">
-              {recipes.map((r) => {
+              {allAvailableRecipes.map((r) => {
                 const isActive = r.id === selectedRecipeId;
-                const recipeIcon = r.id === 'concebolla' ? '🧅' : r.id === 'yema' ? '🟡' : r.id === 'francesa' ? '🍳' : '🥔';
+                const recipeIcon =
+                  r.id === 'concebolla'
+                    ? '🧅'
+                    : r.id === 'yema'
+                    ? '🟡'
+                    : r.id === 'francesa'
+                    ? '🍳'
+                    : r.id === 'clasica'
+                    ? '🥔'
+                    : '⭐';
                 return (
                   <button
                     key={r.id}
@@ -983,26 +1114,6 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
                   </button>
                 );
               })}
-
-              <button
-                type="button"
-                className="recipe-btn cookbook-trigger-btn"
-                onClick={() => setIsCookbookOpen(true)}
-                title="Open Cookbook & Recipe Catalog"
-              >
-                <span className="recipe-btn-icon">📕</span>
-                <span className="recipe-btn-text">Cookbook</span>
-              </button>
-
-              <button
-                type="button"
-                className={`recipe-btn ${isIngredientsSidebarOpen ? 'active' : ''}`}
-                onClick={() => setIsIngredientsSidebarOpen(!isIngredientsSidebarOpen)}
-                title="Toggle Ingredients & Pantry Catalog Sidebar"
-              >
-                <span className="recipe-btn-icon">📦</span>
-                <span className="recipe-btn-text">Ingredients</span>
-              </button>
 
               {(recordedActions.length > 0 || isRecording) && (
                 <button
@@ -1019,15 +1130,6 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
                 </button>
               )}
             </div>
-          </div>
-
-          <div className="player-status-badge">
-            <span className="step-count">
-              {t('replayer.stepProgress', { current: currentStepIndex, total: totalSteps })}
-            </span>
-            <span className={`speed-badge speed-${speed.toString().replace('.', '_')}`}>
-              ⚡ {speed}x
-            </span>
           </div>
         </div>
 
@@ -1090,141 +1192,169 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
           </div>
         </div>
 
-        {/* Main Controls Row */}
-        <div className="player-controls-bar">
-          {/* Slow Control */}
-          <button
-            type="button"
-            className="ctrl-btn slow-btn"
-            onClick={handleSlow}
-            title="Slow down playback speed (0.5x)"
-          >
-            🐢 Slow
-          </button>
-
-          {/* Step Down (Step Back) */}
-          <button
-            type="button"
-            className="ctrl-btn step-down-btn"
-            onClick={handleStepDown}
-            disabled={currentStepIndex <= 0}
-            title="Step Down: Go back to previous step"
-          >
-            ⏮ Step Down
-          </button>
-
-          {/* Play / Pause Toggle */}
-          <button
-            type="button"
-            className={`ctrl-btn play-btn ${isPlaying ? 'is-playing' : ''}`}
-            onClick={handleTogglePlay}
-            title={isPlaying ? 'Pause recipe auto-play' : 'Play recipe step-by-step'}
-          >
-            {isPlaying ? '⏸ Pause' : currentStepIndex >= totalSteps ? '🔄 Replay' : '▶ Play'}
-          </button>
-
-          {/* Step Up (Step Forward) */}
-          <button
-            type="button"
-            className="ctrl-btn step-up-btn"
-            onClick={handleStepUp}
-            disabled={currentStepIndex >= totalSteps}
-            title="Step Up: Advance to next step"
-          >
-            Step Up ⏭
-          </button>
-
-          {/* Fast Control */}
-          <button
-            type="button"
-            className="ctrl-btn fast-btn"
-            onClick={handleFast}
-            title="Speed up playback speed (2x/3x)"
-          >
-            Fast ⚡
-          </button>
-
-          {/* Record / Stop Recording Toggle */}
-          <button
-            type="button"
-            className={`ctrl-btn record-btn ${isRecording ? 'is-recording' : isRecordingSetup ? 'is-setup' : ''}`}
-            onClick={
-              isRecording
-                ? handleStopRecordingRequest
-                : isRecordingSetup
-                ? () => setIsRecordingSetup(false)
-                : () => setIsRecordingSetup(true)
-            }
-            title={
-              isRecording
-                ? 'Stop recording world interactions'
-                : 'Configure layout and ingredients then start recording'
-            }
-          >
-            <span className={`record-indicator ${isRecording ? 'active' : ''}`}></span>
-            {isRecording ? `⏹ Stop (${recordedActions.length})` : isRecordingSetup ? '⚙️ Setup...' : '⏺ Record'}
-          </button>
-
-          {/* Download Recipe JSON Link */}
-          {recordedDownloadUrl && (
-            <a
-              href={recordedDownloadUrl}
-              download={recordedFilename || 'tortilla-recorded-recipe.json'}
-              className="ctrl-btn download-btn"
-              title="Download serialized recipe JSON file"
-            >
-              💾 Download Recipe (.json)
-            </a>
-          )}
-
-          {/* Action Log Replayer */}
-          <ActionReplayer
-            onPlaybackStart={() => {
-              setSelectedRecipeId('recording');
-              setCurrentStepIndex(0);
-            }}
-          />
-
-          {/* Kitchen Reset Button */}
-          <button
-            type="button"
-            className="ctrl-btn reset-btn"
-            onClick={handleReset}
-            title="Clean the kitchen and reset all containers"
-          >
-            🔄 Reset Kitchen
-          </button>
-        </div>
-
-        {/* Speed Presets & Step Timeline Dots */}
-        <div className="player-footer">
-          <div className="speed-pills">
-            <span className="speed-title">Speed:</span>
-            {[0.5, 1, 2, 3].map((sp) => (
+        {/* Unified Controls Dock */}
+        <div className="vcr-dock">
+          <div className="vcr-controls-row">
+            {/* Playback Controls */}
+            <div className="step-controls-group">
               <button
-                key={sp}
                 type="button"
-                className={`speed-pill ${speed === sp ? 'active' : ''}`}
-                onClick={() => setSpeed(sp)}
+                className="ctrl-btn step-down-btn"
+                onClick={handleStepDown}
+                disabled={currentStepIndex <= 0}
+                title="Step Down: Go back to previous step"
+                aria-label="Previous step"
               >
-                {sp}x
+                ⏮️
               </button>
-            ))}
+
+              <button
+                type="button"
+                className={`ctrl-btn play-btn ${isPlaying ? 'is-playing' : ''}`}
+                onClick={handleTogglePlay}
+                title={isPlaying ? 'Pause recipe auto-play' : 'Play recipe step-by-step'}
+                aria-label="Play or Pause"
+              >
+                {isPlaying ? '⏸ Pause' : currentStepIndex >= totalSteps ? '🔄 Replay' : '▶ Play'}
+              </button>
+
+              <button
+                type="button"
+                className="ctrl-btn step-up-btn"
+                onClick={handleStepUp}
+                disabled={currentStepIndex >= totalSteps}
+                title="Step Up: Advance to next step"
+                aria-label="Next step"
+              >
+                ⏭️
+              </button>
+
+              <button
+                type="button"
+                className="ctrl-btn reset-btn"
+                onClick={handleReset}
+                title="Clean the kitchen and reset all containers"
+                aria-label="Reset Kitchen"
+              >
+                🔄 Reset
+              </button>
+
+              <button
+                type="button"
+                className="ctrl-btn cookbook-trigger-btn"
+                onClick={() => setIsCookbookOpen(true)}
+                title="Open Cookbook & Recipe Catalog"
+              >
+                <span className="recipe-btn-icon">📕</span>
+                <span className="recipe-btn-text">Cookbook</span>
+              </button>
+            </div>
+
+            {/* Step Status Badge (Step X of Y & Speed) */}
+            <div className="vcr-status-badge">
+              <span className="step-count">
+                {t('replayer.stepProgress', { current: currentStepIndex, total: totalSteps })}
+              </span>
+              <span className={`speed-badge speed-${speed.toString().replace('.', '_')}`}>
+                ⚡ {speed}x
+              </span>
+            </div>
+
+            {/* Speed Pills */}
+            <div className="speed-pills">
+              {[0.5, 1, 2, 3].map((sp) => (
+                <button
+                  key={sp}
+                  type="button"
+                  className={`speed-pill ${speed === sp ? 'active' : ''}`}
+                  onClick={() => setSpeed(sp)}
+                  title={`Set playback speed to ${sp}x`}
+                >
+                  {sp}x
+                </button>
+              ))}
+            </div>
+
+            {/* Record & Save Recipe Controls */}
+            <div className="save-record-controls-group">
+              {(isRecordingSetup || isRecording || isRecordingMode) && (
+                <button
+                  type="button"
+                  className={`ctrl-btn ingredients-toggle-btn ${isIngredientsSidebarOpen ? 'active' : ''}`}
+                  onClick={() => setIsIngredientsSidebarOpen(!isIngredientsSidebarOpen)}
+                  title="Toggle Ingredients & Pantry Catalog Sidebar"
+                >
+                  <span className="recipe-btn-icon">📦</span>
+                  <span className="recipe-btn-text">Ingredients</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                className={`ctrl-btn record-btn ${isRecording ? 'is-recording' : isRecordingSetup ? 'is-setup' : ''}`}
+                onClick={
+                  isRecording
+                    ? handleStopRecordingRequest
+                    : handleStartRecordOrFork
+                }
+                title={
+                  isRecording
+                    ? 'Stop recording and save custom recipe'
+                    : 'Start recording custom recipe'
+                }
+              >
+                <span className={`record-indicator ${isRecording ? 'active' : ''}`}></span>
+                {isRecording ? `⏹ Stop (${recordedActions.length})` : '⏺ Record'}
+              </button>
+
+              <button
+                type="button"
+                className="ctrl-btn save-recipe-btn"
+                onClick={() => setIsSaveCustomRecipeModalOpen(true)}
+                title="Save recipe and export session ZIP / JSON"
+              >
+                💾 Save Recipe
+              </button>
+
+              {recordedDownloadUrl && (
+                <a
+                  href={recordedDownloadUrl}
+                  download={recordedFilename || 'tortilla-recorded-recipe.json'}
+                  className="ctrl-btn download-btn"
+                  title="Download serialized recipe JSON file"
+                >
+                  📥 .json
+                </a>
+              )}
+
+              <ActionReplayer
+                showControls={false}
+                onPlaybackStart={() => {
+                  setSelectedRecipeId('recording');
+                  setCurrentStepIndex(0);
+                }}
+              />
+            </div>
           </div>
 
-          {/* Interactive Step Stepper Dots */}
-          <div className="stepper-dots">
-            {Array.from({ length: totalSteps }).map((_, idx) => (
-              <button
-                key={`step-dot-${idx}`}
-                type="button"
-                className={`step-dot ${idx < currentStepIndex ? 'completed' : ''} ${
-                  idx === currentStepIndex ? 'active' : ''
-                }`}
-                onClick={() => jumpToStep(idx)}
-                title={`Jump to step ${idx + 1}`}
-              />
-            ))}
+          {/* Stepper Dots & Timeline Scrubber Row */}
+          <div className="vcr-scrubber-row">
+            <div className="stepper-dots">
+              {Array.from({ length: totalSteps }).map((_, idx) => (
+                <button
+                  key={`step-dot-${idx}`}
+                  type="button"
+                  className={`step-dot ${idx < currentStepIndex ? 'completed' : ''} ${
+                    idx === currentStepIndex ? 'active' : ''
+                  }`}
+                  onClick={() => jumpToStep(idx)}
+                  title={`Jump to step ${idx + 1}`}
+                />
+              ))}
+            </div>
+            {isRecordingMode && totalSteps > 0 && (
+              <TimelineScrubber disabled={isPlaying} className="compact-scrubber" />
+            )}
           </div>
         </div>
 
@@ -1233,7 +1363,7 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
       {renderWorkspace &&
         renderWorkspace(
           requirementsNode,
-          isRecordingSetup || isRecording || isIngredientsSidebarOpen ? <IngredientsSidebar /> : undefined
+          (isRecordingSetup || isRecording || isRecordingMode) && isIngredientsSidebarOpen ? <IngredientsSidebar /> : undefined
         )}
 
       <CookbookModal
@@ -1246,6 +1376,14 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
         initialName={plateInitialDishName}
         onConfirm={handleConfirmDishName}
         onSkip={handleSkipDishName}
+      />
+
+      <SaveCustomRecipeModal
+        isOpen={isSaveCustomRecipeModalOpen}
+        initialBaseRecipeName={activeRecipe?.name || 'Tortilla Francesa'}
+        initialDishName={plateInitialDishName}
+        onSave={handleSaveCustomRecipeSubmit}
+        onClose={() => setIsSaveCustomRecipeModalOpen(false)}
       />
 
       {/* Tortilla Reset World Confirmation Modal */}

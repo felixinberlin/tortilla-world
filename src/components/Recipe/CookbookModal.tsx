@@ -38,7 +38,7 @@ export const CookbookModal: React.FC<CookbookModalProps> = ({ isOpen, onClose })
           </button>
         </div>
         <div className="cookbook-modal-content-area">
-          <CookbookView />
+          <CookbookView onSelectRecipe={() => onClose()} />
         </div>
       </div>
     </div>

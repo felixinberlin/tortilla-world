@@ -44,13 +44,7 @@ describe('Peeling produces peel entities', () => {
       },
     });
 
-    store.dispatch({
-      type: 'PREPARE_INGREDIENT',
-      payload: {
-        entityId: 'potato_1',
-        preparation: 'peeled',
-      },
-    });
+    store.prepareIngredient('potato_1', 'peeled');
 
     const state = worldStore.getState();
     const board = state.containers.board;

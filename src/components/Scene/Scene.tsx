@@ -12,7 +12,7 @@
  * The bridge between game world and React UI.
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useStore } from 'zustand';
 import { DndContext } from '@dnd-kit/core';
 import { worldStore } from '../../store/worldStore';
@@ -25,6 +25,8 @@ import { useDevMode } from '../../utils/devMode';
 import { useTranslation } from '../../i18n/useTranslation';
 import { recipes } from '../../data/catalog/recipes';
 import { getRecipeWorkstationIds } from '../../systems/recipeWorkstations';
+import { loadAllCustomRecipes } from '../../services/customRecipeService';
+import type { Recipe } from '../../types/Recipe';
 import './RecipePlayer.scss';
 
 export const Scene: React.FC = () => {
@@ -44,12 +46,43 @@ export const Scene: React.FC = () => {
   // 2. Query simulation state and active recipe to filter visible workstations
   const containersMap = useStore(worldStore, (state) => state.containers);
   const activeRecipeId = useStore(worldStore, (state) => state.activeRecipeId);
-
   const isRecording = useStore(worldStore, (state) => state.isRecording);
 
+  const [customRecipes, setCustomRecipes] = useState<Recipe[]>([]);
+
+  // Load custom recipes on mount and listen for new saved custom recipes
+  useEffect(() => {
+    let isMounted = true;
+    loadAllCustomRecipes().then((list) => {
+      if (isMounted && list && list.length > 0) {
+        setCustomRecipes(list);
+      }
+    });
+
+    const handleSaved = () => {
+      loadAllCustomRecipes().then((list) => {
+        if (isMounted && list) setCustomRecipes(list);
+      });
+    };
+
+    window.addEventListener('custom-recipe-saved', handleSaved);
+    return () => {
+      isMounted = false;
+      window.removeEventListener('custom-recipe-saved', handleSaved);
+    };
+  }, []);
+
+  const allRecipes = useMemo(() => {
+    const list = [...recipes];
+    customRecipes.forEach((cr) => {
+      if (!list.some((r) => r.id === cr.id)) list.push(cr);
+    });
+    return list;
+  }, [customRecipes]);
+
   const activeRecipe = useMemo(
-    () => recipes.find((r) => r.id === activeRecipeId) || recipes[0],
-    [activeRecipeId]
+    () => allRecipes.find((r) => r.id === activeRecipeId) || recipes[0],
+    [activeRecipeId, allRecipes]
   );
 
   const recipeWorkstationIds = useMemo(

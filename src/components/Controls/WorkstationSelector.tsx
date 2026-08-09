@@ -11,6 +11,7 @@ import { useStore } from 'zustand';
 import { worldStore } from '../../store/worldStore';
 import { WORKSTATION_KITS } from '../../data/catalog/workstations';
 import type { WorkstationKitId } from '../../types/workstations';
+import { PantryExporter } from './PantryExporter';
 import './WorkstationSelector.scss';
 
 interface WorkstationSelectorProps {
@@ -18,6 +19,7 @@ interface WorkstationSelectorProps {
   mode?: 'creator' | 'player';
   showKitPresets?: boolean;
   showAddWorkstations?: boolean;
+  showPantryKits?: boolean;
   className?: string;
 }
 
@@ -42,6 +44,7 @@ export const WorkstationSelector: React.FC<WorkstationSelectorProps> = ({
   mode = 'creator',
   showKitPresets = true,
   showAddWorkstations = true,
+  showPantryKits = true,
   className = '',
 }) => {
   const activeKitId = useStore(worldStore, (state) => state.activeKitId || 'base');
@@ -143,6 +146,9 @@ export const WorkstationSelector: React.FC<WorkstationSelectorProps> = ({
           </div>
         </div>
       )}
+
+      {/* 3. Pantry Kits Selector & Exporter Section */}
+      {showPantryKits && <PantryExporter />}
     </div>
   );
 };

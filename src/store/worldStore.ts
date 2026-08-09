@@ -19,6 +19,7 @@ import { actionLog } from './middleware/actionLog';
 import { defaultEntities } from './defaults';
 import { WORKSTATION_KITS } from '../data/catalog/workstations';
 import type { WorkstationKitId } from '../types/workstations';
+import { resolvePantryWorkspace, instantiatePantryEntities } from '../data/catalog/pantryKits';
 import { createEntitySlice } from './slices/entitySlice';
 import { createContainerSlice } from './slices/containerSlice';
 import { createMascotSlice } from './slices/mascotSlice';
@@ -45,6 +46,7 @@ export const worldStore = createStore<WorldStateStore>()(
         containers: JSON.parse(JSON.stringify(WORKSTATION_KITS.base.containers)),
         events: [],
         activeKitId: 'base',
+        activePantryKitId: 'base_pantry',
         activeRecipeName: 'Tortilla Española Clásica',
         activeRecipeId: 'concebolla',
 
@@ -84,12 +86,45 @@ export const worldStore = createStore<WorldStateStore>()(
           }, false, 'SET_WORKSTATION_KIT');
         },
 
+        setPantryKit: (pantryKitId: string) => {
+          const pantryKit = resolvePantryWorkspace(pantryKitId);
+          const { entities, despensaEntityIds } = instantiatePantryEntities(pantryKit);
+
+          set((draft) => {
+            draft.activePantryKitId = pantryKit.id;
+            draft.entities = entities;
+            if (draft.containers.despensa) {
+              draft.containers.despensa.entityIds = despensaEntityIds;
+            }
+          }, false, 'SET_PANTRY_KIT');
+        },
+
         setActiveRecipeName: (name: string) => {
           set({ activeRecipeName: name }, false, 'SET_ACTIVE_RECIPE_NAME');
         },
 
         setActiveRecipeId: (recipeId: string) => {
           set({ activeRecipeId: recipeId }, false, 'SET_ACTIVE_RECIPE_ID');
+        },
+
+        simMode: 'FREE_COOK',
+
+        setSimMode: (mode: 'RECIPE_AUTO' | 'FREE_COOK') => {
+          set({ simMode: mode }, false, 'SET_SIM_MODE');
+        },
+
+        interruptRecipe: () => {
+          const currentIdx = get().currentActionIndex;
+          set(
+            (draft) => {
+              if (typeof currentIdx === 'number' && currentIdx < draft.recordedActions.length) {
+                draft.recordedActions = draft.recordedActions.slice(0, currentIdx);
+              }
+              draft.simMode = 'FREE_COOK';
+            },
+            false,
+            'INTERRUPT_RECIPE'
+          );
         },
 
         emitEvent: (event: WorldEvent) => {
@@ -112,10 +147,16 @@ export const worldStore = createStore<WorldStateStore>()(
 
         resetWorld: (
           target?: WorkstationKitId | Record<string, Container>,
-          customContainers?: Record<string, Container>
+          customContainers?: Record<string, Container>,
+          pantryKitId?: string
         ) => {
           set((draft) => {
-            draft.entities = JSON.parse(JSON.stringify(defaultEntities));
+            const selectedPantryKitId = pantryKitId || draft.activePantryKitId || 'base_pantry';
+            const pantryKit = resolvePantryWorkspace(selectedPantryKitId);
+            const { entities, despensaEntityIds } = instantiatePantryEntities(pantryKit);
+
+            draft.entities = entities;
+            draft.activePantryKitId = pantryKit.id;
             draft.events = [];
 
             if (customContainers) {
@@ -124,10 +165,14 @@ export const worldStore = createStore<WorldStateStore>()(
             } else if (typeof target === 'object' && target !== null) {
               draft.containers = JSON.parse(JSON.stringify(target));
             } else {
-              const targetKitId = (target as WorkstationKitId) || get().activeKitId || 'base';
+              const targetKitId = (target as WorkstationKitId) || draft.activeKitId || 'base';
               const kit = WORKSTATION_KITS[targetKitId] || WORKSTATION_KITS.base;
               draft.activeKitId = targetKitId;
               draft.containers = JSON.parse(JSON.stringify(kit.containers));
+            }
+
+            if (draft.containers.despensa) {
+              draft.containers.despensa.entityIds = despensaEntityIds;
             }
           }, false, 'RESET_WORLD');
           get().clearFocus();
@@ -142,6 +187,15 @@ export const worldStore = createStore<WorldStateStore>()(
             store.recordAction(action);
           }
 
+          if (
+            store.simMode === 'RECIPE_AUTO' &&
+            action.payload &&
+            'isUserOverride' in action.payload &&
+            (action.payload as { isUserOverride?: boolean }).isUserOverride
+          ) {
+            store.interruptRecipe();
+          }
+
           // Automatically infer focus target from world actions unless userOverride is active
           const focusInferred = inferFocusFromAction(action);
           if (focusInferred && !store.userOverride) {
@@ -153,6 +207,9 @@ export const worldStore = createStore<WorldStateStore>()(
           }
 
           switch (action.type) {
+            case 'INTERRUPT_RECIPE':
+              store.interruptRecipe();
+              break;
             case 'MOVE_ENTITY':
               store.moveEntity(
                 action.payload.entityId,
@@ -655,6 +712,21 @@ export const worldStore = createStore<WorldStateStore>()(
 
             case 'SET_WORKSTATION_KIT':
               store.setWorkstationKit(action.payload.kitId);
+              break;
+
+            case 'SET_PANTRY_KIT':
+              store.setPantryKit(action.payload.pantryKitId);
+              break;
+
+            case 'INIT_KITCHEN':
+              if (action.payload?.workstationKitId) {
+                store.setWorkstationKit(action.payload.workstationKitId);
+              }
+              if (action.payload?.pantryKitId) {
+                store.setPantryKit(action.payload.pantryKitId);
+              } else {
+                store.resetWorld(action.payload?.workstationKitId);
+              }
               break;
 
             case 'ADD_CONTAINER':

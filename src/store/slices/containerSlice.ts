@@ -233,6 +233,10 @@ export const createContainerSlice: StateCreator<
         false,
         'MOVE_ENTITY'
       );
+
+      if (targetContainer.type === 'sink' || targetContainerId.includes('sink') || targetContainerId.includes('fregadero')) {
+        get().transformIngredient(copyId, 'wash');
+      }
       return;
     }
 
@@ -327,5 +331,9 @@ export const createContainerSlice: StateCreator<
       false,
       'MOVE_ENTITY'
     );
+
+    if (targetContainer.type === 'sink' || targetContainerId.includes('sink') || targetContainerId.includes('fregadero')) {
+      get().transformIngredient(entityId, 'wash');
+    }
   },
 });

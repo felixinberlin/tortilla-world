@@ -23,16 +23,19 @@ export interface SerializedWorldState {
   containers: Record<string, Container>;
 }
 
+export interface RecordingWorkspaceContext {
+  kitId?: import('./workstations').WorkstationKitId;
+  pantryKitId?: string;
+  containers?: Record<string, Container>;
+}
+
 export interface SerializedRecipeExport {
   version: '1.0.0';
   title: string;
   recordedAt: string;
   durationMs: number;
   actionCount: number;
-  workspace?: {
-    kitId?: import('./workstations').WorkstationKitId;
-    containers?: Record<string, Container>;
-  };
+  workspace?: RecordingWorkspaceContext;
   usedIngredients?: Array<{ id: string; name: string; icon?: string }>;
   initialState: SerializedWorldState;
   finalState: SerializedWorldState;
