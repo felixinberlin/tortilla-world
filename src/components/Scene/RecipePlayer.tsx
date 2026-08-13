@@ -637,7 +637,7 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
   }, [activeRecipe]);
 
   // Re-sync runner context or reset when recipe changes
-  const handleRecipeChange = (newRecipeId: string) => {
+  const handleRecipeChange = useCallback((newRecipeId: string) => {
     setIsPlaying(false);
     setSelectedRecipeId(newRecipeId);
     setCurrentStepIndex(0);
@@ -678,15 +678,17 @@ export const RecipePlayer: React.FC<RecipePlayerProps> = ({ renderWorkspace }) =
         });
       }
     });
-  };
+  }, [allAvailableRecipes, recordedRecipe]);
 
   const storeActiveRecipeId = useStore(worldStore, (state) => state.activeRecipeId);
 
   useEffect(() => {
     if (storeActiveRecipeId && storeActiveRecipeId !== selectedRecipeId) {
-      handleRecipeChange(storeActiveRecipeId);
+      setTimeout(() => {
+        handleRecipeChange(storeActiveRecipeId);
+      }, 0);
     }
-  }, [storeActiveRecipeId, selectedRecipeId]);
+  }, [storeActiveRecipeId, selectedRecipeId, handleRecipeChange]);
 
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState<boolean>(false);
 
