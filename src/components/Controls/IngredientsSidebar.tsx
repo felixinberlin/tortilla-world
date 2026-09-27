@@ -156,6 +156,7 @@ const DroppableCategoryList: React.FC<DroppableCategoryProps> = ({
                       className="stepper-btn btn-minus"
                       onClick={handleStepMinus}
                       title={`Decrease ${item.name} quantity`}
+                      aria-label={`Decrease ${item.name} quantity`}
                     >
                       -
                     </button>
@@ -174,6 +175,7 @@ const DroppableCategoryList: React.FC<DroppableCategoryProps> = ({
                       className="stepper-btn btn-plus"
                       onClick={handleStepPlus}
                       title={`Increase ${item.name} quantity`}
+                      aria-label={`Increase ${item.name} quantity`}
                     >
                       +
                     </button>
@@ -468,6 +470,7 @@ export const IngredientsSidebar: React.FC = () => {
               onClick={handleResetCategories}
               className="reset-categories-btn"
               title={t('ui.resetCategories')}
+              aria-label={t('ui.resetCategories')}
             >
               🔄
             </button>
