@@ -408,10 +408,11 @@ export const ActionRecorder: React.FC<ActionRecorderProps> = ({ isDev = true }) 
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+              <label htmlFor="record-title" style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
                 Recipe Title *
               </label>
               <input
+                id="record-title"
                 type="text"
                 value={saveTitle}
                 onChange={(e) => setSaveTitle(e.target.value)}
@@ -427,10 +428,11 @@ export const ActionRecorder: React.FC<ActionRecorderProps> = ({ isDev = true }) 
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+              <label htmlFor="record-author" style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
                 Author
               </label>
               <input
+                id="record-author"
                 type="text"
                 value={saveAuthor}
                 onChange={(e) => setSaveAuthor(e.target.value)}
@@ -447,10 +449,11 @@ export const ActionRecorder: React.FC<ActionRecorderProps> = ({ isDev = true }) 
           </div>
 
           <div style={{ marginBottom: '12px' }}>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+            <label htmlFor="record-desc" style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
               Description
             </label>
             <input
+              id="record-desc"
               type="text"
               value={saveDesc}
               onChange={(e) => setSaveDesc(e.target.value)}
@@ -470,8 +473,9 @@ export const ActionRecorder: React.FC<ActionRecorderProps> = ({ isDev = true }) 
               Include Formats to Save in DB:
             </label>
             <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', fontSize: '0.85rem', color: '#0f172a' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+              <label htmlFor="record-format-mascot" style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
                 <input
+                  id="record-format-mascot"
                   type="checkbox"
                   checked={saveMascotFormat}
                   onChange={(e) => setSaveMascotFormat(e.target.checked)}
@@ -479,8 +483,9 @@ export const ActionRecorder: React.FC<ActionRecorderProps> = ({ isDev = true }) 
                 🤖 Mascot Action Sequence (.json)
               </label>
 
-              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+              <label htmlFor="record-format-recipe" style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
                 <input
+                  id="record-format-recipe"
                   type="checkbox"
                   checked={saveRecipeJsonFormat}
                   onChange={(e) => setSaveRecipeJsonFormat(e.target.checked)}
@@ -488,8 +493,9 @@ export const ActionRecorder: React.FC<ActionRecorderProps> = ({ isDev = true }) 
                 📜 Declarative Recipe JSON (.json)
               </label>
 
-              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+              <label htmlFor="record-format-session" style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
                 <input
+                  id="record-format-session"
                   type="checkbox"
                   checked={saveSessionLogFormat}
                   onChange={(e) => setSaveSessionLogFormat(e.target.checked)}
