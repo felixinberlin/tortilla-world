@@ -88,11 +88,12 @@ export const SaveCustomRecipeModal: React.FC<SaveCustomRecipeModalProps> = ({
         <form onSubmit={handleSubmit} className="save-recipe-modal-body">
           {/* Recipe Name */}
           <div className="form-group">
-            <label className="form-label">
+            <label htmlFor="recipe-name" className="form-label">
               <span>🏷️ Recipe Name / Title</span>
               <span className="required-star">*</span>
             </label>
             <input
+              id="recipe-name"
               type="text"
               className="form-input"
               value={name}
@@ -105,8 +106,9 @@ export const SaveCustomRecipeModal: React.FC<SaveCustomRecipeModalProps> = ({
 
           {/* Description */}
           <div className="form-group">
-            <label className="form-label">📝 Description (metadata inspired by francesa.json)</label>
+            <label htmlFor="recipe-desc" className="form-label">📝 Description (metadata inspired by francesa.json)</label>
             <textarea
+              id="recipe-desc"
               className="form-textarea"
               rows={2}
               value={description}
@@ -118,8 +120,9 @@ export const SaveCustomRecipeModal: React.FC<SaveCustomRecipeModalProps> = ({
           {/* Grid row for Difficulty and Author */}
           <div className="form-row">
             <div className="form-group half">
-              <label className="form-label">⚡ Difficulty</label>
+              <label htmlFor="recipe-difficulty" className="form-label">⚡ Difficulty</label>
               <select
+                id="recipe-difficulty"
                 className="form-select"
                 value={difficulty}
                 onChange={(e) => setDifficulty(e.target.value as 'easy' | 'medium' | 'hard')}
@@ -131,8 +134,9 @@ export const SaveCustomRecipeModal: React.FC<SaveCustomRecipeModalProps> = ({
             </div>
 
             <div className="form-group half">
-              <label className="form-label">👨‍🍳 Author / Chef</label>
+              <label htmlFor="recipe-author" className="form-label">👨‍🍳 Author / Chef</label>
               <input
+                id="recipe-author"
                 type="text"
                 className="form-input"
                 value={author}
@@ -144,8 +148,9 @@ export const SaveCustomRecipeModal: React.FC<SaveCustomRecipeModalProps> = ({
 
           {/* Tags */}
           <div className="form-group">
-            <label className="form-label">🏷️ Tags (comma separated)</label>
+            <label htmlFor="recipe-tags" className="form-label">🏷️ Tags (comma separated)</label>
             <input
+              id="recipe-tags"
               type="text"
               className="form-input"
               value={tagsInput}
@@ -156,8 +161,9 @@ export const SaveCustomRecipeModal: React.FC<SaveCustomRecipeModalProps> = ({
 
           {/* Hints / Tips */}
           <div className="form-group">
-            <label className="form-label">💡 Cooking Hints & Tips (one per line)</label>
+            <label htmlFor="recipe-hints" className="form-label">💡 Cooking Hints & Tips (one per line)</label>
             <textarea
+              id="recipe-hints"
               className="form-textarea"
               rows={2}
               value={hints}
