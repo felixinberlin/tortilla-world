@@ -6,9 +6,9 @@
  * Prompts the chef to name their creation before stopping the session.
  */
 
-import React, { useState } from 'react';
-import { useTranslation } from '../../i18n/useTranslation';
-import './PlateDishNameModal.scss';
+import React, { useState } from "react";
+import { useTranslation } from "../../i18n/useTranslation";
+import "./PlateDishNameModal.scss";
 
 interface PlateDishNameModalProps {
   isOpen: boolean;
@@ -19,7 +19,7 @@ interface PlateDishNameModalProps {
 
 export const PlateDishNameModal: React.FC<PlateDishNameModalProps> = ({
   isOpen,
-  initialName = 'Tortilla Española Clásica',
+  initialName = "Tortilla Española Clásica",
   onConfirm,
   onSkip,
 }) => {
@@ -46,27 +46,31 @@ export const PlateDishNameModal: React.FC<PlateDishNameModalProps> = ({
 
   return (
     <div className="plate-dish-modal-overlay" onClick={onSkip}>
-      <div className="plate-dish-modal-card" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="plate-dish-modal-card"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="plate-dish-modal-header">
           <div className="plate-dish-modal-icon">🍽️</div>
           <div>
-            <h3>{t('recorder.dishNameModalTitle')}</h3>
+            <h3>{t("recorder.dishNameModalTitle")}</h3>
             <p className="plate-dish-modal-subtitle">
-              {t('recorder.dishNameModalSubtitle')}
+              {t("recorder.dishNameModalSubtitle")}
             </p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="plate-dish-modal-body">
-          <label className="plate-dish-modal-label">
-            {t('ui.finalNameLabel')}
+          <label htmlFor="dishNameInput" className="plate-dish-modal-label">
+            {t("ui.finalNameLabel")}
           </label>
           <input
+            id="dishNameInput"
             type="text"
             className="plate-dish-modal-input"
             value={dishName}
             onChange={(e) => setDishName(e.target.value)}
-            placeholder={t('recorder.dishNamePlaceholder')}
+            placeholder={t("recorder.dishNamePlaceholder")}
             autoFocus
           />
 
@@ -76,13 +80,10 @@ export const PlateDishNameModal: React.FC<PlateDishNameModalProps> = ({
               className="plate-dish-modal-btn secondary"
               onClick={onSkip}
             >
-              {t('recorder.skipDishName')}
+              {t("recorder.skipDishName")}
             </button>
-            <button
-              type="submit"
-              className="plate-dish-modal-btn primary"
-            >
-              {t('recorder.saveDishNameAndStop')}
+            <button type="submit" className="plate-dish-modal-btn primary">
+              {t("recorder.saveDishNameAndStop")}
             </button>
           </div>
         </form>
