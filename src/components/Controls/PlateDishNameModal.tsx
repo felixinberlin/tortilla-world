@@ -58,11 +58,12 @@ export const PlateDishNameModal: React.FC<PlateDishNameModalProps> = ({
         </div>
 
         <form onSubmit={handleSubmit} className="plate-dish-modal-body">
-          <label className="plate-dish-modal-label">
+          <label htmlFor="dish-name" className="plate-dish-modal-label">
             {t('ui.finalNameLabel')}
           </label>
           <input
             type="text"
+            id="dish-name"
             className="plate-dish-modal-input"
             value={dishName}
             onChange={(e) => setDishName(e.target.value)}
