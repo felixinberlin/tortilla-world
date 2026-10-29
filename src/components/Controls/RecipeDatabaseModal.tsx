@@ -256,7 +256,7 @@ export const RecipeDatabaseModal: React.FC = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           {searchQuery && (
-            <button className="clear-btn" onClick={() => setSearchQuery('')}>
+            <button type="button" aria-label="Clear search" className="clear-btn" onClick={() => setSearchQuery('')}>
               ✕
             </button>
           )}
@@ -343,6 +343,7 @@ export const RecipeDatabaseModal: React.FC = () => {
                   </span>
                   <button
                     type="button"
+                    aria-label={`Delete ${recipe.title}`}
                     className="delete-btn"
                     onClick={() => handleDeleteRecipe(recipe.id, recipe.title)}
                     title="Delete recipe from Firestore"
@@ -408,7 +409,7 @@ export const RecipeDatabaseModal: React.FC = () => {
           <div className="format-inspector-content" onClick={(e) => e.stopPropagation()}>
             <div className="inspector-header">
               <h3>📜 Multi-Format Export Preview: {selectedFormatPreview.title}</h3>
-              <button className="close-btn" onClick={() => setSelectedFormatPreview(null)}>
+              <button type="button" aria-label="Close preview" className="close-btn" onClick={() => setSelectedFormatPreview(null)}>
                 ✕
               </button>
             </div>
