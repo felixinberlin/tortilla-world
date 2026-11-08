@@ -256,7 +256,7 @@ export const RecipeDatabaseModal: React.FC = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           {searchQuery && (
-            <button className="clear-btn" onClick={() => setSearchQuery('')}>
+            <button type="button" aria-label="Clear search" className="clear-btn" onClick={() => setSearchQuery('')}>
               ✕
             </button>
           )}
@@ -346,6 +346,7 @@ export const RecipeDatabaseModal: React.FC = () => {
                     className="delete-btn"
                     onClick={() => handleDeleteRecipe(recipe.id, recipe.title)}
                     title="Delete recipe from Firestore"
+                    aria-label="Delete recipe"
                   >
                     🗑️
                   </button>
@@ -375,6 +376,7 @@ export const RecipeDatabaseModal: React.FC = () => {
                   className="play-btn mascot-play"
                   onClick={() => handlePlayRecipe(recipe, true)}
                   disabled={isPlaying}
+                  aria-label="Play recipe with mascot"
                 >
                   {isPlaying && activePlaybackId === recipe.id ? '▶️ Playing...' : '▶️ Play Mascot'}
                 </button>
@@ -384,6 +386,7 @@ export const RecipeDatabaseModal: React.FC = () => {
                   className="play-btn auto-play"
                   onClick={() => handlePlayRecipe(recipe, false)}
                   disabled={isPlaying}
+                  aria-label="Play recipe alone"
                 >
                   ⚡ Play Alone
                 </button>
@@ -393,6 +396,7 @@ export const RecipeDatabaseModal: React.FC = () => {
                   className="inspect-btn"
                   onClick={() => setSelectedFormatPreview(recipe)}
                   title="Inspect Formats & Download JSON"
+                  aria-label="Inspect formats and download JSON"
                 >
                   👁️ Formats
                 </button>
@@ -408,7 +412,7 @@ export const RecipeDatabaseModal: React.FC = () => {
           <div className="format-inspector-content" onClick={(e) => e.stopPropagation()}>
             <div className="inspector-header">
               <h3>📜 Multi-Format Export Preview: {selectedFormatPreview.title}</h3>
-              <button className="close-btn" onClick={() => setSelectedFormatPreview(null)}>
+              <button type="button" aria-label="Close export preview" className="close-btn" onClick={() => setSelectedFormatPreview(null)}>
                 ✕
               </button>
             </div>

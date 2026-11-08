@@ -452,6 +452,7 @@ export const PlayerGuideModal: React.FC<PlayerGuideModalProps> = ({ onClose, isO
 
             <div className="player-guide-footer">
               <button
+                type="button"
                 ref={closeButtonRef}
                 className="start-cooking-btn"
                 onClick={onClose}
