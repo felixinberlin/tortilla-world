@@ -12,9 +12,9 @@
  * - Seeds default recipes, ingredients, and tools into Firestore.
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { useStore } from 'zustand';
-import { worldStore } from '../../store/worldStore';
+import React, { useState, useEffect, useCallback } from "react";
+import { useStore } from "zustand";
+import { worldStore } from "../../store/worldStore";
 import {
   searchRecipesInDb,
   deleteRecipeFromDb,
@@ -22,39 +22,48 @@ import {
   seedDefaultToolsInDb,
   seedDefaultIngredientsInDb,
   seedDefaultKitchenConfigInDb,
-} from '../../services/dbService';
-import type { SavedRecipe } from '../../services/dbService';
-import { RecipeRunner } from '../../systems/recipeRunner';
-import { actionPlayer } from '../../systems/actionPlayer';
-import { detectRecipeFormat, getPlayableActionsFromFormat } from '../../utils/recipeFormatDetector';
-import { extractUsedIngredientsFromActions } from '../../utils/sessionLogUtils';
-import type { RecordedAction } from '../../types/recording';
-import './RecipeDatabaseModal.scss';
+} from "../../services/dbService";
+import type { SavedRecipe } from "../../services/dbService";
+import { RecipeRunner } from "../../systems/recipeRunner";
+import { actionPlayer } from "../../systems/actionPlayer";
+import {
+  detectRecipeFormat,
+  getPlayableActionsFromFormat,
+} from "../../utils/recipeFormatDetector";
+import { extractUsedIngredientsFromActions } from "../../utils/sessionLogUtils";
+import type { RecordedAction } from "../../types/recording";
+import "./RecipeDatabaseModal.scss";
 
 const POPULAR_INGREDIENTS = [
-  { id: 'garlic', name: 'Garlic 🧄' },
-  { id: 'egg', name: 'Eggs 🥚' },
-  { id: 'potato', name: 'Potatoes 🥔' },
-  { id: 'onion', name: 'Onion 🧅' },
-  { id: 'oil', name: 'Olive Oil 🫒' },
-  { id: 'chorizo', name: 'Chorizo 🌭' },
-  { id: 'salt', name: 'Salt 🧂' },
-  { id: 'cheese', name: 'Cheese 🧀' },
-  { id: 'tomato', name: 'Tomato 🍅' },
+  { id: "garlic", name: "Garlic 🧄" },
+  { id: "egg", name: "Eggs 🥚" },
+  { id: "potato", name: "Potatoes 🥔" },
+  { id: "onion", name: "Onion 🧅" },
+  { id: "oil", name: "Olive Oil 🫒" },
+  { id: "chorizo", name: "Chorizo 🌭" },
+  { id: "salt", name: "Salt 🧂" },
+  { id: "cheese", name: "Cheese 🧀" },
+  { id: "tomato", name: "Tomato 🍅" },
 ];
 
 export const RecipeDatabaseModal: React.FC = () => {
   const [recipes, setRecipes] = useState<SavedRecipe[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
-  const [mascotFilter, setMascotFilter] = useState<'all' | 'mascot' | 'autonomous'>('all');
+  const [mascotFilter, setMascotFilter] = useState<
+    "all" | "mascot" | "autonomous"
+  >("all");
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [activePlaybackId, setActivePlaybackId] = useState<string | null>(null);
-  const [statusMessage, setStatusMessage] = useState<string>('');
+  const [statusMessage, setStatusMessage] = useState<string>("");
 
-  const [selectedFormatPreview, setSelectedFormatPreview] = useState<SavedRecipe | null>(null);
-  const [recipeToDelete, setRecipeToDelete] = useState<{ id: string; title: string } | null>(null);
+  const [selectedFormatPreview, setSelectedFormatPreview] =
+    useState<SavedRecipe | null>(null);
+  const [recipeToDelete, setRecipeToDelete] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
 
   const dispatch = useStore(worldStore, (state) => state.dispatch);
 
@@ -65,9 +74,14 @@ export const RecipeDatabaseModal: React.FC = () => {
       if (!ignore) setLoading(true);
     });
 
-    const ingredientQuery = selectedIngredients.length > 0 ? selectedIngredients : undefined;
+    const ingredientQuery =
+      selectedIngredients.length > 0 ? selectedIngredients : undefined;
     const mascotBool =
-      mascotFilter === 'mascot' ? true : mascotFilter === 'autonomous' ? false : undefined;
+      mascotFilter === "mascot"
+        ? true
+        : mascotFilter === "autonomous"
+          ? false
+          : undefined;
 
     searchRecipesInDb({
       ingredientQuery,
@@ -80,7 +94,7 @@ export const RecipeDatabaseModal: React.FC = () => {
         }
       })
       .catch((err) => {
-        console.warn('Error loading Firestore recipes:', err);
+        console.warn("Error loading Firestore recipes:", err);
       })
       .finally(() => {
         if (!ignore) {
@@ -96,9 +110,14 @@ export const RecipeDatabaseModal: React.FC = () => {
   const refreshRecipes = useCallback(async () => {
     setLoading(true);
     try {
-      const ingredientQuery = selectedIngredients.length > 0 ? selectedIngredients : undefined;
+      const ingredientQuery =
+        selectedIngredients.length > 0 ? selectedIngredients : undefined;
       const mascotBool =
-        mascotFilter === 'mascot' ? true : mascotFilter === 'autonomous' ? false : undefined;
+        mascotFilter === "mascot"
+          ? true
+          : mascotFilter === "autonomous"
+            ? false
+            : undefined;
 
       const data = await searchRecipesInDb({
         ingredientQuery,
@@ -108,7 +127,7 @@ export const RecipeDatabaseModal: React.FC = () => {
 
       setRecipes(data);
     } catch (err) {
-      console.warn('Error loading Firestore recipes:', err);
+      console.warn("Error loading Firestore recipes:", err);
     } finally {
       setLoading(false);
     }
@@ -116,9 +135,9 @@ export const RecipeDatabaseModal: React.FC = () => {
 
   const downloadJSON = (data: unknown, filename: string) => {
     const jsonStr = JSON.stringify(data, null, 2);
-    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const blob = new Blob([jsonStr], { type: "application/json" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
     a.download = filename;
     a.click();
@@ -127,13 +146,15 @@ export const RecipeDatabaseModal: React.FC = () => {
 
   const toggleIngredientFilter = (ingId: string) => {
     setSelectedIngredients((prev) =>
-      prev.includes(ingId) ? prev.filter((i) => i !== ingId) : [...prev, ingId]
+      prev.includes(ingId) ? prev.filter((i) => i !== ingId) : [...prev, ingId],
     );
   };
 
   const handleSeedDefaults = async () => {
     setLoading(true);
-    setStatusMessage('Seeding default recipes, tools, and ingredients to Firestore...');
+    setStatusMessage(
+      "Seeding default recipes, tools, and ingredients to Firestore...",
+    );
     try {
       await Promise.all([
         seedDefaultRecipesInDb(),
@@ -141,26 +162,29 @@ export const RecipeDatabaseModal: React.FC = () => {
         seedDefaultIngredientsInDb(),
         seedDefaultKitchenConfigInDb(),
       ]);
-      setStatusMessage('✅ Firestore database seeded successfully!');
+      setStatusMessage("✅ Firestore database seeded successfully!");
       await refreshRecipes();
     } catch (err) {
-      setStatusMessage('❌ Seeding failed. Check console.');
+      setStatusMessage("❌ Seeding failed. Check console.");
       console.error(err);
     } finally {
       setLoading(false);
-      setTimeout(() => setStatusMessage(''), 4000);
+      setTimeout(() => setStatusMessage(""), 4000);
     }
   };
 
-  const handlePlayRecipe = async (savedRecipe: SavedRecipe, withMascot: boolean) => {
+  const handlePlayRecipe = async (
+    savedRecipe: SavedRecipe,
+    withMascot: boolean,
+  ) => {
     setIsPlaying(true);
     setActivePlaybackId(savedRecipe.id);
     setStatusMessage(
-      `Playing "${savedRecipe.title}" ${withMascot ? 'with Ms. Tortilla Mascot 🤖' : 'Autonomously ⚡'}...`
+      `Playing "${savedRecipe.title}" ${withMascot ? "with Ms. Tortilla Mascot 🤖" : "Autonomously ⚡"}...`,
     );
 
     try {
-      dispatch({ type: 'RESET_WORLD' });
+      dispatch({ type: "RESET_WORLD" });
       await new Promise((res) => setTimeout(res, 400));
 
       const detected = detectRecipeFormat(savedRecipe);
@@ -168,11 +192,19 @@ export const RecipeDatabaseModal: React.FC = () => {
 
       if (playable.actions.length > 0) {
         const extracted = extractUsedIngredientsFromActions(playable.actions);
-        worldStore.getState().setRecordedActions(playable.actions as unknown as RecordedAction[], extracted);
-        window.dispatchEvent(new CustomEvent('select-recorded-session'));
+        worldStore
+          .getState()
+          .setRecordedActions(
+            playable.actions as unknown as RecordedAction[],
+            extracted,
+          );
+        window.dispatchEvent(new CustomEvent("select-recorded-session"));
       }
 
-      if (detected.type === 'declarative' && detected.declarativeRecipe?.steps) {
+      if (
+        detected.type === "declarative" &&
+        detected.declarativeRecipe?.steps
+      ) {
         const runner = new RecipeRunner({
           delayMs: withMascot ? 500 : 350,
         });
@@ -180,7 +212,9 @@ export const RecipeDatabaseModal: React.FC = () => {
           runner.useMascot = false;
         }
         await runner.runRecipe(detected.declarativeRecipe);
-        setStatusMessage(`✅ Finished playing "${savedRecipe.title}" [Declarative Recipe]!`);
+        setStatusMessage(
+          `✅ Finished playing "${savedRecipe.title}" [Declarative Recipe]!`,
+        );
       } else {
         const playable = getPlayableActionsFromFormat(detected);
         if (playable.actions.length > 0) {
@@ -188,13 +222,17 @@ export const RecipeDatabaseModal: React.FC = () => {
             delayMs: withMascot ? 400 : 250,
             resetWorld: false,
           });
-          setStatusMessage(`✅ Finished playing "${savedRecipe.title}" [${detected.typeLabel}]!`);
+          setStatusMessage(
+            `✅ Finished playing "${savedRecipe.title}" [${detected.typeLabel}]!`,
+          );
         } else {
-          setStatusMessage(`⚠️ Selected recipe "${savedRecipe.title}" contains no playable format.`);
+          setStatusMessage(
+            `⚠️ Selected recipe "${savedRecipe.title}" contains no playable format.`,
+          );
         }
       }
     } catch (err) {
-      const errMsg = err instanceof Error ? err.message : 'Unknown error';
+      const errMsg = err instanceof Error ? err.message : "Unknown error";
       setStatusMessage(`❌ Execution error: ${errMsg}`);
       console.error(err);
     } finally {
@@ -219,7 +257,7 @@ export const RecipeDatabaseModal: React.FC = () => {
     } else {
       setStatusMessage(`❌ Failed to delete "${title}".`);
     }
-    setTimeout(() => setStatusMessage(''), 3500);
+    setTimeout(() => setStatusMessage(""), 3500);
   };
 
   return (
@@ -228,7 +266,10 @@ export const RecipeDatabaseModal: React.FC = () => {
       <div className="db-header">
         <div className="db-title-area">
           <h2>🗄️ Firestore Recipe Database & Saved Games</h2>
-          <p>Search, filter, and play recipes in multiple formats directly from Cloud Firestore.</p>
+          <p>
+            Search, filter, and play recipes in multiple formats directly from
+            Cloud Firestore.
+          </p>
         </div>
 
         <div className="db-header-actions">
@@ -256,7 +297,11 @@ export const RecipeDatabaseModal: React.FC = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           {searchQuery && (
-            <button className="clear-btn" onClick={() => setSearchQuery('')}>
+            <button
+              className="clear-btn"
+              onClick={() => setSearchQuery("")}
+              aria-label="Clear search"
+            >
               ✕
             </button>
           )}
@@ -267,22 +312,22 @@ export const RecipeDatabaseModal: React.FC = () => {
           <label>Mascot Mode:</label>
           <button
             type="button"
-            className={`filter-tab ${mascotFilter === 'all' ? 'active' : ''}`}
-            onClick={() => setMascotFilter('all')}
+            className={`filter-tab ${mascotFilter === "all" ? "active" : ""}`}
+            onClick={() => setMascotFilter("all")}
           >
             All
           </button>
           <button
             type="button"
-            className={`filter-tab ${mascotFilter === 'mascot' ? 'active' : ''}`}
-            onClick={() => setMascotFilter('mascot')}
+            className={`filter-tab ${mascotFilter === "mascot" ? "active" : ""}`}
+            onClick={() => setMascotFilter("mascot")}
           >
             🤖 With Mascot
           </button>
           <button
             type="button"
-            className={`filter-tab ${mascotFilter === 'autonomous' ? 'active' : ''}`}
-            onClick={() => setMascotFilter('autonomous')}
+            className={`filter-tab ${mascotFilter === "autonomous" ? "active" : ""}`}
+            onClick={() => setMascotFilter("autonomous")}
           >
             ⚡ Autonomous Only
           </button>
@@ -299,10 +344,10 @@ export const RecipeDatabaseModal: React.FC = () => {
               <button
                 key={ing.id}
                 type="button"
-                className={`ingredient-chip ${isSelected ? 'selected' : ''}`}
+                className={`ingredient-chip ${isSelected ? "selected" : ""}`}
                 onClick={() => toggleIngredientFilter(ing.id)}
               >
-                {ing.name} {isSelected ? '✓' : ''}
+                {ing.name} {isSelected ? "✓" : ""}
               </button>
             );
           })}
@@ -321,11 +366,17 @@ export const RecipeDatabaseModal: React.FC = () => {
       {/* Recipes List Grid */}
       <div className="recipes-grid">
         {loading ? (
-          <div className="loading-state">⏳ Loading Firestore database records...</div>
+          <div className="loading-state">
+            ⏳ Loading Firestore database records...
+          </div>
         ) : recipes.length === 0 ? (
           <div className="empty-state">
             <p>No recipes found matching your query filters.</p>
-            <button type="button" className="db-btn btn-seed" onClick={handleSeedDefaults}>
+            <button
+              type="button"
+              className="db-btn btn-seed"
+              onClick={handleSeedDefaults}
+            >
               🌱 Seed Default Recipes into Firestore
             </button>
           </div>
@@ -335,11 +386,18 @@ export const RecipeDatabaseModal: React.FC = () => {
               <div className="card-top-row">
                 <div className="card-title-group">
                   <h3 className="card-title">{recipe.title}</h3>
-                  <span className="card-author-date">by {recipe.author} • {new Date(recipe.updatedAt || recipe.createdAt).toLocaleDateString()}</span>
+                  <span className="card-author-date">
+                    by {recipe.author} •{" "}
+                    {new Date(
+                      recipe.updatedAt || recipe.createdAt,
+                    ).toLocaleDateString()}
+                  </span>
                 </div>
                 <div className="card-top-actions">
-                  <span className={`mascot-badge ${recipe.hasMascotSupport ? 'mascot' : 'autonomous'}`}>
-                    {recipe.hasMascotSupport ? '🤖 Mascot' : '⚡ Auto'}
+                  <span
+                    className={`mascot-badge ${recipe.hasMascotSupport ? "mascot" : "autonomous"}`}
+                  >
+                    {recipe.hasMascotSupport ? "🤖 Mascot" : "⚡ Auto"}
                   </span>
                   <button
                     type="button"
@@ -352,7 +410,9 @@ export const RecipeDatabaseModal: React.FC = () => {
                 </div>
               </div>
 
-              {recipe.description && <p className="card-desc">{recipe.description}</p>}
+              {recipe.description && (
+                <p className="card-desc">{recipe.description}</p>
+              )}
 
               <div className="card-mid-row">
                 <div className="ingredient-badges">
@@ -363,9 +423,15 @@ export const RecipeDatabaseModal: React.FC = () => {
                   ))}
                 </div>
                 <div className="formats-available">
-                  {recipe.formats?.recipeJson && <span className="fmt-pill">📜 JSON</span>}
-                  {recipe.formats?.mascotSequence && <span className="fmt-pill">🤖 Mascot</span>}
-                  {recipe.formats?.fullSessionLog && <span className="fmt-pill">💾 Log</span>}
+                  {recipe.formats?.recipeJson && (
+                    <span className="fmt-pill">📜 JSON</span>
+                  )}
+                  {recipe.formats?.mascotSequence && (
+                    <span className="fmt-pill">🤖 Mascot</span>
+                  )}
+                  {recipe.formats?.fullSessionLog && (
+                    <span className="fmt-pill">💾 Log</span>
+                  )}
                 </div>
               </div>
 
@@ -376,7 +442,9 @@ export const RecipeDatabaseModal: React.FC = () => {
                   onClick={() => handlePlayRecipe(recipe, true)}
                   disabled={isPlaying}
                 >
-                  {isPlaying && activePlaybackId === recipe.id ? '▶️ Playing...' : '▶️ Play Mascot'}
+                  {isPlaying && activePlaybackId === recipe.id
+                    ? "▶️ Playing..."
+                    : "▶️ Play Mascot"}
                 </button>
 
                 <button
@@ -404,28 +472,49 @@ export const RecipeDatabaseModal: React.FC = () => {
 
       {/* Format Inspector Modal */}
       {selectedFormatPreview && (
-        <div className="format-inspector-overlay" onClick={() => setSelectedFormatPreview(null)}>
-          <div className="format-inspector-content" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="format-inspector-overlay"
+          onClick={() => setSelectedFormatPreview(null)}
+        >
+          <div
+            className="format-inspector-content"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="inspector-header">
-              <h3>📜 Multi-Format Export Preview: {selectedFormatPreview.title}</h3>
-              <button className="close-btn" onClick={() => setSelectedFormatPreview(null)}>
+              <h3>
+                📜 Multi-Format Export Preview: {selectedFormatPreview.title}
+              </h3>
+              <button
+                className="close-btn"
+                onClick={() => setSelectedFormatPreview(null)}
+                aria-label="Close preview"
+              >
                 ✕
               </button>
             </div>
 
             <div className="inspector-body">
               <div className="format-section">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                  <h4 style={{ margin: 0 }}>🤖 Mascot Action Sequence Format</h4>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "6px",
+                  }}
+                >
+                  <h4 style={{ margin: 0 }}>
+                    🤖 Mascot Action Sequence Format
+                  </h4>
                   {selectedFormatPreview.formats?.mascotSequence && (
                     <button
                       type="button"
                       className="db-btn"
-                      style={{ padding: '4px 10px', fontSize: '0.8rem' }}
+                      style={{ padding: "4px 10px", fontSize: "0.8rem" }}
                       onClick={() =>
                         downloadJSON(
                           selectedFormatPreview.formats.mascotSequence,
-                          `${selectedFormatPreview.id}_mascot_sequence.json`
+                          `${selectedFormatPreview.id}_mascot_sequence.json`,
                         )
                       }
                     >
@@ -433,21 +522,36 @@ export const RecipeDatabaseModal: React.FC = () => {
                     </button>
                   )}
                 </div>
-                <pre>{JSON.stringify(selectedFormatPreview.formats?.mascotSequence || [], null, 2)}</pre>
+                <pre>
+                  {JSON.stringify(
+                    selectedFormatPreview.formats?.mascotSequence || [],
+                    null,
+                    2,
+                  )}
+                </pre>
               </div>
 
               <div className="format-section">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                  <h4 style={{ margin: 0 }}>📜 Declarative Recipe JSON Format</h4>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "6px",
+                  }}
+                >
+                  <h4 style={{ margin: 0 }}>
+                    📜 Declarative Recipe JSON Format
+                  </h4>
                   {selectedFormatPreview.formats?.recipeJson && (
                     <button
                       type="button"
                       className="db-btn"
-                      style={{ padding: '4px 10px', fontSize: '0.8rem' }}
+                      style={{ padding: "4px 10px", fontSize: "0.8rem" }}
                       onClick={() =>
                         downloadJSON(
                           selectedFormatPreview.formats.recipeJson,
-                          `${selectedFormatPreview.id}_recipe.json`
+                          `${selectedFormatPreview.id}_recipe.json`,
                         )
                       }
                     >
@@ -455,21 +559,34 @@ export const RecipeDatabaseModal: React.FC = () => {
                     </button>
                   )}
                 </div>
-                <pre>{JSON.stringify(selectedFormatPreview.formats?.recipeJson || {}, null, 2)}</pre>
+                <pre>
+                  {JSON.stringify(
+                    selectedFormatPreview.formats?.recipeJson || {},
+                    null,
+                    2,
+                  )}
+                </pre>
               </div>
 
               <div className="format-section">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "6px",
+                  }}
+                >
                   <h4 style={{ margin: 0 }}>💾 Full Session Log Format</h4>
                   {selectedFormatPreview.formats?.fullSessionLog && (
                     <button
                       type="button"
                       className="db-btn"
-                      style={{ padding: '4px 10px', fontSize: '0.8rem' }}
+                      style={{ padding: "4px 10px", fontSize: "0.8rem" }}
                       onClick={() =>
                         downloadJSON(
                           selectedFormatPreview.formats.fullSessionLog,
-                          `${selectedFormatPreview.id}_session_log.json`
+                          `${selectedFormatPreview.id}_session_log.json`,
                         )
                       }
                     >
@@ -477,7 +594,13 @@ export const RecipeDatabaseModal: React.FC = () => {
                     </button>
                   )}
                 </div>
-                <pre>{JSON.stringify(selectedFormatPreview.formats?.fullSessionLog || {}, null, 2)}</pre>
+                <pre>
+                  {JSON.stringify(
+                    selectedFormatPreview.formats?.fullSessionLog || {},
+                    null,
+                    2,
+                  )}
+                </pre>
               </div>
             </div>
           </div>
@@ -490,7 +613,9 @@ export const RecipeDatabaseModal: React.FC = () => {
           <div className="delete-confirm-modal">
             <h3>🗑️ Confirm Firestore Deletion</h3>
             <p>
-              Are you sure you want to delete <strong>"{recipeToDelete.title}"</strong> from Cloud Firestore? This action cannot be undone.
+              Are you sure you want to delete{" "}
+              <strong>"{recipeToDelete.title}"</strong> from Cloud Firestore?
+              This action cannot be undone.
             </p>
             <div className="confirm-actions">
               <button
